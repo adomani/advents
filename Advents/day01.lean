@@ -71,8 +71,18 @@ def smun : List String := nums.map fun x => ⟨x.toList.reverse⟩
 
 --#eval smun
 
+/-- This instance allows us to add an `Option Nat` and a `Nat`:
+* `none` absorbs every sum to itself (e.g. `none` is "`-∞`"),
+*  while adding `some a` and `b` gives `some (a + b)`.
+-/
 instance : HAdd (Option Nat) Nat (Option Nat) where
-  hAdd | none, _ => none | some x, y => some (x + y)
+  hAdd | some x, y => some (x + y) | _, _ => none
+
+/-  The code in this comment has the same effect as the one in the previous instance.
+instance : HAdd (Option Nat) Nat (Option Nat) where
+  hAdd x y := return (← x) + y
+-/
+
 
 /-- `word_position_in s names` takes a string `s` and a list of strings `names`.
 It checks if `s` begins with one of the string in `names`.
