@@ -6,4 +6,4 @@ vscode:
     - leanprover.lean4
 
 tasks:
-  - init: lake build
+  - init: lake build Advents.Utils
