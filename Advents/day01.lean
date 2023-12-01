@@ -83,7 +83,6 @@ instance : HAdd (Option Nat) Nat (Option Nat) where
   hAdd x y := return (← x) + y
 -/
 
-
 /-- `word_position_in s names` takes a string `s` and a list of strings `names`.
 It checks if `s` begins with one of the string in `names`.
 If so, then it returns `some (position_of_s_in_names)`, otherwise it returns `none`. -/
@@ -96,7 +95,7 @@ def word_position_in (s : String) (names : List String) : Option Nat :=
 --#eval word_position_in "evif" smun == some 5
 
 --  uncomment to check that both answers are `[some 1, ..., some 9]`
---#eval nums.map (word_position_in · nums) == (List.range 9).map (fun x => some (x + 1))
+--#eval nums.map (word_position_in · nums) == (List.range 9).map fun x => some (x + 1)
 --#eval smun.map (word_position_in · smun) == (List.range 9).map fun x => some (x + 1)
 
 /-- The test string for the second part. -/
