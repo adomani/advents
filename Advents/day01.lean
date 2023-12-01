@@ -25,8 +25,7 @@ def last_digit? (l : List Char) : Option Nat :=
 obtained by extracting from `s` the first appearing digit and the last appearing digit. -/
 def calibration (s : String) : Nat :=
   let chars := s.toList
-  (first_digit? chars).get! * 10 +
-  (last_digit? chars).get!
+  (first_digit? chars).get! * 10 + (last_digit? chars).get!
 
 def test : String :=
 "1abc2
