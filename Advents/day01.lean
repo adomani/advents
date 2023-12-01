@@ -4,6 +4,10 @@ open Lean
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/i01.txt"
 
+/-!
+#  Question 1
+-/
+
 --  Uncomment to take a look at the contents of the input file
 --#eval do IO.println (← IO.FS.readFile input)
 
@@ -47,13 +51,17 @@ This is the function that answers the first question of Day 1. -/
 def total_calibration (rows : List String) : Nat :=
   (rows.map calibration).sum
 
---  Question 1: answer 54644
+--  Question 1: answer `54644`
 #eval show MetaM _ from do
   let _rows := test.splitOn "\n"
   let _rows := (← IO.FS.lines input).toList
   let answer := total_calibration _rows
   IO.println <| answer
   guard (answer = 54644)
+
+/-!
+#  Question 2
+-/
 
 /-- `nums` is the list of strings representing the English words for a single non-zero digits,
 in order from `"one"` to `"nine"`. -/
@@ -112,6 +120,7 @@ def first_digit_in? (names : List String) : List Char → Option Nat
       | none => first_digit_in? names as
       | n    => n
 
+--  Question 2: answer `53348`
 #eval show MetaM _ from do
   let _rows := test2.splitOn "\n"
   let _rows := (← IO.FS.lines input).toList
