@@ -20,15 +20,11 @@ def first_digit? : List Char → Option Nat
   | [] => none
   | a::as => if a.isDigit then a.toString.toNat! else first_digit? as
 
-/-- `last_digit? chars` behaves like `first_digit?`, but starting from the end of the list. -/
-def last_digit? (l : List Char) : Option Nat :=
-  first_digit? l.reverse
-
 /-- `calibration s` takes a string `s` as input, returning the two-digit natural number
 obtained by extracting from `s` the first appearing digit and the last appearing digit. -/
 def calibration (s : String) : Nat :=
   let chars := s.toList
-  (first_digit? chars).get! * 10 + (last_digit? chars).get!
+  (first_digit? chars).get! * 10 + (first_digit? chars.reverse).get!
 
 /-- The test string for the first part. -/
 def test : String :=
