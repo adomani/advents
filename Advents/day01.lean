@@ -9,7 +9,7 @@ def Array.sum {α} [Add α] [Inhabited α] (l : Array α) : α :=
   l.toList.sum
 
 
-def input : System.FilePath := "MA4N1_2023/i01.txt"
+def input : System.FilePath := "Advents/i01.txt"
 
 #eval do
   dbg_trace (← IO.FS.lines input)
@@ -30,8 +30,7 @@ def test : String :=
 "1abc2
 pqr3stu8vwx
 a1b2c3d4e5f
-treb7uchet
-"
+treb7uchet"
 
 #eval do
   let rows := test.splitOn "\n"
@@ -86,8 +85,7 @@ abcone2threexyz
 xtwone3four
 4nineeightseven2
 zoneight234
-7pqrstsixteen
-"
+7pqrstsixteen"
 
 def first_digit2? : List Char → Option Nat
   | [] => none
