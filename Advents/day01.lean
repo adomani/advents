@@ -40,6 +40,11 @@ treb7uchet"
   IO.println <| answer
   guard (answer == 142)
 
+/-- `total_calibration rows` takes as input a list of strings `rows`.
+It extracts the first and last digit appear in each row, forms the corresponding two-digit number
+and adds up the result.
+
+This is the function that answers the first question of Day 1. -/
 def total_calibration (rows : List String) : Nat :=
   (rows.map calibration).sum
 
