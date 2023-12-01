@@ -95,33 +95,29 @@ xtwone3four
 zoneight234
 7pqrstsixteen"
 
-def first_digit2? : List Char → Option Nat
+/-- `first_digit_in? names chars` takes as input
+* a list of strings `names` and
+* a list of characters `chars`.
+The function scans `chars`, looking for
+* either a single digit `d`, returning `some d`;
+* or a consecutive list of characters spelling a string in `names`, returning `some <position_in_names>`.
+If it concludes scanning without finding any match, it returns `none`.
+-/
+def first_digit_in? (names : List String) : List Char → Option Nat
   | [] => none
   | l@(a::as) =>
     if a.isDigit then first_digit? l else
-    let init := word_position_in ⟨l⟩ nums
+    let init := word_position_in ⟨l⟩ names
     match init with
-      | none => first_digit2? as
+      | none => first_digit_in? names as
       | n    => n
 
-partial
-def last_digit2? (s : List Char) : Option Nat :=
-  match s.reverse with
-    | [] => none
-    | l@(a::as) =>
-      if a.isDigit then first_digit? l else
-      let init := word_position_in ⟨l⟩ smun
-      match init with
-        | none => last_digit2? as.reverse
-        | n    => n
-
 #eval show MetaM _ from do
-  let rows := test2.splitOn "\n"
-  let rows := (← IO.FS.lines input).toList
-  let firsts := rows.map ((Option.getD · 0) ∘ first_digit2? ∘ String.toList)
-  let secs   := rows.map ((Option.getD · 0) ∘  last_digit2? ∘ String.toList)
+  let _rows := test2.splitOn "\n"
+  let _rows := (← IO.FS.lines input).toList
+  let firsts := _rows.map fun x => Option.getD (first_digit_in? nums x.toList) 0
+  let secs   := _rows.map fun x => Option.getD (first_digit_in? smun x.toList.reverse) 0
 --  IO.println <| firsts.zip secs
   let vals := (firsts.map (10 * ·)).zipWith (· + ·) secs
   let answer := vals.sum
-  IO.println answer
-  guard (answer = 53348)
+  guard (answer == 53348)
