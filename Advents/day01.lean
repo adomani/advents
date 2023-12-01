@@ -4,9 +4,8 @@ open Lean
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/i01.txt"
 
---  Let's take a look at the contents of the input file
-#eval do
-  IO.println (← IO.FS.readFile input)
+--  Uncomment to take a look at the contents of the input file
+--#eval do IO.println (← IO.FS.readFile input)
 
 /-- `first_digit? chars` given a list of characters `chars`,
 * if `chars` contains at least one digit, then
@@ -37,7 +36,7 @@ treb7uchet"
 #eval show MetaM _ from do
   let rows := test.splitOn "\n"
   let answer := (rows.map calibration).sum
-  IO.println <| answer
+--  IO.println <| answer
   guard (answer == 142)
 
 /-- `total_calibration rows` takes as input a list of strings `rows`.
@@ -56,27 +55,38 @@ def total_calibration (rows : List String) : Nat :=
   IO.println <| answer
   guard (answer = 54644)
 
+/-- `nums` is the list of strings representing the English words for a single non-zero digits,
+in order from `"one"` to `"nine"`. -/
 def nums : List String := ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+
+--#eval nums
+
+/-- `smun` is the list `nums`, but where each entry is spelled backwards,
+i.e. it consists of `"eno"`, `"owt"`, ..., `"enin"`. -/
+def smun : List String := nums.map fun x => ⟨x.toList.reverse⟩
+
+--#eval smun
 
 instance : HAdd (Option Nat) Nat (Option Nat) where
   hAdd | none, _ => none | some x, y => some (x + y)
 
+/-- `word_isNat? s` takes a string `s` and checks if it begins with one of the string in `nums`,
+i.e. if it begins with the English word for a single non-zero digit.
+If so, then it returns `some corresponding_nat`, otherwise it returns `none`. -/
 def word_isNat? (s : String) : Option Nat :=
-  let words := nums
-  let poss := List.findIdx? (String.isPrefixOf · s) words
+  let poss := List.findIdx? (String.isPrefixOf · s) nums
   poss + 1
 
-#eval word_isNat? "three"
+--  uncomment to check that the answer is `3`
+--#eval word_isNat? "three" == some 3
 
+/-- `drow_isNat? s` is like `word_isNat? s`, except that it looks for digits spelled backwards. -/
 def drow_isNat? (s : String) : Option Nat :=
-  let words := nums.map fun x => ⟨x.toList.reverse⟩
-  let poss := List.findIdx? (String.isPrefixOf · s) words
+  let poss := List.findIdx? (String.isPrefixOf · s) smun
   poss + 1
 
-#eval
-  let words := ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-  words.map word_isNat?
-
+--  uncomment to check that the answer is `[some 1, ..., some 9]`
+--#eval nums.map word_isNat? == (List.range 9).map fun x => some (x + 1)
 
 def test2 : String :=
 "two1nine
