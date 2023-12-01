@@ -51,27 +51,22 @@ def total_calibration (rows : List String) : Nat :=
   IO.println <| answer
   guard (answer = 54644)
 
+def nums : List String := ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+
 instance : HAdd (Option Nat) Nat (Option Nat) where
   hAdd | none, _ => none | some x, y => some (x + y)
 
 def word_isNat? (s : String) : Option Nat :=
-  let words := ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+  let words := nums
   let poss := List.findIdx? (String.isPrefixOf · s) words
   poss + 1
 
 #eval word_isNat? "three"
 
 def drow_isNat? (s : String) : Option Nat :=
-  if "eno".isPrefixOf s   then some 1 else
-  if "owt".isPrefixOf s   then some 2 else
-  if "eerht".isPrefixOf s then some 3 else
-  if "ruof".isPrefixOf s  then some 4 else
-  if "evif".isPrefixOf s  then some 5 else
-  if "xis".isPrefixOf s   then some 6 else
-  if "neves".isPrefixOf s then some 7 else
-  if "thgie".isPrefixOf s then some 8 else
-  if "enin".isPrefixOf s  then some 9 else
-  none
+  let words := nums.map fun x => ⟨x.toList.reverse⟩
+  let poss := List.findIdx? (String.isPrefixOf · s) words
+  poss + 1
 
 #eval
   let words := ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
