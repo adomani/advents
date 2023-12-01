@@ -70,24 +70,22 @@ def smun : List String := nums.map fun x => ⟨x.toList.reverse⟩
 instance : HAdd (Option Nat) Nat (Option Nat) where
   hAdd | none, _ => none | some x, y => some (x + y)
 
-/-- `word_isNat? s` takes a string `s` and checks if it begins with one of the string in `nums`,
-i.e. if it begins with the English word for a single non-zero digit.
-If so, then it returns `some corresponding_nat`, otherwise it returns `none`. -/
-def word_isNat? (s : String) : Option Nat :=
-  let poss := List.findIdx? (String.isPrefixOf · s) nums
+/-- `word_position_in s names` takes a string `s` and a list of strings `names`.
+It checks if `s` begins with one of the string in `names`.
+If so, then it returns `some (position_of_s_in_names)`, otherwise it returns `none`. -/
+def word_position_in (s : String) (names : List String) : Option Nat :=
+  let poss := List.findIdx? (String.isPrefixOf · s) names
   poss + 1
 
---  uncomment to check that the answer is `3`
---#eval word_isNat? "three" == some 3
+--  uncomment to check the answer
+--#eval word_position_in "three" nums == some 3
+--#eval word_position_in "evif" smun == some 5
 
-/-- `drow_isNat? s` is like `word_isNat? s`, except that it looks for digits spelled backwards. -/
-def drow_isNat? (s : String) : Option Nat :=
-  let poss := List.findIdx? (String.isPrefixOf · s) smun
-  poss + 1
+--  uncomment to check that both answers are `[some 1, ..., some 9]`
+--#eval nums.map (word_position_in · nums) == (List.range 9).map (fun x => some (x + 1))
+--#eval smun.map (word_position_in · smun) == (List.range 9).map fun x => some (x + 1)
 
---  uncomment to check that the answer is `[some 1, ..., some 9]`
---#eval nums.map word_isNat? == (List.range 9).map fun x => some (x + 1)
-
+/-- The test string for the second part. -/
 def test2 : String :=
 "two1nine
 eightwothree
@@ -101,7 +99,7 @@ def first_digit2? : List Char → Option Nat
   | [] => none
   | l@(a::as) =>
     if a.isDigit then first_digit? l else
-    let init := word_isNat? (⟨l⟩)
+    let init := word_position_in ⟨l⟩ nums
     match init with
       | none => first_digit2? as
       | n    => n
@@ -111,8 +109,8 @@ def last_digit2? (s : List Char) : Option Nat :=
   match s.reverse with
     | [] => none
     | l@(a::as) =>
-      if a.isDigit then last_digit? s else
-      let init := drow_isNat? (⟨l⟩)
+      if a.isDigit then first_digit? l else
+      let init := word_position_in ⟨l⟩ smun
       match init with
         | none => last_digit2? as.reverse
         | n    => n
