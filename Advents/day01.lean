@@ -27,18 +27,18 @@ def calibration (s : String) : Nat :=
   let chars := s.toList
   (first_digit? chars).get! * 10 + (last_digit? chars).get!
 
+/-- The test string for the first part. -/
 def test : String :=
 "1abc2
 pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet"
 
-#eval do
+#eval show MetaM _ from do
   let rows := test.splitOn "\n"
-  IO.println rows
-  IO.println <| rows.map (first_digit? ∘ String.toList)
-  IO.println <| rows.map calibration
-  IO.println <| (rows.map calibration).sum
+  let answer := (rows.map calibration).sum
+  IO.println <| answer
+  guard (answer == 142)
 
 def total_calibration (rows : List String) : Nat :=
   (rows.map calibration).sum
@@ -70,8 +70,8 @@ def drow_isNat? (s : String) : Option Nat :=
 
 #eval
   let words := ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-  dbg_trace words.map word_isNat?
-  0
+  words.map word_isNat?
+
 
 def test2 : String :=
 "two1nine
