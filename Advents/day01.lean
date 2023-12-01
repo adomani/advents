@@ -1,14 +1,22 @@
 import Advents.Utils
 
+/-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/i01.txt"
 
+--  Let's take a look at the contents of the input file
 #eval do
-  IO.println (← IO.FS.lines input)
+  IO.println (← IO.FS.readFile input)
 
+/-- `first_digit? chars` given a list of characters `chars`,
+* if the list contains at least one digit, then
+  return the corresponding natural number as `some n`,
+* if the list contains no digits, then return `none`.
+-/
 def first_digit? : List Char → Option Nat
   | [] => none
   | a::as => if a.isDigit then (⟨[a]⟩ : String).toNat! else first_digit? as
 
+/-- `last_digit? chars` behaves like `first_digit?`, but starting from the end of the list. -/
 def last_digit? (l : List Char) : Option Nat :=
   first_digit? l.reverse
 
