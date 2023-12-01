@@ -1,4 +1,5 @@
 import Advents.Utils
+open Lean
 
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/i01.txt"
@@ -8,18 +9,20 @@ def input : System.FilePath := "Advents/i01.txt"
   IO.println (← IO.FS.readFile input)
 
 /-- `first_digit? chars` given a list of characters `chars`,
-* if the list contains at least one digit, then
+* if `chars` contains at least one digit, then
   return the corresponding natural number as `some n`,
-* if the list contains no digits, then return `none`.
+* if `chars` contains no digits, then return `none`.
 -/
 def first_digit? : List Char → Option Nat
   | [] => none
-  | a::as => if a.isDigit then (⟨[a]⟩ : String).toNat! else first_digit? as
+  | a::as => if a.isDigit then a.toString.toNat! else first_digit? as
 
 /-- `last_digit? chars` behaves like `first_digit?`, but starting from the end of the list. -/
 def last_digit? (l : List Char) : Option Nat :=
   first_digit? l.reverse
 
+/-- `calibration s` takes a string `s` as input, returning the two-digit natural number
+obtained by extracting from `s` the first appearing digit and the last appearing digit. -/
 def calibration (s : String) : Nat :=
   let chars := s.toList
   (first_digit? chars).get! * 10 +
@@ -42,10 +45,13 @@ def total_calibration (rows : List String) : Nat :=
   (rows.map calibration).sum
 
 --  Question 1: answer 54644
-#eval do
+#eval show MetaM _ from do
   let rows := test.splitOn "\n"
   let rows := (← IO.FS.lines input).toList
-  IO.println <| total_calibration rows
+  let answer := total_calibration rows
+  IO.println <| answer
+  guard (answer = 54644)
+
 #check String.isPrefixOf
 
 def word_isNat? (s : String) : Option Nat :=
@@ -106,12 +112,13 @@ def last_digit2? (s : List Char) : Option Nat :=
         | none => last_digit2? as.reverse
         | n    => n
 
-#eval do
+#eval show MetaM _ from do
   let rows := test2.splitOn "\n"
   let rows := (← IO.FS.lines input).toList
   let firsts := rows.map ((Option.getD · 0) ∘ first_digit2? ∘ String.toList)
   let secs   := rows.map ((Option.getD · 0) ∘  last_digit2? ∘ String.toList)
 --  IO.println <| firsts.zip secs
   let vals := (firsts.map (10 * ·)).zipWith (· + ·) secs
---  IO.println <| vals
-  IO.println <| vals.sum
+  let answer := vals.sum
+  IO.println answer
+  guard (answer = 53348)
