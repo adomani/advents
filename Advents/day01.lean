@@ -129,4 +129,5 @@ def first_digit_in? (names : List String) : List Char → Option Nat
 --  IO.println <| firsts.zip secs
   let vals := (firsts.map (10 * ·)).zipWith (· + ·) secs
   let answer := vals.sum
+  IO.println answer
   guard (answer == 53348)
