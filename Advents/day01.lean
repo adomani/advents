@@ -45,9 +45,9 @@ def total_calibration (rows : List String) : Nat :=
 
 --  Question 1: answer 54644
 #eval show MetaM _ from do
-  let rows := test.splitOn "\n"
-  let rows := (← IO.FS.lines input).toList
-  let answer := total_calibration rows
+  let _rows := test.splitOn "\n"
+  let _rows := (← IO.FS.lines input).toList
+  let answer := total_calibration _rows
   IO.println <| answer
   guard (answer = 54644)
 
