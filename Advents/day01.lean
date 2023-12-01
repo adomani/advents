@@ -1,18 +1,9 @@
-import Std
-
-def List.sum {α} [Add α] [Inhabited α] : List α → α
-  | []    => default
-  | [m]   => m
-  | m::ms => m + ms.sum
-
-def Array.sum {α} [Add α] [Inhabited α] (l : Array α) : α :=
-  l.toList.sum
-
+import Advents.Utils
 
 def input : System.FilePath := "Advents/i01.txt"
 
 #eval do
-  dbg_trace (← IO.FS.lines input)
+  IO.println (← IO.FS.lines input)
 
 def first_digit? : List Char → Option Nat
   | [] => none
