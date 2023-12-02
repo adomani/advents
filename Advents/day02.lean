@@ -69,17 +69,20 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"
   IO.println <| smallIDs.sum
 
 /-!
-#  Question 1
+#  Question 2
 -/
 
+def sup (x y : cols) : cols := (max x.1 y.1, max x.2.1 y.2.1, max x.2.2 y.2.2)
 
-#exit
+#eval sup (sup (4, 0, 3) (1, 2, 6)) (0, 2, 0)
 
-def get_color_number (s : String) : MetaM Syntax :=
-  `($(quote s))
-
-#eval show MetaM _ from do
-  let x ← get_color_number "4 green"
-  dbg_trace s!"{x}"
-
-def get_colors (s : String) : List (List Nat) :=
+#eval do
+  let rows := test.splitOn "\n"
+  let rows ← IO.FS.lines input
+  let games := rows.map get_color_number
+  let sups := games.map fun ((_, gms) : Nat × List cols) => match gms with
+    | []    => default
+    | m::ms => ms.foldl sup m
+  IO.println sups
+  let powers := sups.map fun ((a, b, c) : cols) => a * b * c
+  IO.println <| powers.sum
