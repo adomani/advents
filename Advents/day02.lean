@@ -107,10 +107,18 @@ def part1 (rows : Array String) : Nat :=
 #  Question 2
 -/
 
+/-- The `sup` of two `cols` is simply the component-wise `max`imum of the two `cols`. -/
 def sup (x y : cols) : cols := (max x.1 y.1, max x.2.1 y.2.1, max x.2.2 y.2.2)
 
 --#assert sup (sup (4, 0, 3) (1, 2, 6)) (0, 2, 0) == (4, 2, 6)
 
+/-- `part2 rows` takes an array of strings `rows` as input and produces that natural number
+obtained by
+* computing, for each game, the smallest number of cubes of each colour
+  that is compatible with the given data;
+* multiplying the components of each such smallest possible number of cubes;
+* adding together all these products.
+-/
 def part2 (rows : Array String) : Nat :=
   let games := rows.map get_color_number
   let sups := games.map fun ((_, gms) : Nat × List cols) => match gms with
