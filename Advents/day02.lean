@@ -10,6 +10,9 @@ def input : System.FilePath := "Advents/i02.txt"
 
 --#eval do IO.println (← IO.FS.readFile input)
 
+/-- `cols` is a triple of natural numbers.
+It is an `abbrev` rather than a `def`, since this makes it very easy for Lean to see through
+the name `cols` and realise that there are three natural numbers. -/
 abbrev cols := Nat × Nat × Nat
 
 instance : Add cols where
@@ -59,7 +62,7 @@ Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"
 
-def part1 (rows : Array String) : Int :=
+def part1 (rows : Array String) : Nat :=
   let games := rows.map get_color_number
   let small := games.filter fun ((_, gms) : Nat × List cols) => gms.all (· ≤ limit)
   let smallIDs := small.map Prod.fst
@@ -78,7 +81,7 @@ def sup (x y : cols) : cols := (max x.1 y.1, max x.2.1 y.2.1, max x.2.2 y.2.2)
 
 --#assert sup (sup (4, 0, 3) (1, 2, 6)) (0, 2, 0) == (4, 2, 6)
 
-def part2 (rows : Array String) : Int :=
+def part2 (rows : Array String) : Nat :=
   let games := rows.map get_color_number
   let sups := games.map fun ((_, gms) : Nat × List cols) => match gms with
     | []    => default
