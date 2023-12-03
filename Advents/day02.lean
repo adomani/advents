@@ -182,13 +182,120 @@ elab_rules : command
 --    logInfo f!"{nu + 1}"
 
 declare_syntax_cat color
-
---syntax "Game"   : color
 syntax "red"   : color
 syntax "green" : color
 syntax "blue"  : color
+syntax num color : color
 
-syntax num color : command
+--declare_syntax_cat game
+--syntax color,* : game
+syntax "Game " num ":" color,* : command
+
+instance : HMul Nat cols cols where
+  hMul a c := (a * c.1, a * c.2.1, a * c.2.2)
+
+def stx_to_color_one (col : TSyntax `color) : TermElabM cols := unsafe do
+  let (stx, dir) := ← match col with
+    | `(color| $nu:num red)   => return (nu, (1, 0, 0))
+    | `(color| $nu:num green) => return (nu, (0, 1, 0))
+    | `(color| $nu:num blue)  => return (nu, (0, 0, 1))
+    | _  => throwUnsupportedSyntax
+  let val ← Term.elabTerm stx none
+  let val ← Term.evalTerm Nat (← inferType val) stx
+  return val * dir
+
+def stx_to_colors : TSyntax `command → Command.CommandElabM (Nat × cols)
+  | `(command| Game $ID:num : $nc:color,*) => Command.liftTermElabM do
+    let mut tot : cols := (0,0,0)
+    for x in nc.getElems do
+      tot := tot + (← stx_to_color_one x)
+    unsafe do
+    let val ← Term.elabTerm ID none
+    let val ← Term.evalTerm Nat (← inferType val) ID
+    return (val, tot)
+  | _  => throwUnsupportedSyntax
+
+
+elab_rules : command
+  | `(command| Game $ID:num : $nc:color,*) => Command.liftTermElabM do
+    let mut tot : cols := (0,0,0)
+    for x in nc.getElems do
+      tot := tot + (← stx_to_color_one x)
+    logInfo m!"{tot}"
+
+Game 4: 4 red, 5 green, 2 blue, 4 red
+
+
+elab_rules : command
+  | `(command| Game $ID:num : $nc:color,*) => Command.liftTermElabM do
+    unsafe do
+    let mut tot : cols := (0,0,0)
+    for x in nc.getElems do
+      match x with
+        | `(color| $nu:num red) =>
+          let val ← Term.elabTerm nu none
+          let val ← Term.evalTerm Nat (← inferType val) nu
+          tot := tot + (val, 0, 0)
+--        | `(color| green) => dbg_trace (0, nu, 0)
+--        | `(color| blue)  => dbg_trace (0, 0, nu)
+        | _  => throwUnsupportedSyntax
+    logInfo m!"{tot}"
+Game 4: 4 red, 4 red
+
+#check `(color| 4 red)
+
+elab_rules : command
+  | `(color| $n:num $col:color) => Command.liftTermElabM do
+
+  unsafe do
+  let nu ← Term.elabTerm n none
+  let nu ← Term.evalTerm Nat (← inferType nu) n
+  match col with
+    | `(color| red)   => dbg_trace (nu, 0, 0)
+    | `(color| green) => dbg_trace (0, nu, 0)
+    | `(color| blue)  => dbg_trace (0, 0, nu)
+    | _  => throwUnsupportedSyntax
+
+--declare_syntax_cat game
+
+elab_rules : command
+  | `(command| Game $ID:num : $n:num $col:color) => Command.liftTermElabM do
+--    let md := m!"Game number: {ID}"
+    unsafe do
+    let IDe ← Term.elabTerm ID none
+    let ID ← Term.evalTerm Nat (← inferType IDe) ID
+    let nu ← Term.elabTerm n none
+    let nu ← Term.evalTerm Nat (← inferType nu) n
+    let pcol : cols := match col with
+      | `(color| red)   => (nu, 0, 0)
+      | `(color| green) => (0, nu, 0)
+      | `(color| blue)  => (0, 0, nu)
+      | _  => default
+    logInfo <| m!"Game number: " ++ " " ++ m!" {ID}" ++ m!"{pcol}"
+
+Game 1: 4 red
+
+syntax "Game"  : color
+syntax "Game " num ": " color,* : game
+
+elab_rules : command
+  | `(game| Game $n : $ar:color,*) => Command.liftTermElabM do
+    unsafe do
+    let els := ar.getElems
+    let fin := match els.toList with
+      | []    => 0
+      | m::ms => 0
+
+--    let c ← stx_to_cols n col
+    logInfo m!"{fin}"
+
+macro x:color : command => `(game| Game 1: $x)
+
+Game 1: 5 red
+
+#eval show MetaM _ from do
+  let x ← `(game| 4 red)
+  _
 
 def stx_to_cols (n : TSyntax `num) (col : TSyntax `color) : TermElabM cols := do
   unsafe do
