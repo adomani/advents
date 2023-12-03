@@ -1,4 +1,6 @@
 import Advents.Utils
+import Lean.Elab.Frontend
+
 open Lean
 
 /-- `input` is the location of the file with the data for the problem. -/
@@ -131,3 +133,113 @@ def part2 (rows : Array String) : Nat :=
 --#assert part2 (← IO.FS.lines input) == 60948
 
 #eval do IO.println <| "Day 2, part 1: " ++ f!"{part2 (← IO.FS.lines input)}"
+
+
+#check Syntax.TSepArray.getElems
+
+declare_syntax_cat pilean
+declare_syntax_cat parts
+
+syntax (name := inList) "[" term,* "]" : pilean
+syntax (name := inNull) "null" : pilean
+
+open Lean Elab Expr Meta
+
+def myStx : String :=
+"
+import Lean.Elab.Frontend
+
+open Lean Elab Expr Meta
+
+syntax \"Game \" num \":\" : command
+elab_rules : command
+  | `(command| Game $n:num:) => logInfo n"
+
+def g : String := "Game 3:"
+
+def h : String := "\n#eval first_digit? ['5']"
+
+#eval show IO _ from do
+  let _ ← runFrontend (myStx ++ "\n" ++ g ++ h) (.empty) "Advents.day02" (.str (.str (.str .anonymous "Advents") "day01") "lean")
+  return ()
+/-
+syntax "Game " num ":" : command
+elab_rules : command
+  | `(command| Game $n:num:) => Command.liftTermElabM do
+    let nu := ← Term.elabTerm n none
+    logInfo nu
+-/
+
+--syntax num "red" : command
+--syntax num "green" : command
+--syntax num "blue" : command
+
+--elab_rules : command
+--  | `(command| $n:num red) => Command.liftTermElabM do
+--    unsafe do
+--    let nu ← Term.elabTerm n none
+--    let nu ← Term.evalTerm Nat (← inferType nu) n
+--    logInfo f!"{nu + 1}"
+
+declare_syntax_cat color
+
+--syntax "Game"   : color
+syntax "red"   : color
+syntax "green" : color
+syntax "blue"  : color
+
+syntax num color : command
+
+def stx_to_cols (n : TSyntax `num) (col : TSyntax `color) : TermElabM cols := do
+  unsafe do
+  let nu ← Term.elabTerm n none
+  let nu ← Term.evalTerm Nat (← inferType nu) n
+  match col with
+    | `(color| red)   => return (nu, 0, 0)
+    | `(color| green) => return (0, nu, 0)
+    | `(color| blue)  => return (0, 0, nu)
+    | _  => throwUnsupportedSyntax
+
+elab_rules : command
+  | `(command| $n:num $col:color) => Command.liftTermElabM do
+    unsafe do
+    let c ← stx_to_cols n col
+    logInfo m!"{c}"
+
+declare_syntax_cat new
+
+syntax (name := oneRun) (num color),* : new
+syntax (name := onePlay) "Game" num ":" oneRun,* : color
+
+#check `(color| Game 5: 4 red, 5 green, 6 blue)
+
+--elab_rules : command
+def parseArrows : TSyntax `new → TermElabM (Array (Expr × Bool × Syntax))
+  | `(new| $[$x:oneRun],* ) => Command.liftTermElabM do
+--  | `(color| rs:($(num color),*)) => Command.liftTermElabM do
+    unsafe do
+    --let c ← stx_to_cols n col
+    logInfo m!"{c}"
+    return default
+  | _ => throwUnsupportedSyntax
+
+
+#check Term.evalTerm
+#check evalExpr
+
+Game 3: 4 red
+4 red 5 green 6 blue
+unsafe
+def Expr.toListNat : List Expr → TermElabM (List Nat)-- := do
+--  let lc ← Term.elabTerm (← `(@List.cons Nat)) none
+--  match l with
+    | []    => return []
+    | m::ms => return (← evalExpr' (Nat) ``Nat m) :: (← Expr.toListNat ms)
+
+
+#check evalNat
+def Expr.toListNat1 : List Expr → TermElabM (List Nat)-- := do
+--  let lc ← Term.elabTerm (← `(@List.cons Nat)) none
+--  match l with
+    | []    => return []
+    | m::ms => return  mkAppM ``List.cons #[m, ms]
