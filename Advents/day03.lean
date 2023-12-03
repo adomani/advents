@@ -125,6 +125,51 @@ def part1 (rows : List (List Char)) : Nat :=
 
 #assert part1 ((← IO.FS.lines input).map String.toList).toList == 531932
 
+def get_mul_pos (s : List (List Char)) : List (Int × Int) :=
+  Id.run do
+    let mut tot := #[]
+    for i in [:s.length] do
+      for j in [:s[0]!.length] do
+        let c := s[i]![j]!
+        if (c == '*') then
+          tot := tot.push ((i, j) : Int × Int)
+    return tot.toList
+
+def get_num_nbs (rows : List (List Char)) (p : Int × Int) : Array Nat :=
+  let digs := digs_ends rows
+  let inn_digs := digs_in_nb rows [p]
+  Id.run do
+  let mut tot := #[]
+  for d in digs do
+    let (dig, fir, las) := d
+    let toPrint? := inn_digs.filter fun (x, y) =>
+      (x == fir.1 && fir.2 ≤ y && y ≤ las.2)
+    if toPrint?.size != 0 then
+      tot := tot.push dig
+  return tot
+
+def part2 (rows : List (List Char)) : Nat :=
+  let mul_pos := get_mul_pos rows
+  let gearRatios := mul_pos.map fun p =>
+    let digs := get_num_nbs rows p
+    match digs.toList with
+      | [a, b] => a * b
+      | _ => 0
+  gearRatios.sum
+
+#eval show MetaM _ from do
+  let rows := (test.splitOn "\n").map String.toList
+  let rows := ((← IO.FS.lines input).map String.toList).toList
+  let mul_pos := get_mul_pos rows
+  let gearRatios := mul_pos.map fun p =>
+    let digs := get_num_nbs rows p
+    match digs.toList with
+      | [a, b] => a * b
+      | _ => 0
+  let tot := gearRatios.sum
+  IO.println f!"Day 3, part 2: {tot}"
+  guard (tot == 73646890)
+
 #exit
 --  let rows := (test.splitOn "\n").map String.toList
 --  IO.println <| ← IO.FS.readFile input
