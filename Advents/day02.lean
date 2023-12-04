@@ -163,6 +163,47 @@ def h : String := "\n#eval first_digit? ['5']"
   let _ ← runFrontend (myStx ++ "\n" ++ g ++ h) (.empty) "Advents.day02" (.str (.str (.str .anonymous "Advents") "day01") "lean")
   return ()
 
+
+def getVal : ConstantInfo → Expr
+  | .defnInfo val => val.value
+  | _ => default
+
+#check evalNat
+def cadd (t : Nat) (na : Name) : MetaM Nat := do
+  if let some nav := (← getEnv).find? na then
+    let d := ← (evalNat <| getVal nav).run
+    return t + d.getD 0
+  else
+    return t
+
+
+#eval show MetaM _ from do
+  let init := ""
+  let init ← IO.FS.readFile "Advents/day02syntax.lean"
+  let games ← IO.FS.readFile input
+  let ngames := (← IO.FS.lines input).size + 1
+  let fin := "
+def num := " ++ ⟨Nat.toDigits 10 ngames⟩ ++ "
+#eval show MetaM _ from do
+  let mut tot := 0
+  for i in [:num] do
+    let tadd := ← cadd tot (Name.str .anonymous (\"myGame\" ++ ⟨Nat.toDigits 10 i⟩))
+    tot := tadd
+  return tot
+"
+  let _ ← runFrontend (init ++ "\n" ++ games ++ fin) (.empty) "Advents.day02" (.str (.str (.str .anonymous "Advents") "day01") "lean")
+  let mut tot := 0
+  for i in [:6] do
+    let tadd := ← cadd tot (Name.str .anonymous ("myGame" ++ ⟨Nat.toDigits 10 i⟩))
+    tot := tadd
+  return tot
+--  return ()
+
+--#eval show MetaM _ from do
+
+
+
+
 declare_syntax_cat color
 syntax "red"   : color
 syntax "green" : color
@@ -202,20 +243,20 @@ elab_rules : command
     for x in gms.getElems do
       let nx := ← col_stx_to_colors x
       upbd := sup upbd nx
-    if upbd ≤ limit then
-      let val := ← unsafe do Command.liftTermElabM do
-        let vale ← Term.elabTermEnsuringType ID (some (.const `Nat []))
-        Term.evalTerm Nat (← inferType vale) ID
-      logInfoAt ID m!"{val}"
+    let val := ← unsafe do Command.liftTermElabM do
+      let vale ← Term.elabTermEnsuringType ID (some (.const `Nat []))
+      Term.evalTerm Nat (← inferType vale) ID
+    logInfoAt ID m!"{(upbd ≤ limit : Bool)} {val}"
 --      logInfoAt ID m!"{valE.getAppFn}, {valE.getAppArgs.map (Expr.ctorName)}"
-      let na : Name := .str .anonymous ("myGame" ++ ⟨Nat.toDigits 10 val⟩)
-      --let na ← mkFreshUserName `myGame
-      let decl := mkDefinitionValEx na [] (.const `Nat []) (toExpr val) .abbrev .safe []
-      Command.liftCoreM do
-        addDecl (Declaration.defnDecl decl)
-    else logWarningAt ID m!"{upbd} ≰ {limit}"
+    let na : Name := .str .anonymous ("myGame" ++ ⟨Nat.toDigits 10 val⟩)
+    --let na ← mkFreshUserName `myGame
+    let val0 := if upbd ≤ limit then toExpr val else toExpr 0
+    let decl := mkDefinitionValEx na [] (.const `Nat []) val0 .abbrev .safe []
+    Command.liftCoreM <| addDecl (Declaration.defnDecl decl)
+--    logWarningAt ID m!"{upbd} ≰ {limit}"
+
 #check Name
-Game 4: 4 red, 5 green, 2 blue, 4 red; 13 red
+--Game 4: 4 red, 5 green, 2 blue, 4 red; 13 red
 #check Nat.toDigits
 #eval (toExpr 3 )
 Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
@@ -233,6 +274,32 @@ Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
 Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+#exit
+#print myGame3
+
+/-
+declare_syntax_cat mine
+syntax "ciao" : mine
+
+open Lean.Parser Tactic in
+@[inline] def mineParser (rbp : Nat := 0) : Parser :=
+  categoryParser `mine rbp
+
+open Lean.Parser.Tactic in
+def mineSeq1Indented : Parser := leading_parser
+  sepBy1IndentSemicolon mineParser
+-/
+
+
+--syntax mine,* : command
+syntax sepBy(mine, ",") : command
+syntax sepBy(mine, "\n") : command
+#check Parser.Tactic.tacticSeq
+#check `(command| ciao dd ciao)
+
+
+
+syntax sepBy(mine, "d") : command
 
 #check Environment.constants
 #eval do
