@@ -106,10 +106,15 @@ elab_rules : command
     let val := ← unsafe do Command.liftTermElabM do
       let vale ← Term.elabTermEnsuringType ID (some (.const `Nat []))
       Term.evalTerm Nat (← inferType vale) ID
-    let na : Name := .str .anonymous ("myGame" ++ ⟨Nat.toDigits 10 val⟩)
+    let na1 : Name := .str .anonymous ("cubes" ++ ⟨Nat.toDigits 10 val⟩)
     let val0 := if upbd ≤ limit then toExpr val else toExpr 0
-    let decl := mkDefinitionValEx na [] (.const `Nat []) val0 .abbrev .safe []
-    Command.liftCoreM <| addDecl (Declaration.defnDecl decl)
+    let decl1 := mkDefinitionValEx na1 [] (.const `Nat []) val0 .abbrev .safe []
+    Command.liftCoreM <| addDecl (Declaration.defnDecl decl1)
+
+    let na2 : Name := .str .anonymous ("powers" ++ ⟨Nat.toDigits 10 val⟩)
+    let val2 := toExpr (upbd.1 * upbd.2.1 * upbd.2.2)
+    let decl2 := mkDefinitionValEx na2 [] (.const `Nat []) val2 .abbrev .safe []
+    Command.liftCoreM <| addDecl (Declaration.defnDecl decl2)
 
 /-- `getVal` extracts the value of a definition.  We use it to go
 from `myGams<ID>` to `<ID> or 0`. -/
@@ -129,9 +134,10 @@ def cadd (t : Nat) (na : Name) : MetaM Nat := do
 
 /-- `addMyGames num` add all values of all definitions called `myGame<ID>` for
 `<ID>` ranging from `0` to `num`. -/
-def addMyGames (num : Nat) : MetaM Nat := do
-  let mut tot := 0
+def addMyGames (num : Nat) : MetaM Unit := do
+  let mut tot := (0, 0)
   for i in [:num] do
-    let tadd := ← cadd tot (Name.str .anonymous ("myGame" ++ ⟨Nat.toDigits 10 i⟩))
-    tot := tadd
-  return tot
+    let tadd1 := ← cadd tot.1 (Name.str .anonymous ("cubes" ++ ⟨Nat.toDigits 10 i⟩))
+    let tadd2 := ← cadd tot.2 (Name.str .anonymous ("powers" ++ ⟨Nat.toDigits 10 i⟩))
+    tot := (tadd1, tadd2)
+  IO.println f!"Day 2, part 1: {tot.1}\nDay 2, part 2: {tot.2}"
