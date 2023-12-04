@@ -78,14 +78,22 @@ def get_value (s : String) : Nat :=
   let (l, r) := parseCard s
   (r.filter (· ∈ l)).size
 
-#eval do
-  let rows := (test.splitOn "\n")
+def part2 (rows : List String) : Nat :=
+  Id.run do
+    let mut cards := 0
+    let mut mults := List.replicate rows.length 1
+    for row in rows.dropLast do
+      let val := get_value row
+      let curr := mults.getD 0 0
+      cards := cards + curr
+      mults := List.replicate val curr + (mults.drop 1)
+    return cards + mults.getD 0 0
+
+--#assert part2 (test.splitOn "\n") == 30
+/-
+#eval show MetaM _ from do
   let rows := (← IO.FS.lines input).toList
-  let mut cards := 0
-  let mut mults := List.replicate rows.length 1
-  for row in rows.dropLast do
-    let val := get_value row
-    let curr := mults.getD 0 0
-    cards := cards + curr
-    mults := List.replicate val curr + (mults.drop 1)
-  return cards + mults.getD 0 0
+  guard (part2 rows == 8477787)
+--/
+
+#eval return IO.println <| part2 (← IO.FS.lines input).toList
