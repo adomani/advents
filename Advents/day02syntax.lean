@@ -8,13 +8,13 @@ Valid expressions are `<number> <color>`, where `<color>` is one of `red, green,
 declare_syntax_cat color
 
 /-- `red` is valid `color` syntax. -/
-syntax "red"     : color
+syntax "red" : color
 
 /-- `green` is valid `color` syntax. -/
-syntax "green"   : color
+syntax "green" : color
 
 /-- `blue` is valid `color` syntax. -/
-syntax "blue"    : color
+syntax "blue" : color
 
 /-- `<number> <color>` is valid `color` syntax. -/
 syntax num color : color
