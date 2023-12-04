@@ -126,3 +126,12 @@ def cadd (t : Nat) (na : Name) : MetaM Nat := do
     return t + d.getD 0
   else
     return t
+
+/-- `addMyGames num` add all values of all definitions called `myGame<ID>` for
+`<ID>` ranging from `0` to `num`. -/
+def addMyGames (num : Nat) : MetaM Nat := do
+  let mut tot := 0
+  for i in [:num] do
+    let tadd := ← cadd tot (Name.str .anonymous ("myGame" ++ ⟨Nat.toDigits 10 i⟩))
+    tot := tadd
+  return tot
