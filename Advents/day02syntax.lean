@@ -3,9 +3,9 @@ import Advents.Utils
 open Lean Elab Expr Meta
 
 declare_syntax_cat color
-syntax "red"   : color
-syntax "green" : color
-syntax "blue"  : color
+syntax "red"     : color
+syntax "green"   : color
+syntax "blue"    : color
 syntax num color : color
 
 /-- `cols` is a triple of natural numbers and it stands for `colours`:
@@ -36,7 +36,8 @@ instance : LE cols where
   le x y := (x.1 ≤ y.1) ∧ (x.2.1 ≤ y.2.1) ∧ (x.2.2 ≤ y.2.2)
 
 /-- We state the obvious: the definition of `≤` for `cols`. -/
-theorem cols.le_def {x y : cols} : x ≤ y ↔ (x.1 ≤ y.1) ∧ (x.2.1 ≤ y.2.1) ∧ (x.2.2 ≤ y.2.2) := Iff.rfl
+theorem cols.le_def {x y : cols} :
+    x ≤ y ↔ (x.1 ≤ y.1) ∧ (x.2.1 ≤ y.2.1) ∧ (x.2.2 ≤ y.2.2) := Iff.rfl
 
 /-- The previous obvious fact makes it easy to get Lean to `Decide` inequalities of `cols`. -/
 instance : DecidableRel (LE.le : cols → cols → Prop) :=
