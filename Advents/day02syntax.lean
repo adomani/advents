@@ -94,7 +94,8 @@ For each game,
 * we convert it into the corresponding vector;
 * we update the upperbound `upbd` to be the `sup` of these vectors;
 * we extract the `val`ue, that is the Game ID;
-* we add a definition `def myGame<ID> : Nat := (<ID> or 0)`
+* we add a definition `def cubs<ID> : Nat := (<ID> or 0)`
+* we add a definition `def powers<ID> : Nat := <power_of_GameID>`
   where we choose `<ID>` if the upper-bound `upbd` is at most `limit` and `0` otherwise.
  -/
 elab_rules : command
