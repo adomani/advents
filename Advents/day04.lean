@@ -5,7 +5,11 @@ open Lean
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/i04.txt"
 
---#eval IO.FS.readFile input
+--#eval do IO.println <| ← IO.FS.readFile input
+
+/-!
+#  Question 1
+-/
 
 def count_powers (l r : Array Nat) : Nat :=
   let appearing := r.filter (· ∈ l)
@@ -52,3 +56,36 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
 --/
 
 #eval return part1 (← IO.FS.lines input)
+
+/-!
+#  Question 2
+-/
+
+def radd : List Nat → List Nat → List Nat
+  | l, [] => l
+  | [], l => l
+  | a::as, b::bs => (a + b) :: radd as bs
+
+instance : Add (List Nat) where
+  add := radd
+
+instance : HMul Nat (List Nat) (List Nat) where
+  hMul a l := l.map (a * ·)
+
+#eval [1, 2, 3] + [4, 5, 6, 7]
+
+def get_value (s : String) : Nat :=
+  let (l, r) := parseCard s
+  (r.filter (· ∈ l)).size
+
+#eval do
+  let rows := (test.splitOn "\n")
+  let rows := (← IO.FS.lines input).toList
+  let mut cards := 0
+  let mut mults := List.replicate rows.length 1
+  for row in rows.dropLast do
+    let val := get_value row
+    let curr := mults.getD 0 0
+    cards := cards + curr
+    mults := List.replicate val curr + (mults.drop 1)
+  return cards + mults.getD 0 0
