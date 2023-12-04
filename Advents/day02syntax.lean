@@ -117,13 +117,13 @@ elab_rules : command
     Command.liftCoreM <| addDecl (Declaration.defnDecl decl2)
 
 /-- `getVal` extracts the value of a definition.  We use it to go
-from `myGams<ID>` to `<ID> or 0`. -/
+from `cubes<ID>` to `<ID> or 0` and from `powers<ID>` to the corresponding value. -/
 def getVal : ConstantInfo → Expr
   | .defnInfo val => val.value
   | _ => default
 
 /-- Finally, we define a custom heterogeneous addition between `Nat` and `Name`s of declarations.
-We are going to use it when the `Name` refers to `myGame<ID>` and we add to `Nat` the
+We are going to use it when the `Name` refers to `cubes/powers<ID>` and we add to `Nat` the
 value of the corresponding definition. -/
 def cadd (t : Nat) (na : Name) : MetaM Nat := do
   if let some nav := (← getEnv).find? na then
@@ -132,7 +132,7 @@ def cadd (t : Nat) (na : Name) : MetaM Nat := do
   else
     return t
 
-/-- `addMyGames num` add all values of all definitions called `myGame<ID>` for
+/-- `addMyGames num` adds all values of all definitions called `cubes/powers<ID>` for
 `<ID>` ranging from `0` to `num`. -/
 def addMyGames (num : Nat) : MetaM Unit := do
   let mut tot := (0, 0)
