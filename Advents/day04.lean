@@ -1,7 +1,5 @@
 import Advents.Utils
 
-open Lean
-
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/i04.txt"
 
