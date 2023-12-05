@@ -33,11 +33,7 @@ pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet"
 
-#eval show MetaM _ from do
-  let rows := test.splitOn "\n"
-  let answer := (rows.map calibration).sum
---  IO.println <| answer
-  guard (answer == 142)
+--#assert ((test.splitOn "\n").map calibration).sum == 142
 
 /-- `total_calibration rows` takes as input a list of strings `rows`.
 It extracts the first and last digit appear in each row, forms the corresponding two-digit number
@@ -47,12 +43,11 @@ This is the function that answers the first question of Day 1. -/
 def total_calibration (rows : List String) : Nat :=
   (rows.map calibration).sum
 
---  Question 1: answer `54644`
+--#assert total_calibration (test.splitOn "\n") = 142
+
 #eval show MetaM _ from do
-  let _rows := test.splitOn "\n"
-  let _rows := (← IO.FS.lines input).toList
-  let answer := total_calibration _rows
-  IO.println <| answer
+  let answer := total_calibration ((← IO.FS.lines input).toList)
+  IO.println f!"Day 1, part1: {answer}"
   guard (answer = 54644)
 
 /-!
@@ -125,14 +120,16 @@ def first_digit_in? (names : List String) : List Char → Option Nat
       | none => first_digit_in? names as
       | n    => n
 
+def part2 (rows : List String) : Nat :=
+  let firsts := rows.map fun x => Option.getD (first_digit_in? nums x.toList) 0
+  let secs   := rows.map fun x => Option.getD (first_digit_in? smun x.toList.reverse) 0
+  let vals := (firsts.map (10 * ·)).zipWith (· + ·) secs
+  vals.sum
+
+--#assert part2 (test2.splitOn "\n") == 281
+
 --  Question 2: answer `53348`
 #eval show MetaM _ from do
-  let _rows := test2.splitOn "\n"
-  let _rows := (← IO.FS.lines input).toList
-  let firsts := _rows.map fun x => Option.getD (first_digit_in? nums x.toList) 0
-  let secs   := _rows.map fun x => Option.getD (first_digit_in? smun x.toList.reverse) 0
---  IO.println <| firsts.zip secs
-  let vals := (firsts.map (10 * ·)).zipWith (· + ·) secs
-  let answer := vals.sum
-  IO.println answer
+  let answer := part2 (← IO.FS.lines input).toList
+  IO.println f!"Day 1, part2: {answer}"
   guard (answer == 53348)
