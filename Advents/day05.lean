@@ -112,20 +112,26 @@ def compact (l : List (List α)) : List (List (List α)) :=
   IO.println <| nums_and_empties
   IO.println <| f!"\n{seeds}\n{instrs}"
 
-#eval do
-  let maps := test
-  let maps ← IO.FS.readFile input
+def get_seed_insts (maps : String) : List Nat × List (List (List Nat)) :=
   let nums := maps.splitOn "map"
   let nums_and_empties := (nums.map (String.splitOn · "\n")).join.map (List.getNumbers ∘ String.toList)
   let cnums := compact nums_and_empties
-  let mut seeds := cnums[0]![0]!
-  let instrs := (cnums.drop 1)  -- a list of lists of Nats
---  let instrs := (nums_and_empties.drop 1)
---  let nums := nums_and_empties.filter (List.length · != 0)
+  (cnums[0]![0]!, cnums.drop 1)
+
+def pass_through (instrs : List (List (List Nat))) (seeds : List Nat) : List Nat :=
+  Id.run do
+  let mut seeds := seeds
   for ins in instrs do
     seeds := seeds.map (conv1 ins)
+  return seeds
+#eval show MetaM _ from do
+  let maps := test
+  let maps ← IO.FS.readFile input
+  let (seeds, instrs) := get_seed_insts maps
+  let seeds := pass_through instrs seeds
 --  IO.println <| seeds
   IO.println <| seeds.foldl min seeds[0]!
+  guard (seeds.foldl min seeds[0]! == 579439039)
 --  IO.println <| nums_and_empties
 --  IO.println <| f!"\n{seeds}\n{instrs}"
 
@@ -146,3 +152,65 @@ def compact (l : List (List α)) : List (List (List α)) :=
   IO.println <| seeds.foldl min seeds[0]!
 --  IO.println <| nums_and_empties
 --  IO.println <| f!"\n{seeds}\n{instrs}"
+
+/-!
+#  Question 2
+-/
+
+--  Given the original instructions, produce the instructions for the inverse map
+def rev_instrs (instrs : List (List (List Nat))) : List (List (List Nat)) :=
+  instrs.reverse.map fun ins => (ins.map fun x => [x[1]!, x[0]!, x[2]!])
+
+#eval show MetaM _ from do
+--  let maps ← IO.FS.readFile input
+  let maps := test
+  let (ini_seeds, instrs) := get_seed_insts maps
+  let mut seeds := ini_seeds -- cnums[0]![0]!
+  for ins in instrs do
+    seeds := seeds.map (conv1 ins)
+  for ins in rev_instrs instrs do
+    seeds := seeds.map (conv1 ins)
+  guard (ini_seeds == seeds)
+--  IO.println f!"{ini_seeds}\n{seeds}\n{ini_seeds == seeds}"
+
+#eval do
+  let maps ← IO.FS.readFile input
+  let maps := test
+  let (ini_seeds, instrs) := get_seed_insts maps
+  let mut breaks := []
+  let mut currInst := []
+  for ins in [:instrs.length] do
+    let new := instrs[ins]!
+    currInst := currInst ++ [new]
+    let ends := new.map fun x => x[1]!
+    let begs := pass_through (rev_instrs currInst) ends
+    breaks := breaks ++ begs
+  IO.println <| breaks.toArray.qsort (· ≤ ·)
+  let fin_seeds := pass_through instrs (ini_seeds ++ breaks)
+  IO.println <| fin_seeds
+  IO.println <| fin_seeds.foldl min fin_seeds[0]!
+
+
+
+def get_bots (init rg : Nat) (instrs : List (List Nat)) : List Nat :=
+  let botsLists := instrs.filter fun ins => init ≤ ins[1]! && ins[1]! < init + rg
+  let bots := botsLists.map fun l => l.getD 2 0
+  init::bots
+
+#eval do
+  let maps ← IO.FS.readFile input
+  let maps := test
+  let (seeds, instrs) := get_seed_insts maps
+  dbg_trace seeds
+  let mut nseeds := []
+  for i in [:seeds.length] do
+    if i % 2 == 0 then
+      let new := instrs.map (get_bots seeds[i]! seeds[i+1]!)
+      dbg_trace f!"step {i}, {new}"
+      nseeds := nseeds ++ get_bots seeds[i]! seeds[i+1]! new
+  dbg_trace nseeds
+  let mut seeds := seeds -- cnums[0]![0]!
+  for ins in instrs do
+    seeds := seeds.map (conv1 ins)
+--  IO.println <| seeds
+  IO.println <| seeds.foldl min seeds[0]!
