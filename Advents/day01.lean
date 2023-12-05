@@ -27,13 +27,12 @@ def calibration (s : String) : Nat :=
   (first_digit? chars).get! * 10 + (first_digit? chars.reverse).get!
 
 /-- The test string for the first part. -/
-def test : String :=
-"1abc2
+def test1 := "1abc2
 pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet"
 
---#assert ((test.splitOn "\n").map calibration).sum == 142
+--#assert ((test1.splitOn "\n").map calibration).sum == 142
 
 /-- `total_calibration rows` takes as input a list of strings `rows`.
 It extracts the first and last digit appear in each row, forms the corresponding two-digit number
@@ -43,7 +42,7 @@ This is the function that answers the first question of Day 1. -/
 def total_calibration (rows : List String) : Nat :=
   (rows.map calibration).sum
 
---#assert total_calibration (test.splitOn "\n") = 142
+--#assert total_calibration (test1.splitOn "\n") = 142
 
 #eval show MetaM _ from do
   let answer := total_calibration ((← IO.FS.lines input).toList)
@@ -94,8 +93,7 @@ def word_position_in (s : String) (names : List String) : Option Nat :=
 --#eval smun.map (word_position_in · smun) == (List.range 9).map fun x => some (x + 1)
 
 /-- The test string for the second part. -/
-def test2 : String :=
-"two1nine
+def test2 := "two1nine
 eightwothree
 abcone2threexyz
 xtwone3four
