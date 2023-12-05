@@ -2,7 +2,7 @@ import Advents.Utils
 open Lean
 
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/i03.txt"
+def input : System.FilePath := "Advents/day03.input"
 
 /-!
 #  Question 1

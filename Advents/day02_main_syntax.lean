@@ -4,7 +4,7 @@ import Lean.Elab.Frontend
 open Lean Elab
 
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/i02.txt"
+def input : System.FilePath := "Advents/day02.input"
 
 #eval show MetaM _ from do
   let init ← IO.FS.readFile "Advents/day02syntax.lean"

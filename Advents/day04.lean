@@ -1,7 +1,7 @@
 import Advents.Utils
 
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/i04.txt"
+def input : System.FilePath := "Advents/day04.input"
 
 --#eval do IO.println <| ← IO.FS.readFile input
 
