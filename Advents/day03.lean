@@ -109,6 +109,10 @@ def part1 (rows : Array (Array Char)) : Nat :=
   IO.println (f!"Day 3, part 1: {answer}")
   guard (answer == 531932)
 
+/-!
+#  Question 2
+-/
+
 def get_mul_pos (s : Array (Array Char)) : Array (Int × Int) :=
   Id.run do
     let mut tot := #[]
