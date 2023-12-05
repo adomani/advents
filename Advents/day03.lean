@@ -19,8 +19,7 @@ def test := "467..114..
 ..592.....
 ......755.
 ...$.*....
-.664.598..
-"
+.664.598.."
 
 instance : Add (Int × Int) where add x y := (x.1 + y.1, x.2 + y.2)
 
@@ -139,13 +138,15 @@ def get_num_nbs (rows : Array (Array Char)) (p : Int × Int) : Array Nat :=
 def part2 (rows : Array (Array Char)) : Nat :=
   let mul_pos := get_mul_pos rows
   let gearRatios := mul_pos.map fun p =>
-    let digs := get_num_nbs rows p
+    let nr := #[rows[p.1.natAbs-1]!, rows[p.1.natAbs]!, rows[p.1.natAbs+1]!]
+    let digs := get_num_nbs nr (1, p.2)
     match digs.toList with
       | [a, b] => a * b
       | _ => 0
   gearRatios.sum
 
---#assert part2 ((test.splitOn "\n").map String.toList) == 467835
+--#assert part2 ((test.splitOn "\n").toArray.map (List.toArray ∘ String.data)) == 467835
+
 #eval show MetaM _ from do
   let answer := part2 ((← IO.FS.lines input).map (List.toArray ∘ String.toList))
   IO.println (f!"Day 3, part 2: {answer}")
