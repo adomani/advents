@@ -80,7 +80,7 @@ aoc () {
 leanall () {
 (
   croot || exit 1
-  for fil in Advents/day*.lean; do
+  for fil in Advents/day??.lean; do
     brown 'Processing'; printf ' %s\n' "${fil/#*\//}"
     lake env lean "${fil}"
   done
