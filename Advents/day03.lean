@@ -138,6 +138,8 @@ def get_num_nbs (rows : Array (Array Char)) (p : Int × Int) : Array Nat :=
 def part2 (rows : Array (Array Char)) : Nat :=
   let mul_pos := get_mul_pos rows
   let gearRatios := mul_pos.map fun p =>
+    -- `nr` are the rows adjacent to the `*` with position `p`.  I checked that the first and last row
+    -- contain no `*`, so there is no need to remove the last or the first extracted row.
     let nr := #[rows[p.1.natAbs-1]!, rows[p.1.natAbs]!, rows[p.1.natAbs+1]!]
     let digs := get_num_nbs nr (1, p.2)
     match digs.toList with
