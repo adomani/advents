@@ -1,5 +1,4 @@
 import Advents.Utils
-open Lean
 
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day04.input"
@@ -19,17 +18,6 @@ def count_powers (l r : Array Nat) : Nat :=
   let appsize := appearing.size
   if appsize == 0 then 0 else 2 ^ (appsize - 1)
 
-/-- `getNumbers l` takes as input a list of characters and returns the list of
-`Nat` where each entry is the natural number corresponding to eac consecutive
-sequence of digits in `l`, in their order. -/
-partial
-def getNumbers (l : List Char) : List Nat :=
-  let l1 := l.dropWhile (!Char.isDigit ·)
-  if l1.length == 0 then [] else
-    let d1 := String.toNat! ⟨l1.takeWhile (Char.isDigit ·)⟩
-    let fin := getNumbers (l1.dropWhile (Char.isDigit ·))
-  d1 :: fin
-
 --#assert getNumbers "askdlkaj12kj3lkj5".toList == [12, 3, 5]
 
 /-- `parseCard s` takes as input a string, assumes that it is of the form
@@ -38,7 +26,7 @@ and returns the two  `Array` extracted from the two `<space_separated_nats>` sub
 def parseCard (s : String) : Array Nat × Array Nat :=
   let sdrop := s.dropWhile (· != ':')
   if let [s1, s2] := sdrop.splitOn "|" then
-    ((getNumbers s1.toList).toArray, (getNumbers s2.toList).toArray)
+    (s1.toList.getNumbers.toArray, s2.toList.getNumbers.toArray)
   else
     default
 
@@ -61,11 +49,13 @@ Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
 
 --#assert part1 (test.splitOn "\n").toArray == 13
-
+/-
 #eval show MetaM _ from do
-  let answer := part1 (← IO.FS.lines input)
-  IO.println f!"Day 4, part 1: {answer}"
-  guard (answer == 17782)
+  let tot := part1 (← IO.FS.lines input)
+  guard (tot == 17782)
+--/
+
+#eval return part1 (← IO.FS.lines input)
 
 /-!
 #  Question 2
@@ -105,8 +95,10 @@ def part2 (rows : List String) : Nat :=
     return cards + mults.getD 0 0
 
 --#assert part2 (test.splitOn "\n") == 30
-
+/-
 #eval show MetaM _ from do
-  let answer := part2 ((← IO.FS.lines input).toList)
-  IO.println f!"Day 4, part 2: {answer}"
-  guard (answer == 8477787)
+  let rows := (← IO.FS.lines input).toList
+  guard (part2 rows == 8477787)
+--/
+
+#eval return IO.println <| part2 (← IO.FS.lines input).toList
