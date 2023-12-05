@@ -18,7 +18,7 @@ newday () {
   )
 }
 
-desc () {
+desc_tests () {
 (
   croot ; cd Advents || return 1
   descFile=descriptions.md
@@ -43,5 +43,23 @@ desc () {
       s=\n\n[\n]*=\n\n=g
       s=\n[\n]*</pre>=\n</pre>=g
     ' > ../descriptions_with_tests.md
+)
+}
+
+desc () {
+(
+  croot
+  awk -v fil='descriptions_with_tests.md' 'BEGIN {
+      con=1
+      acc=""
+      print "|Day|Description|\n|:-:|-|"
+      link=sprintf("(%s#day-", fil)
+    }
+    /^--$/ {
+      printf("|[%s]%s%s)|%s|\n", con, link, con, acc)
+      con++
+      acc=""
+    }
+    !/^--$/ { acc=$0 }' .src/desc.txt > descriptions.md
 )
 }
