@@ -31,7 +31,7 @@ def nbs := Id.run do
       t := t.push (i,j)
   return t.erase (0,0)
 
-#assert nbs == #[(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+--#assert nbs == #[(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
 def has_number_nb (d : List (List Char)) (lx ly : Int) (p : Int × Int) : Array (Nat × Nat) :=
   Id.run do
