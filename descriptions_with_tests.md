@@ -2,17 +2,18 @@
 
 Finding the first and last digit (or the English name of a digit) in each row of the input.
 
-<pre>
-Test 1
+####  Test 1
 
+<pre>
 1abc2
 pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet
 </pre>
-<pre>
-Test 2
 
+####  Test 2
+
+<pre>
 two1nine
 eightwothree
 abcone2threexyz
@@ -28,9 +29,9 @@ zoneight234
 
 RGB-coloured cubes in a bag, finding sups and products.
 
-<pre>
-Test 
+####  Test
 
+<pre>
 Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
 Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
@@ -44,9 +45,9 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 
 Operations and numbers scattered on a rectangular grid: compute a value from the natural numbers adjacent to certain symbols.
 
-<pre>
-Test 
+####  Test
 
+<pre>
 467..114..
 ...*......
 ..35..633.
@@ -65,9 +66,9 @@ Test
 
 A game with cards: computing the number of matches between two lists of natural numbers, some recursion.
 
-<pre>
-Test 
+####  Test
 
+<pre>
 Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
 Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
 Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
@@ -82,9 +83,9 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 
 Seeds growing into locations as a series of permutations.
 
-<pre>
-Test 
+####  Test
 
+<pre>
 seeds: 79 14 55 13
 
 seed-to-soil map:

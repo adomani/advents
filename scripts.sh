@@ -40,12 +40,13 @@ desc_tests () {
     printf -- '\n---\n\n'
   fi
   done | sed '
-      s=def test\([12]*\)[^"]*["]*=<pre>\nTest \1\n\n=g
+      s=def test\([12]*\)[^"]*["]*=\n####  Test \1\n\n<pre>\n=g
       s="=\n</pre>=
     ' |
     sed -z '
       s=\n\n[\n]*=\n\n=g
       s=\n[\n]*</pre>=\n</pre>=g
+      s=  *\n=\n=g
     '
 )
 }
