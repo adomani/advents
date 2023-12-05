@@ -8,12 +8,12 @@
 newday () {
   (
     if [ -z "${1}" ]; then
-      ind="$( ls Advents/i*.txt | tail -1 | sed 's=.*i[0]*\([0-9]*\).*=\1=' )"
+      ind="$( ls Advents/day*.input | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
       ind=$((ind+1))
     else ind="${1}"
     fi
     croot;
     git switch master
-    wget "https://adventofcode.com/2023/day/${ind}/input" -O "Advents/i"$( printf '%02d' "${ind}")".txt"
+    wget "https://adventofcode.com/2023/day/${ind}/input" -O "Advents/day"$( printf '%02d' "${ind}")".input"
   )
 }
