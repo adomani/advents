@@ -106,7 +106,7 @@ def part1 (rows : List (List Char)) : Nat :=
 
 #eval show MetaM _ from do
   let answer := part1 ((← IO.FS.lines input).map String.toList).toList
-  IO.println (f!"Day 3 part 1: {answer}")
+  IO.println (f!"Day 3, part 1: {answer}")
   guard (answer == 531932)
 
 def get_mul_pos (s : List (List Char)) : List (Int × Int) :=
@@ -145,5 +145,5 @@ def part2 (rows : List (List Char)) : Nat :=
 
 #eval show MetaM _ from do
   let answer := part2 ((← IO.FS.lines input).map String.toList).toList
-  IO.println (f!"Day 3 part 1: {answer}")
+  IO.println (f!"Day 3, part 1: {answer}")
   guard (answer == 73646890)
