@@ -47,7 +47,7 @@ def total_calibration (rows : List String) : Nat :=
 
 #eval show MetaM _ from do
   let answer := total_calibration ((← IO.FS.lines input).toList)
-  IO.println f!"Day 1, part1: {answer}"
+  IO.println f!"Day 1, part 1: {answer}"
   guard (answer = 54644)
 
 /-!
@@ -131,5 +131,5 @@ def part2 (rows : List String) : Nat :=
 --  Question 2: answer `53348`
 #eval show MetaM _ from do
   let answer := part2 (← IO.FS.lines input).toList
-  IO.println f!"Day 1, part2: {answer}"
+  IO.println f!"Day 1, part 2: {answer}"
   guard (answer == 53348)
