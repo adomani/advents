@@ -77,7 +77,7 @@ aoc () {
 )
 }
 
-buildall () {
+leanall () {
 (
   croot || exit 1
   for fil in Advents/day*.lean; do
