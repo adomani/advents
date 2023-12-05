@@ -104,11 +104,10 @@ def part1 (rows : List (List Char)) : Nat :=
       tot := tot + dig
   return tot
 
-#eval do
-  let rows := ((← IO.FS.lines input).map String.toList).toList
-  IO.println (f!"Day 3 part 1: {part1 rows}")
-
-#assert part1 ((← IO.FS.lines input).map String.toList).toList == 531932
+#eval show MetaM _ from do
+  let answer := part1 ((← IO.FS.lines input).map String.toList).toList
+  IO.println (f!"Day 3 part 1: {answer}")
+  guard (answer == 531932)
 
 def get_mul_pos (s : List (List Char)) : List (Int × Int) :=
   Id.run do
@@ -142,15 +141,9 @@ def part2 (rows : List (List Char)) : Nat :=
       | _ => 0
   gearRatios.sum
 
+--#assert part2 ((test.splitOn "\n").map String.toList) == 467835
+
 #eval show MetaM _ from do
-  let rows := (test.splitOn "\n").map String.toList
-  let rows := ((← IO.FS.lines input).map String.toList).toList
-  let mul_pos := get_mul_pos rows
-  let gearRatios := mul_pos.map fun p =>
-    let digs := get_num_nbs rows p
-    match digs.toList with
-      | [a, b] => a * b
-      | _ => 0
-  let tot := gearRatios.sum
-  IO.println f!"Day 3, part 2: {tot}"
-  guard (tot == 73646890)
+  let answer := part2 ((← IO.FS.lines input).map String.toList).toList
+  IO.println (f!"Day 3 part 1: {answer}")
+  guard (answer == 73646890)
