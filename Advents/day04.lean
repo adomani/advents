@@ -1,4 +1,5 @@
 import Advents.Utils
+open Lean
 
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day04.input"
@@ -49,13 +50,11 @@ Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
 
 --#assert part1 (test.splitOn "\n").toArray == 13
-/-
-#eval show MetaM _ from do
-  let tot := part1 (← IO.FS.lines input)
-  guard (tot == 17782)
---/
 
-#eval return part1 (← IO.FS.lines input)
+#eval show MetaM _ from do
+  let answer := part1 (← IO.FS.lines input)
+  IO.println f!"Day 4, part 1: {answer}"
+  guard (answer == 17782)
 
 /-!
 #  Question 2
@@ -95,10 +94,8 @@ def part2 (rows : List String) : Nat :=
     return cards + mults.getD 0 0
 
 --#assert part2 (test.splitOn "\n") == 30
-/-
-#eval show MetaM _ from do
-  let rows := (← IO.FS.lines input).toList
-  guard (part2 rows == 8477787)
---/
 
-#eval return IO.println <| part2 (← IO.FS.lines input).toList
+#eval show MetaM _ from do
+  let answer := part2 ((← IO.FS.lines input).toList)
+  IO.println f!"Day 4, part 2: {answer}"
+  guard (answer == 8477787)
