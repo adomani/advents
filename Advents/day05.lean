@@ -110,7 +110,7 @@ def part1 (maps : String) : Nat :=
 
 #eval show MetaM _ from do
   let ans := part1 (← IO.FS.readFile input)
-  IO.println f!"Day 5, part1: {ans}"
+  IO.println f!"Day 5, part 1: {ans}"
   guard (ans == 579439039)
 
 /-!
@@ -158,5 +158,5 @@ def part2 (maps : String) : Nat :=
 
 #eval show MetaM _ from do
   let ans := part2 (← IO.FS.readFile input)
-  IO.println f!"Day 5, part2: {ans}"
+  IO.println f!"Day 5, part 2: {ans}"
   guard (ans == 7873084)
