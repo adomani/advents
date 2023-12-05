@@ -18,17 +18,6 @@ def count_powers (l r : Array Nat) : Nat :=
   let appsize := appearing.size
   if appsize == 0 then 0 else 2 ^ (appsize - 1)
 
-/-- `getNumbers l` takes as input a list of characters and returns the list of
-`Nat` where each entry is the natural number corresponding to eac consecutive
-sequence of digits in `l`, in their order. -/
-partial
-def getNumbers (l : List Char) : List Nat :=
-  let l1 := l.dropWhile (!Char.isDigit ·)
-  if l1.length == 0 then [] else
-    let d1 := String.toNat! ⟨l1.takeWhile (Char.isDigit ·)⟩
-    let fin := getNumbers (l1.dropWhile (Char.isDigit ·))
-  d1 :: fin
-
 --#assert getNumbers "askdlkaj12kj3lkj5".toList == [12, 3, 5]
 
 /-- `parseCard s` takes as input a string, assumes that it is of the form
@@ -37,7 +26,7 @@ and returns the two  `Array` extracted from the two `<space_separated_nats>` sub
 def parseCard (s : String) : Array Nat × Array Nat :=
   let sdrop := s.dropWhile (· != ':')
   if let [s1, s2] := sdrop.splitOn "|" then
-    ((getNumbers s1.toList).toArray, (getNumbers s2.toList).toArray)
+    (s1.toList.getNumbers.toArray, s2.toList.getNumbers.toArray)
   else
     default
 
