@@ -130,4 +130,4 @@ def part2 (rows : Array String) : Nat :=
 --#assert part2 (test.splitOn "\n").toArray == 2286
 --#assert part2 (← IO.FS.lines input) == 60948
 
-#eval do IO.println <| "Day 2, part 1: " ++ f!"{part2 (← IO.FS.lines input)}"
+#eval do IO.println <| "Day 2, part 2: " ++ f!"{part2 (← IO.FS.lines input)}"

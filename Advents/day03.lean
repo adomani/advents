@@ -144,5 +144,5 @@ def part2 (rows : Array (Array Char)) : Nat :=
 --#assert part2 ((test.splitOn "\n").map String.toList) == 467835
 #eval show MetaM _ from do
   let answer := part2 ((← IO.FS.lines input).map (List.toArray ∘ String.toList))
-  IO.println (f!"Day 3, part 1: {answer}")
+  IO.println (f!"Day 3, part 2: {answer}")
   guard (answer == 73646890)
