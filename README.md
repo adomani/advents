@@ -10,6 +10,8 @@ The files directly linked from this page should contain virtually no spoilers,
 except possibly a [description](descriptions.md) of the questions,
 that involves some parsing of the given text.
 
+As soon as you navigate to a page that is not linked from here, you will likely find spoilers and complete solutions!
+
 ---
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/adomani/advents)
