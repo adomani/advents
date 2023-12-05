@@ -157,70 +157,45 @@ def pass_through (instrs : List (List (List Nat))) (seeds : List Nat) : List Nat
 #  Question 2
 -/
 
---  Given the original instructions, produce the instructions for the inverse map
+/-- `rev_instrs instrs` takes a list of lists of lists of natural numbers.
+Interpreting the list as the original instructions,
+it produces the instructions for the inverse map. -/
 def rev_instrs (instrs : List (List (List Nat))) : List (List (List Nat)) :=
   instrs.reverse.map fun ins => (ins.map fun x => [x[1]!, x[0]!, x[2]!])
 
+-- check that `pass_through` produces inverse maps with and without
+-- `rev_instrs`
+/-
 #eval show MetaM _ from do
---  let maps ← IO.FS.readFile input
-  let maps := test
-  let (ini_seeds, instrs) := get_seed_insts maps
-  let mut seeds := ini_seeds -- cnums[0]![0]!
-  for ins in instrs do
-    seeds := seeds.map (conv1 ins)
-  for ins in rev_instrs instrs do
-    seeds := seeds.map (conv1 ins)
-  guard (ini_seeds == seeds)
---  IO.println f!"{ini_seeds}\n{seeds}\n{ini_seeds == seeds}"
+  let _maps := test
+  let _maps ← IO.FS.readFile input
+  let (ini_seeds, instrs) := get_seed_insts _maps
+  let seeds := pass_through instrs ini_seeds
+  guard (pass_through (rev_instrs instrs) seeds == ini_seeds)
+-/
 
-#eval do
-  let maps := test
-  let maps ← IO.FS.readFile input
-  let (ini_seeds, instrs) := get_seed_insts maps
-  let mut breaks := []
-  let mut currInst := []
-  for ins in [:instrs.length] do
-    let new := instrs[ins]!
-    currInst := currInst ++ [new]
-    let ends := new.map fun x => x[0]!
-    let begs := pass_through (rev_instrs currInst) ends
-    breaks := breaks ++ begs
-  IO.println <| f!"{ini_seeds}"
-  IO.println <| f!"breaks\n{breaks}"
-  let mut breaks_in_range := []
-  for i in [:ini_seeds.length] do
-    if i % 2 == 0 then
-      breaks_in_range := ini_seeds[i]! :: breaks_in_range ++ breaks.filter fun x =>
-        ini_seeds[i]! ≤ x && x < ini_seeds[i]! + ini_seeds[i+1]!
-  IO.println f!"in range: {breaks_in_range}"
---  let fin_seeds := pass_through instrs /-(ini_seeds) ++--/ breaks
-  let fin_seeds := pass_through instrs breaks_in_range
-  IO.println <| fin_seeds
-  IO.println <| (fin_seeds).foldl min fin_seeds[0]!
+def part2 (maps : String) : Nat :=
+  let fin_seeds := Id.run do
+    let (ini_seeds, instrs) := get_seed_insts maps
+    let mut breaks := []
+    let mut currInst := []
+    for ins in [:instrs.length] do
+      let new := instrs[ins]!
+      currInst := currInst ++ [new]
+      let ends := new.map fun x => x[0]!
+      let begs := pass_through (rev_instrs currInst) ends
+      breaks := breaks ++ begs
+    let mut breaks_in_range := []
+    for i in [:ini_seeds.length] do
+      if i % 2 == 0 then
+        breaks_in_range := ini_seeds[i]! :: breaks_in_range ++ breaks.filter fun x =>
+          ini_seeds[i]! ≤ x && x < ini_seeds[i]! + ini_seeds[i+1]!
+    pass_through instrs breaks_in_range
+  (fin_seeds).foldl min fin_seeds[0]!
 
--- too high: 28828717
--- too ????:  7873084
--- too low:   5923540
+--#assert part2 test == 46
 
-def get_bots (init rg : Nat) (instrs : List (List Nat)) : List Nat :=
-  let botsLists := instrs.filter fun ins => init ≤ ins[1]! && ins[1]! < init + rg
-  let bots := botsLists.map fun l => l.getD 2 0
-  init::bots
-
-#eval do
-  let maps ← IO.FS.readFile input
-  let maps := test
-  let (seeds, instrs) := get_seed_insts maps
-  dbg_trace seeds
-  let mut nseeds := []
-  for i in [:seeds.length] do
-    if i % 2 == 0 then
-      let new := instrs.map (get_bots seeds[i]! seeds[i+1]!)
-      dbg_trace f!"step {i}, {new}"
-      nseeds := nseeds ++ get_bots seeds[i]! seeds[i+1]! new
-  dbg_trace nseeds
-  let mut seeds := seeds -- cnums[0]![0]!
-  for ins in instrs do
-    seeds := seeds.map (conv1 ins)
---  IO.println <| seeds
-  IO.println <| seeds.foldl min seeds[0]!
+#eval show MetaM _ from do
+  let ans := part2 (← IO.FS.readFile input)
+  IO.println f!"Day 5, part2: {ans}"
+  guard (ans == 7873084)
