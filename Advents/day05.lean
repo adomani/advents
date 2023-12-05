@@ -174,23 +174,33 @@ def rev_instrs (instrs : List (List (List Nat))) : List (List (List Nat)) :=
 --  IO.println f!"{ini_seeds}\n{seeds}\n{ini_seeds == seeds}"
 
 #eval do
-  let maps ← IO.FS.readFile input
   let maps := test
+  let maps ← IO.FS.readFile input
   let (ini_seeds, instrs) := get_seed_insts maps
   let mut breaks := []
   let mut currInst := []
   for ins in [:instrs.length] do
     let new := instrs[ins]!
     currInst := currInst ++ [new]
-    let ends := new.map fun x => x[1]!
+    let ends := new.map fun x => x[0]!
     let begs := pass_through (rev_instrs currInst) ends
     breaks := breaks ++ begs
-  IO.println <| breaks.toArray.qsort (· ≤ ·)
-  let fin_seeds := pass_through instrs (ini_seeds ++ breaks)
+  IO.println <| f!"{ini_seeds}"
+  IO.println <| f!"breaks\n{breaks}"
+  let mut breaks_in_range := []
+  for i in [:ini_seeds.length] do
+    if i % 2 == 0 then
+      breaks_in_range := ini_seeds[i]! :: breaks_in_range ++ breaks.filter fun x =>
+        ini_seeds[i]! ≤ x && x < ini_seeds[i]! + ini_seeds[i+1]!
+  IO.println f!"in range: {breaks_in_range}"
+--  let fin_seeds := pass_through instrs /-(ini_seeds) ++--/ breaks
+  let fin_seeds := pass_through instrs breaks_in_range
   IO.println <| fin_seeds
-  IO.println <| fin_seeds.foldl min fin_seeds[0]!
+  IO.println <| (fin_seeds).foldl min fin_seeds[0]!
 
-
+-- too high: 28828717
+-- too ????:  7873084
+-- too low:   5923540
 
 def get_bots (init rg : Nat) (instrs : List (List Nat)) : List Nat :=
   let botsLists := instrs.filter fun ins => init ≤ ins[1]! && ins[1]! < init + rg
