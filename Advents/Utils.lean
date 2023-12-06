@@ -1,17 +1,27 @@
 import Std
 
 section sums
-variable {α} [Add α] [Inhabited α]
+variable {α} [Inhabited α]
 
 /--  Sum the elements of a `List`. -/
-def List.sum : List α → α
+def List.sum [Add α] : List α → α
   | []    => default
   | [m]   => m
   | m::ms => m + ms.sum
 
 /--  Sum the elements of an `Array`. -/
-def Array.sum (l : Array α) : α :=
+def Array.sum [Add α] (l : Array α) : α :=
   l.toList.sum
+
+/--  Multiply the elements of a `List`. -/
+def List.prod [Mul α] : List α → α
+  | []    => default
+  | [m]   => m
+  | m::ms => m * ms.prod
+
+/--  Multiply the elements of an `Array`. -/
+def Array.prod [Mul α] (l : Array α) : α :=
+  l.toList.prod
 
 end sums
 
