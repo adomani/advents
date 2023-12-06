@@ -123,3 +123,16 @@ humidity-to-location map:
 
 ---
 
+#  Day 6
+
+Toy boat race, with times and record distances.
+
+####  Test
+
+<pre>
+Time:      7  15   30
+Distance:  9  40  200
+</pre>
+
+---
+

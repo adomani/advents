@@ -8,3 +8,5 @@ A game with cards: computing the number of matches between two lists of natural 
 --
 Seeds growing into locations as a series of permutations.
 --
+Toy boat race, with times and record distances.
+--
