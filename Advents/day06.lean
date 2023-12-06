@@ -19,24 +19,15 @@ Distance:  9  40  200"
 
 /-- Extract the two lists of natural numbers from the input data. -/
 def getData (s : String) : List (List Nat) :=
-  let rows := s.splitOn "\n"
-  rows.map (List.getNumbers ∘ String.toList)
+  (s.splitOn "\n").map (List.getNumbers ∘ String.toList)
 
 /-- The solution to part 1. -/
 def part1 (str : String) : Nat :=
-  Id.run do
   let dat := getData str |>.filter (· ≠ [])
-  let mut cands := #[]
-  for i in [:dat[0]!.length] do
-    let mut cand := #[]
+  List.prod <| (List.range dat[0]!.length).map fun i =>
     let tgt := dat[1]![i]!
     let currTime := dat[0]![i]!
-    for j in [:currTime] do
-      let tot := (currTime - j) * j
-      if tgt < tot then
-        cand := cand.push j
-    cands := cands.push cand.size
-  return cands.prod
+    ((List.range currTime).filter fun j => tgt < (currTime - j) * j).length
 
 --#assert part1 test == 288
 
