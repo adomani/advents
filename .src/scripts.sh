@@ -48,7 +48,7 @@ desc_tests () {
       (inside == 1) { acc=acc "\n" $0 }
       /[^"]*"$/ { inside=0 }
       END{ print acc }' "${d}"
-    printf -- '\n[%s](%s)\n\n---\n\n' "Solution in Lean" "Advent/${d/_traditional/}"
+    printf -- '\n[%s](%s)\n\n---\n\n' "Solution in Lean" "Advents/${d/_traditional/}"
   fi
   done | sed '
       s=def test\([12]*\)[^"]*["]*=\n####  Test \1\n\n<pre>\n=g
