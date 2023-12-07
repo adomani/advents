@@ -23,6 +23,8 @@ zoneight234
 7pqrstsixteen
 </pre>
 
+[Solution in Lean](Advent/day01.lean)
+
 ---
 
 #  Day 2
@@ -38,6 +40,8 @@ Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 </pre>
+
+[Solution in Lean](Advent/day02.lean)
 
 ---
 
@@ -60,6 +64,8 @@ Operations and numbers scattered on a rectangular grid: compute a value from the
 .664.598..
 </pre>
 
+[Solution in Lean](Advent/day03.lean)
+
 ---
 
 #  Day 4
@@ -76,6 +82,8 @@ Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
 Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 </pre>
+
+[Solution in Lean](Advent/day04.lean)
 
 ---
 
@@ -121,6 +129,8 @@ humidity-to-location map:
 56 93 4
 </pre>
 
+[Solution in Lean](Advent/day05.lean)
+
 ---
 
 #  Day 6
@@ -133,6 +143,8 @@ Toy boat race, with times and record distances.
 Time:      7  15   30
 Distance:  9  40  200
 </pre>
+
+[Solution in Lean](Advent/day06.lean)
 
 ---
 
@@ -149,6 +161,8 @@ KK677 28
 KTJJT 220
 QQQJA 483
 </pre>
+
+[Solution in Lean](Advent/day07.lean)
 
 ---
 
