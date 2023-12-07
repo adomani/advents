@@ -17,6 +17,13 @@ KK677 28
 KTJJT 220
 QQQJA 483"
 
+/-- `parseCC s` takes as input a string `s` as in each line of `test` and returns the pair
+consisting of the first part of the string, followed by the number. -/
+def parseCC (s : String) : String × Nat :=
+  match s.splitOn " " with
+    | [s, t] => (s, t.toNat!)
+    | _ => dbg_trace "parseCC: oh no!"; default
+
 /-- `tally l` takes as input a list and returns the array of counts of each entry in the list,
 sorted in decreasing order.
 
@@ -35,13 +42,6 @@ def tally {α} [BEq α] (l : List α) : Array Nat := (tallyAux l).qsort (· > ·
   let ls := ["abcde", "abcbd", "abacb", "aabab", "aabaa", "aaaaa"].map String.toList
   guard (ls.map tally == [#[1, 1, 1, 1, 1], #[2, 1, 1, 1], #[2, 2, 1], #[3, 2], #[4, 1], #[5]])
 --/
-
-/-- `parseCC s` takes as input a string `s` as in each line of `test` and returns the pair
-consisting of the first part of the string, followed by the number. -/
-def parseCC (s : String) : String × Nat :=
-  match s.splitOn " " with
-    | [s, t] => (s, t.toNat!)
-    | _ => dbg_trace "parseCC: oh no!"; default
 
 def lex [BEq α] [LT α] [DecidableRel (α := α) LT.lt] : List α → List α → Bool
   | [], _        => true
