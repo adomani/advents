@@ -81,7 +81,8 @@ leanall () {
 (
   croot || exit 1
   for fil in Advents/day??.lean; do
-    brown 'Processing'; printf ' %s\n' "${fil/#*\//}"
+    nm="$(printf ' %s' "${fil}" | sed 's=.*\(day[0-9]*\).*=\1=' )"
+    brown 'Process '; lcyan "${nm}"$'\n'
     lake env lean "${fil}"
   done
 )
