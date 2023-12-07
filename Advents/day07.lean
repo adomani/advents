@@ -43,6 +43,7 @@ def tally {α} [BEq α] (l : List α) : Array Nat := (tallyAux l).qsort (· > ·
   guard (ls.map tally == [#[1, 1, 1, 1, 1], #[2, 1, 1, 1], #[2, 2, 1], #[3, 2], #[4, 1], #[5]])
 --/
 
+/-- `lex` is the lexicographic order that is used sorting the "type" of game hands. -/
 def lex [BEq α] [LT α] [DecidableRel (α := α) LT.lt] : List α → List α → Bool
   | [], _        => true
   | _, []        => false
@@ -52,13 +53,24 @@ def lex [BEq α] [LT α] [DecidableRel (α := α) LT.lt] : List α → List α �
 def cards := "AKQJT98765432"
 
 variable (cds : String) in
+/-- `orCards cds cs1 cs2` takes as input
+* a string `cds`, representing an ordering of the values of the cards;
+* two lists of characters `c1` and `c2` representing hands to be compared.
+
+It returns whether the first hand beats the second one, by lexicographically
+comparing the values.
+-/
 def orCards : List Char → List Char → Bool
   | [], _        => true
   | _, []        => false
   | a::as, b::bs => (cds.find (· == b) < cds.find (· == a)) || (a == b) && orCards as bs
 
 variable (cds : String) (f : String × α → Array Nat) in
-def sortTypeStrG [BEq α] (ls : Array (String × α)) : Array (String × α) :=
+/-- `sortTypeStr cds f ls` sorts the list of all the cards. the function `f` converts
+the parsed expression to a different format.
+This is used since the hands that have the same `tally` should be compared lexicographically,
+but the `tally` should be used as a first ordering. -/
+def sortTypeStr [BEq α] (ls : Array (String × α)) : Array (String × α) :=
   ls.qsort (fun x y =>
     let tx := f x
     let ty := f y
@@ -66,12 +78,14 @@ def sortTypeStrG [BEq α] (ls : Array (String × α)) : Array (String × α) :=
     lex (Array.toList tx) (Array.toList ty))
 
 variable (cds : String) (f : String × Nat → Array Nat) in
+/-- `parts cds f dat` combines the commons instructions of the two parts. -/
 def parts (dat : Array String) : Nat :=
   let dat := dat.map parseCC
-  let sorted := (sortTypeStrG cds f dat).toList
+  let sorted := (sortTypeStr cds f dat).toList
   let muls := sorted.zipWith (fun x y => x.2 * y) (List.iota sorted.length)
   muls.sum
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   parts cards (fun x => tally x.1.toList) dat
 
@@ -89,6 +103,7 @@ def addJ (l : List Nat) : List Nat :=
 /-- `cards2` is the string of cards, ordered according to the second part of the problem. -/
 def cards2 := "AKQT98765432J"
 
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
   parts cards2 (fun x => (addJ <| (tally (x.1.toList.filter (· != 'J'))).toList).toArray) dat
 
