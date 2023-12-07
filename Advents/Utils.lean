@@ -48,13 +48,25 @@ macro (name := cmdAssert) "#assert" cmd:term : command =>
 on declaration `input`, expecting that it evaluates to `answer`.
 If it does, then it prints a summary, otherwise it fails.
 
+The variant `solve pt answer file` assumes that the code should be run on the whole string input,
+rather than on its lines.
+
+Finally, the `answer` argument is optional: if it is not provided, `solve` will not guard
+for the computed value.
+
 Example usage:
 ```lean
-solve 1 15
-solve 2 629
+solve 1 15    -- parses the input as an array of strings, errors if answer does not match `15`
+solve 2 629   -- parses the input as an array of strings, errors if answer does not match `629`
+
+solve 1 15  file  -- parses the input as a string, errors if answer does not match `15`
+solve 2 file      -- parses the input as a string, no error
 ```
 -/
-elab "solve" part:num n:num f:("file")?: command => do
+elab "solve" part:num n:(num)? f:("file")?: command => do
+  let nn ← match n with
+    | some stx =>  `((some $stx))
+    | none =>  `((none))
   let p1 := mkIdent <| match part with
     | `(1) => `part1
     | `(2) => `part2
@@ -66,6 +78,7 @@ elab "solve" part:num n:num f:("file")?: command => do
       let day := ((System.FilePath.toString $inp).toList.getNumbers)[0]!
       let answer := $p1 <| ← $rf $inp
       IO.println <| f!"Day {day}, part {$part}: {answer}"
-      guard (answer == $n)))
+      let ans := ($nn).getD answer
+      guard (answer == ans) <|> throwError "Computed {answer}\nExpected {ans}"))
 
 end meta
