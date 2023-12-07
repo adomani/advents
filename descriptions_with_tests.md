@@ -136,3 +136,19 @@ Distance:  9  40  200
 
 ---
 
+#  Day 7
+
+Camel cards, a simplified version of poker.
+
+####  Test
+
+<pre>
+32T3K 765
+T55J5 684
+KK677 28
+KTJJT 220
+QQQJA 483
+</pre>
+
+---
+

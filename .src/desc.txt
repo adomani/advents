@@ -10,3 +10,5 @@ Seeds growing into locations as a series of permutations.
 --
 Toy boat race, with times and record distances.
 --
+Camel cards, a simplified version of poker.
+--
