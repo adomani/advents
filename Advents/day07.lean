@@ -33,6 +33,7 @@ tally ["a", "b", "c", "b", "c", "c"] = #[3, 2, 1]
 -/
 partial
 def tally {α} [BEq α] (l : List α) : Array Nat := (tallyAux l).qsort (· > ·) where
+  /-- An auxiliary function to `tally`: it skips the final sorting. -/
   tallyAux {α} [BEq α] : List α → Array Nat
     | []    => #[]
     | a::rs => let (ra, rs) := rs.partition (· == a); (tallyAux rs).push (ra.length + 1)
@@ -70,7 +71,7 @@ variable (cds : String) (f : String × α → Array Nat) in
 the parsed expression to a different format.
 This is used since the hands that have the same `tally` should be compared lexicographically,
 but the `tally` should be used as a first ordering. -/
-def sortTypeStr [BEq α] (ls : Array (String × α)) : Array (String × α) :=
+def sortTypeStr (ls : Array (String × α)) : Array (String × α) :=
   ls.qsort (fun x y =>
     let tx := f x
     let ty := f y
@@ -97,6 +98,8 @@ solve 1 248396258
 #  Question 2
 -/
 
+/-- `addJ l` is the correction that places `J`okers in the most valuable place.
+Effectively, they are assigned to the most numerous card in the hand. -/
 def addJ (l : List Nat) : List Nat :=
   (l.getD 0 0 + 5 - l.sum)::l.drop 1
 
