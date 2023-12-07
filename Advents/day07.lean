@@ -17,12 +17,18 @@ KK677 28
 KTJJT 220
 QQQJA 483"
 
-partial
-def tallyAux {α} [BEq α] : List α → Array Nat
-  | []    => #[]
-  | a::rs => let (ra, rs) := rs.partition (· == a); (tallyAux rs).push (ra.length + 1)
+/-- `tally l` takes as input a list and returns the array of counts of each entry in the list,
+sorted in decreasing order.
 
-def tally {α} [BEq α] (l : List α) : Array Nat := (tallyAux l).qsort (· > ·)
+```lean
+tally ["a", "b", "c", "b", "c", "c"] = #[3, 2, 1]
+```
+-/
+partial
+def tally {α} [BEq α] (l : List α) : Array Nat := (tallyAux l).qsort (· > ·) where
+  tallyAux {α} [BEq α] : List α → Array Nat
+    | []    => #[]
+    | a::rs => let (ra, rs) := rs.partition (· == a); (tallyAux rs).push (ra.length + 1)
 
 /-  Test
 #eval show MetaM _ from do
@@ -30,6 +36,8 @@ def tally {α} [BEq α] (l : List α) : Array Nat := (tallyAux l).qsort (· > ·
   guard (ls.map tally == [#[1, 1, 1, 1, 1], #[2, 1, 1, 1], #[2, 2, 1], #[3, 2], #[4, 1], #[5]])
 --/
 
+/-- `parseCC s` takes as input a string `s` as in each line of `test` and returns the pair
+consisting of the first part of the string, followed by the number. -/
 def parseCC (s : String) : String × Nat :=
   match s.splitOn " " with
     | [s, t] => (s, t.toNat!)
@@ -40,6 +48,7 @@ def lex [BEq α] [LT α] [DecidableRel (α := α) LT.lt] : List α → List α �
   | _, []        => false
   | a::as, b::bs => (b < a) || (a == b) && lex as bs
 
+/-- `cards` is the string of cards, ordered according to the first part of the problem. -/
 def cards := "AKQJT98765432"
 
 variable (cds : String) in
@@ -77,6 +86,7 @@ solve 1 248396258
 def addJ (l : List Nat) : List Nat :=
   (l.getD 0 0 + 5 - l.sum)::l.drop 1
 
+/-- `cards2` is the string of cards, ordered according to the second part of the problem. -/
 def cards2 := "AKQT98765432J"
 
 def part2 (dat : Array String) : Nat :=
