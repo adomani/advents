@@ -99,9 +99,8 @@ def part1 (rows : Array String) : Nat :=
   smallIDs.sum
 
 --#assert part1 (test.splitOn "\n").toArray == 8
---#assert part1 (← IO.FS.lines input) == 2169
 
-#eval do IO.println <| "Day 2, part 1: " ++ f!"{part1 (← IO.FS.lines input)}"
+solve 1 2169
 
 /-!
 #  Question 2
@@ -128,6 +127,5 @@ def part2 (rows : Array String) : Nat :=
   powers.sum
 
 --#assert part2 (test.splitOn "\n").toArray == 2286
---#assert part2 (← IO.FS.lines input) == 60948
 
-#eval do IO.println <| "Day 2, part 2: " ++ f!"{part2 (← IO.FS.lines input)}"
+solve 2 60948

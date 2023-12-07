@@ -37,10 +37,35 @@ def List.getNumbers (l : List Char) : List Nat :=
   d1 :: fin
 
 section meta
-open Lean Elab
+open Lean Elab Command
+
 /-- `#assert x` takes a `Bool`ean `x` and fails if `x` is `false`.
 It runs `#eval show MetaM _ from do guard x`-/
 macro (name := cmdAssert) "#assert" cmd:term : command =>
   `(command| #eval show MetaM _ from do guard $cmd)
+
+/-- `solve pt answer` runs function `part1` if `pt = 1` and function `part2` if `pt = 2`
+on declaration `input`, expecting that it evaluates to `answer`.
+If it does, then it prints a summary, otherwise it fails.
+
+Example usage:
+```lean
+solve 1 15
+solve 2 629
+```
+-/
+elab "solve" part:num n:num f:("file")?: command => do
+  let p1 := mkIdent <| match part with
+    | `(1) => `part1
+    | `(2) => `part2
+    | _ => default
+  let inp := mkIdent `input
+  let rf := mkIdent <| if f.isSome then `IO.FS.readFile else `IO.FS.lines
+  elabCommand (← `(command|
+    #eval show MetaM _ from do
+      let day := ((System.FilePath.toString $inp).toList.getNumbers)[0]!
+      let answer := $p1 <| ← $rf $inp
+      IO.println <| f!"Day {day}, part {$part}: {answer}"
+      guard (answer == $n)))
 
 end meta

@@ -68,10 +68,7 @@ def part1 (dat : Array String) : Nat :=
 
 --#assert part1 (test.splitOn "\n").toArray == 6440
 
-#eval show MetaM _ from do
-  let answer := part1 <| (← IO.FS.lines input)
-  IO.println <| f!"Day 7, part 1: {answer}"
-  guard (answer == 248396258)
+solve 1 248396258
 
 /-!
 #  Question 2
@@ -87,7 +84,4 @@ def part2 (dat : Array String) : Nat :=
 
 --#assert part2 (test.splitOn "\n").toArray == 5905
 
-#eval show MetaM _ from do
-  let answer := part2 (← IO.FS.lines input)
-  IO.println <| f!"Day 7, part 2: {answer}"
-  guard (answer == 246436046)
+solve 2 246436046

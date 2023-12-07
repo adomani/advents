@@ -51,10 +51,7 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
 
 --#assert part1 (test.splitOn "\n").toArray == 13
 
-#eval show MetaM _ from do
-  let answer := part1 (← IO.FS.lines input)
-  IO.println f!"Day 4, part 1: {answer}"
-  guard (answer == 17782)
+solve 1 17782
 
 /-!
 #  Question 2
@@ -82,7 +79,8 @@ def get_value (s : String) : Nat :=
 
 /-- `part2 rows` takes as input an array of strings and returns the natural number answering
 the second question of Day 4. -/
-def part2 (rows : List String) : Nat :=
+def part2 (rows : Array String) : Nat :=
+  let rows := rows.toList
   Id.run do
     let mut cards := 0
     let mut mults := List.replicate rows.length 1
@@ -93,9 +91,6 @@ def part2 (rows : List String) : Nat :=
       mults := List.replicate val curr + (mults.drop 1)
     return cards + mults.getD 0 0
 
---#assert part2 (test.splitOn "\n") == 30
+--#assert part2 (test.splitOn "\n").toArray == 30
 
-#eval show MetaM _ from do
-  let answer := part2 ((← IO.FS.lines input).toList)
-  IO.println f!"Day 4, part 2: {answer}"
-  guard (answer == 8477787)
+solve 2 8477787

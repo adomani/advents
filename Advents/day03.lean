@@ -90,8 +90,9 @@ def digs_ends (rows : Array (Array Char)) : Array (Nat × (Nat × Nat) × (Nat �
           val := ""
     return tot
 
-def part1 (rows : Array (Array Char)) : Nat :=
-  let digs := digs_ends rows
+def part1 (rows : Array String) : Nat :=
+  let rows := rows.map (List.toArray ∘ String.toList)
+  let digs := digs_ends <| rows
   let inn_digs := digs_in_nb rows (symb_pos rows)
   Id.run do
   let mut tot := 0
@@ -103,10 +104,7 @@ def part1 (rows : Array (Array Char)) : Nat :=
       tot := tot + dig
   return tot
 
-#eval show MetaM _ from do
-  let answer := part1 ((← IO.FS.lines input).map (List.toArray ∘ String.toList))
-  IO.println (f!"Day 3, part 1: {answer}")
-  guard (answer == 531932)
+solve 1 531932
 
 /-!
 #  Question 2
@@ -135,7 +133,8 @@ def get_num_nbs (rows : Array (Array Char)) (p : Int × Int) : Array Nat :=
       tot := tot.push dig
   return tot
 
-def part2 (rows : Array (Array Char)) : Nat :=
+def part2 (rows : Array String) : Nat :=
+  let rows := rows.map (List.toArray ∘ String.toList)
   let mul_pos := get_mul_pos rows
   let gearRatios := mul_pos.map fun p =>
     -- `nr` are the rows adjacent to the `*` with position `p`.  I checked that the first and last row
@@ -147,9 +146,6 @@ def part2 (rows : Array (Array Char)) : Nat :=
       | _ => 0
   gearRatios.sum
 
---#assert part2 ((test.splitOn "\n").toArray.map (List.toArray ∘ String.data)) == 467835
+--#assert part2 ((test.splitOn "\n").toArray) == 467835
 
-#eval show MetaM _ from do
-  let answer := part2 ((← IO.FS.lines input).map (List.toArray ∘ String.toList))
-  IO.println (f!"Day 3, part 2: {answer}")
-  guard (answer == 73646890)
+solve 2 73646890

@@ -34,20 +34,17 @@ treb7uchet"
 
 --#assert ((test1.splitOn "\n").map calibration).sum == 142
 
-/-- `total_calibration rows` takes as input a list of strings `rows`.
+/-- `part1 rows` takes as input a list of strings `rows`.
 It extracts the first and last digit appear in each row, forms the corresponding two-digit number
 and adds up the result.
 
 This is the function that answers the first question of Day 1. -/
-def total_calibration (rows : List String) : Nat :=
+def part1 (rows : Array String) : Nat :=
   (rows.map calibration).sum
 
---#assert total_calibration (test1.splitOn "\n") = 142
+--#assert part1 (test1.splitOn "\n").toArray = 142
 
-#eval show MetaM _ from do
-  let answer := total_calibration ((← IO.FS.lines input).toList)
-  IO.println f!"Day 1, part 1: {answer}"
-  guard (answer = 54644)
+solve 1 54644
 
 /-!
 #  Question 2

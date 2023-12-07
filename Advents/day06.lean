@@ -31,10 +31,7 @@ def part1 (str : String) : Nat :=
 
 --#assert part1 test == 288
 
-#eval show MetaM _ from do
-  let answer := part1 (← IO.FS.readFile input )
-  IO.println f!"Day 6, part 1: {answer}"
-  guard (answer == 1312850)
+solve 1 1312850 file
 
 /-!
 #  Question 2
@@ -50,9 +47,8 @@ def getData2 (s : String) : Nat × Nat :=
 def discRt (coeffs : Nat × Nat) : Nat :=
   Nat.sqrt (coeffs.1 ^ 2 - 4 * coeffs.2)
 
---#assert discRt (getData2 <| test) == 71503
+def part2 (s : String) : Nat := discRt (getData2 s)
 
-#eval show MetaM _ from do
-  let answer := discRt <| getData2 <| ← IO.FS.readFile input
-  IO.println <| f!"Day 6, part 2: {answer}"
-  guard (answer == 36749103)
+--#assert part2 test == 71503
+
+solve 2 36749103 file

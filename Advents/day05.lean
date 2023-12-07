@@ -108,10 +108,7 @@ def part1 (maps : String) : Nat :=
 
 --#assert part1 test == 35
 
-#eval show MetaM _ from do
-  let ans := part1 (← IO.FS.readFile input)
-  IO.println f!"Day 5, part 1: {ans}"
-  guard (ans == 579439039)
+solve 1 579439039 file
 
 /-!
 #  Question 2
@@ -156,7 +153,4 @@ def part2 (maps : String) : Nat :=
 
 --#assert part2 test == 46
 
-#eval show MetaM _ from do
-  let ans := part2 (← IO.FS.readFile input)
-  IO.println f!"Day 5, part 2: {ans}"
-  guard (ans == 7873084)
+solve 2 7873084 file
