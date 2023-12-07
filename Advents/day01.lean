@@ -115,16 +115,13 @@ def first_digit_in? (names : List String) : List Char → Option Nat
       | none => first_digit_in? names as
       | n    => n
 
-def part2 (rows : List String) : Nat :=
+def part2 (rows : Array String) : Nat :=
+  let rows := rows.toList
   let firsts := rows.map fun x => Option.getD (first_digit_in? nums x.toList) 0
   let secs   := rows.map fun x => Option.getD (first_digit_in? smun x.toList.reverse) 0
   let vals := (firsts.map (10 * ·)).zipWith (· + ·) secs
   vals.sum
 
---#assert part2 (test2.splitOn "\n") == 281
+--#assert part2 (test2.splitOn "\n").toArray == 281
 
---  Question 2: answer `53348`
-#eval show MetaM _ from do
-  let answer := part2 (← IO.FS.lines input).toList
-  IO.println f!"Day 1, part 2: {answer}"
-  guard (answer == 53348)
+solve 2 53348
