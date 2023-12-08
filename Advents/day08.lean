@@ -10,8 +10,8 @@ def input : System.FilePath := "Advents/day08.input"
 
 --#eval do IO.println (← IO.FS.readFile input)
 
-/-- `test` is the test string for the problem. -/
-def test := "RL
+/-- `test1` is the first test string for the problem. -/
+def test1 := "RL
 
 AAA = (BBB, CCC)
 BBB = (DDD, EEE)
@@ -21,7 +21,14 @@ EEE = (EEE, EEE)
 GGG = (GGG, GGG)
 ZZZ = (ZZZ, ZZZ)"
 
-/-- `getInstrMvs s` takes the input string `s` and returns the list of instructions together with
+/-- `test2` is the second test string for the problem. -/
+def test2 := "LLR
+
+AAA = (BBB, BBB)
+BBB = (AAA, ZZZ)
+ZZZ = (ZZZ, ZZZ)"
+
+/-- `get1InstrMvs s` takes the input string `s` and returns the list of instructions together with
 the list of pairs `(location, (goLeft, goRight))`. -/
 def getInstrMvs (s : String) : (List Char × (List (String × (String × String)))) :=
   match s.splitOn "\n\n" with
@@ -71,13 +78,26 @@ def part1 (dat : String) : Nat :=
   let (mvs, lkup) := getInstrMvs dat
   runCond "AAA" mvs lkup (· == "ZZZ")
 
-#assert part1 test == 2
+#assert part1 test1 == 2
+#assert part1 test2 == 6
 
 solve 1 14257 file
 
 /-!
 #  Question 2
 -/
+
+/-- `test3` is the third test string for the problem. -/
+def test3 := "LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)"
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : String) : Nat :=
@@ -86,6 +106,6 @@ def part2 (dat : String) : Nat :=
   let periods := endA.map (runCond · mvs lkup (String.endsWith · "Z"))
   periods.foldl Nat.lcm 1
 
-#assert part2 test = 2
+#assert part2 test3 = 6
 
 solve 2 16187743689077 file
