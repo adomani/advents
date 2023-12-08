@@ -47,11 +47,11 @@ def run (mvs : List Char) (lkup : (List (String × (String × String)))) : Nat :
   Id.run do
     let mut init := "AAA"
     let mut steps := 0
-    for i in [:100 * lkup.length] do
+    while init != fin do
       let new := (lkup.lookup init).get!
-      init := mv (mvs[i % lth]!) new
+      init := mv (mvs[steps % lth]!) new
+      steps := steps + 1
 --      dbg_trace (mvs[i % lth]!, new)
-      if init == fin then steps := i + 1; break
     return steps
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
@@ -71,6 +71,51 @@ solve 1 14257 file
 /-!
 #  Question 2
 -/
+
+def runCond (first : String) (mvs : List Char) (lkup : (List (String × (String × String)))) (f : String → Bool) :
+    Nat :=
+  let lth := mvs.length
+  Id.run do
+    let mut init := first
+    let mut steps := 0
+    while ! f init do
+      let new := (lkup.lookup init).get!
+      init := mv (mvs[steps % lth]!) new
+      steps := steps + 1
+    return steps
+
+#eval do
+  let (mvs, lkup) := getInstrMvs test
+  let (mvs, lkup) := getInstrMvs (← IO.FS.readFile input)
+  let endA := (lkup.filter fun x => String.endsWith (Prod.fst x) "A").map Prod.fst
+  let periods := endA.map (runCond · mvs lkup (String.endsWith · "Z"))
+  return periods.foldl Nat.lcm 1
+
+
+
+#check String.endsWith
+def run2 (mvs : List Char) (lkup : (List (String × (String × String)))) : Nat :=
+  let fin := "ZZZ"
+  let lth := mvs.length
+  let endA := (lkup.filter fun x => x.1.endsWith "A").map Prod.fst
+  dbg_trace endA
+  default
+--  Id.run do
+--    let mut init := endA.map Prod.fst
+--    let mut steps := 0
+--    while init != fin do
+--      let new := (lkup.lookup init).get!
+--      init := mv (mvs[steps % lth]!) new
+--      steps := steps + 1
+----      dbg_trace (mvs[i % lth]!, new)
+--    return steps
+
+#eval do
+  let (mvs, lkup) := getInstrMvs test
+  let (mvs, lkup) := getInstrMvs (← IO.FS.readFile input)
+  return run2 mvs lkup
+
+
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
