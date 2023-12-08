@@ -28,7 +28,7 @@ AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)"
 
-/-- `get1InstrMvs s` takes the input string `s` and returns the list of instructions together with
+/-- `getInstrMvs s` takes the input string `s` and returns the list of instructions together with
 the list of pairs `(location, (goLeft, goRight))`. -/
 def getInstrMvs (s : String) : (List Char × (List (String × (String × String)))) :=
   match s.splitOn "\n\n" with
