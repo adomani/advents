@@ -42,7 +42,7 @@ open Lean Elab Command
 /-- `#assert x` takes a `Bool`ean `x` and fails if `x` is `false`.
 It runs `#eval show MetaM _ from do guard x`-/
 macro (name := cmdAssert) "#assert" cmd:term : command =>
-  `(command| #eval show MetaM _ from do guard $cmd)
+  `(command| run_cmd Elab.Command.liftTermElabM do guard $cmd)
 
 /-- `solve pt answer` runs function `part1` if `pt = 1` and function `part2` if `pt = 2`
 on declaration `input`, expecting that it evaluates to `answer`.

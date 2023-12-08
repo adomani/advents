@@ -29,7 +29,7 @@ def part1 (str : String) : Nat :=
     let currTime := dat[0]![i]!
     ((List.range currTime).filter fun j => tgt < (currTime - j) * j).length
 
---#assert part1 test == 288
+#assert part1 test == 288
 
 solve 1 1312850 file
 
@@ -49,6 +49,6 @@ def discRt (coeffs : Nat × Nat) : Nat :=
 
 def part2 (s : String) : Nat := discRt (getData2 s)
 
---#assert part2 test == 71503
+#assert part2 test == 71503
 
 solve 2 36749103 file

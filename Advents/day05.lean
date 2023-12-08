@@ -57,7 +57,7 @@ def compact (l : List (List α)) : List (List (List α)) :=
   let fin := (l.dropWhile (List.length · != 0)).dropWhile (List.length · == 0)
   [init] ++ compact fin
 
---#assert compact [[], [0], [0], [], [], [0], [1]] == [[], [[0], [0]], [[0], [1]]]
+#assert compact [[], [0], [0], [], [], [0], [1]] == [[], [[0], [0]], [[0], [1]]]
 
 /-- `get_seed_instrs maps` takes as input the input of the problem.
 It returns a pair consisting of
@@ -80,7 +80,7 @@ def conv (ins : List Nat) (n : Nat) : Nat :=
     | [dest, src, lth] => if src ≤ n && n < src + lth then dest + (n - src) else n
     | _ => dbg_trace f!"oh no! {ins}"; 0
 
---#assert ([79, 14, 55, 13]).map (conv ([52, 50, 48])) == [81, 14, 57, 13]
+#assert ([79, 14, 55, 13]).map (conv ([52, 50, 48])) == [81, 14, 57, 13]
 
 /-- `conv1 inss n` takes as input a list of lists of natural numbers and a natural number.
 It returns the transformation that `n` goes through following whichever one of the
@@ -106,7 +106,7 @@ def part1 (maps : String) : Nat :=
   let (seeds, instrs) := get_seed_instrs maps
   (pass_through seeds instrs).foldl min seeds[0]!
 
---#assert part1 test == 35
+#assert part1 test == 35
 
 solve 1 579439039 file
 
@@ -151,6 +151,6 @@ def part2 (maps : String) : Nat :=
     pass_through breaks_in_range instrs
   (fin_seeds).foldl min fin_seeds[0]!
 
---#assert part2 test == 46
+#assert part2 test == 46
 
 solve 2 7873084 file
