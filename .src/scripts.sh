@@ -51,7 +51,7 @@ desc_tests () {
     printf -- '\n[%s](%s)\n\n---\n\n' "Solution in Lean" "Advents/${d/_traditional/}"
   fi
   done | sed '
-      s=def test\([12]*\)[^"]*["]*=\n####  Test \1\n\n<pre>\n=g
+      s=def test\([0-9]*\)[^"]*["]*=\n####  Test \1\n\n<pre>\n=g
       s="=\n</pre>=
     ' |
     sed -z '
