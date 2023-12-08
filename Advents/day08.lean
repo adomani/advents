@@ -50,7 +50,7 @@ def mv (c : Char) (opt : String × String) : String :=
     | 'R' => opt.2
     | _ => dbg_trace "mv: oh no!"; default
 
-/-- `runCond first mvs lkup f` takes a input
+/-- `runCond first mvs lkup f` takes as input
 * the starting position `first` -- a string;
 * the list of `L/R` moves -- a list of characters;
 * the map `lkup` of the desert -- a list of pairs of a location and the accessible locations;
