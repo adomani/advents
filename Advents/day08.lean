@@ -21,6 +21,8 @@ EEE = (EEE, EEE)
 GGG = (GGG, GGG)
 ZZZ = (ZZZ, ZZZ)"
 
+/-- `getInstrMvs s` takes the input string `s` and returns the list of instructions together with
+the list of pairs `(location, (goLeft, goRight))`. -/
 def getInstrMvs (s : String) : (List Char × (List (String × (String × String)))) :=
   match s.splitOn "\n\n" with
     | [i, r] =>
@@ -33,13 +35,26 @@ def getInstrMvs (s : String) : (List Char × (List (String × (String × String)
       (i.toList, part)
     | _ => dbg_trace "oh no!"; default
 
+/-- `mv c` takes a character `c` and a pair of strings `opt` and returns the `L`eft/`R`ight option
+depending on whether `c` is `L/R`. -/
 def mv (c : Char) (opt : String × String) : String :=
   match c with
     | 'L' => opt.1
     | 'R' => opt.2
     | _ => dbg_trace "mv: oh no!"; default
 
-def runCond (first : String) (mvs : List Char) (lkup : (List (String × (String × String)))) (f : String → Bool) :
+/-- `runCond first mvs lkup f` takes a input
+* the starting position `first` -- a string;
+* the list of `L/R` moves -- a list of characters;
+* the map `lkup` of the desert -- a list of pairs of a location and the accessible locations;
+* a predicate `f` that decides if the current location is an exit.
+
+The function returns the number of steps that it takes to go from `first` to the first time that
+we reach a location on which `f` is `true`.
+It goes through the moves in `mvs` cyclically and uses `lkup` to figure out the result of each move.
+-/
+def runCond (first : String) (mvs : List Char)
+    (lkup : List (String × (String × String))) (f : String → Bool) :
     Nat :=
   let lth := mvs.length
   Id.run do
