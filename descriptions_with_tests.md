@@ -166,3 +166,25 @@ QQQJA 483
 
 ---
 
+#  Day 8
+
+Traveling through the desert with ghosts.
+
+####  Test
+
+<pre>
+RL
+
+AAA = (BBB, CCC)
+BBB = (DDD, EEE)
+CCC = (ZZZ, GGG)
+DDD = (DDD, DDD)
+EEE = (EEE, EEE)
+GGG = (GGG, GGG)
+ZZZ = (ZZZ, ZZZ)
+</pre>
+
+[Solution in Lean](Advents/day08.lean)
+
+---
+

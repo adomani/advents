@@ -12,3 +12,5 @@ Toy boat race, with times and record distances.
 --
 Camel cards, a simplified version of poker.
 --
+Traveling through the desert with ghosts.
+--
