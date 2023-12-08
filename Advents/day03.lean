@@ -30,7 +30,7 @@ def nbs := Id.run do
       t := t.push (i,j)
   return t.erase (0,0)
 
---#assert nbs == #[(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+#assert nbs == #[(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
 def has_number_nb (d : Array (Array Char)) (lx ly : Int) (p : Int × Int) : Array (Nat × Nat) :=
   Id.run do
@@ -146,6 +146,6 @@ def part2 (rows : Array String) : Nat :=
       | _ => 0
   gearRatios.sum
 
---#assert part2 ((test.splitOn "\n").toArray) == 467835
+#assert part2 ((test.splitOn "\n").toArray) == 467835
 
 solve 2 73646890

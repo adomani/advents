@@ -19,7 +19,7 @@ def count_powers (l r : Array Nat) : Nat :=
   let appsize := appearing.size
   if appsize == 0 then 0 else 2 ^ (appsize - 1)
 
---#assert getNumbers "askdlkaj12kj3lkj5".toList == [12, 3, 5]
+#assert .getNumbers "askdlkaj12kj3lkj5".toList == [12, 3, 5]
 
 /-- `parseCard s` takes as input a string, assumes that it is of the form
 `Card <index>: <space_separated_nats> | <space_separated_nats>`
@@ -49,7 +49,7 @@ Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
 Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
 
---#assert part1 (test.splitOn "\n").toArray == 13
+#assert part1 (test.splitOn "\n").toArray == 13
 
 solve 1 17782
 
@@ -69,7 +69,7 @@ the list by the natural number. -/
 instance : HMul Nat (List Nat) (List Nat) where
   hMul a l := l.map (a * ·)
 
---#assert [1, 2, 3] + [4, 5, 6, 7] == [5, 7, 9, 7]
+#assert [1, 2, 3] + [4, 5, 6, 7] == [5, 7, 9, 7]
 
 /-- `get_value s` assigns to each row of the input its value according to the rules for
 the second part of Day 4. -/
@@ -91,6 +91,6 @@ def part2 (rows : Array String) : Nat :=
       mults := List.replicate val curr + (mults.drop 1)
     return cards + mults.getD 0 0
 
---#assert part2 (test.splitOn "\n").toArray == 30
+#assert part2 (test.splitOn "\n").toArray == 30
 
 solve 2 8477787

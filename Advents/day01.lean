@@ -32,7 +32,7 @@ pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet"
 
---#assert ((test1.splitOn "\n").map calibration).sum == 142
+#assert ((test1.splitOn "\n").map calibration).sum == 142
 
 /-- `part1 rows` takes as input a list of strings `rows`.
 It extracts the first and last digit appear in each row, forms the corresponding two-digit number
@@ -42,7 +42,7 @@ This is the function that answers the first question of Day 1. -/
 def part1 (rows : Array String) : Nat :=
   (rows.map calibration).sum
 
---#assert part1 (test1.splitOn "\n").toArray = 142
+#assert part1 (test1.splitOn "\n").toArray = 142
 
 solve 1 54644
 
@@ -122,6 +122,6 @@ def part2 (rows : Array String) : Nat :=
   let vals := (firsts.map (10 * ·)).zipWith (· + ·) secs
   vals.sum
 
---#assert part2 (test2.splitOn "\n").toArray == 281
+#assert part2 (test2.splitOn "\n").toArray == 281
 
 solve 2 53348
