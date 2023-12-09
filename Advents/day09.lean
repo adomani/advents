@@ -94,11 +94,10 @@ def parts (dat : Array (List Int)) : Int :=
   let mut tot : Int := 0
   for idx in [:dat.size] do
     let di := dat[idx]!
+    let dis := di.length
     let csi := (cs di).toArray
---    let part := (List.range (di.length + 1)).map fun x : Nat => toPol csi x
-    let corr := di[(di.length - 1)]! - (toPol csi (di.length - 1))
-    let part := toPol csi di.length
---    let ext := (part.map (· + corr))
+    let corr := di[(dis - 1)]! - (toPol csi (dis - 1))
+    let part := toPol csi dis
     tot := tot + part + corr
   return tot
 
