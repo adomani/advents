@@ -47,6 +47,7 @@ def getData2 (s : String) : Nat × Nat :=
 def discRt (coeffs : Nat × Nat) : Nat :=
   Nat.sqrt (coeffs.1 ^ 2 - 4 * coeffs.2)
 
+/-- The solution to part 2. -/
 def part2 (s : String) : Nat := discRt (getData2 s)
 
 #assert part2 test == 71503

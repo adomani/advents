@@ -59,7 +59,7 @@ solve 1 17782
 
 /-- We add two lists of natural numbers by padding with `0` the shorter of the two lists. -/
 instance : Add (List Nat) where
-  add := radd where radd
+  add := radd where /-- `radd` is the internal function to add two list of natural numbers-/ radd
     | l, [] => l
     | [], l => l
     | a::as, b::bs => (a + b) :: radd as bs
