@@ -28,7 +28,7 @@ AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)"
 
-/-- `get1InstrMvs s` takes the input string `s` and returns the list of instructions together with
+/-- `getInstrMvs s` takes the input string `s` and returns the list of instructions together with
 the list of pairs `(location, (goLeft, goRight))`. -/
 def getInstrMvs (s : String) : (List Char × (List (String × (String × String)))) :=
   match s.splitOn "\n\n" with
@@ -42,15 +42,15 @@ def getInstrMvs (s : String) : (List Char × (List (String × (String × String)
       (i.toList, part)
     | _ => dbg_trace "oh no!"; default
 
-/-- `mv c` takes a character `c` and a pair of strings `opt` and returns the `L`eft/`R`ight option
-depending on whether `c` is `L/R`. -/
+/-- `mv c opt` takes a character `c` and a pair of strings `opt` and returns the
+`L`eft/`R`ight option depending on whether `c` is `L/R`. -/
 def mv (c : Char) (opt : String × String) : String :=
   match c with
     | 'L' => opt.1
     | 'R' => opt.2
     | _ => dbg_trace "mv: oh no!"; default
 
-/-- `runCond first mvs lkup f` takes a input
+/-- `runCond first mvs lkup f` takes as input
 * the starting position `first` -- a string;
 * the list of `L/R` moves -- a list of characters;
 * the map `lkup` of the desert -- a list of pairs of a location and the accessible locations;
