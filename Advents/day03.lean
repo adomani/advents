@@ -10,6 +10,7 @@ def input : System.FilePath := "Advents/day03.input"
 
 --#eval do IO.println (← IO.FS.readFile input)
 
+/-- `test` is the test string for the problem. -/
 def test := "467..114..
 ...*......
 ..35..633.
@@ -21,8 +22,10 @@ def test := "467..114..
 ...$.*....
 .664.598.."
 
+/-- Componentwise addition of a pair of integers. -/
 instance : Add (Int × Int) where add x y := (x.1 + y.1, x.2 + y.2)
 
+/-- `nbs` is the list of neighbours of `(0, 0)`, horizontally, vertically and diagonally. -/
 def nbs := Id.run do
   let mut t := #[]
   for i in [-1, 0, 1] do
@@ -32,6 +35,9 @@ def nbs := Id.run do
 
 #assert nbs == #[(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
+/-- `has_number_nb` takes as input a "plane" `d` of `Char`acters, the number of columns and rows `lx, ly`
+of the plane, a position `p` in the plane and it returns the array of coordinates of locations
+neighbouring `p` where `d` contains a digit. -/
 def has_number_nb (d : Array (Array Char)) (lx ly : Int) (p : Int × Int) : Array (Nat × Nat) :=
   Id.run do
     let mut cond := #[]
@@ -44,12 +50,14 @@ def has_number_nb (d : Array (Array Char)) (lx ly : Int) (p : Int × Int) : Arra
           cond := cond.push (x, y)
     return cond
 
-def symb_pos (s : Array (Array Char)) : Array (Int × Int) :=
+/-- `symb_pos d` takes as input a "plane" `d` of `Char`acters and returns the array of locations of
+all the symbols in `d`. -/
+def symb_pos (d : Array (Array Char)) : Array (Int × Int) :=
   Id.run do
     let mut tot := #[]
-    for i in [:s.size] do
-      for j in [:s[0]!.size] do
-        let c := s[i]![j]!
+    for i in [:d.size] do
+      for j in [:d[0]!.size] do
+        let c := d[i]![j]!
         if (! c.isDigit && ! c == '.') then
           tot := tot.push ((i, j) : Int × Int)
     return tot
@@ -90,6 +98,7 @@ def digs_ends (rows : Array (Array Char)) : Array (Nat × (Nat × Nat) × (Nat �
           val := ""
     return tot
 
+/-- `part1 rows` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (rows : Array String) : Nat :=
   let rows := rows.map (List.toArray ∘ String.toList)
   let digs := digs_ends <| rows
@@ -110,16 +119,20 @@ solve 1 531932
 #  Question 2
 -/
 
-def get_mul_pos (s : Array (Array Char)) : Array (Int × Int) :=
+/-- `get_mul_pos d` takes as input a "plane" `d` of `Char`acters and returns the array of locations of
+all the multiplication symbols `*` in `d`. -/
+def get_mul_pos (d : Array (Array Char)) : Array (Int × Int) :=
   Id.run do
     let mut tot := #[]
-    for i in [:s.size] do
-      for j in [:s[0]!.size] do
-        let c := s[i]![j]!
+    for i in [:d.size] do
+      for j in [:d[0]!.size] do
+        let c := d[i]![j]!
         if (c == '*') then
           tot := tot.push ((i, j) : Int × Int)
     return tot
 
+/-- `get_num_nbs rows p` takes as input a "plane" `rows` of `Char`acters and a position `p`.
+It returns the array of natural numbers that are neighbours to the position `p`. -/
 def get_num_nbs (rows : Array (Array Char)) (p : Int × Int) : Array Nat :=
   let digs := digs_ends rows
   let inn_digs := digs_in_nb rows #[p]
@@ -133,6 +146,7 @@ def get_num_nbs (rows : Array (Array Char)) (p : Int × Int) : Array Nat :=
       tot := tot.push dig
   return tot
 
+/-- `part2 rows` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (rows : Array String) : Nat :=
   let rows := rows.map (List.toArray ∘ String.toList)
   let mul_pos := get_mul_pos rows
