@@ -115,6 +115,7 @@ def first_digit_in? (names : List String) : List Char → Option Nat
       | none => first_digit_in? names as
       | n    => n
 
+/-- `part2 rows` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (rows : Array String) : Nat :=
   let rows := rows.toList
   let firsts := rows.map fun x => Option.getD (first_digit_in? nums x.toList) 0
