@@ -14,3 +14,5 @@ Camel cards, a simplified version of poker.
 --
 Traveling through the desert with ghosts.
 --
+Oasis measurements: compute iterated differences of sequences of integers.
+--
