@@ -123,10 +123,20 @@ solve 1 7066
 
 #check Array.eraseIdx
 
+def draw (ar : Array String) : IO Unit := do
+  let sep := String.mk <| List.replicate (ar[0]!.length + 2) '-'
+  IO.println <| sep
+  for i in ar do
+    IO.println s!"|{i}|"
+  IO.println <| sep
+
 /-- the four directions `L`eft, `R`ight, `U`p, `D`own,
 and... `S`tay. -/
 inductive out | L | R | U | D | X
   deriving BEq, DecidableEq, Inhabited, Repr
+
+instance : ToString out where
+  toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .X => "·"
 
 open out in
 def orient : Char → Array out × Array out
@@ -156,6 +166,156 @@ def crot : out → out
   | .U => .R
   | .D => .L
   | .X => .X
+
+instance : Sub pos where
+ sub x y := (x.1 - y.1, x.2 - y.2)
+
+def toLeft : pos → out
+  | (  1,   0) => .R
+  | (- 1,   0) => .L
+  | (  0, - 1) => .D
+  | (  0,   1) => .U
+  | _ => .X
+
+def orientPath (path : Array pos) : Array (pos × out) :=
+  let ps := path.size
+  Id.run do
+    let lst := path.back
+    let fst := path[0]!
+    let mut prev := (lst, toLeft (fst - lst))
+    let mut oriented := #[]
+    for p in [:ps] do
+      let curr := path[p]!
+      let dif := path[(p + 1) % ps]! - curr
+      let dir := toLeft dif
+      if dir != prev.2 then
+        oriented := (oriented.push (curr, prev.2)).push (curr, dir)
+      else
+        oriented := oriented.push (curr, dir)
+      prev := (curr, dir)
+    return oriented
+
+#eval
+  let path : Array pos := #[(0, 0), (0, 1), (0, 2), (1, 2), (1, 1), (1, 0)]
+  orientPath path
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := (test.splitOn "\n").toArray
+  let path := getPath dat
+  draw dat
+  IO.println <| orientPath path
+  --return (dat.size, dat[0]!.length, dat.size * dat[0]!.length)
+
+variable (orp : Array (pos × out)) in
+def inside? (p : pos) : Bool :=
+  let pth := orp.map Prod.fst
+  let bd := 1 + (pth.map Prod.snd).foldl (max · ·) 0
+  if p ∈ pth then false
+  else
+    Id.run do
+      let mut prev := p
+      let mut curr := p + (0,1)
+--      let mut con := 0
+      while ((!curr ∈ pth) ∧ curr.2 ≤ bd) do
+--        dbg_trace curr
+--        con := con + 1
+        prev := curr
+        curr := curr + (0,1)
+--      dbg_trace con
+      if bd ≤ curr.2 then false else
+      return ! (curr, out.L) ∈ orp
+      --true
+
+def test2 := "...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+..........."
+
+#eval do
+  let dat := (test.splitOn "\n").toArray
+  let dat := (test2.splitOn "\n").toArray
+  let dat ← IO.FS.lines input
+  let path := getPath dat
+--  draw dat
+  let orp := orientPath path
+  let mut con := 0
+  let mut outside := #[]
+  let mut inside := #[]
+--  IO.println <| orp
+  for i in [:dat.size] do
+    let cou := orp.filter fun x : pos × out => x.1.1 == i
+    let cop := cou.map Prod.fst
+    for j in [:dat[0]!.length] do
+      let pp : pos := (i, j)
+      if ! pp ∈ cop then
+      --if (! (i, j-1) ∈ outside) ∨ inside? orp (i, j) then
+      if pp - ((0, 1) : pos) ∈ outside then
+        outside := outside.push pp
+      else if inside? cou pp then
+        inside := inside.push pp
+      else
+        outside := outside.push pp
+      --else
+      --  outside := outside.push (i, j)
+--        IO.println <| s!"inside? {(i, j)}: {inside? orp (i, j)}"
+--  IO.println <| inside? orp (0,0)
+--  IO.println <| inside? orp (6,5)
+  IO.println inside.size
+
+--  too high: 19600
+#exit
+
+
+
+def orientPath (path : Array pos) : Array (pos × out) :=
+  let ps := path.size
+  let
+  Id.run do
+    let mut new := #[]
+    for p in [:ps] do
+      let dif := path[(p + 1) % ps]! - path[(p - 1) % ps]!
+      if dif.1 != 0 && dif.2 != 0 then
+        new := (new.push path[p]!).push path[p]!
+      else
+        new := new.push path[p]!
+    return new
+
+def extendPath (path : Array pos) : Array pos :=
+  let ps := path.size
+  Id.run do
+    let mut new := #[]
+    for p in [:ps] do
+      let dif := path[(p + 1) % ps]! - path[(p - 1) % ps]!
+      if dif.1 != 0 && dif.2 != 0 then
+        new := (new.push path[p]!).push path[p]!
+      else
+        new := new.push path[p]!
+    return new
+
+
+
+#eval
+  let path : Array pos := #[(0, 0), (0, 1), (0, 2), (1, 2), (1, 1), (1, 0)]
+  extendPath path
+
+
+def frame (path : Array pos) (fr : pos × out) : pos × out :=
+  let si := path.findIdx? (· == fr.1)
+  let (l, r) := fr.1
+  let i := si.get!
+  let (nr, nc) := path[(i + 1) % path.size]!
+  let orients := orient char
+  let ors := orients.1 ++ orients.2
+  if ! d ∈ ors then X else
+    default
+
+
 
 open out in
 def orientPath (dat : Array String) (path : Array pos)
@@ -203,12 +363,6 @@ def driftLeft (init : pos) (path : Array pos) (inside? : Bool := false) : pos ×
   let nl := (dat[p.1.toNat]!.eraseIdx (p.2.toNat + 1)).insertAt! p.2.toNat '='
   (dat.eraseIdx (p.1.toNat)).insertAt! p.1.toNat nl
 
-def draw (ar : Array String) : IO Unit := do
-  let sep := String.mk <| List.replicate (ar[0]!.length + 2) '-'
-  IO.println <| sep
-  for i in ar do
-    IO.println s!"|{i}|"
-  IO.println <| sep
 #check Array.find?
 def makeLine (i lth : Nat) (path : Array pos) : String :=
   let row := path.filter (fun x : Int × Int => Prod.fst x == i)
