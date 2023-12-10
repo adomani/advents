@@ -60,11 +60,11 @@ def possibleMoves (x : pos) (dbg? : Bool := false) : Array pos :=
 #eval #[1, 2, 3].filter (· != 2)
 
 variable (dat : Array (Array Char)) in
-def mv (x : pos) (vis : Array pos) : pos × Array pos :=
+def mv (x : pos) (vis : Array pos) : pos :=
   let new := possibleMoves dat x
   match new.filter (! · ∈ vis) with
-    | #[xx] => (xx, vis.push xx)
-    | ohno! => dbg_trace s!"\noh no!\nmv\npos: {x}\nvis: {vis}\nohno: {ohno!}"; (x, vis)
+    | #[xx] => xx
+    | ohno! => dbg_trace s!"\noh no!\nmv\npos: {x}\nvis: {vis}\nohno: {ohno!}"; x
 
 def findS (dat : Array String) : pos :=
   let lin := (dat.findIdx? (String.contains · 'S')).getD 0
@@ -72,12 +72,17 @@ def findS (dat : Array String) : pos :=
   (lin, loc)
 
 def findToX (dat : Array (Array Char)) (X : pos) : Array pos :=
-  let xx := nbs.map fun nb => (possibleMoves dat (X + nb)).push (X + nb)
+  let xx := nbs.map fun nb => --if (0 ≤ nb.1 ∧ 0 ≤ nb.2 ) then
+    (possibleMoves dat (X + nb)).push (X + nb)
+--  else #[]
   let cands := ((xx.filter (X ∈ ·)).map <| fun x => x.filter (· != X))
   cands.map (Array.back ·)
 
+
+
 #eval do
   let maze := ← IO.FS.lines input
+  let maze := (test.splitOn "\n").toArray
   let dat := maze.map (List.toArray ∘ String.toList)
   let S := findS maze
   IO.println <| S
@@ -85,7 +90,7 @@ def findToX (dat : Array (Array Char)) (X : pos) : Array pos :=
 
 
 def getPath (maze : Array String) : Array pos :=
-  let dat := (maze).map (fun x => x.toList.toArray)
+  let dat := maze.map (fun x => x.toList.toArray)
   let S := findS maze
   let fin := (findToX dat S)[1]! --(S + (1, 0))
   Id.run do
@@ -95,7 +100,7 @@ def getPath (maze : Array String) : Array pos :=
   let mut con := 2
   while curr != fin do
     con := con + 1
-    let (currn, visn):= mv dat curr #[prev]
+    let currn:= mv dat curr #[prev]
     prev := curr
     curr := currn
     vis := vis.push curr
@@ -118,34 +123,163 @@ solve 1 7066
 
 #check Array.eraseIdx
 
+/-- the four directions `L`eft, `R`ight, `U`p, `D`own,
+and... `S`tay. -/
+inductive out | L | R | U | D | X
+  deriving BEq, DecidableEq, Inhabited, Repr
+
+open out in
+def orient : Char → Array out × Array out
+  | '|' => (#[L], #[R])
+  | '-' => (#[U], #[D])
+  | 'F' => (#[U, L], #[D, R])
+  | 'J' => (#[U, L], #[D, R])
+  | '7' => (#[U, R], #[D, L])
+  | 'L' => (#[U, L], #[D, R])
+  | 'S' => dbg_trace s!"orient: S"; default
+  | not => dbg_trace s!"orient: {not}"; default
+
+#check String.get
+
+/-- rotate counter-clockwise. -/
+def rot : out → out
+  | .L => .D
+  | .R => .U
+  | .U => .L
+  | .D => .R
+  | .X => .X
+
+/-- rotate clockwise. -/
+def crot : out → out
+  | .L => .U
+  | .R => .R
+  | .U => .R
+  | .D => .L
+  | .X => .X
+
+open out in
+def orientPath (dat : Array String) (path : Array pos)
+    (d : out) (i : Nat) : out :=
+  let (r, c) := path[i % path.size]!
+  let row := dat[r.toNat]!
+  let char := row.get ⟨c.toNat⟩
+  let (nr, nc) := path[(i + 1) % path.size]!
+  let nrow := dat[nr.toNat]!
+  let nchar := nrow.get ⟨nc.toNat⟩
+  let orients := orient char
+  let ors := orients.1 ++ orients.2
+  if ! d ∈ ors then X else
+  match nchar with
+    | '|' => d
+    | '-' => d
+    | 'F' => rot d
+    | 'J' => rot d
+    | '7' => crot d
+    | 'L' => rot d
+    | 'S' => dbg_trace s!"orient: S"; X
+    | not => dbg_trace s!"orient: {not}"; X
+
 #eval
-  let p : pos := (1, 1)
+  let dat := #["-J"]
+  let path : Array pos := #[(0, 0), (0, 1)]
+  let d : out := .U
+  orientPath dat path d 0
+
+def orient (p : pos) : Array out :=
+  match
+
+def driftLeft (init : pos) (path : Array pos) (inside? : Bool := false) : pos × Bool :=
+  let L : pos := (0, -1)
+  let U : pos := (-1, 0)
+  if ! init + L ∈ path then (init + L, inside?)
+  else if ! init + U ∈ path then (init + U, inside?)
+  else
+  default
+
+
+#eval
+  let p : pos := (1, 3)
   let dat := #["0123".toList.toArray, "4567".toList.toArray, "8901".toList.toArray]
   let nl := (dat[p.1.toNat]!.eraseIdx (p.2.toNat + 1)).insertAt! p.2.toNat '='
   (dat.eraseIdx (p.1.toNat)).insertAt! p.1.toNat nl
 
+def draw (ar : Array String) : IO Unit := do
+  let sep := String.mk <| List.replicate (ar[0]!.length + 2) '-'
+  IO.println <| sep
+  for i in ar do
+    IO.println s!"|{i}|"
+  IO.println <| sep
+#check Array.find?
+def makeLine (i lth : Nat) (path : Array pos) : String :=
+  let row := path.filter (fun x : Int × Int => Prod.fst x == i)
+  let chars := (List.range lth).map fun x : Nat =>
+    if (row.find? (Prod.snd · == x)).isSome then '*' else ' '
+  String.mk chars
 
+
+
+
+#exit
 
 #eval show MetaM _ from do
   let maze := (test.splitOn "\n").toArray
   let maze := (← IO.FS.lines input)
+  draw maze
+  IO.println ""
   let path := getPath maze
   let dat := maze.map (List.toArray ∘ String.toList)
+  IO.println path
+#exit
   let new :=
     Id.run do
     let mut np := dat
+--    let mut nl := dat[0]!
     for p in path do
-      let ln := maze.findIdx?
-      let nl := (dat[p.1.toNat]!.eraseIdx (p.2.toNat + 1)).insertAt! p.2.toNat '='
+      --let ln := maze.findIdx?
+      let nl := (np[p.1.toNat]!.eraseIdx (p.2.toNat + 1)).insertAt! p.2.toNat '*'
       np := (np.eraseIdx (p.1.toNat)).insertAt! p.1.toNat nl
     return np
+--  let draw := Id.run do
+--    let mut row := #[]
+--    for i in [:maze.size] do
+--      let cond := path.filter (fun x : Int × Int => Prod.fst x == i)
+--      row := row.push cond
+--      return row
+  let byRows := (Array.range maze.size).map fun i : Nat => path.filter
+    (fun x : Int × Int => Prod.fst x == i)
+
+  IO.println byRows
   let tot := new.map (String.mk ∘ Array.toList)
-  for t in tot do
-    IO.println t
+--  for t in tot do
+--    IO.println t
 
   IO.println <| s!"path length: {path.size}"
 
   IO.println <| path.size / 2
+  let empt := ' '
+  let full := '*'
+--  let line := #[' ']
+--  let line := line.foldl (Array.push) #[]
+  let line := (List.replicate maze[0]!.length empt).toArray
+--  let line := (List.range maze[0]!.length).map fun _ => line.push ' '
+  --let next := maze.map String.push (fun )
+  let allSt := (List.replicate maze.size line).toArray
+  let (new, ps) :=
+    Id.run do
+    let mut ps := 0
+    let mut np := allSt
+--    let mut nl := dat[0]!
+    for p in path do
+      ps := ps + 1
+      --let ln := maze.findIdx?
+      let nl := (np[p.1.toNat]!.eraseIdx (p.2.toNat + 1)).insertAt! p.2.toNat full
+      np := (np.eraseIdx (p.1.toNat)).insertAt! p.1.toNat nl
+    return (np, ps)
+  IO.println ps
+  let tot := new.map (String.mk ∘ Array.toList)
+
+  for t in tot do
+    IO.println <| t
 
 
 
