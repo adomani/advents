@@ -71,6 +71,44 @@ def findS (dat : Array String) : pos :=
   let loc := (dat[lin]!.find (· == 'S')).byteIdx
   (lin, loc)
 
+def findToX (dat : Array (Array Char)) (X : pos) : Array pos :=
+  let xx := nbs.map fun nb => (possibleMoves dat (X + nb)).push (X + nb)
+  let cands := ((xx.filter (X ∈ ·)).map <| fun x => x.filter (· != X))
+  cands.map (Array.back ·)
+
+#eval do
+  let maze := ← IO.FS.lines input
+  let dat := maze.map (List.toArray ∘ String.toList)
+  let S := findS maze
+  IO.println <| S
+  IO.println <| findToX dat S
+
+
+def getPath (maze : Array String) : Array pos :=
+  let dat := (maze).map (fun x => x.toList.toArray)
+  let S := findS maze
+  let fin := (findToX dat S)[1]! --(S + (1, 0))
+  Id.run do
+  let mut curr := (findToX dat S)[0]!
+  let mut prev := S
+  let mut vis := #[S].push curr
+  let mut con := 2
+  while curr != fin do
+    con := con + 1
+    let (currn, visn):= mv dat curr #[prev]
+    prev := curr
+    curr := currn
+    vis := vis.push curr
+  vis
+
+/-- `part1 maze` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (maze : Array String) : Nat :=
+  (getPath maze).size / 2
+
+#assert part1 (test.splitOn "\n").toArray == 8
+
+solve 1 7066
+
 #eval show MetaM _ from do
   let dat := (← IO.FS.lines input)
   let dat := (test.splitOn "\n").toArray
@@ -78,32 +116,36 @@ def findS (dat : Array String) : pos :=
 
 #eval IO.println test
 
+#check Array.eraseIdx
+
+#eval
+  let p : pos := (1, 1)
+  let dat := #["0123".toList.toArray, "4567".toList.toArray, "8901".toList.toArray]
+  let nl := (dat[p.1.toNat]!.eraseIdx (p.2.toNat + 1)).insertAt! p.2.toNat '='
+  (dat.eraseIdx (p.1.toNat)).insertAt! p.1.toNat nl
+
+
+
 #eval show MetaM _ from do
   let maze := (test.splitOn "\n").toArray
   let maze := (← IO.FS.lines input)
-  let dat := (maze).map (fun x => x.toList.toArray)
-  let S := findS maze
-  let fin := S + (1, 0)
---  Id.run do
-  let mut curr := S + (0, - 1)
-  let mut prev := S
-  let mut vis := #[S].push curr
-  let mut con := 2
-  while curr != fin do
-    con := con + 1
-    let (currn, visn):= mv dat curr vis
-    prev := curr
-    curr := currn
-    vis := vis.push currn
-    vis := #[prev]
---  IO.println test
---  IO.println vis
-  IO.println con
-  IO.println <| con / 2
-  IO.println vis.size
-  IO.println <| vis.size / 2
+  let path := getPath maze
+  let dat := maze.map (List.toArray ∘ String.toList)
+  let new :=
+    Id.run do
+    let mut np := dat
+    for p in path do
+      let ln := maze.findIdx?
+      let nl := (dat[p.1.toNat]!.eraseIdx (p.2.toNat + 1)).insertAt! p.2.toNat '='
+      np := (np.eraseIdx (p.1.toNat)).insertAt! p.1.toNat nl
+    return np
+  let tot := new.map (String.mk ∘ Array.toList)
+  for t in tot do
+    IO.println t
 
--- too low: 7065
+  IO.println <| s!"path length: {path.size}"
+
+  IO.println <| path.size / 2
 
 
 
@@ -120,13 +162,6 @@ def pipeToDirs (pp : Array pos × pos) : Array pos × pos :=
     | not => dbg_trace s!"pipeToDirs: beginning! {not}"; #[x]
   default
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 (test.splitOn "\n").toArray == ???
-
---solve 1
 
 /-!
 #  Question 2
