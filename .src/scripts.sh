@@ -36,7 +36,6 @@ desc_tests () {
   croot ; cd Advents || return 1
   descFile=.src/desc.txt
   for d in day*.lean; do
-    ##brown "${d}"$'\n'
     if [ ! "${d}" == "day02.lean" ] && [ ! "${d}" == "day02_syntax.lean" ]; then
     dig=$( printf '%s' "${d}" | sed 's=day[0]*\([0-9]*\).*\.lean=\1=')
     desc="$(
@@ -44,7 +43,7 @@ desc_tests () {
         !/^--$/ && (con == day) { print $0 }
         /^--$/ { con++ }' ../"${descFile}"
       )"
-    printf '#  Day %s\n\n%s\n\n' "${dig}" "$(
+    printf '#  [Day %s](https://adventofcode.com/2023/day/%s)\n\n%s\n\n' "${dig}" "${dig}" "$(
       printf '%s' "${desc}" | head -1
     )"
     awk '

@@ -1,4 +1,4 @@
-#  Day 1
+#  [Day 1](https://adventofcode.com/2023/day/1)
 
 Finding the first and last digit (or the English name of a digit) in each row of the input.
 
@@ -45,7 +45,7 @@ I also recycled the previous function for the reverse scanning.
 
 ---
 
-#  Day 2
+#  [Day 2](https://adventofcode.com/2023/day/2)
 
 RGB-coloured cubes in a bag, finding sups and products.
 
@@ -77,7 +77,7 @@ experience with parsing `Lean.Syntax`.
 
 ---
 
-#  Day 3
+#  [Day 3](https://adventofcode.com/2023/day/3)
 
 Operations and numbers scattered on a rectangular grid: compute a value from the natural numbers adjacent to certain symbols.
 
@@ -109,7 +109,7 @@ neighbours of a given symbol!
 
 ---
 
-#  Day 4
+#  [Day 4](https://adventofcode.com/2023/day/4)
 
 A game with cards: computing the number of matches between two lists of natural numbers, some recursion.
 
@@ -144,7 +144,7 @@ the algorithm does not reach any of the excess entries.
 
 ---
 
-#  Day 5
+#  [Day 5](https://adventofcode.com/2023/day/5)
 
 Seeds growing into locations as a series of permutations.
 
@@ -213,7 +213,7 @@ sufficient to solve the question.
 
 ---
 
-#  Day 6
+#  [Day 6](https://adventofcode.com/2023/day/6)
 
 Toy boat race, with times and record distances.
 
@@ -247,7 +247,7 @@ around for my taste!
 
 ---
 
-#  Day 7
+#  [Day 7](https://adventofcode.com/2023/day/7)
 
 Camel cards, a simplified version of poker.
 
@@ -299,7 +299,7 @@ card `J` with all the others is different.
 
 ---
 
-#  Day 8
+#  [Day 8](https://adventofcode.com/2023/day/8)
 
 Traveling through the desert with ghosts.
 
@@ -365,7 +365,7 @@ The periods for my input are all themselves multiples of 269.
 
 ---
 
-#  Day 9
+#  [Day 9](https://adventofcode.com/2023/day/9)
 
 Oasis measurements: compute iterated differences of sequences of integers.
 
@@ -396,7 +396,7 @@ polynomial at `n + 1` and at `0`.
 
 ---
 
-#  Day 10
+#  [Day 10](https://adventofcode.com/2023/day/10)
 
 Paths along pipes.
 
@@ -456,7 +456,7 @@ Now, from any location not on the path, start moving right.
 
 ---
 
-#  Day 11
+#  [Day 11](https://adventofcode.com/2023/day/11)
 
 Distances between galaxies in an expanding universe.
 
