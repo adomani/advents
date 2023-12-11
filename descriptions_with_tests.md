@@ -275,6 +275,34 @@ LJ.LJ
 ...........
 </pre>
 
+### Description
+
+#### Part 1
+
+Pretty straightforward:
+* locate where `S` is on the map;
+* look for which neighbours of `S` you can reach `S`;
+* start from one of the neighbours and loop around
+  following the rules and storing the visited positions.
+
+Thus, you end up with a path starting from `S` and ending
+just before it reaches `S` again.
+
+Half the length of this path is the answer to part 1.
+
+#### Part 2
+
+I found this part very cute!
+
+I oriented the path found in part 1, by attaching to each
+position the counter-clockwise rotated step that you can take
+from there (and to there, in case they yield different answers).
+
+Now, from any location not on the path, start moving right.
+* If you reach the path, look at whether the arrow is pointing
+  towards you or away: in one case you are in, in the other out!
+* If you reach the boundary of the grid, then you are out.
+
 [Solution in Lean](Advents/day10.lean)
 
 ---
