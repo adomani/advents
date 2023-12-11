@@ -78,7 +78,7 @@ desc () {
       con++
       acc=""
     }
-    !/^--$/ { acc=$0 }' .src/desc.txt
+    !/^--$/ && (acc == "") { acc=$0 }' .src/desc.txt
 )
 }
 
