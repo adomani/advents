@@ -17,7 +17,7 @@ SJLL7
 |F--J
 LJ.LJ"
 
-/-- a `pos`ition is a pair of integers. -/
+/-- A `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int
 
 /-- `nbs` is the list of neighbours of `(0, 0)`, horizontally, vertically and diagonally. -/
