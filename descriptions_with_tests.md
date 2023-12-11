@@ -128,17 +128,17 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 
 #### Part 1
 
-This was a relative straightforward parsing of the given numbers.
-After that, what was left was finding common elements and
+This is a relative straightforward parsing of the given numbers.
+After that, what is left is finding common elements and
 evaluating powers and sums.
 
 #### Part 2
 
 For the second part, I encoded the newly-generated cards in a
 list of numbers.
-Since the loop was over the initial length, I did not have to
+Since the loop is over the initial length, I did not have to
 take care that the list finished at the right place:
-all excess entries would not be reached by the algorithm.
+the algorithm does not reach any of the excess entries.
 
 [Solution in Lean](Advents/day04.lean)
 
@@ -192,13 +192,13 @@ humidity-to-location map:
 
 The given data encodes a permutation of some range of natural
 numbers.
-To answer the first question, all that was needed was to pass
+To answer the first question, all that is needed is to pass
 the initial 'seed' through the permutation and compute minima.
 
 #### Part 2
 
 It turns out that now the 'seed' represents a *very long*
-list of seeds and they all have to go through the permutation
+list of seeds and they all need to go through the permutation
 before the minimum is computed.
 
 The trick that I used to compute the minimum is that the
@@ -206,7 +206,7 @@ permutations are *piece-wise increasing*.
 Thus, the minimum is achieved on the lower end of an
 increasing range, or at a place where there is a break.
 Reverse-engineering where the breaks are and selecting the
-ones contained in the 'seed ranges' turned out to be
+ones contained in the 'seed ranges' turns out to be
 sufficient to solve the question.
 
 [Solution in Lean](Advents/day05.lean)
@@ -226,21 +226,22 @@ Distance:  9  40  200
 
 ### Description
 
-Both questions revolved around computing the number
+Both questions revolve around computing the number
 of integers on which a second-degree polynomial is
 positive.
 While the length of the real interval is simply the
 square root of the discriminant of the quadratic,
 the exact number of integer points inside is depends
 on the exact location of the interval.
-It turned out that I could only solve part 1 by a
+It turns out that I could only solve part 1 by a
 brute-force enumeration, while for part 2 the
 discriminant approach worked well.
 
-The issue with part 1 was particularly frustrating,
+The issue with part 1 is particularly frustrating,
 since the correct answer is at most 1 away from the
-discriminant, but fixing the 'off-by-one' error
-involved too much fiddling around!
+calculation involving the discriminant, but fixing
+the 'off-by-one' error involved too much fiddling
+around for my taste!
 
 [Solution in Lean](Advents/day06.lean)
 
@@ -262,7 +263,7 @@ QQQJA 483
 
 ### Description
 
-Both parts involved sorting 5-card hands of cards
+Both parts involve sorting 5-card hands of cards
 following an order naturally described as
 * first a lexicographic ordering of the
   frequency of each card in each hand;
@@ -276,22 +277,23 @@ for both parts.
 #### Part 1
 
 Using rules very similar to poker, the first part
-involved sorting a list of 5-card hands and doing
-operations with the sorted rank of each hand and
-the given number associated with the hands.
+involves sorting a list of 5-card hands and doing
+operations with the sorted rank of each hand (plus
+also using a number given that the input gives with
+with each hand).
 
 #### Part 2
 
-The second part, changed the sorting function.
-In the first part (the *frequency* phase), the card
+The second part, changes the sorting function.
+In the first sorting (the *frequency* phase), the card
 labeled by `J` should be interpreted as the most
 beneficial that it could be.
 Given the rules for sorting, the revised `Joker`
-card was always best assigned to the most-frequent
+card is always best assigned to the most-frequent
 value.
-The second, tie-breaking sorting was lexicographic
+The second, tie-breaking sorting is lexicographic
 as before, except that the relative order of the
-card `J` with all the others was different.
+card `J` with all the others is different.
 
 [Solution in Lean](Advents/day07.lean)
 
@@ -344,7 +346,7 @@ XXX = (XXX, XXX)
 
 #### Part 1
 
-In part 1, simply 'going through the moves' was fast enough.
+In part 1, simply 'going through the moves' is fast enough.
 
 #### Part 2
 
@@ -352,8 +354,9 @@ For the second part, the various starting points are
 really independent processes each running with its own
 period.
 They all finish in their end-positions simultaneously
-on time intervals that are proportional to the `lcm` of
+at time intervals that are proportional to the `lcm` of
 the individual periods.
+Thus, the answer is the least common multiple of the periods.
 
 *Note*.
 The periods for my input are all themselves multiples of 269.
@@ -386,7 +389,7 @@ of zeros persisted.
 Equivalently, you could compute the polynomial of smallest
 degree, whose values on `{1, 2, ..., n}` are the initial
 sequence.
-The two extensions are them simply the evaluation of the
+The two extensions are then simply the evaluation of the
 polynomial at `n + 1` and at `0`.
 
 [Solution in Lean](Advents/day09.lean)
