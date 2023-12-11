@@ -298,6 +298,22 @@ Distances between galaxies in an expanding universe.
 #...#.....
 </pre>
 
+### Description
+
+#### Part 1
+
+Extracted the coordinates of the positions of the galaxies.
+Increased the `x` and `y` coordinates according to how
+many skipped values there were before each one of them,
+to reproduce the *expansion*.
+After that, simply looped through all pairs,
+accumulated the distances and divided by two.
+
+#### Part 2
+
+Same setup as for part 1, except that I increased the introduced
+spacing in the *expansion* step.
+
 [Solution in Lean](Advents/day11.lean)
 
 ---
