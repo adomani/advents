@@ -25,6 +25,14 @@ def Array.prod [Mul α] (l : Array α) : α :=
 
 end sums
 
+/-- the component-wise addition of pairs of integers. -/
+instance {A B} [Add A] [Add B] : Add (A × B) where
+  add x y := (x.1 + y.1, x.2 + y.2)
+
+/-- the component-wise subtraction of two pairs of integers. -/
+instance {A B} [Sub A] [Sub B] : Sub (A × B) where
+ sub x y := (x.1 - y.1, x.2 - y.2)
+
 /-- `List.getNumbers l` takes as input a list of characters and returns the list of
 `Nat` where each entry is the natural number corresponding to each consecutive
 sequence of digits in `l`, in their order. -/

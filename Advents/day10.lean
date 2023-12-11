@@ -20,10 +20,6 @@ LJ.LJ"
 /-- a `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int
 
-/-- the component-wise addition of pairs of integers. -/
-instance : Add pos where
-  add x y := (x.1 + y.1, x.2 + y.2)
-
 /-- `nbs` is the list of neighbours of `(0, 0)`, horizontally, vertically and diagonally. -/
 def nbs := Id.run do
   let mut t := #[]
@@ -129,10 +125,6 @@ inductive out | L | R | U | D | S
 /-- represent each direction by the corresponding arrow. -/
 instance : ToString out where
   toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .S => "·"
-
-/-- the component-wise subtraction of two pairs of integers. -/
-instance : Sub pos where
- sub x y := (x.1 - y.1, x.2 - y.2)
 
 /-- converts a unit vector into the direction that is
 obtained by a counter-clockwise rotation.
