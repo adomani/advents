@@ -96,6 +96,15 @@ Operations and numbers scattered on a rectangular grid: compute a value from the
 .664.598..
 </pre>
 
+### Description
+
+This mostly consisted of extracting positions of digits,
+symbols and chaining consecutive digits to get numbers.
+
+The biggest speed-up that I obtained was by extracting the
+two rows surrounding a symbol, before looking for digit
+neighbours of a given symbol!
+
 [Solution in Lean](Advents/day03.lean)
 
 ---

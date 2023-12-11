@@ -33,7 +33,14 @@ The conversion is a little clunky, but this is just due to my limited
 experience with parsing `Lean.Syntax`.
 --
 Operations and numbers scattered on a rectangular grid: compute a value from the natural numbers adjacent to certain symbols.
+### Description
 
+This mostly consisted of extracting positions of digits,
+symbols and chaining consecutive digits to get numbers.
+
+The biggest speed-up that I obtained was by extracting the
+two rows surrounding a symbol, before looking for digit
+neighbours of a given symbol!
 --
 A game with cards: computing the number of matches between two lists of natural numbers, some recursion.
 --
