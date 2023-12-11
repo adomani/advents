@@ -25,7 +25,7 @@ def test := "...#......
 /-- `test` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- a `pos`ition is a pair of integers. -/
+/-- A `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int
 
 /-- Auxilliary function to `getGal`.
