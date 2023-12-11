@@ -41,8 +41,7 @@ def possibleMoves (x : pos) : Array pos :=
     | 'J' => #[x + (0, - 1), x + (- 1,   0)]
     | '7' => #[x + (0, - 1), x + (  1,   0)]
     | 'L' => #[x + (0,   1), x + (- 1,   0)]
-    | 'S' => #[x]
-    | _ => #[x]
+    | _ => #[x]  -- likely only matches `S` and `.`
 
 variable (dat : Array (Array Char)) in
 /-- one elementary move along the pipes. -/
@@ -78,9 +77,8 @@ def findToX (dat : Array (Array Char)) (X : pos) : Array pos :=
   IO.println <| findToX dat S
 -/
 
-/-- finds the location of `S` on grid and follows the pipes
-around from there.
-It returns the array of location that it visited. -/
+/-- finds the location of `S` on grid and follows the pipes around from there.
+It returns the array of `pos`itions that it visited. -/
 def getPath (maze : Array String) : Array pos :=
   let dat := maze.map (fun x => x.toList.toArray)
   let S := findS maze
@@ -106,16 +104,9 @@ def part1 (maze : Array String) : Nat :=
 
 solve 1 7066
 
-/-- a utility function to display arrays of strings.
-It assumes that the strings all have the same length,
-it also surrounds the data with dashes/vertical bars.
+/-!
+#  Question 2
 -/
-def draw (ar : Array String) : IO Unit := do
-  let sep := String.mk <| List.replicate (ar[0]!.length + 2) '-'
-  IO.println <| sep
-  for i in ar do
-    IO.println s!"|{i}|"
-  IO.println <| sep
 
 /-- the four directions `L`eft, `R`ight, `U`p, `D`own,
 and... `S`tay. -/
@@ -181,11 +172,6 @@ def test2 := "...........
 .|..|.|..|.
 .L--J.L--J.
 ..........."
-
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
