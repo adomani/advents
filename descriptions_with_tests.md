@@ -224,6 +224,24 @@ Time:      7  15   30
 Distance:  9  40  200
 </pre>
 
+### Description
+
+Both questions revolved around computing the number
+of integers on which a second-degree polynomial is
+positive.
+While the length of the real interval is simply the
+square root of the discriminant of the quadratic,
+the exact number of integer points inside is depends
+on the exact location of the interval.
+It turned out that I could only solve part 1 by a
+brute-force enumeration, while for part 2 the
+discriminant approach worked well.
+
+The issue with part 1 was particularly frustrating,
+since the correct answer is at most 1 away from the
+discriminant, but fixing the 'off-by-one' error
+involved too much fiddling around!
+
 [Solution in Lean](Advents/day06.lean)
 
 ---
