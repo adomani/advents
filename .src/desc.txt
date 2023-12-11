@@ -18,8 +18,22 @@ before moving on to the next character.
 I also recycled the previous function for the reverse scanning.
 --
 RGB-coloured cubes in a bag, finding sups and products.
+### Comments
+
+I wrote up two solutions for this problem.
+
+One, more traditional, extracting the numbers from the input
+and then performing the various operations on the extracted numbers.
+
+The other, exploits defining new syntax for a Lean command.
+This allows to make the input file itself a Lean command whose
+evaluation is the solution to the problem that has it as its input.
+
+The conversion is a little clunky, but this is just due to my limited
+experience with parsing `Lean.Syntax`.
 --
 Operations and numbers scattered on a rectangular grid: compute a value from the natural numbers adjacent to certain symbols.
+
 --
 A game with cards: computing the number of matches between two lists of natural numbers, some recursion.
 --

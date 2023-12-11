@@ -59,6 +59,20 @@ Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 </pre>
 
+### Comments
+
+I wrote up two solutions for this problem.
+
+One, more traditional, extracting the numbers from the input
+and then performing the various operations on the extracted numbers.
+
+The other, exploits defining new syntax for a Lean command.
+This allows to make the input file itself a Lean command whose
+evaluation is the solution to the problem that has it as its input.
+
+The conversion is a little clunky, but this is just due to my limited
+experience with parsing `Lean.Syntax`.
+
 [Solution in Lean](Advents/day02.lean)
 
 ---
