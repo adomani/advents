@@ -106,16 +106,9 @@ def part1 (maze : Array String) : Nat :=
 
 solve 1 7066
 
-/-- a utility function to display arrays of strings.
-It assumes that the strings all have the same length,
-it also surrounds the data with dashes/vertical bars.
+/-!
+#  Question 2
 -/
-def draw (ar : Array String) : IO Unit := do
-  let sep := String.mk <| List.replicate (ar[0]!.length + 2) '-'
-  IO.println <| sep
-  for i in ar do
-    IO.println s!"|{i}|"
-  IO.println <| sep
 
 /-- the four directions `L`eft, `R`ight, `U`p, `D`own,
 and... `S`tay. -/
@@ -181,11 +174,6 @@ def test2 := "...........
 .|..|.|..|.
 .L--J.L--J.
 ..........."
-
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
