@@ -1,4 +1,6 @@
 Finding the first and last digit (or the English name of a digit) in each row of the input.
+Spoiler
+
 --
 RGB-coloured cubes in a bag, finding sups and products.
 --
