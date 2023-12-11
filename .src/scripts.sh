@@ -44,13 +44,17 @@ desc_tests () {
         !/^--$/ && (con == day) { print $0 }
         /^--$/ { con++ }' ../"${descFile}"
       )"
-    printf '#  Day %s\n\n%s\n\n' "${dig}" "${desc}"
+    printf '#  Day %s\n\n%s\n\n' "${dig}" "$(
+      printf '%s' "${desc}" | head -1
+    )"
     awk '
       /def test/ { inside=1 }
       (inside == 1) { acc=acc "\n" $0 }
       /[^"]*"$/ { inside=0 }
       END{ print acc }' "${d}"
-    printf -- '\n[%s](%s)\n\n---\n\n' "Solution in Lean" "Advents/${d/_traditional/}"
+    printf -- '\n%s\n\n[%s](%s)\n\n---\n\n' "$(
+      printf "${desc}\n" | tail -n+2
+    )" "Solution in Lean" "Advents/${d/_traditional/}"
   fi
   done | sed '
       s=def test\([0-9]*\)[^"]*["]*=\n####  Test \1\n\n<pre>\n=g
