@@ -124,6 +124,22 @@ Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 </pre>
 
+### Description
+
+#### Part 1
+
+This was a relative straightforward parsing of the given numbers.
+After that, what was left was finding common elements and
+evaluating powers and sums.
+
+#### Part 2
+
+For the second part, I encoded the newly-generated cards in a
+list of numbers.
+Since the loop was over the initial length, I did not have to
+take care that the list finished at the right place:
+all excess entries would not be reached by the algorithm.
+
 [Solution in Lean](Advents/day04.lean)
 
 ---
