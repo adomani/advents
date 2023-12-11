@@ -23,6 +23,24 @@ zoneight234
 7pqrstsixteen
 </pre>
 
+### Description
+
+#### Part 1
+
+I simply scanned the characters in each line,
+stopping at the first digit.
+
+Next, I recycled the function, scanning the reversed list of characters.
+
+#### Part 2
+
+Very similar to part 1:
+scan the characters as before, but also try
+to match English spelling of digits,
+before moving on to the next character.
+
+I also recycled the previous function for the reverse scanning.
+
 [Solution in Lean](Advents/day01.lean)
 
 ---
@@ -257,6 +275,34 @@ LJ.LJ
 ...........
 </pre>
 
+### Description
+
+#### Part 1
+
+Pretty straightforward:
+* locate where `S` is on the map;
+* look for which neighbours of `S` you can reach `S`;
+* start from one of the neighbours and loop around
+  following the rules and storing the visited positions.
+
+Thus, you end up with a path starting from `S` and ending
+just before it reaches `S` again.
+
+Half the length of this path is the answer to part 1.
+
+#### Part 2
+
+I found this part very cute!
+
+I oriented the path found in part 1, by attaching to each
+position the counter-clockwise rotated step that you can take
+from there (and to there, in case they yield different answers).
+
+Now, from any location not on the path, start moving right.
+* If you reach the path, look at whether the arrow is pointing
+  towards you or away: in one case you are in, in the other out!
+* If you reach the boundary of the grid, then you are out.
+
 [Solution in Lean](Advents/day10.lean)
 
 ---
@@ -279,6 +325,22 @@ Distances between galaxies in an expanding universe.
 .......#..
 #...#.....
 </pre>
+
+### Description
+
+#### Part 1
+
+Extracted the coordinates of the positions of the galaxies.
+Increased the `x` and `y` coordinates according to how
+many skipped values there were before each one of them,
+to reproduce the *expansion*.
+After that, simply looped through all pairs,
+accumulated the distances and divided by two.
+
+#### Part 2
+
+Same setup as for part 1, except that I increased the introduced
+spacing in the *expansion* step.
 
 [Solution in Lean](Advents/day11.lean)
 
