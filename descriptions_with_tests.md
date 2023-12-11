@@ -186,6 +186,29 @@ humidity-to-location map:
 56 93 4
 </pre>
 
+### Description
+
+#### Part 1
+
+The given data encodes a permutation of some range of natural
+numbers.
+To answer the first question, all that was needed was to pass
+the initial 'seed' through the permutation and compute minima.
+
+#### Part 2
+
+It turns out that now the 'seed' represents a *very long*
+list of seeds and they all have to go through the permutation
+before the minimum is computed.
+
+The trick that I used to compute the minimum is that the
+permutations are *piece-wise increasing*.
+Thus, the minimum is achieved on the lower end of an
+increasing range, or at a place where there is a break.
+Reverse-engineering where the breaks are and selecting the
+ones contained in the 'seed ranges' turned out to be
+sufficient to solve the question.
+
 [Solution in Lean](Advents/day05.lean)
 
 ---
