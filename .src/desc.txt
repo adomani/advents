@@ -1,4 +1,5 @@
 Finding the first and last digit (or the English name of a digit) in each row of the input.
+
 ### Description
 
 #### Part 1
@@ -18,6 +19,7 @@ before moving on to the next character.
 I also recycled the previous function for the reverse scanning.
 --
 RGB-coloured cubes in a bag, finding sups and products.
+
 ### Comments
 
 I wrote up two solutions for this problem.
@@ -33,6 +35,7 @@ The conversion is a little clunky, but this is just due to my limited
 experience with parsing `Lean.Syntax`.
 --
 Operations and numbers scattered on a rectangular grid: compute a value from the natural numbers adjacent to certain symbols.
+
 ### Description
 
 This mostly consisted of extracting positions of digits,
@@ -43,6 +46,7 @@ two rows surrounding a symbol, before looking for digit
 neighbours of a given symbol!
 --
 A game with cards: computing the number of matches between two lists of natural numbers, some recursion.
+
 ### Description
 
 #### Part 1
@@ -60,6 +64,7 @@ take care that the list finished at the right place:
 the algorithm does not reach any of the excess entries.
 --
 Seeds growing into locations as a series of permutations.
+
 ### Description
 
 #### Part 1
@@ -84,6 +89,7 @@ ones contained in the 'seed ranges' turns out to be
 sufficient to solve the question.
 --
 Toy boat race, with times and record distances.
+
 ### Description
 
 Both questions revolve around computing the number
@@ -140,6 +146,7 @@ as before, except that the relative order of the
 card `J` with all the others is different.
 --
 Traveling through the desert with ghosts.
+
 ### Description
 
 #### Part 1
@@ -160,6 +167,7 @@ Thus, the answer is the least common multiple of the periods.
 The periods for my input are all themselves multiples of 269.
 --
 Oasis measurements: compute iterated differences of sequences of integers.
+
 ### Description
 
 For the two parts, the goal is to compute iterated first
@@ -176,6 +184,7 @@ The two extensions are then simply the evaluation of the
 polynomial at `n + 1` and at `0`.
 --
 Paths along pipes.
+
 ### Description
 
 #### Part 1
