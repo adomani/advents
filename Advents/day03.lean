@@ -22,9 +22,6 @@ def test := "467..114..
 ...$.*....
 .664.598.."
 
-/-- Componentwise addition of a pair of integers. -/
-instance : Add (Int × Int) where add x y := (x.1 + y.1, x.2 + y.2)
-
 /-- `nbs` is the list of neighbours of `(0, 0)`, horizontally, vertically and diagonally. -/
 def nbs := Id.run do
   let mut t := #[]
