@@ -1,18 +1,19 @@
 Finding the first and last digit (or the English name of a digit) in each row of the input.
-Description
+### Description
 
-*Part 1*.
+#### Part 1
+
 I simply scanned the characters in each line,
 stopping at the first digit.
 
 Next, I recycled the function, scanning the reversed list of characters.
 
-*Part 2*.
-Very similar to part 1: if a character was not a digit,
-they I checked it if matched the first letter of a
-spelled out digit.
-If a match is found, print the relevant digit.
-If not, then move one character.
+#### Part 2
+
+Very similar to part 1:
+scan the characters as before, but also try
+to match English spelling of digits,
+before moving on to the next character.
 
 I also recycled the previous function for the reverse scanning.
 --
