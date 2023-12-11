@@ -374,6 +374,21 @@ Oasis measurements: compute iterated differences of sequences of integers.
 10 13 16 21 30 45
 </pre>
 
+### Description
+
+For the two parts, the goal is to compute iterated first
+differences of lists of numbers until all differences
+are zero.
+After that, you should extend either on the right or on
+the left the initial sequence so that the final pattern
+of zeros persisted.
+
+Equivalently, you could compute the polynomial of smallest
+degree, whose values on `{1, 2, ..., n}` are the initial
+sequence.
+The two extensions are them simply the evaluation of the
+polynomial at `n + 1` and at `0`.
+
 [Solution in Lean](Advents/day09.lean)
 
 ---
