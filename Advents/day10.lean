@@ -41,8 +41,7 @@ def possibleMoves (x : pos) : Array pos :=
     | 'J' => #[x + (0, - 1), x + (- 1,   0)]
     | '7' => #[x + (0, - 1), x + (  1,   0)]
     | 'L' => #[x + (0,   1), x + (- 1,   0)]
-    | 'S' => #[x]
-    | _ => #[x]
+    | _ => #[x]  -- likely only matches `S` and `.`
 
 variable (dat : Array (Array Char)) in
 /-- one elementary move along the pipes. -/
