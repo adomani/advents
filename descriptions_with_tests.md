@@ -260,6 +260,39 @@ KTJJT 220
 QQQJA 483
 </pre>
 
+### Description
+
+Both parts involved sorting 5-card hands of cards
+following an order naturally described as
+* first a lexicographic ordering of the
+  frequency of each card in each hand;
+* second a lexicographic ordering of the
+  cards, in the given order.
+
+By abstracting the sorting rules out of the main
+functions, a good part of the code can be used
+for both parts.
+
+#### Part 1
+
+Using rules very similar to poker, the first part
+involved sorting a list of 5-card hands and doing
+operations with the sorted rank of each hand and
+the given number associated with the hands.
+
+#### Part 2
+
+The second part, changed the sorting function.
+In the first part (the *frequency* phase), the card
+labeled by `J` should be interpreted as the most
+beneficial that it could be.
+Given the rules for sorting, the revised `Joker`
+card was always best assigned to the most-frequent
+value.
+The second, tie-breaking sorting was lexicographic
+as before, except that the relative order of the
+card `J` with all the others was different.
+
 [Solution in Lean](Advents/day07.lean)
 
 ---
