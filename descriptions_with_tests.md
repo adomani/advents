@@ -340,6 +340,24 @@ LR
 XXX = (XXX, XXX)
 </pre>
 
+### Description
+
+#### Part 1
+
+In part 1, simply 'going through the moves' was fast enough.
+
+#### Part 2
+
+For the second part, the various starting points are
+really independent processes each running with its own
+period.
+They all finish in their end-positions simultaneously
+on time intervals that are proportional to the `lcm` of
+the individual periods.
+
+*Note*.
+The periods for my input are all themselves multiples of 269.
+
 [Solution in Lean](Advents/day08.lean)
 
 ---
