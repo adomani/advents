@@ -228,3 +228,36 @@ Oasis measurements: compute iterated differences of sequences of integers.
 [Solution in Lean](Advents/day09.lean)
 
 ---
+
+#  Day 10
+
+Paths along pipes.
+
+####  Test 1
+
+<pre>
+7-F7-
+.FJ|7
+SJLL7
+|F--J
+LJ.LJ
+</pre>
+
+####  Test 2
+
+<pre>
+...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........
+</pre>
+
+[Solution in Lean](Advents/day10.lean)
+
+---
+
