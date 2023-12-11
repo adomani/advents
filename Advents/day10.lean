@@ -78,9 +78,8 @@ def findToX (dat : Array (Array Char)) (X : pos) : Array pos :=
   IO.println <| findToX dat S
 -/
 
-/-- finds the location of `S` on grid and follows the pipes
-around from there.
-It returns the array of location that it visited. -/
+/-- finds the location of `S` on grid and follows the pipes around from there.
+It returns the array of `pos`itions that it visited. -/
 def getPath (maze : Array String) : Array pos :=
   let dat := maze.map (fun x => x.toList.toArray)
   let S := findS maze
