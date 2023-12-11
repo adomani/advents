@@ -43,7 +43,6 @@ def getGalOne (dat : String) (rn : Nat) : Array pos :=
     if cs[i]! = '#' then fin := fin.push (rn, i)
   return fin
 
-#check String.find
 def getGal (dat : Array String) : Array pos :=
   Id.run do
   let mut fin : Array pos := #[]
@@ -53,10 +52,6 @@ def getGal (dat : Array String) : Array pos :=
     con := con + 1
   return fin
 
---#eval do
---  IO.println <| getGal atest
---  IO.println <| getGal (← IO.FS.lines input)
-#check Array.sortAndDeduplicate
 def missingOne (xs : Array Int) : Array Int :=
   let missing := xs.sortAndDeduplicate
   let last := missing.back
@@ -88,8 +83,6 @@ def parts (map : Array String) (fac : Int := 1) : Int :=
       tot := tot + (x.natAbs + y.natAbs)
   return tot / 2
 
-
-
 #assert parts atest == 374
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
@@ -110,20 +103,3 @@ def part2 (dat : Array String) : Int := parts dat (1000000 - 1)
 #assert parts atest 99 == 8410
 
 solve 2 382979724122
-
-
-#eval do
-  let atest := ← IO.FS.lines input
-  let dat := getGal atest
-  let misx := missingRowsCols <| getGal atest
-  let exp := expand dat misx
-  let exp := expand dat misx (1000000-1)
-  let mut tot := 0
-  for i in exp do
-    for j in exp do
-      let (x, y) := i - j
-      tot := tot + (x.natAbs + y.natAbs)
-  IO.println <| exp
-  IO.println <| tot / 2
-
---  82000210
