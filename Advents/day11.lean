@@ -27,14 +27,6 @@ def atest := (test.splitOn "\n").toArray
 /-- a `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int
 
-/-- the component-wise addition of pairs of integers. -/
-instance : Add pos where
-  add x y := (x.1 + y.1, x.2 + y.2)
-
-/-- the component-wise subtraction of two pairs of integers. -/
-instance : Sub pos where
- sub x y := (x.1 - y.1, x.2 - y.2)
-
 def getGalOne (dat : String) (rn : Nat) : Array pos :=
   let cs := dat.toList
   Id.run do
