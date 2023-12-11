@@ -20,11 +20,13 @@ newday () {
   (
     croot;
     ind="$( getDay "${1}" )"
-    git switch master
+    if [ ! "$(git rev-parse --abbrev-ref HEAD)" == "master" ];
+    then git switch master; fi
     ind0="$( printf '%02d' "${ind}" )"
     fname="Advents/day${ind0}"
     touch "${fname}.input"
     sed "s=<newDay>=${ind0}=" template.lean >> "${fname}.lean"
+    brown 'Used day '; printf '%s\n' "${ind}"
 #    wget "https://adventofcode.com/2023/day/${ind}/input" -O "Advents/day"$( printf '%02d' "${ind}")".input"
   )
 }
