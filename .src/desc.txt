@@ -18,3 +18,5 @@ Oasis measurements: compute iterated differences of sequences of integers.
 --
 Paths along pipes.
 --
+Distances between galaxies in an expanding universe.
+--

@@ -10,3 +10,4 @@
 |[8](descriptions_with_tests.md#day-8)|Traveling through the desert with ghosts.|
 |[9](descriptions_with_tests.md#day-9)|Oasis measurements: compute iterated differences of sequences of integers.|
 |[10](descriptions_with_tests.md#day-10)|Paths along pipes.|
+|[11](descriptions_with_tests.md#day-11)|Distances between galaxies in an expanding universe.|

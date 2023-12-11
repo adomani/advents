@@ -261,3 +261,26 @@ LJ.LJ
 
 ---
 
+#  Day 11
+
+Distances between galaxies in an expanding universe.
+
+####  Test
+
+<pre>
+...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#.....
+</pre>
+
+[Solution in Lean](Advents/day11.lean)
+
+---
+
