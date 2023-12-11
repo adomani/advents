@@ -10,15 +10,17 @@ def input : System.FilePath := "Advents/day10.input"
 
 --#eval do IO.println (← IO.FS.readFile input)
 
-/-- `test` is the test string for the problem. -/
-def test := "7-F7-
+/-- `test1` is the test string for the problem. -/
+def test1 := "7-F7-
 .FJ|7
 SJLL7
 |F--J
 LJ.LJ"
 
+/-- a `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int
 
+/-- the component-wise addition of pairs of integers. -/
 instance : Add pos where
   add x y := (x.1 + y.1, x.2 + y.2)
 
@@ -33,6 +35,8 @@ def nbs := Id.run do
 #assert nbs == #[(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
 variable (dat : Array (Array Char)) in
+/-- returns the positions to which you can go by following the pipes
+from the given position. -/
 def possibleMoves (x : pos) : Array pos :=
   match dat[x.1.toNat]![x.2.toNat]! with
     | '|' => #[x + (1,   0), x + (- 1,   0)]
@@ -45,17 +49,23 @@ def possibleMoves (x : pos) : Array pos :=
     | _ => #[x]
 
 variable (dat : Array (Array Char)) in
+/-- one elementary move along the pipes. -/
 def mv (x : pos) (vis : Array pos) : pos :=
   let new := possibleMoves dat x
   match new.filter (! · ∈ vis) with
     | #[xx] => xx
     | ohno! => dbg_trace s!"\noh no!\nmv\npos: {x}\nvis: {vis}\nohno: {ohno!}"; x
 
+/-- given the data of the problem, returns the position of
+the starting position `S`. -/
 def findS (dat : Array String) : pos :=
   let lin := (dat.findIdx? (String.contains · 'S')).getD 0
   let loc := (dat[lin]!.find (· == 'S')).byteIdx
   (lin, loc)
 
+/-- given a region of characters and a position `X`,
+it returns all the neighbours of `X` from which the pipes
+point to `X`. -/
 def findToX (dat : Array (Array Char)) (X : pos) : Array pos :=
   let xx := nbs.map fun nb =>
     (possibleMoves dat (X + nb)).push (X + nb)
@@ -65,14 +75,16 @@ def findToX (dat : Array (Array Char)) (X : pos) : Array pos :=
 /-
 #eval do
   let maze := ← IO.FS.lines input
-  let maze := (test.splitOn "\n").toArray
+  let maze := (test1.splitOn "\n").toArray
   let dat := maze.map (List.toArray ∘ String.toList)
   let S := findS maze
   IO.println <| S
   IO.println <| findToX dat S
 -/
 
-
+/-- finds the location of `S` on grid and follows the pipes
+around from there.
+It returns the array of location that it visited. -/
 def getPath (maze : Array String) : Array pos :=
   let dat := maze.map (fun x => x.toList.toArray)
   let S := findS maze
@@ -94,10 +106,14 @@ def getPath (maze : Array String) : Array pos :=
 def part1 (maze : Array String) : Nat :=
   (getPath maze).size / 2
 
-#assert part1 (test.splitOn "\n").toArray == 8
+#assert part1 (test1.splitOn "\n").toArray == 8
 
 solve 1 7066
 
+/-- a utility function to display arrays of strings.
+It assumes that the strings all have the same length,
+it also surrounds the data with dashes/vertical bars.
+-/
 def draw (ar : Array String) : IO Unit := do
   let sep := String.mk <| List.replicate (ar[0]!.length + 2) '-'
   IO.println <| sep
@@ -110,12 +126,17 @@ and... `S`tay. -/
 inductive out | L | R | U | D | S
   deriving BEq, DecidableEq, Inhabited, Repr
 
+/-- represent each direction by the corresponding arrow. -/
 instance : ToString out where
   toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .S => "·"
 
+/-- the component-wise subtraction of two pairs of integers. -/
 instance : Sub pos where
  sub x y := (x.1 - y.1, x.2 - y.2)
 
+/-- converts a unit vector into the direction that is
+obtained by a counter-clockwise rotation.
+It is useful for defining orientations. -/
 def toLeft : pos → out
   | (  1,   0) => .R
   | (- 1,   0) => .L
@@ -123,6 +144,7 @@ def toLeft : pos → out
   | (  0,   1) => .U
   | _ => .S
 
+/-- orient a path, assuming that it is a cycle. -/
 def orientPath (path : Array pos) : Array (pos × out) :=
   let ps := path.size
   Id.run do
@@ -142,6 +164,7 @@ def orientPath (path : Array pos) : Array (pos × out) :=
     return oriented
 
 variable (orp : Array (pos × out)) in
+/-- check whether a position is inside an oriented path. -/
 def inside? (p : pos) : Bool :=
   let pth := orp.map Prod.fst
   let bd := 1 + (pth.map Prod.snd).foldl (max · ·) 0
@@ -156,6 +179,7 @@ def inside? (p : pos) : Bool :=
       if bd ≤ curr.2 then false else
       return ! (curr, out.L) ∈ orp
 
+/-- `test2` is the second test string for the problem. -/
 def test2 := "...........
 .S-------7.
 .|F-----7|.
@@ -192,6 +216,7 @@ def part2 (dat : Array String) : Nat :=
         outside := outside.push pp
   return con
 
-#assert part2 (test.splitOn "\n").toArray == 1
+#assert part2 (test1.splitOn "\n").toArray == 1
+#assert part2 (test2.splitOn "\n").toArray == 4
 
 solve 2 401
