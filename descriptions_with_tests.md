@@ -23,6 +23,23 @@ zoneight234
 7pqrstsixteen
 </pre>
 
+Description
+
+*Part 1*.
+I simply scanned the characters in each line,
+stopping at the first digit.
+
+Next, I recycled the function, scanning the reversed list of characters.
+
+*Part 2*.
+Very similar to part 1: if a character was not a digit,
+they I checked it if matched the first letter of a
+spelled out digit.
+If a match is found, print the relevant digit.
+If not, then move one character.
+
+I also recycled the previous function for the reverse scanning.
+
 [Solution in Lean](Advents/day01.lean)
 
 ---
