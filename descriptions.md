@@ -11,3 +11,5 @@
 |[9](descriptions_with_tests.md#day-9)|Oasis measurements: compute iterated differences of sequences of integers.|
 |[10](descriptions_with_tests.md#day-10)|Paths along pipes.|
 |[11](descriptions_with_tests.md#day-11)|Distances between galaxies in an expanding universe.|
+|[12](descriptions_with_tests.md#day-12)|Counting ways of filling in `#`s and `.`s|
+|[13](descriptions_with_tests.md#day-13)|Finding axes of symmetry among rock and ash.|

@@ -495,3 +495,73 @@ spacing in the *expansion* step.
 
 ---
 
+#  [Day 12](https://adventofcode.com/2023/day/12)
+
+Counting ways of filling in `#`s and `.`s
+
+### Description
+
+I solved part 1, but part 2 is still in progress!
+
+[Solution in Lean](Advents/day12.lean)
+
+---
+
+#  [Day 13](https://adventofcode.com/2023/day/13)
+
+Finding axes of symmetry among rock and ash.
+
+####  Test
+
+<pre>
+#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.
+
+#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#
+</pre>
+
+### Description
+
+The input data consists of several maps with locations of ash and rocks.
+The goals revolve around finding horizontal or vertical axes of symmetry
+in the maps.
+
+#### Part 1
+
+Each map has exactly one axis of symmetry.
+From the positions of the axes, you can compute the answer.
+
+#### Part 2
+
+It turns out that, by changing exactly one map point
+from ash to rock or viceversa, that the resulting map
+acquires an axis of symmetry *different* from the
+original one.
+Of course, after the switch, the old axis of symmetry
+may no longer be an axis of symmetry.
+All that matters is that, after the switch, there are
+at most two axes of symmetry:
+* the new one that must be present,
+* the old one, in case it stays.
+
+In some maps, there may be several location switches that
+comply with these rules, but they all happen to produce
+the *same new* axis of symmetry.
+Processing the locations of the new axes of symmetry as before
+yields the answer to part 2.
+
+[Solution in Lean](Advents/day13.lean)
+
+---
+

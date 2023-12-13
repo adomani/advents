@@ -231,3 +231,41 @@ accumulated the distances and divided by two.
 Same setup as for part 1, except that I increased the introduced
 spacing in the *expansion* step.
 --
+Counting ways of filling in `#`s and `.`s
+
+### Description
+
+I solved part 1, but part 2 is still in progress!
+--
+Finding axes of symmetry among rock and ash.
+
+### Description
+
+The input data consists of several maps with locations of ash and rocks.
+The goals revolve around finding horizontal or vertical axes of symmetry
+in the maps.
+
+#### Part 1
+
+Each map has exactly one axis of symmetry.
+From the positions of the axes, you can compute the answer.
+
+#### Part 2
+
+It turns out that, by changing exactly one map point
+from ash to rock or viceversa, that the resulting map
+acquires an axis of symmetry *different* from the
+original one.
+Of course, after the switch, the old axis of symmetry
+may no longer be an axis of symmetry.
+All that matters is that, after the switch, there are
+at most two axes of symmetry:
+* the new one that must be present,
+* the old one, in case it stays.
+
+In some maps, there may be several location switches that
+comply with these rules, but they all happen to produce
+the *same new* axis of symmetry.
+Processing the locations of the new axes of symmetry as before
+yields the answer to part 2.
+--
