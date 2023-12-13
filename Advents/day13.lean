@@ -217,91 +217,45 @@ def rockAshSwap : Char → Char
   | '#' => '.'
   | d => d
 
+#assert "#.#.#".map rockAshSwap == ".#.#."
+
 def RA (p : Nat × Nat) (dat : Array String) : Array String :=
   (Array.range dat.size).map fun x =>
     if x == p.1 then(String.modify dat[p.1]! ⟨p.2⟩ rockAshSwap)
     else dat[x]!
 
-
-
-#check Array.modify
-#eval
-  "#.#.#".map rockAshSwap
-
-
 def tally2 (s : Array String) : Array Nat × Array Nat :=
   (rsymm s, csymm s)
 
-#check Array.erase
-#eval do  -- 38063
-  let ts := getPats test
-  let ts := getPats (← IO.FS.readFile input)
-  let mut tot := 0
---  let ind := 1
-  for ind in [:ts.size] do
-  let chars := ts.map
-    fun x : String => (x.splitOn "\n").toArray.map (List.toArray ∘ String.toList)
-  let c0 := chars[ind]!
-  let rs := rssmudge c0
-  let cs := cssmudge c0
-  let smudges := rs ++ cs
-  let ta := tally2 <| c0.map <| String.mk ∘ Array.toList
-  let lr := match ta with
-    | (#[], #[a]) => (2, a)
-    | (#[a], #[]) => (1, a)
-    | _ => dbg_trace "too many refls!"; default
---  dbg_trace s!"tally {ta}"
-  for s in smudges do
-    let smudgeMatrix := RA s <| c0.map (String.mk ∘ Array.toList)
-    let ta2 := tally2 smudgeMatrix
-    let newt2 := if lr.1 == 1 then
-      (ta2.1.erase lr.2, ta2.2) else
-      (ta2.1, ta2.2.erase lr.2)
---    IO.println s!"{ta2} --> {newt2}"
-    if (newt2.1 ++ newt2.2).size == 1 then
---      IO.println <| 100 * newt2.1[0]! + newt2.2[0]!
-      tot := tot + 100 * newt2.1[0]! + newt2.2[0]!
-      break
---    nums <| smudgeMatrix
-  IO.println tot
---  IO.println "Rows"
---  for c in rs do IO.println <| c
---  IO.println "\nCols"
---  for c in cs do IO.println <| c
---  IO.println ""
---  nums <| c0.map (String.mk ∘ Array.toList) --(ts[ind]!.splitOn "\n").toArray
---  IO.println smudges
-#exit
-#eval
-  let (l, r) := ("#.#.#".toList, "#.#.#".toList)
-  smudge l r
-
-def smudges (dat : Array String) : Array (Nat × Nat) :=
-
-#exit
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : String) : Nat :=
+  let ts := getPats dat
+  Id.run do
+    let mut tot := 0
+--    let mut ind := 0
+    for ind in [:ts.size] do
+      let chars := ts.map
+        fun x : String => (x.splitOn "\n").toArray.map (List.toArray ∘ String.toList)
+      let c0 := chars[ind]!
+      let rs := rssmudge c0
+      let cs := cssmudge c0
+      let smudges := rs ++ cs
+      let ta := tally2 <| c0.map <| String.mk ∘ Array.toList
+      let lr := match ta with
+        | (#[], #[a]) => (2, a)
+        | (#[a], #[]) => (1, a)
+        | _ => dbg_trace "too many refls!"; default
+      for s in smudges do
+        let smudgeMatrix := RA s <| c0.map (String.mk ∘ Array.toList)
+        let ta2 := tally2 smudgeMatrix
+        let newt2 := if lr.1 == 1 then
+          (ta2.1.erase lr.2, ta2.2) else
+          (ta2.1, ta2.2.erase lr.2)
+        if (newt2.1 ++ newt2.2).size == 1 then
+          tot := tot + 100 * newt2.1[0]! + newt2.2[0]!
+          break
+    return tot
 
---#assert part2 (test.splitOn "\n").toArray == ???
+#assert part2 test == 400
 
---solve 2
-
-
-#eval do -- 33735
-  let ts := getPats test
-  let ts := getPats <| ← IO.FS.readFile input
-  let mut tot := 0
-  for ca in ts do
---  let ca := ts[1]!
-    let t1 := (ca.splitOn "\n").toArray
---    nums t1
-    let rs := rsymm t1
-    let cs := csymm t1
-    tot := tot + 100 * rs.sum + cs.sum
-    IO.print "Rows    "
-    IO.println <| rsymm t1
-    IO.print "Columns "
-    IO.println <| csymm t1
-    IO.println ""
-  IO.println tot
+--solve 2 38063 file
