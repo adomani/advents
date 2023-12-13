@@ -108,99 +108,45 @@ def part1 (dat : String) : Nat :=
 /-- `smudge l r` compares two strings `l` and `r`.
 If `l` and `r` differ by exactly one character and
 this happens at a position with index `i`, then
-`smudge` returns
-* `some (true, i)` if `l` contains `#` at position `i`
-* `some (false, i)` `p`, otherwise.
-
+`smudge` returns `some i`.
 If the two strings are identical or differ in more
 than one location, then `smudge` returns `false`. -/
-def smudge (l r : Array Char) : Option (Bool × Nat) :=
-  let lr := l.zipWith r (fun x y =>
-    if x = y then none else some (x == '#'))
-  match lr.reduceOption with
-    | #[f] => (f, (lr.findIdx? (· == some f)).get!)
-    | _ => none
-
-#assert (smudge "#.#.#".toList.toArray "#.#.#".toList.toArray == none)
-#assert (smudge "#####".toList.toArray "#.#.#".toList.toArray == none)
-#assert (smudge "..#.#".toList.toArray "#.#.#".toList.toArray == some (false, 0))
-#assert (smudge "#.#.#".toList.toArray "#.#.·".toList.toArray == some (true, 4))
-
-#eval
-  smudge "#....#..#".toList.toArray "#...##..#".toList.toArray
-
-def ssmudge (l r : Array Char) : Option Nat :=
+def smudge (l r : Array Char) : Option Nat :=
   let lr := l.zipWith r (! · = ·)
   if (lr.filter id).size ≠ 1 then none else
   lr.findIdx? (· == true)
 
-#assert (ssmudge "#.#.#".toList.toArray "#.#.#".toList.toArray == none)
-#assert (ssmudge "#####".toList.toArray "#.#.#".toList.toArray == none)
-#assert (ssmudge "..#.#".toList.toArray "#.#.#".toList.toArray == some 0)
-#assert (ssmudge "#.#.#".toList.toArray "#.#.·".toList.toArray == some 4)
+#assert (smudge "#.#.#".toList.toArray "#.#.#".toList.toArray == none)
+#assert (smudge "#####".toList.toArray "#.#.#".toList.toArray == none)
+#assert (smudge "..#.#".toList.toArray "#.#.#".toList.toArray == some 0)
+#assert (smudge "#.#.#".toList.toArray "#.#.·".toList.toArray == some 4)
 
 #eval
-  ssmudge "#....#..#".toList.toArray "#...##..#".toList.toArray
+  smudge "#....#..#".toList.toArray "#...##..#".toList.toArray
 
-def rsmudge (dat : Array (Array Char)) := --: Array (Option (Bool × Nat)) :=
-  Id.run do
-    let mut c := #[]
-    for i in [:dat.size] do
---      if i ≠ 0 then
-      for j in [:i] do
-        let sm := smudge dat[i]! dat[j]!
-        if sm.isSome then
-          let (tf, col) := sm.get!
-          let row := if tf then i else j
-          c := c.push ([row, col], sm.get!)
-          --c := c.push ([i, j], sm.get!)
---        dbg_trace s!"{(i, j, sm)}"
---        c := 0
-    return c
-
-#eval do
-  let ts := getPats test
-  let ind := 1
-  let chars := ts.map
-    fun x : String => (x.splitOn "\n").toArray.map (List.toArray ∘ String.toList)
-  let c0 := (transpose <| chars[ind]!.map (String.mk ∘ Array.toList)).map <| List.toArray ∘ String.toList
-  let c0 := chars[ind]!
---  IO.println <| rsmudge c0
-  for c in rsmudge c0 do IO.println <| c
-  IO.println ""
-  draw <| c0.map (String.mk ∘ Array.toList) --(ts[ind]!.splitOn "\n").toArray
-
+/-- `rssmudge dat` is the array of *some* possible locations of the smudges in `dat`.
+The output contains all the locations that, when changed, make the grid
+acquire a horizontal symmetry. -/
 def rssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
   Id.run do
     let mut c := #[]
     for i in [:dat.size] do
       for j in [:i] do
-        let sm := ssmudge dat[i]! dat[j]!
+        let sm := smudge dat[i]! dat[j]!
         if sm.isSome then
           let col := sm.get!
           c := (c.push (i, col)).push (j, col)
     return c
 
-#eval do
-  let ts := getPats test
-  let ind := 1
-  let chars := ts.map
-    fun x : String => (x.splitOn "\n").toArray.map (List.toArray ∘ String.toList)
-  let c0 := (transpose <| chars[ind]!.map (String.mk ∘ Array.toList)).map <| List.toArray ∘ String.toList
-  let c0 := chars[ind]!
---  IO.println <| rsmudge c0
-  for c in rssmudge c0 do IO.println <| c
-  IO.println ""
-  draw <| c0.map (String.mk ∘ Array.toList) --(ts[ind]!.splitOn "\n").toArray
-
+/-- `cssmudge dat` is the array of *some* possible locations of the smudges in `dat`.
+The output contains all the locations that, when changed, make the grid
+acquire a vertical symmetry. -/
 def cssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
   let tr := (transpose <| dat.map (String.mk ∘ Array.toList)).map (List.toArray ∘ String.toList)
   let sm := rssmudge tr
   sm.map fun x => (x.2, x.1)
 
-def potSmudges (dat : Array (Array Char)) : Array (Nat × Nat) :=
-  rssmudge dat ++ cssmudge dat
-
+/-- `rockAshSwap` is the swap `'#' ↔ '.'`. -/
 def rockAshSwap : Char → Char
   | '.' => '#'
   | '#' => '.'
@@ -208,11 +154,14 @@ def rockAshSwap : Char → Char
 
 #assert "#.#.#".map rockAshSwap == ".#.#."
 
+/-- `RA p dat` performs the swap `'#' ↔ '.'` at position `p` in `dat`. -/
 def RA (p : Nat × Nat) (dat : Array String) : Array String :=
   (Array.range dat.size).map fun x =>
     if x == p.1 then(String.modify dat[p.1]! ⟨p.2⟩ rockAshSwap)
     else dat[x]!
 
+/-- `tally2 s` produces the pair whose elements are the arrays of
+horizontal/vertical positions of axes of symmetry for `s`. -/
 def tally2 (s : Array String) : Array Nat × Array Nat :=
   (rsymm s, csymm s)
 
@@ -221,7 +170,6 @@ def part2 (dat : String) : Nat :=
   let ts := getPats dat
   Id.run do
     let mut tot := 0
---    let mut ind := 0
     for ind in [:ts.size] do
       let chars := ts.map
         fun x : String => (x.splitOn "\n").toArray.map (List.toArray ∘ String.toList)
