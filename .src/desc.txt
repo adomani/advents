@@ -118,7 +118,7 @@ following an order naturally described as
 * first a lexicographic ordering of the
   frequency of each card in each hand;
 * second a lexicographic ordering of the
-  cards, in the given order.
+  cards, in the dealt order.
 
 By abstracting the sorting rules out of the main
 functions, a good part of the code can be used
@@ -129,8 +129,8 @@ for both parts.
 Using rules very similar to poker, the first part
 involves sorting a list of 5-card hands and doing
 operations with the sorted rank of each hand (plus
-also using a number given that the input gives with
-with each hand).
+also using a number given next to each hand
+in the given input).
 
 #### Part 2
 
