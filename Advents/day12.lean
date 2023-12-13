@@ -98,7 +98,7 @@ solve 1 6935
 -/
 
 def extendRed (r : red) (n : Nat := 5) : red :=
-  let (l, r) : _ := r
+  let (l, r) := r
   (['?'].intercalate (List.replicate n l), (List.replicate n r).join)
 
 #eval
