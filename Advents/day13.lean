@@ -41,7 +41,7 @@ def transpose (s : Array String) : Array String :=
     for c in [:cols] do
       let mut row := ""
       for r in [:rows.size] do
-        row := row.push rows[r]![c]!
+        row := row.push (rows[r]!.getD c default)
       ans := ans.push row
     return ans
 
