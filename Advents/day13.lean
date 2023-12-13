@@ -58,6 +58,7 @@ def transpose (s : Array String) : Array String :=
   nums <| car
   nums <| transpose car
 
+/-- Decide whether a horizontal position is a line of symmetry for the array. -/
 def isNsymm (s : Array String) (n : Nat) : Bool :=
   let rloc := min n (s.size - n)
 --  dbg_trace s!"line between = {(n-1,n)}, range = {rloc}"
@@ -70,6 +71,7 @@ def isNsymm (s : Array String) (n : Nat) : Bool :=
       break
   cond
 
+/-- Find the array of positions for horizontal symmetries. -/
 def rsymm (s : Array String) : Array Nat :=
   Id.run do
     let mut rows := #[]
@@ -77,8 +79,29 @@ def rsymm (s : Array String) : Array Nat :=
       if isNsymm s n then rows := rows.push (n)
     return rows
 
+/-- Find the array of positions for vertical symmetries. -/
 def csymm (s : Array String) : Array Nat :=
   rsymm (transpose s)
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : String) : Nat :=
+  let ts := getPats dat
+  Id.run do
+  let mut tot := 0
+  for ca in ts do
+--    let ca := ts[cai]!
+    let t1 := (ca.splitOn "\n").toArray
+--    nums t1
+    let rs := rsymm t1
+    let cs := csymm t1
+    if rs != #[] && cs != #[] then dbg_trace ca
+    tot := tot + 100 * rs.sum + cs.sum
+  return tot
+
+#assert part1 test == 405
+
+solve 1 33735 file
+
 
 #eval do -- 33735
   let ts := getPats test
@@ -121,14 +144,6 @@ def hsymm (s : Array String) : Array Nat :=
 
 #eval do
   IO.println <| getPats test
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 (test.splitOn "\n").toArray == ???
-
---solve 1
 
 /-!
 #  Question 2
