@@ -95,9 +95,25 @@ end meta
 It assumes that the strings all have the same length,
 it also surrounds the data with dashes/vertical bars.
 -/
-def draw (ar : Array String) : IO Unit := do
+def draws (ar : Array String) : IO Unit := do
   let sep := String.mk <| List.replicate (ar[0]!.length + 2) '-'
   IO.println <| sep
   for i in ar do
     IO.println s!"|{i}|"
   IO.println <| sep
+
+/-- a utility function to display arrays of strings.
+It assumes that the strings all have the same length,
+it also surrounds the data with vertical bars and
+a primitive row/column count, displaying the last
+digit of each row/column.
+-/
+def draw (s : Array String) : IO Unit := do
+  let ns := String.mk <| (List.range (s[0]!.length)).map fun n =>
+    (Nat.toDigits 10 n).getLast!
+  let pns := "--" ++ ns ++ "-"
+  IO.println pns
+  for i in [:s.size] do
+    IO.println s!"{i}|{s[i]!}|"
+  IO.println pns
+  IO.println ""
