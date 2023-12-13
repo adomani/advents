@@ -27,12 +27,12 @@ def test := "#.##..##.
 ..##..###
 #....#..#"
 
-#eval do
-  IO.println ((← IO.FS.lines input).size, (← IO.FS.lines input)[0]!.length)
-
+/-- extracts an array of strings from the data.
+Each entry of the array is a map. -/
 def getPats (s : String) : Array String :=
   (s.splitOn "\n\n").toArray
 
+/-- Transpose an array of strings. -/
 def transpose (s : Array String) : Array String :=
   let rows := s.map (List.toArray ∘ String.toList)
   let cols := rows[0]!.size
@@ -45,17 +45,9 @@ def transpose (s : Array String) : Array String :=
       ans := ans.push row
     return ans
 
-#eval do
-  let ts := getPats test
-  let ca := ts[1]!
-  let car := (ca.splitOn "\n").toArray
-  draw <| car
-  draw <| transpose car
-
 /-- Decide whether a horizontal position is a line of symmetry for the array. -/
 def isNsymm (s : Array String) (n : Nat) : Bool :=
   let rloc := min n (s.size - n)
---  dbg_trace s!"line between = {(n-1,n)}, range = {rloc}"
   if rloc = 0 then false else
   Id.run do
   let mut cond := true
@@ -77,11 +69,10 @@ def rsymm (s : Array String) : Array Nat :=
 def csymm (s : Array String) : Array Nat :=
   rsymm (transpose s)
 
-def tally (s : Array String) : Nat :=
-  let rs := rsymm s
-  let cs := csymm s
-  dbg_trace s!"Rows: {rs}\nColumns: {cs}"
-  100 * rs.sum + cs.sum
+/-- `tally s` produces the pair whose elements are the arrays of
+horizontal/vertical positions of axes of symmetry for `s`. -/
+def tally (s : Array String) : Array Nat × Array Nat :=
+  (rsymm s, csymm s)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat :=
@@ -89,17 +80,16 @@ def part1 (dat : String) : Nat :=
   Id.run do
   let mut tot := 0
   for ca in ts do
---    let ca := ts[cai]!
     let t1 := (ca.splitOn "\n").toArray
---    nums t1
-    let tal := tally t1
+    let rcs := tally t1
+    let tal := 100 * rcs.1.sum + rcs.2.sum
     if tal = 0 then dbg_trace ca
     tot := tot + tal
   return tot
 
 #assert part1 test == 405
 
---solve 1 33735 file
+solve 1 33735 file
 
 /-!
 #  Question 2
@@ -121,7 +111,7 @@ def smudge (l r : Array Char) : Option Nat :=
 #assert (smudge "..#.#".toList.toArray "#.#.#".toList.toArray == some 0)
 #assert (smudge "#.#.#".toList.toArray "#.#.·".toList.toArray == some 4)
 
-#eval
+#assert some 4 ==
   smudge "#....#..#".toList.toArray "#...##..#".toList.toArray
 
 /-- `rssmudge dat` is the array of *some* possible locations of the smudges in `dat`.
@@ -160,11 +150,6 @@ def RA (p : Nat × Nat) (dat : Array String) : Array String :=
     if x == p.1 then(String.modify dat[p.1]! ⟨p.2⟩ rockAshSwap)
     else dat[x]!
 
-/-- `tally2 s` produces the pair whose elements are the arrays of
-horizontal/vertical positions of axes of symmetry for `s`. -/
-def tally2 (s : Array String) : Array Nat × Array Nat :=
-  (rsymm s, csymm s)
-
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : String) : Nat :=
   let ts := getPats dat
@@ -177,14 +162,14 @@ def part2 (dat : String) : Nat :=
       let rs := rssmudge c0
       let cs := cssmudge c0
       let smudges := rs ++ cs
-      let ta := tally2 <| c0.map <| String.mk ∘ Array.toList
+      let ta := tally <| c0.map <| String.mk ∘ Array.toList
       let lr := match ta with
         | (#[], #[a]) => (2, a)
         | (#[a], #[]) => (1, a)
         | _ => dbg_trace "too many refls!"; default
       for s in smudges do
         let smudgeMatrix := RA s <| c0.map (String.mk ∘ Array.toList)
-        let ta2 := tally2 smudgeMatrix
+        let ta2 := tally smudgeMatrix
         let newt2 := if lr.1 == 1 then
           (ta2.1.erase lr.2, ta2.2) else
           (ta2.1, ta2.2.erase lr.2)
@@ -195,4 +180,4 @@ def part2 (dat : String) : Nat :=
 
 #assert part2 test == 400
 
---solve 2 38063 file
+solve 2 38063 file
