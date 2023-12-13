@@ -100,8 +100,21 @@ def part1 (dat : String) : Nat :=
 
 #assert part1 test == 405
 
-solve 1 33735 file
+--solve 1 33735 file
 
+/-!
+#  Question 2
+-/
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat := sorry
+--def part2 (dat : String) : Nat :=
+
+--#assert part2 (test.splitOn "\n").toArray == ???
+
+--solve 2
+
+#exit
 
 #eval do -- 33735
   let ts := getPats test
@@ -120,39 +133,3 @@ solve 1 33735 file
     IO.println <| csymm t1
     IO.println ""
   IO.println tot
-
-#eval do
-  let ts := getPats test
-  let ca := ts[1]!
-  let t1 := (ca.splitOn "\n").toArray
---  let n := 5
-  nums t1
---  IO.println <| s!"{ca}\n"
-  for n in [:t1.size] do
-    if isNsymm (transpose ca) n then IO.println <| (n, isNsymm (transpose ca) n)
---    IO.println ""
---    IO.println t1
-
-
-#exit
-def hsymm (s : Array String) : Array Nat :=
-  Id.run do
-    let mut tot := #[]
-    for i in [:s.size] do
-      let mut con := 0
-      for j in
-
-#eval do
-  IO.println <| getPats test
-
-/-!
-#  Question 2
--/
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 (test.splitOn "\n").toArray == ???
-
---solve 2
