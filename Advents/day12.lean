@@ -181,8 +181,8 @@ def extendRed (r : red) (n : Nat := 5) : red :=
 -/
 #eval do
 --  let x := atest.map fun f => extendRed (String.ep f) 1
-  let x := atest
   let x ← IO.FS.lines input
+  let x := atest
   let mut d5 := 0
   for f1 in [:x.size] do
     let f := x[f1]!
@@ -199,6 +199,28 @@ def extendRed (r : red) (n : Nat := 5) : red :=
 --  too high: 710208077120586
 --  let d1 := ((← IO.FS.lines input).map fun f => tot <| extendRed (String.ep f) 1)
 --  let d2 := ((← IO.FS.lines input).map fun f => tot <| extendRed (String.ep f) 2)
+
+#eval do
+--  let x := atest.map fun f => extendRed (String.ep f) 1
+  let x := atest
+  let x ← IO.FS.lines input
+  let ls := ((x.map String.ep)).map tot
+  let lsort := (ls.zip x).qsort (Prod.fst · > Prod.fst ·)
+--  for l in lsort do
+--    IO.println l
+--  IO.println ls.sum
+  let mut strip := lsort
+  let lsort := lsort.filter (Prod.fst · == 1)
+  for k in [:29] do
+    let f := strip.back
+    strip := strip.pop
+    if (String.ep f.2).1.getLast! = '.' then
+      IO.println f
+      let mut ris := #[]
+      for i in [:6] do
+        ris := ris.push <| tot <| extendRed (String.ep f.2) i
+      IO.println ris
+      IO.println ""
 #exit
   for o in d1.zip d2 do
       let mut d5 := 0
