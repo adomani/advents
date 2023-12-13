@@ -155,9 +155,9 @@ def part2 (dat : String) : Nat :=
   let ts := getPats dat
   Id.run do
     let mut tot := 0
+    let chars := ts.map
+      fun x : String => (x.splitOn "\n").toArray.map (List.toArray ∘ String.toList)
     for ind in [:ts.size] do
-      let chars := ts.map
-        fun x : String => (x.splitOn "\n").toArray.map (List.toArray ∘ String.toList)
       let c0 := chars[ind]!
       let rs := rssmudge c0
       let cs := cssmudge c0
@@ -174,7 +174,7 @@ def part2 (dat : String) : Nat :=
           (ta2.1.erase lr.2, ta2.2) else
           (ta2.1, ta2.2.erase lr.2)
         if (newt2.1 ++ newt2.2).size == 1 then
-          tot := tot + 100 * newt2.1[0]! + newt2.2[0]!
+          tot := tot + 100 * (newt2.1.getD 0 0) + (newt2.2.getD 0 0)
           break
     return tot
 
