@@ -26,17 +26,6 @@ def test := "#.##..##.
 #####.##.
 ..##..###
 #....#..#"
-#check Nat.toDigits
-def nums (s : Array String) : IO Unit := do
-  let ns := String.mk <| (List.range (s[0]!.length)).map fun n =>
-    (Nat.toDigits 10 n).getLast!
-  let pns := "--" ++ ns ++ "-"
-  IO.println pns
-  for i in [:s.size] do
-    IO.println s!"{i}|{s[i]!}|"
-  IO.println pns
-  IO.println ""
-
 
 #eval do
   IO.println ((← IO.FS.lines input).size, (← IO.FS.lines input)[0]!.length)
@@ -60,8 +49,8 @@ def transpose (s : Array String) : Array String :=
   let ts := getPats test
   let ca := ts[1]!
   let car := (ca.splitOn "\n").toArray
-  nums <| car
-  nums <| transpose car
+  draw <| car
+  draw <| transpose car
 
 /-- Decide whether a horizontal position is a line of symmetry for the array. -/
 def isNsymm (s : Array String) (n : Nat) : Bool :=
@@ -179,7 +168,7 @@ def rsmudge (dat : Array (Array Char)) := --: Array (Option (Bool × Nat)) :=
 --  IO.println <| rsmudge c0
   for c in rsmudge c0 do IO.println <| c
   IO.println ""
-  nums <| c0.map (String.mk ∘ Array.toList) --(ts[ind]!.splitOn "\n").toArray
+  draw <| c0.map (String.mk ∘ Array.toList) --(ts[ind]!.splitOn "\n").toArray
 
 def rssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
   Id.run do
@@ -202,7 +191,7 @@ def rssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
 --  IO.println <| rsmudge c0
   for c in rssmudge c0 do IO.println <| c
   IO.println ""
-  nums <| c0.map (String.mk ∘ Array.toList) --(ts[ind]!.splitOn "\n").toArray
+  draw <| c0.map (String.mk ∘ Array.toList) --(ts[ind]!.splitOn "\n").toArray
 
 def cssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
   let tr := (transpose <| dat.map (String.mk ∘ Array.toList)).map (List.toArray ∘ String.toList)
