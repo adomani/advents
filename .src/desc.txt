@@ -95,13 +95,13 @@ Toy boat race, with times and record distances.
 Both questions revolve around computing the number
 of integers on which a second-degree polynomial is
 positive.
-While the length of the real interval is simply the
+While the length of the real interval where
+the polynomial is positive is simply the
 square root of the discriminant of the quadratic,
-the exact number of integer points inside is depends
+the number of integer points inside it depends
 on the exact location of the interval.
-It turns out that I could only solve part 1 by a
-brute-force enumeration, while for part 2 the
-discriminant approach worked well.
+I could only solve part 1 by brute-force enumeration,
+while for part 2 the discriminant approach worked well.
 
 The issue with part 1 is particularly frustrating,
 since the correct answer is at most 1 away from the
