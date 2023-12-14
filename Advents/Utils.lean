@@ -44,6 +44,19 @@ def List.getNumbers (l : List Char) : List Nat :=
     let fin := getNumbers (l1.dropWhile (Char.isDigit ·))
   d1 :: fin
 
+/-- Transpose an array of strings. -/
+def Array.transpose (s : Array String) : Array String :=
+  let rows := s.map (List.toArray ∘ String.toList)
+  let cols := rows[0]!.size
+  Id.run do
+    let mut ans := #[]
+    for c in [:cols] do
+      let mut row := ""
+      for r in [:rows.size] do
+        row := row.push (rows[r]!.getD c default)
+      ans := ans.push row
+    return ans
+
 section meta
 open Lean Elab Command
 

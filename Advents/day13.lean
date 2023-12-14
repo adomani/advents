@@ -32,19 +32,6 @@ Each entry of the array is a map. -/
 def getPats (s : String) : Array String :=
   (s.splitOn "\n\n").toArray
 
-/-- Transpose an array of strings. -/
-def transpose (s : Array String) : Array String :=
-  let rows := s.map (List.toArray ∘ String.toList)
-  let cols := rows[0]!.size
-  Id.run do
-    let mut ans := #[]
-    for c in [:cols] do
-      let mut row := ""
-      for r in [:rows.size] do
-        row := row.push (rows[r]!.getD c default)
-      ans := ans.push row
-    return ans
-
 /-- Decide whether a horizontal position is a line of symmetry for the array. -/
 def isNsymm (s : Array String) (n : Nat) : Bool :=
   let rloc := min n (s.size - n)
@@ -67,7 +54,7 @@ def rsymm (s : Array String) : Array Nat :=
 
 /-- Find the array of positions for vertical symmetries. -/
 def csymm (s : Array String) : Array Nat :=
-  rsymm (transpose s)
+  rsymm s.transpose
 
 /-- `tally s` produces the pair whose elements are the arrays of
 horizontal/vertical positions of axes of symmetry for `s`. -/
@@ -132,7 +119,7 @@ def rssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
 The output contains all the locations that, when changed, make the grid
 acquire a vertical symmetry. -/
 def cssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
-  let tr := (transpose <| dat.map (String.mk ∘ Array.toList)).map (List.toArray ∘ String.toList)
+  let tr := (Array.transpose <| dat.map (String.mk ∘ Array.toList)).map (List.toArray ∘ String.toList)
   let sm := rssmudge tr
   sm.map fun x => (x.2, x.1)
 
