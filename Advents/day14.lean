@@ -95,50 +95,7 @@ solve 1 110821
 #  Question 2
 -/
 
-#eval do
-  let dat := atest.transpose.map getInfo
-  let dat := (← IO.FS.lines input).transpose.map getInfo
-  let mut tot := 0
-  for i in dat do
-    for (wt, pos) in i do
-      tot := tot + ((List.range wt).map (pos - ·)).sum
---    IO.println i
-  IO.println tot
 #exit
-  let pc := String.toList ".OOOO#O.O.#.O"
-  let breaks := 0 :: (pc.findIdxs (· == '#')).map (· + 1)
-  let moving := ((pc.filter (! · == '.')).splitOn '#').map List.length
-  IO.println ""
-  draw atest
-  --IO.println <| moving.zip breaks
-
-
-#exit
-  let pc := parseCol ".OOOO#O.O.#.O"
-  getRanges pc
-
-#eval do
-  let dat := atest
-  let parsed := dat.transpose.map (Array.reverse ∘ parseCol)
-  for i in parsed do IO.println i
-
-
-def colLoad (col : String) : Nat × Nat :=
-  match col.toList with
-    | 'O'::rs => colLoad rs + (0, 1)
-    | '#'::rs => default
-    | _::rs => default
-    | [] => default
-
-def getRocksOne (dat : String) : Array pos × Array pos :=
-  match dat.toList with
-    | 'O'::rs => default
-    | '#'::rs => default
-    | _::rs => default
-    | [] => default
-
-def getRocks (dat : Array String) : Array pos :=
-
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
