@@ -229,13 +229,13 @@ Distance:  9  40  200
 Both questions revolve around computing the number
 of integers on which a second-degree polynomial is
 positive.
-While the length of the real interval is simply the
+While the length of the real interval where
+the polynomial is positive is simply the
 square root of the discriminant of the quadratic,
-the exact number of integer points inside is depends
+the number of integer points inside it depends
 on the exact location of the interval.
-It turns out that I could only solve part 1 by a
-brute-force enumeration, while for part 2 the
-discriminant approach worked well.
+I could only solve part 1 by brute-force enumeration,
+while for part 2 the discriminant approach worked well.
 
 The issue with part 1 is particularly frustrating,
 since the correct answer is at most 1 away from the
@@ -268,7 +268,7 @@ following an order naturally described as
 * first a lexicographic ordering of the
   frequency of each card in each hand;
 * second a lexicographic ordering of the
-  cards, in the given order.
+  cards, in the dealt order.
 
 By abstracting the sorting rules out of the main
 functions, a good part of the code can be used
@@ -279,8 +279,8 @@ for both parts.
 Using rules very similar to poker, the first part
 involves sorting a list of 5-card hands and doing
 operations with the sorted rank of each hand (plus
-also using a number given that the input gives with
-with each hand).
+also using a number given next to each hand
+in the given input).
 
 #### Part 2
 
@@ -384,7 +384,7 @@ differences of lists of numbers until all differences
 are zero.
 After that, you should extend either on the right or on
 the left the initial sequence so that the final pattern
-of zeros persisted.
+of zeros persists.
 
 Equivalently, you could compute the polynomial of smallest
 degree, whose values on `{1, 2, ..., n}` are the initial
@@ -499,6 +499,17 @@ spacing in the *expansion* step.
 
 Counting ways of filling in `#`s and `.`s
 
+####  Test
+
+<pre>
+???.### 1,1,3
+.??..??...?##. 1,1,3
+?#?#?#?#?#?#?#? 1,3,1,6
+????.#...#... 4,1,1
+????.######..#####. 1,6,5
+?###???????? 3,2,1
+</pre>
+
 ### Description
 
 I solved part 1, but part 2 is still in progress!
@@ -562,6 +573,56 @@ Processing the locations of the new axes of symmetry as before
 yields the answer to part 2.
 
 [Solution in Lean](Advents/day13.lean)
+
+---
+
+#  [Day 14](https://adventofcode.com/2023/day/14)
+
+Rolling rocks in a maze.
+
+####  Test
+
+<pre>
+O....#....
+O.OO#....#
+.....##...
+OO.#O....O
+.O.....O#.
+O.#..O.#.#
+..O..#O..O
+.......O..
+#....###..
+#OO..#....
+</pre>
+
+### Description
+
+The data is a map with locations of
+* round (moving) rocks, denoted by `O`;
+* non-moving rocks, denoted by `#`;
+* empty spaces, denoted by `·`.
+
+In both parts, the surface described map can be tilted
+so that the moving rocks roll in direction of the tilt
+until they reach either the boundary of the surface or
+a fixed rock.
+
+#### Part 1
+
+The goal was to perform a single tilt, figure out the
+final positions of the moving rocks and compute the
+*total load* -- a weight determined by the final positions.
+
+#### Part 2
+
+Instead of tilting only once, now we successively tilt
+in succession in each of the four directions
+north, west, south, east, doing each such cycle of four
+tilts 1000000000 times.
+After that, we still need to compute the *total load*
+of the final configuration.
+
+[Solution in Lean](Advents/day14.lean)
 
 ---
 

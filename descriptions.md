@@ -13,3 +13,4 @@
 |[11](descriptions_with_tests.md#day-11)|Distances between galaxies in an expanding universe.|
 |[12](descriptions_with_tests.md#day-12)|Counting ways of filling in `#`s and `.`s|
 |[13](descriptions_with_tests.md#day-13)|Finding axes of symmetry among rock and ash.|
+|[14](descriptions_with_tests.md#day-14)|Rolling rocks in a maze.|

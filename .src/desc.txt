@@ -269,3 +269,32 @@ the *same new* axis of symmetry.
 Processing the locations of the new axes of symmetry as before
 yields the answer to part 2.
 --
+Rolling rocks in a maze.
+
+### Description
+
+The data is a map with locations of
+* round (moving) rocks, denoted by `O`;
+* non-moving rocks, denoted by `#`;
+* empty spaces, denoted by `·`.
+
+In both parts, the surface described map can be tilted
+so that the moving rocks roll in direction of the tilt
+until they reach either the boundary of the surface or
+a fixed rock.
+
+#### Part 1
+
+The goal was to perform a single tilt, figure out the
+final positions of the moving rocks and compute the 
+*total load* -- a weight determined by the final positions.
+
+#### Part 2
+
+Instead of tilting only once, now we successively tilt
+in succession in each of the four directions
+north, west, south, east, doing each such cycle of four
+tilts 1000000000 times.
+After that, we still need to compute the *total load*
+of the final configuration.
+--
