@@ -25,19 +25,6 @@ O.#..O.#.#
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- Transpose an array of strings. -/
-def Array.transpose (s : Array String) : Array String :=
-  let rows := s.map (List.toArray ∘ String.toList)
-  let cols := rows[0]!.size
-  Id.run do
-    let mut ans := #[]
-    for c in [:cols] do
-      let mut row := ""
-      for r in [:rows.size] do
-        row := row.push (rows[r]!.getD c default)
-      ans := ans.push row
-    return ans
-
 -- A `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int
 
