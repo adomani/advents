@@ -16,29 +16,46 @@ def test := "rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn ",").toArray
 
+/-- `Hash` is the second test string. -/
 def Hash := "HASH"
 
-#eval
-  let dat := Hash.toList.map Char.val
-  dat.map UInt32.val
+#assert (Hash.toList.map Char.val).map UInt32.val == [72, 65, 83, 72]
 
+/-- `convOne curr c` takes as input the current value `curr` and
+a character `c`.
+It performs the conversion step on the character `c`,
+starting with the current value `curr`. -/
 def convOne (curr : Nat) (c : Char) : Nat :=
   (curr + c.val.val) * 17 % 256
 
 #assert convOne 0 'H' == 200
 
-def convC : Nat → List Char → Nat
-  | n, c::cs => convC (convOne n c) cs
-  | n, []    => n
-
+/-- `convert s` takes as input a string and
+returns the outcome of the `HASH` algorithm on `s`. -/
 def convert (s : String) : Nat :=
-  convC 0 s.toList
-
-#eval 'z'.val.val
+  convC 0 s.toList where
+  /-- The internal function of `convert` for computing the `HASH` algorithm. -/
+  convC : Nat → List Char → Nat
+    | n, c::cs => convC (convOne n c) cs
+    | n, []    => n
 
 #assert convert Hash == 52
 
-#eval do
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : String) : Nat :=
+  let dat := (if dat.back == '\n' then dat.dropRight 1 else dat).splitOn ","
+  (dat.map convert).sum
+
+#assert part1 test == 1320
+
+solve 1 510013 file
+
+/-!
+#  Question 2
+-/
+
+
+#eval do  -- 510013
 --  IO.println dat.getLast!
   let dat := atest
   let dat := ((← IO.FS.readFile input).dropRight 1).splitOn "," |>.toArray
@@ -142,19 +159,6 @@ def focPowOne (a : Array String) : Nat :=
 
 
 --  wrong: 509879
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 (test.splitOn "\n").toArray == ???
-
---solve 1
-
-/-!
-#  Question 2
--/
-
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
 --def part2 (dat : String) : Nat :=
