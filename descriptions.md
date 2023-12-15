@@ -14,3 +14,4 @@
 |[12](descriptions_with_tests.md#day-12)|Counting ways of filling in `#`s and `.`s|
 |[13](descriptions_with_tests.md#day-13)|Finding axes of symmetry among rock and ash.|
 |[14](descriptions_with_tests.md#day-14)|Rolling rocks in a maze.|
+|[15](descriptions_with_tests.md#day-15)|Fitting lenses.|

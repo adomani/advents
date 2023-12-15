@@ -298,3 +298,20 @@ tilts 1000000000 times.
 After that, we still need to compute the *total load*
 of the final configuration.
 --
+Fitting lenses.
+
+### Description
+
+#### Part 1
+
+The first part gives the instructions for converting strings
+to natural numbers, using the ASCII values of their characters.
+
+#### Part 2
+
+The second part parses a little more the input and uses it
+as instructions to create a list of boxes containing lens
+arrangements.
+
+From the final arrangement, you get the answer to part 2.
+--

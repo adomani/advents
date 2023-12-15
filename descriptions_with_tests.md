@@ -626,3 +626,32 @@ of the final configuration.
 
 ---
 
+#  [Day 15](https://adventofcode.com/2023/day/15)
+
+Fitting lenses.
+
+####  Test
+
+<pre>
+rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
+</pre>
+
+### Description
+
+#### Part 1
+
+The first part gives the instructions for converting strings
+to natural numbers, using the ASCII values of their characters.
+
+#### Part 2
+
+The second part parses a little more the input and uses it
+as instructions to create a list of boxes containing lens
+arrangements.
+
+From the final arrangement, you get the answer to part 2.
+
+[Solution in Lean](Advents/day15.lean)
+
+---
+
