@@ -66,11 +66,12 @@ def part1 (dat : Array String) : Nat :=
 -/
 
 def eqa (l m : Array (Int × Int)) : Bool :=
-  Id.run do
-    let mut cond := true
-    for i in l do
-      if ! i ∈ m then cond := false; break
-    return cond
+  l.all (· ∈ m)
+--  Id.run do
+--    let mut cond := true
+--    for i in l do
+--      if ! i ∈ m then cond := false; break
+--    return cond
 
 --#eval do
 --  let inp ← IO.FS.readFile input
@@ -83,9 +84,13 @@ def tiltOne (f mov : Array Int) : Array Int :=
     for p in [:f.size - 1] do
       let pl := f[p]! + 1
       let pr := f[p + 1]!
-      let nr := (mov.filter fun x => (pl ≤ x && x < pr)).size
-      for j in [:nr] do
-        fin := fin.push (pl + j)
+      let mut con := pl
+      for x in mov do
+        if (pl ≤ x && x < pr) then
+--      let nr := (mov.filter fun x => (pl ≤ x && x < pr)).size
+--      for j in [:nr] do
+        fin := fin.push (con)
+        con := con + 1
     return fin
 
 --#eval
@@ -163,8 +168,8 @@ elaboration took 472ms
 
 -/
 #eval show MetaM _ from do
-  let dat := atest.transpose
---  let dat := ← IO.FS.lines input
+--  let dat := atest.transpose
+  let dat := ← IO.FS.lines input
 --  IO.println s!"{(dat.size, dat[0]!.length)}"
   let sz := dat.size
   let mut f : Array (Int × Int) := #[]
@@ -188,13 +193,13 @@ elaboration took 472ms
   let E := (Array.range sz).map fun i : Nat =>
     (#[-1] ++ (((E.filter (Prod.fst · == (i : Int))).map Prod.snd).qsort (· < ·)) ++ #[(sz : Int)])
   let cyc0 := mov
-  let fi := 7
+  let fi := 100
   let c0 := cycles sz N W S E cyc0 fi
   let mut per := 0
   for i in [:fi] do
     if eqa c0 (cycles sz N W S E c0 (i + 2)) then per := i + 2; break
   IO.println s!"period: {per}"
-  guard ( per == 7 )
+--  guard ( per == 7 )
   if ! per == 0 then
     let equi := fi + ((1000000000 - fi) % per)
     IO.println equi
@@ -206,7 +211,7 @@ elaboration took 472ms
   --    IO.println <| cus
       tot := tot + cus * (sz - i)
     IO.println s!"Answer: {tot}"
-    guard ( tot == 64 )
+--    guard ( tot == 64 )
 
 #exit
 
