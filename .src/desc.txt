@@ -231,7 +231,7 @@ accumulated the distances and divided by two.
 Same setup as for part 1, except that I increased the introduced
 spacing in the *expansion* step.
 --
-Counting ways of filling in `#`s and `.`s
+Counting ways of filling in `#`s and `.`s.  (Missing part 2)
 
 ### Description
 
@@ -269,7 +269,7 @@ the *same new* axis of symmetry.
 Processing the locations of the new axes of symmetry as before
 yields the answer to part 2.
 --
-Rolling rocks in a maze.
+Rolling rocks in a maze. (Missing part 2)
 
 ### Description
 

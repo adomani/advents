@@ -497,7 +497,7 @@ spacing in the *expansion* step.
 
 #  [Day 12](https://adventofcode.com/2023/day/12)
 
-Counting ways of filling in `#`s and `.`s
+Counting ways of filling in `#`s and `.`s.  (Missing part 2)
 
 ####  Test
 
@@ -578,7 +578,7 @@ yields the answer to part 2.
 
 #  [Day 14](https://adventofcode.com/2023/day/14)
 
-Rolling rocks in a maze.
+Rolling rocks in a maze. (Missing part 2)
 
 ####  Test
 
