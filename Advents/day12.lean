@@ -61,37 +61,84 @@ def tot (r : red) : Nat :=
 -/
 
 partial
-def tot : red → Nat
-  | ([], 0::cs) => tot ([], cs)
-  | ([], []) => 1
-  | ([], _) => default
-  | ('#'::_cs, []) => default
-  | ('#'::_cs, 0::_ns) => default
-  | ('#'::'#'::cs, n::ns) => tot ('#'::cs, (n - 1)::ns)
-  | ('#'::'.'::cs, 1::ns) => tot (cs, ns)
-  | ('#'::'.'::_cs, _::_ns) => default
-  | (['#'], 1::ns) => tot ([], ns)
-  | (['#'], _) => 0
-  | ('#'::'?'::cs, 1::ns) => tot (cs, ns)
-  | ('#'::'?'::cs, n::ns) => tot ('#'::cs, (n-1)::ns)
-  | ('.'::cs, ns) => tot (cs, ns)
-  | ('?'::cs, 0::ns) => tot (cs, ns)
-  | ('?'::cs, []) => tot (cs, [])
-  | ('?'::cs, ns) => tot ('#'::cs, ns) + tot (cs, ns)
-  | x => dbg_trace s!"1000 {x}"; 1000 --(1000, 1000)
+--def tot : red → Nat
+def tot' (n : Nat) (r : red) : Nat × Nat :=
+--  dbg_trace "step"
+  let dif := (r.1.filter (! · == '.')).length
+  if dif < r.2.sum then (n, 0) else
+  if dif == r.2.sum && '?' ∈ r.1 then
+    let rn := (r.1.map fun x => if x == '?' then '#' else x, r.2)
+    tot' n rn else
+--  dbg_trace s!"?: {(r.1.filter (· == '?')).length}, #: {(r.1.filter (· == '#')).length}, available {r.2.sum}"
+  match r with
+  | ([], 0::cs) => tot' n.succ ([], cs)
+  | ([], []) => (n, 1)
+  | ([], _) => (n, default)
+  | ('#'::_cs, []) => (n, default)
+  | ('#'::_cs, 0::_ns) => (n, default)
+  | ('#'::'#'::cs, n::ns) => tot' n.succ ('#'::cs, (n - 1)::ns)
+  | ('#'::'.'::cs, 1::ns) => tot' n.succ (cs, ns)
+  | ('#'::'.'::_cs, _::_ns) => (n, default)
+  | (['#'], 1::ns) => tot' n.succ ([], ns)
+  | (['#'], _) => (n, 0)
+  | ('#'::'?'::cs, 1::ns) => tot' n.succ (cs, ns)
+  | ('#'::'?'::cs, n::ns) => tot' n.succ ('#'::cs, (n-1)::ns)
+  | ('.'::cs, ns) => tot' n.succ (cs, ns)
+  | ('?'::cs, 0::ns) => tot' n.succ (cs, ns)
+  | ('?'::cs, []) => tot' n.succ (cs, [])
+  | ('?'::cs, ns) => tot' n.succ ('#'::cs, ns) + tot' n.succ (cs, ns)
+  | x => dbg_trace s!"1000 {x}"; (n, 1000) --(1000, 1000)
+
+def tot (r : red) : Nat := (tot' 0 r).2
 
 #assert (atest.map String.ep).map tot == #[1, 4, 1, 1, 4, 10]
+
+/-
+#[(12, 1), (87, 4), (6, 1), (11, 1), (35, 4), (115, 10)]
+
+-/
+#eval (atest.map String.ep).map (tot' 0)
+#eval do draw atest
+
+#eval
+  dbg_trace ((atest.map String.ep).toList.take 1).map (tot' 0)
+  dbg_trace ""
+  dbg_trace ((atest.map String.ep).toList.take 1).map fun (x, y) => tot' 0 (x.reverse, y.reverse)
+  0
+  --IO.print "ciao"
+
+#eval tot <| "??#.?#?#??????#.?#?#??????#.?#?#??? 1,3,1,1,3,1,1,3,1".ep
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let ls := ((dat.map String.ep)).map tot
-  dbg_trace (ls.zip dat).qsort (Prod.fst · > Prod.fst  ·)
+--  dbg_trace (ls.zip dat).qsort (Prod.fst · > Prod.fst  ·)
   ls.sum
 --  (((dat.map String.ep)).map tot).sum
 
 #assert part1 atest == 21
 
+set_option profiler true
 solve 1 6935
+solve 1 6935
+solve 1 6935
+
+/-
+#exit
+
+??#.?#?#???  1,3,1
+..#..###.#.  1,3,1
+..#..###..#  1,3,1
+
+??#.?#?#??? ? ??#.?#?#???
+1,3,1         1,3,1
+
+
+?????.??.???. 1,1,1
+??????.??..? 2,1,2
+.??#???.??? 3,1,1
+??##?#?????.. 5,1
+-/
 
 /-!
 #  Question 2
@@ -105,6 +152,123 @@ def extendRed (r : red) (n : Nat := 5) : red :=
   let x : red := (".#".toList, [1])
   extendRed x
 
+def String.reparseOne (s : String) : List String × List Nat :=
+  match s.splitOn " " with
+    | [l, r] => ((l.splitOn ".").filter (! · == ""), r.toList.getNumbers)
+    | _ => dbg_trace s!"reparseOne error: {s}"; default
+
+#eval do
+--  let dat ← IO.FS.lines input
+  let dat := atest
+  draw <| dat
+  for t in dat do IO.println <| t.reparseOne
+
+abbrev rec := List String × List Nat
+#eval "012".get! ⟨1⟩
+#check String.all
+
+partial
+--def step : rec → Nat
+def step (r: rec) : Nat :=
+  let part := r.1.map String.length
+  if part.sum < r.2.sum then 0 else
+  if part.sum = r.2.sum ∧ part = r.2 then 1 else
+  if part.sum = r.2.sum ∧ part = r.2 then 0 else
+  dbg_trace r
+  match r with
+  | ([], [])       => 1
+  | ([], _)        => 0
+  | (x, [])        =>
+    if (x.map fun s => s.all (· == '?')).all (· == true) then 1 else 0
+  | (r::rs, n::ns) =>
+    if r.length < n ∧ r.contains '#' then 0 else
+    if r.length < n then step (rs, n::ns) else
+    if r.length = n ∧ r.contains '#' then step (rs, ns) else
+    if r.length = n then step (rs, n::ns) + step (rs, ns) else
+    if r.get! ⟨0⟩ == '#' ∧ r.get! ⟨n⟩ = '#' then 0 else
+    if r.get! ⟨0⟩ == '#' then step (r.drop n.succ :: rs, ns) else
+      step ((r.drop 1)::rs, n::ns) +
+        if r.get! ⟨n⟩ ≠ '#' then step (r.drop n.succ :: rs, ns)
+        else 0
+
+def repl (s : String) (n : Nat := 5) : String :=
+  match s.splitOn " " with
+    | [l, r] =>
+      "?".intercalate (List.replicate n l) ++ " " ++
+      ",".intercalate (List.replicate n r)
+    | _ => dbg_trace s!"oh no! {s}"; default
+
+#eval repl "## 1" 2
+
+#eval show MetaM _ from do
+  let (nd, mul) := (4, 2)
+  let mut fin := 0
+  let dat := atest
+  let dat ← IO.FS.lines input
+  for ind in [nd] do
+    let x := repl dat[ind]! mul
+    fin := fin + step x.reparseOne
+  IO.println fin
+
+
+
+
+/-  loop for testing equalities
+#eval show MetaM _ from do
+--  let ind := 43
+  let dat := atest
+  let dat ← IO.FS.lines input
+  for ind in [:dat.size] do
+--  let x := "?? 1"
+  let x := dat[ind]!
+--  let pr := dat.map reparseOne
+--  IO.println <| s!"x is: {x}\n"
+  let cond := (step (x.reparseOne), tot x.ep)
+--  IO.println <| cond
+  if ! cond.1 = cond.2 then IO.println (ind, x); break
+--  for t in dat do IO.println <| reparseOne t
+
+#eval show MetaM _ from do
+  let mut fin := 0
+  let dat := atest
+  let dat ← IO.FS.lines input
+  for ind in [:dat.size] do
+    let x := dat[ind]!
+    fin := fin + step x.reparseOne
+  IO.println fin
+
+#eval show MetaM _ from do
+  let mut fin := 0
+  let dat := atest
+  let dat ← IO.FS.lines input
+  for ind in [:dat.size] do
+    let x := dat[ind]!
+    fin := fin + step x.reparseOne
+  IO.println fin
+
+#eval show MetaM _ from do
+  let mut fin := 0
+  let dat := atest
+  let dat ← IO.FS.lines input
+  for ind in [:dat.size] do
+    let x := dat[ind]!
+    fin := fin + tot x.ep
+  IO.println fin
+
+#eval show MetaM _ from do
+  let mut fin := 0
+  let dat := atest
+  let dat ← IO.FS.lines input
+  for ind in [:dat.size] do
+    let x := dat[ind]!
+    fin := fin + tot x.ep
+  IO.println fin
+--/
+
+#eval 0
+#check String.intercalate
+
+#exit
 /-
 (525152, #[1, 16384, 1, 16, 2500, 506250])
 ( 36308, #[1,  2048, 1,  8,  500,  33750])
@@ -179,21 +343,112 @@ def extendRed (r : red) (n : Nat := 5) : red :=
 0
 
 -/
+
+/-- `Nat.factorial n` -- the factorial of `n`. -/
+def Nat.factorial : Nat → Nat
+  | 0 => 1
+  | n + 1 => (n + 1) * n.factorial
+
+/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
+def Nat.binom (n : Int) (k : Nat) : Int :=
+  ((List.range k).map fun i : Nat => n - i).prod / k.factorial
+
+
 #eval do
 --  let x := atest.map fun f => extendRed (String.ep f) 1
-  let x ← IO.FS.lines input
   let x := atest
+  let x ← IO.FS.lines input
+  let pd := x.map String.ep
+  let pd := pd.map fun r : red =>
+    let n? := (r.1.filter (· == '?')).length
+    let n! := (r.1.filter (· == '#')).length
+    (Nat.binom n? (r.2.sum - n!), n? , (r.2.sum - n!), r.2.length)
+  for x in pd.qsort (Prod.fst · > Prod.fst ·) do
+    IO.println <| x
+
+namespace sec
+partial
+def tot' (n : Nat) (r : red) : Nat × Nat :=
+--  dbg_trace "step"
+  let dif := (r.1.filter (! · == '.')).length
+  if dif < r.2.sum then (n, 0) else
+  if dif == r.2.sum && '?' ∈ r.1 then
+    let rn := (r.1.map fun x => if x == '?' then '#' else x, r.2)
+    tot' n rn else
+--  dbg_trace s!"?: {(r.1.filter (· == '?')).length}, #: {(r.1.filter (· == '#')).length}, available {r.2.sum}"
+  match r with
+  | ([], 0::cs) => tot' n.succ ([], cs)
+  | ([], []) => (n, 1)
+  | ([], _) => (n, default)
+  | ('#'::_cs, []) => (n, default)
+  | ('#'::_cs, 0::_ns) => (n, default)
+  | ('#'::'#'::cs, n::ns) => tot' n.succ ('#'::cs, (n - 1)::ns)
+  | ('#'::'.'::cs, 1::ns) => tot' n.succ (cs, ns)
+  | ('#'::'.'::_cs, _::_ns) => (n, default)
+  | (['#'], 1::ns) => tot' n.succ ([], ns)
+  | (['#'], _) => (n, 0)
+  | ('#'::'?'::cs, 1::ns) => tot' n.succ (cs, ns)
+  | ('#'::'?'::cs, n::ns) => tot' n.succ ('#'::cs, (n-1)::ns)
+  | ('.'::cs, ns) => tot' n.succ (cs, ns)
+
+  | (c::'#'::d::e::'.'::cs, 5::ns) =>
+    (n.succ, 0)
+
+  | ('?'::'.'::cs, 0::ns) => (n.succ, 0)
+  | ('?'::'.'::cs, 2::ns) => tot' n.succ (cs, 2::ns)
+  | ('?'::'?'::'#'::'.'::cs, 3::ns) => tot' n.succ (cs, ns)
+
+  | ('?'::'#'::'?'::cs, 0::ns) => (n.succ, 0)
+  | ('?'::'#'::'?'::cs, 1::ns) => tot' n.succ (cs, ns)
+  | ('?'::'#'::'?'::cs, 2::ns) =>
+    tot' n.succ (cs, ns) + tot' n.succ ('#'::cs, 1::ns)
+  | ('?'::'#'::'?'::cs, m::ns) => tot' n.succ ('?'::'#'::cs, (m-1)::ns)
+  | (_::cs, 0::ns) => (n.succ, 0)
+  | ('?'::'.'::cs, 1::ns) =>
+    tot' n.succ (cs, ns) + tot' n.succ (cs, 1::ns)
+  | ('?'::'.'::cs, m::ns) => tot' n.succ (cs, m::ns)
+
+  | ('?'::'#'::'#'::cs, n::ns) =>
+    if n ≤ 1 then (n.succ, 0) else
+    tot' n.succ ('?'::'#'::cs, (n-1)::ns)
+--    tot' n.succ ('#'::cs, 1::ns)
+  | ('?'::'#'::cs, 1::ns) => tot' n.succ ('#'::cs, 1::ns)
+--  | ('?'::cs, 0::ns) => tot' n.succ (cs, ns)
+  | ('?'::cs, []) => tot' n.succ (cs, [])
+  | ('?'::cs, ns) =>
+    if n ≤ 2 then
+      dbg_trace s!"split {r}"
+      tot' n.succ ('#'::cs, ns) + tot' n.succ (cs, ns)
+    else
+      tot' n.succ ('#'::cs, ns) + tot' n.succ (cs, ns)
+  | x => dbg_trace s!"1000 {x}"; (n, 1000) --(1000, 1000)
+
+def tot2 (r : red) : Nat := (tot' 0 r).2
+
+
+#eval show MetaM _ from do
+--  let x := atest.map fun f => extendRed (String.ep f) 1
+  let x := atest
+  let x ← IO.FS.lines input
   let mut d5 := 0
   for f1 in [:x.size] do
-    let f := x[f1]!
+--    if f1 ≠ 0 then
+      let f := x[f1]!
 --    let d1 := tot <| extendRed (String.ep f) 1
 --    let d2 := tot <| extendRed (String.ep f) 2
-    if tot (extendRed (String.ep f) 1) < 4 then
-      IO.println <| tot <| extendRed (String.ep f) 3
-      d5 := d5 + 1
+--    if tot (extendRed (String.ep f) 1) < 4 then
+--      IO.println <| tot2 <| extendRed (String.ep f) 1
+      d5 := d5 + (tot2 <| extendRed (String.ep f) 1)
+--      d5 := d5 + 1
 --    dbg_trace (List.range 1).map fun n => tot <| extendRed (String.ep f) 1
 --    d5 := d5 + (d1 :: List.replicate 4 (d2 / d1)).prod
   IO.println d5
+  guard (d5 == 6935 )
+
+
+
+#exit
+
 
 --  too low:    2294250386306
 --  too high: 710208077120586
