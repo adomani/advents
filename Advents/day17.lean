@@ -54,6 +54,13 @@ instance : ToString dir where
     | .E => "→"
     | .X => "·"
 
+def dir.rev : dir → dir
+    | .N => .S
+    | .W => .E
+    | .S => .N
+    | .E => .W
+    | .X => .X
+
 def dir.toPos : dir → pos
   | .N => (- 1,   0)
   | .W => (  0, - 1)
@@ -85,6 +92,8 @@ structure path where
   (loc  : Array pos)
   (cpos : pos)
   (past : dir × dir)
+  deriving Inhabited
+
 
 def path.add (gr : HashMap pos Nat) (p : path) (x : dir) : path :=
   let new := x + p.cpos
@@ -101,24 +110,36 @@ instance : Ord path where
 
 #eval do
   let dat := atest
-  let sz := dat.size
+  let sz := dat.size - 1
   let grid := dat.toNats
   let ip : pos := (0, 0)
   let init : path := ⟨grid.findD ip default, #[ip], ip, (.N, .X)⟩ --(#[grid.findD ip default], (.X, ip))
-  let pths : RBTree path compare := RBTree.empty.insert init
-  let curr := init
-  let cpos := curr.cpos
-  let nbs := (mvs sz cpos).filter fun d : dir =>
-    (! (curr.past.1 == curr.past.2 && d == curr.past.1)) && (! (d + cpos) ∈ curr.loc)
---  let news : Array pos := nbs.map fun x : dir => (x + cpos)
-  let news := nbs.map fun x : dir => curr.add grid x
-  let pths := news.foldl (fun (pts : RBTree path compare) (n : path) =>
-    --let nval := grid.find? n.cpos
-    pts.insert n) pths
+  let mut toEnd : Array path := #[]
+  let mut pths : RBTree path compare := RBTree.empty.insert init
+--  let mut con := 0
+  while pths.min.isSome do --! pths.isEmpty do
+--    con := con + 1
+    let curr := pths.min.get!
+--    dbg_trace curr
+    let cpos := curr.cpos
+    pths := pths.erase curr
+    if cpos = ((12 : Int), (12 : Int)) then toEnd := toEnd.push curr
+    else
+      let nbs := (mvs (sz+1) cpos).filter fun d : dir =>
+        (! (d == curr.past.2.rev)) &&
+        (! (curr.past.1 == curr.past.2 && d == curr.past.1)) && (! (d + cpos) ∈ curr.loc)
+    --  let news : Array pos := nbs.map fun x : dir => (x + cpos)
+      let news := nbs.map fun x : dir => curr.add grid x
+      pths := news.foldl (fun (pts : RBTree path compare) (n : path) =>
+        --let nval := grid.find? n.cpos
+        pts.insert n) pths
   IO.println "Print pths"
-  for p in pths.erase curr do IO.println p
+  for p in pths do IO.println p
 --  IO.println nbs
 --  IO.println news
+  IO.println "\ntoEnd:\n"
+  IO.println (toEnd.qsort (path.sum · < path.sum ·))[0]!
+  for p in toEnd do IO.println p.sum
   IO.println ""
 
 --  for i in pths do IO.println s!"{i}"
