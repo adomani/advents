@@ -80,7 +80,7 @@ def mvs (m : Nat) (p : pos) : Array dir :=
   #[up, left, down, right].reduceOption
 
 #eval
-  mvs (5 - 1) (0, 4)
+  mvs 4 (4, 3)
 
 --abbrev path := Array Nat × pos × pos
 --
@@ -108,44 +108,115 @@ instance : ToString path where
 instance : Ord path where
   compare x y := compare x.sum y.sum
 
+def getNbs (sz : Nat) (curr : path) :=
+  let cpos := curr.cpos
+  (mvs (sz) cpos).filter fun d : dir =>
+    let cp2 := curr.past.2
+    (! (d == cp2.rev)) &&
+    (! (curr.past.1 == cp2 && d == cp2)) --&& (! (d + cpos) ∈ curr.loc)
+
+#eval [.N, .S, .E, .W].map dir.rev
+
 #eval do
   let dat := atest
-  let sz := dat.size - 1
+  let sz := dat.size
   let grid := dat.toNats
   let ip : pos := (0, 0)
-  let init : path := ⟨grid.findD ip default, #[ip], ip, (.N, .X)⟩ --(#[grid.findD ip default], (.X, ip))
+  let ip : pos := (0, sz)
+  let init : path := ⟨grid.findD ip default, #[ip], ip, (.X, .X)⟩ --(#[grid.findD ip default], (.X, ip))
+  IO.println <| getNbs sz init
+
+
+def test1 := "03
+21"
+
+def btest := (test1.splitOn "\n").toArray
+
+#eval do
+  let dat := atest
+  let dat := btest
+--  let sz : Nat := 1
+  let sz : Nat := dat.size-1
+--  IO.println s!"{sz} {dat.size-1}"
+  let grid := dat.toNats
+  let ip : pos := (0, 0)
+  let init : path := ⟨(grid.findD ip default) * 0, #[ip], ip, (.X, .X)⟩
   let mut toEnd : Array path := #[]
   let mut pths : RBTree path compare := RBTree.empty.insert init
---  let mut con := 0
-  while pths.min.isSome do --! pths.isEmpty do
---    con := con + 1
-    let curr := pths.min.get!
---    dbg_trace curr
-    let cpos := curr.cpos
-    pths := pths.erase curr
-    if cpos = ((12 : Int), (12 : Int)) then toEnd := toEnd.push curr
-    else
-      let nbs := (mvs (sz+1) cpos).filter fun d : dir =>
-        (! (d == curr.past.2.rev)) &&
-        (! (curr.past.1 == curr.past.2 && d == curr.past.1)) && (! (d + cpos) ∈ curr.loc)
-    --  let news : Array pos := nbs.map fun x : dir => (x + cpos)
-      let news := nbs.map fun x : dir => curr.add grid x
-      pths := news.foldl (fun (pts : RBTree path compare) (n : path) =>
-        --let nval := grid.find? n.cpos
-        pts.insert n) pths
-  IO.println "Print pths"
-  for p in pths do IO.println p
+  let mut upb := 1000
+  while ! pths.isEmpty do
+      let cc := pths.max.get!
+--    for cc in pths do
+      if cc.sum ≤ upb then
+        if cc.cpos = ((sz, sz) : pos) then
+          toEnd := toEnd.push cc
+          upb := min upb cc.sum
+          dbg_trace "updated upb: {upb}"
+          pths := pths.erase cc
+        else
+          let nbs := getNbs sz cc
+          let news := nbs.map fun x : dir => cc.add grid x
+          for nn in news do pths := pths.insert nn
+      --if upb ≤ cc.sum then
+      pths := pths.erase cc
+  IO.println "\ntoEnd:\n"
+  IO.println (toEnd.qsort (path.sum · < path.sum ·))[0]!
+  for p in toEnd do IO.println p.sum
+
+
+#exit
+
+#eval do
+  let dat := btest
+  let sz := dat.size - 1
+  let sz : Nat := 1
+  IO.println sz
+  let grid := dat.toNats
+  let ip : pos := (0, 0)
+  let init : path := ⟨(grid.findD ip default) * 0, #[ip], ip, (.X, .X)⟩ --(#[grid.findD ip default], (.X, ip))
+  let mut toEnd : Array path := #[]
+  let mut pths : RBTree path compare := RBTree.empty.insert init
+  let mut con := 0
+  let mut upb := 1000
+  let mut curr := init
+  while --con ≤ 2500000 && pths.min.isSome do --
+   ! pths.isEmpty do
+--   for p in pths do IO.println p
+   for cc in pths do
+    con := con + 1
+--    let cc := pths.min.get!
+--    dbg_trace cc
+    if cc.sum ≤ upb then
+      let cpos := cc.cpos
+      if cc.cpos = ((sz, sz) : pos) then
+        toEnd := toEnd.push cc
+        upb := min upb cc.sum
+      else
+        let nbs := getNbs sz cc
+  --      dbg_trace s!"cc = {cc} and nbs = {nbs}"
+        -- (mvs (sz+1) cpos).filter fun d : dir =>
+        --  (! (d == cc.past.2.rev)) &&
+        --  (! (cc.past.1 == cc.past.2 && d == cc.past.1)) && (! (d + cpos) ∈ cc.loc)
+      --  let news : Array pos := nbs.map fun x : dir => (x + cpos)
+        let news := nbs.map fun x : dir => cc.add grid x
+        for nn in news do pths := pths.insert nn
+--        pths := news.foldl (fun (pts : RBTree path compare) (n : path) =>
+--          --let nval := grid.find? n.cpos
+--          pts.insert n) pths
+    pths := pths.erase cc
+--  IO.println s!"con = {con}; Print pths"
+--  for p in pths do IO.println p
 --  IO.println nbs
 --  IO.println news
   IO.println "\ntoEnd:\n"
   IO.println (toEnd.qsort (path.sum · < path.sum ·))[0]!
   for p in toEnd do IO.println p.sum
-  IO.println ""
+  IO.println s!"con = {con}"
 
 --  for i in pths do IO.println s!"{i}"
 --  for i in grid do IO.println s!"{i}"
 
-  draw <| atest
+  draw <| dat
 
 #exit
   let o : Array (pos × Nat):= dat.map fun i =>
