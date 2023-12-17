@@ -122,11 +122,14 @@ a primitive row/column count, displaying the last
 digit of each row/column.
 -/
 def draw (s : Array String) : IO Unit := do
-  let ns := String.mk <| (List.range (s[0]!.length)).map fun n =>
+  let width := s[0]!.length
+  let length := s.size
+
+  let ns := String.mk <| (List.range width).map fun n =>
     (Nat.toDigits 10 n).getLast!
-  let pns := "--" ++ ns ++ "-"
+  let pns := (if (10 < length) then " " else "") ++ "--" ++ ns ++ "-"
   IO.println pns
   for i in [:s.size] do
-    IO.println s!"{i}|{s[i]!}|"
-  IO.println pns
-  IO.println ""
+    let pad := (if (10 < length ∧ i < 10) then " " else "") ++ ⟨Nat.toDigits 10 i⟩
+    IO.println s!"{pad}|{s[i]!}|"
+  IO.println s!"{pns}\n"
