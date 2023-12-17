@@ -25,9 +25,6 @@ def test := "...#......
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- A `pos`ition is a pair of integers. -/
-abbrev pos := Int × Int
-
 /-- Auxilliary function to `getGal`.
 Extract the positions of the galaxies (`#`)
 for a string.

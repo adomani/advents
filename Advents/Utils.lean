@@ -57,6 +57,9 @@ def Array.transpose (s : Array String) : Array String :=
       ans := ans.push row
     return ans
 
+/-- A `pos`ition is a pair of integers. -/
+abbrev pos := Int × Int
+
 section meta
 open Lean Elab Command
 
