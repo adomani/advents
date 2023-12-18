@@ -29,16 +29,6 @@ U 2 (#7a21e3)"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-def toPic (gr : Array pos) (Nx Ny : Nat) : Array String :=
-  Id.run do
-    let mut rows : Array String := #[]
-    for i in [:Ny] do
-      let mut str := ""
-      for j in [:Nx] do
-        if gr.contains (i, j) then str := str.push '#' else str := str.push '.'
-      rows := rows.push str
-    return rows
-
 /-- `mv` is a pair of a character and a natural number.
 For instance, `(U, 3)`. -/
 abbrev mv := Char × Nat
