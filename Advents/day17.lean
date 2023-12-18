@@ -129,12 +129,14 @@ def getNbs (sz : Nat) (curr : path) :=
 
 def test1 := "03
 21"
-
+#check Array.pop
 def btest := (test1.splitOn "\n").toArray
-
+#check String.take
 #eval do
-  let dat := atest
+  let tak := 7
   let dat := btest
+  let dat := (dat.toList.take tak).toArray.map (String.take · tak)
+  let dat := atest
 --  let sz : Nat := 1
   let sz : Nat := dat.size-1
 --  IO.println s!"{sz} {dat.size-1}"
@@ -143,9 +145,10 @@ def btest := (test1.splitOn "\n").toArray
   let init : path := ⟨(grid.findD ip default) * 0, #[ip], ip, (.X, .X)⟩
   let mut toEnd : Array path := #[]
   let mut pths : RBTree path compare := RBTree.empty.insert init
-  let mut upb := 1000
+  let mut upb := 200
   while ! pths.isEmpty do
       let cc := pths.max.get!
+      pths := pths.erase cc
 --    for cc in pths do
       if cc.sum ≤ upb then
         if cc.cpos = ((sz, sz) : pos) then
@@ -158,11 +161,10 @@ def btest := (test1.splitOn "\n").toArray
           let news := nbs.map fun x : dir => cc.add grid x
           for nn in news do pths := pths.insert nn
       --if upb ≤ cc.sum then
-      pths := pths.erase cc
   IO.println "\ntoEnd:\n"
   IO.println (toEnd.qsort (path.sum · < path.sum ·))[0]!
   for p in toEnd do IO.println p.sum
-
+  draw dat
 
 #exit
 
