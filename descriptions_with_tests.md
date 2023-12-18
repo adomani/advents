@@ -578,7 +578,7 @@ yields the answer to part 2.
 
 #  [Day 14](https://adventofcode.com/2023/day/14)
 
-Rolling rocks in a maze. (Missing part 2)
+Rolling rocks in a maze.  (Missing part 2)
 
 ####  Test
 
@@ -652,6 +652,108 @@ arrangements.
 From the final arrangement, you get the answer to part 2.
 
 [Solution in Lean](Advents/day15.lean)
+
+---
+
+#  [Day 16](https://adventofcode.com/2023/day/16)
+
+Reflecting mirrors and heating lava.  (Missing part 2)
+
+### Description
+
+The input is a map with locations of mirrors.
+A ray of light starting from a point on the boundary of the grid,
+starts to move inwards,
+* getting reflected upon hitting `/` and `\` and
+* getting split upon hitting
+  * `|`, while moving horizontally;
+  * `-`, while moving vertically.
+
+#### Part 1
+
+Compute the number of visited locations, assuming that the ray
+enters the grid from the location in the top-left corner,
+pointing to the right.
+
+#### Part 2
+
+Compute the maximum number of visited locations, assuming that the ray
+enters from *anywhere* on the boundary of the grid.
+
+[Solution in Lean](Advents/day16.lean)
+
+---
+
+#  [Day 17](https://adventofcode.com/2023/day/17)
+
+Pushing lava through the city.  (Missing)
+
+### Description
+
+The input is a map with single digit entries in each position.
+
+#### Part 1
+
+The goal is to enter from the top-left, moving around the grid
+while minimizing the total sum of the path and not being
+allowed to walk back or move more than 2 consecutive steps
+in the same direction.
+
+#### Part 2
+
+Unknown.
+
+[Solution in Lean](Advents/day17.lean)
+
+---
+
+#  [Day 18](https://adventofcode.com/2023/day/18)
+
+####  Test
+
+<pre>
+R 6 (#70c710)
+D 5 (#0dc571)
+L 2 (#5713f0)
+D 2 (#d2c081)
+R 2 (#59c680)
+D 2 (#411b91)
+L 5 (#8ceee2)
+U 2 (#caa173)
+L 1 (#1b58a2)
+U 2 (#caa171)
+R 2 (#7807d2)
+U 3 (#a77fa3)
+L 2 (#015232)
+U 2 (#7a21e3)
+</pre>
+
+[Solution in Lean](Advents/day18_data.lean)
+
+---
+
+#  [Day 18](https://adventofcode.com/2023/day/18)
+
+####  Test
+
+<pre>
+R 6 (#70c710)
+D 5 (#0dc571)
+L 2 (#5713f0)
+D 2 (#d2c081)
+R 2 (#59c680)
+D 2 (#411b91)
+L 5 (#8ceee2)
+U 2 (#caa173)
+L 1 (#1b58a2)
+U 2 (#caa171)
+R 2 (#7807d2)
+U 3 (#a77fa3)
+L 2 (#015232)
+U 2 (#7a21e3)
+</pre>
+
+[Solution in Lean](Advents/day18.lean)
 
 ---
 

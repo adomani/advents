@@ -13,5 +13,7 @@
 |[11](descriptions_with_tests.md#day-11)|Distances between galaxies in an expanding universe.|
 |[12](descriptions_with_tests.md#day-12)|Counting ways of filling in `#`s and `.`s.  (Missing part 2)|
 |[13](descriptions_with_tests.md#day-13)|Finding axes of symmetry among rock and ash.|
-|[14](descriptions_with_tests.md#day-14)|Rolling rocks in a maze. (Missing part 2)|
+|[14](descriptions_with_tests.md#day-14)|Rolling rocks in a maze.  (Missing part 2)|
 |[15](descriptions_with_tests.md#day-15)|Fitting lenses.|
+|[16](descriptions_with_tests.md#day-16)|Reflecting mirrors and heating lava.  (Missing part 2)|
+|[17](descriptions_with_tests.md#day-17)|Pushing lava through the city.  (Missing)|

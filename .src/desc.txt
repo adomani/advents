@@ -338,3 +338,20 @@ pointing to the right.
 Compute the maximum number of visited locations, assuming that the ray
 enters from *anywhere* on the boundary of the grid.
 --
+Pushing lava through the city.  (Missing)
+
+### Description
+
+The input is a map with single digit entries in each position.
+
+#### Part 1
+
+The goal is to enter from the top-left, moving around the grid
+while minimizing the total sum of the path and not being
+allowed to walk back or move more than 2 consecutive steps
+in the same direction.
+
+#### Part 2
+
+Unknown.
+--
