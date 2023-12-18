@@ -138,7 +138,7 @@ The second part, changes the sorting function.
 In the first sorting (the *frequency* phase), the card
 labeled by `J` should be interpreted as the most
 beneficial that it could be.
-Given the rules for sorting, the revised `Joker` 
+Given the rules for sorting, the revised `Joker`
 card is always best assigned to the most-frequent
 value.
 The second, tie-breaking sorting is lexicographic
@@ -174,7 +174,7 @@ For the two parts, the goal is to compute iterated first
 differences of lists of numbers until all differences
 are zero.
 After that, you should extend either on the right or on
-the left the initial sequence so that the final pattern 
+the left the initial sequence so that the final pattern
 of zeros persists.
 
 Equivalently, you could compute the polynomial of smallest
@@ -269,7 +269,7 @@ the *same new* axis of symmetry.
 Processing the locations of the new axes of symmetry as before
 yields the answer to part 2.
 --
-Rolling rocks in a maze. (Missing part 2)
+Rolling rocks in a maze.  (Missing part 2)
 
 ### Description
 
@@ -286,7 +286,7 @@ a fixed rock.
 #### Part 1
 
 The goal was to perform a single tilt, figure out the
-final positions of the moving rocks and compute the 
+final positions of the moving rocks and compute the
 *total load* -- a weight determined by the final positions.
 
 #### Part 2
@@ -314,4 +314,27 @@ as instructions to create a list of boxes containing lens
 arrangements.
 
 From the final arrangement, you get the answer to part 2.
+--
+Reflecting mirrors and heating lava.  (Missing part 2)
+
+### Description
+
+The input is a map with locations of mirrors.
+A ray of light starting from a point on the boundary of the grid,
+starts to move inwards,
+* getting reflected upon hitting `/` and `\` and
+* getting split upon hitting
+  * `|`, while moving horizontally;
+  * `-`, while moving vertically.
+
+#### Part 1
+
+Compute the number of visited locations, assuming that the ray
+enters the grid from the location in the top-left corner,
+pointing to the right.
+
+#### Part 2
+
+Compute the maximum number of visited locations, assuming that the ray
+enters from *anywhere* on the boundary of the grid.
 --
