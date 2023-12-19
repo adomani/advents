@@ -32,6 +32,6 @@ def part1 (dat : Array String) : Nat := sorry
 def part2 (dat : Array String) : Nat := sorry
 --def part2 (dat : String) : Nat :=
 
---#assert part2 (test.splitOn "\n").toArray == ???
+--#assert part2 atest == ???
 
 --solve 2

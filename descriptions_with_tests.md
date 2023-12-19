@@ -578,7 +578,7 @@ yields the answer to part 2.
 
 #  [Day 14](https://adventofcode.com/2023/day/14)
 
-Rolling rocks in a maze. (Missing part 2)
+Rolling rocks in a maze.  (Missing part 2)
 
 ####  Test
 
@@ -652,6 +652,201 @@ arrangements.
 From the final arrangement, you get the answer to part 2.
 
 [Solution in Lean](Advents/day15.lean)
+
+---
+
+#  [Day 16](https://adventofcode.com/2023/day/16)
+
+Reflecting mirrors and heating lava.  (Missing part 2)
+
+### Description
+
+The input is a map with locations of mirrors.
+A ray of light starting from a point on the boundary of the grid,
+starts to move inwards,
+* getting reflected upon hitting `/` and `\` and
+* getting split upon hitting
+  * `|`, while moving horizontally;
+  * `-`, while moving vertically.
+
+#### Part 1
+
+Compute the number of visited locations, assuming that the ray
+enters the grid from the location in the top-left corner,
+pointing to the right.
+
+#### Part 2
+
+Compute the maximum number of visited locations, assuming that the ray
+enters from *anywhere* on the boundary of the grid.
+
+[Solution in Lean](Advents/day16.lean)
+
+---
+
+#  [Day 17](https://adventofcode.com/2023/day/17)
+
+Pushing lava through the city.  (Missing)
+
+### Description
+
+The input is a map with single digit entries in each position.
+
+#### Part 1
+
+The goal is to enter from the top-left, moving around the grid
+while minimizing the total sum of the path and not being
+allowed to walk back or move more than 2 consecutive steps
+in the same direction.
+
+#### Part 2
+
+Unknown.
+
+[Solution in Lean](Advents/day17.lean)
+
+---
+
+#  [Day 18](https://adventofcode.com/2023/day/18)
+
+Digging out a hole for the lava.
+
+####  Test
+
+<pre>
+R 6 (#70c710)
+D 5 (#0dc571)
+L 2 (#5713f0)
+D 2 (#d2c081)
+R 2 (#59c680)
+D 2 (#411b91)
+L 5 (#8ceee2)
+U 2 (#caa173)
+L 1 (#1b58a2)
+U 2 (#caa171)
+R 2 (#7807d2)
+U 3 (#a77fa3)
+L 2 (#015232)
+U 2 (#7a21e3)
+</pre>
+
+### Description
+
+The input is a list of directions `U`, `D`, `L`, `R`, numbers and a further code.
+It encodes a digging plan to collect the lava.
+
+#### Part 1
+
+The first letter and first number encode how many cubes to dig in each direction.
+The answer to the puzzle is the number of cubes enclosed in the volume that the
+instructions dig out.
+
+#### Part 2
+
+The question is similar, except that this part uses the second code.
+As before, these are instructions for digging out a hole.
+The last digit is a code for a direction.
+The six characters following `#` represent the digits of a hexadecimal number.
+This hexadecimal number is the number of holes that should be dug out in each direction.
+
+As for part 1, the answer to the puzzle is the number of cubes enclosed in the
+volume that the instructions dig out.
+
+[Solution in Lean](Advents/day18_data.lean)
+
+---
+
+#  [Day 18](https://adventofcode.com/2023/day/18)
+
+Digging out a hole for the lava.
+
+####  Test
+
+<pre>
+R 6 (#70c710)
+D 5 (#0dc571)
+L 2 (#5713f0)
+D 2 (#d2c081)
+R 2 (#59c680)
+D 2 (#411b91)
+L 5 (#8ceee2)
+U 2 (#caa173)
+L 1 (#1b58a2)
+U 2 (#caa171)
+R 2 (#7807d2)
+U 3 (#a77fa3)
+L 2 (#015232)
+U 2 (#7a21e3)
+</pre>
+
+### Description
+
+The input is a list of directions `U`, `D`, `L`, `R`, numbers and a further code.
+It encodes a digging plan to collect the lava.
+
+#### Part 1
+
+The first letter and first number encode how many cubes to dig in each direction.
+The answer to the puzzle is the number of cubes enclosed in the volume that the
+instructions dig out.
+
+#### Part 2
+
+The question is similar, except that this part uses the second code.
+As before, these are instructions for digging out a hole.
+The last digit is a code for a direction.
+The six characters following `#` represent the digits of a hexadecimal number.
+This hexadecimal number is the number of holes that should be dug out in each direction.
+
+As for part 1, the answer to the puzzle is the number of cubes enclosed in the
+volume that the instructions dig out.
+
+[Solution in Lean](Advents/day18.lean)
+
+---
+
+#  [Day 19](https://adventofcode.com/2023/day/19)
+
+Classifying `x`, `m`, `a`, `s` parts.
+
+####  Test
+
+<pre>
+px{a<2006:qkq,m>2090:A,rfg}
+pv{a>1716:R,A}
+lnx{m>1548:A,A}
+rfg{s<537:gd,x>2440:R,A}
+qs{s>3448:A,lnx}
+qkq{x<1416:A,crn}
+crn{x>2662:A,R}
+in{s<1351:px,qqz}
+qqz{s>2770:qs,m<1801:hdj,R}
+gd{a>3333:R,R}
+hdj{m>838:A,pv}
+
+{x=787,m=2655,a=1222,s=2876}
+{x=1679,m=44,a=2067,s=496}
+{x=2036,m=264,a=79,s=2244}
+{x=2461,m=1339,a=466,s=291}
+{x=2127,m=1623,a=2188,s=1013}
+</pre>
+
+### Description
+
+The input is a list of instructions and parts with four natural number entries `x`, `m`, `a`, `s`.
+The instructions provide a workflow for deciding whether each part is accepted or rejected.
+
+#### Part 1
+
+The goal is to figure out what parts of the initial input are accepted: the answer is the sum of the products of all the values of each accepted part.
+
+#### Part 2
+
+For the second part, ignore the actual parts, and only process the instructions.
+The question is how many parts are accepted by the workflow, assuming
+that all parts have each entry in the range `[1, 4000]`.
+
+[Solution in Lean](Advents/day19.lean)
 
 ---
 

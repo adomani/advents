@@ -67,21 +67,27 @@ variable (dat : Array (Array String)) in
 /-- assumes that `s` ends with `-`, removes
 the first lens with label `s.dropRight 1`. -/
 def actOneSub (s : String) : Array (Array String) :=
-  let lab := findBox s
-  let pos : Fin dat.size := ⟨lab % dat.size, Nat.mod_lt _ sorry⟩
-  let repl := (dat[pos].find? (String.isPrefixOf ((s.dropRight 1).push '='))).get!
-  dat.set pos (dat[lab]!.erase repl)
+  if h : dat.size = 0 then
+    #[]
+  else
+    let lab := findBox s
+    let pos : Fin dat.size := ⟨lab % dat.size, Nat.mod_lt _ (Nat.pos_of_ne_zero h)⟩
+    let repl := (dat[pos].find? (String.isPrefixOf ((s.dropRight 1).push '='))).getD ""
+    dat.set pos (dat[lab]!.erase repl)
 
 variable (dat : Array (Array String)) in
 /-- assumes that `s` contains `=`, replaces or adds
 the lens with the appropriate label in its relevan box. -/
 def actOneEq (s : String) : Array (Array String) :=
-  let lab := findBox s
-  let pos : Fin dat.size := ⟨lab % dat.size, Nat.mod_lt _ sorry⟩
-  match (dat[pos].find? (String.isPrefixOf ((s.splitOn "=")[0]!.push '='))) with
-    | none => dat.set pos (dat[lab]!.push s)
-    | some repl =>
-      dat.set pos (dat[lab]!.map fun x => if x == repl then s else x)
+  if h : dat.size = 0 then
+    #[]
+  else
+    let lab := findBox s
+    let pos : Fin dat.size := ⟨lab % dat.size, Nat.mod_lt _ (Nat.pos_of_ne_zero h)⟩
+    match (dat[pos].find? (String.isPrefixOf ((s.splitOn "=")[0]!.push '='))) with
+      | none => dat.set pos (dat[lab]!.push s)
+      | some repl =>
+        dat.set pos (dat[lab]!.map fun x => if x == repl then s else x)
 
 /-- `combine dat` takes as input the list of instructions and
 returns the final configuration of lenses in each box. -/
