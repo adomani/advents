@@ -355,3 +355,22 @@ in the same direction.
 
 Unknown.
 --
+Day 18
+--
+Classifying `x`, `m`, `a`, `s` parts
+
+### Description
+
+The input is a list of instructions and parts with four natural number entries `x`, `m`, `a`, `s`.
+The instructions provide a workflow for deciding whether each part is accepted or rejected.
+
+#### Part 1
+
+The goal is to figure out what parts of the initial input are accepted: the answer is the sum of the products of all the values of each accepted part.
+
+#### Part 2
+
+For the second part, ignore the actual parts, and only process the instructions.
+The question is how many parts are accepted by the workflow, assuming
+that all parts have each entry in the range `[1, 4000]`.
+--

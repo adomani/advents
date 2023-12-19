@@ -17,3 +17,5 @@
 |[15](descriptions_with_tests.md#day-15)|Fitting lenses.|
 |[16](descriptions_with_tests.md#day-16)|Reflecting mirrors and heating lava.  (Missing part 2)|
 |[17](descriptions_with_tests.md#day-17)|Pushing lava through the city.  (Missing)|
+|[18](descriptions_with_tests.md#day-18)|Day 18|
+|[19](descriptions_with_tests.md#day-19)|Classifying `x`, `m`, `a`, `s` parts|
