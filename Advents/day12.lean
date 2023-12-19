@@ -174,7 +174,7 @@ def step (r: rec) : Nat :=
   if part.sum < r.2.sum then 0 else
   if part.sum = r.2.sum ∧ part = r.2 then 1 else
   if part.sum = r.2.sum ∧ part = r.2 then 0 else
-  dbg_trace r
+--  dbg_trace r
   match r with
   | ([], [])       => 1
   | ([], _)        => 0
@@ -201,11 +201,11 @@ def repl (s : String) (n : Nat := 5) : String :=
 #eval repl "## 1" 2
 
 #eval show MetaM _ from do
-  let (nd, mul) := (4, 2)
+  let (nd, mul) := (4, 5)
   let mut fin := 0
   let dat := atest
   let dat ← IO.FS.lines input
-  for ind in [nd] do
+  for ind in [:dat.size] do
     let x := repl dat[ind]! mul
     fin := fin + step x.reparseOne
   IO.println fin
