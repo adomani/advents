@@ -69,12 +69,6 @@ def parseData (pts : Array String) : Array part :=
     a := 2188
     s := 1013 }
 
-#eval do
-  let dat := atest
-  let pts := dat.filter (String.front · == '{')
-  let dat := parseData pts
-  for d in dat do IO.println s!"{d}"
-
 /-- `parseWFOne s p` parses one individual instruction `s` inside a workflow
 and returns its value on `p`.
 The output is
