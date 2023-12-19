@@ -44,6 +44,22 @@ def List.getNumbers (l : List Char) : List Nat :=
     let fin := getNumbers (l1.dropWhile (Char.isDigit ·))
   d1 :: fin
 
+/-- Transpose an array of strings. -/
+def Array.transpose (s : Array String) : Array String :=
+  let rows := s.map (List.toArray ∘ String.toList)
+  let cols := rows[0]!.size
+  Id.run do
+    let mut ans := #[]
+    for c in [:cols] do
+      let mut row := ""
+      for r in [:rows.size] do
+        row := row.push (rows[r]!.getD c default)
+      ans := ans.push row
+    return ans
+
+/-- A `pos`ition is a pair of integers. -/
+abbrev pos := Int × Int
+
 section meta
 open Lean Elab Command
 
@@ -109,11 +125,35 @@ a primitive row/column count, displaying the last
 digit of each row/column.
 -/
 def draw (s : Array String) : IO Unit := do
-  let ns := String.mk <| (List.range (s[0]!.length)).map fun n =>
+  let width := s[0]!.length
+  let length := s.size
+
+  let ns := String.mk <| (List.range width).map fun n =>
     (Nat.toDigits 10 n).getLast!
-  let pns := "--" ++ ns ++ "-"
+  let pns := (if (10 < length) then " " else "") ++ "--" ++ ns ++ "-"
   IO.println pns
   for i in [:s.size] do
-    IO.println s!"{i}|{s[i]!}|"
-  IO.println pns
-  IO.println ""
+    let pad := (if (10 < length ∧ i < 10) then " " else "") ++ ⟨Nat.toDigits 10 i⟩
+    IO.println s!"{pad}|{s[i]!}|"
+  IO.println s!"{pns}\n"
+
+/-- `toPic gr Nx Ny` takes as input
+* an array of positions `gr`;
+* a bound `Nx` for the largest `x`-coordinate of an entry of `gr`;
+* a bound `Ny` for the largest `y`-coordinate of an entry of `gr`.
+
+It returns an array of strings where
+* a location appearing in `gr` features the `#` character;
+* a location not appearing in `gr` features the `.` character.
+
+This is useful to "visualise" `gr` as positions in a grid.
+The output can be passed to `draw`. -/
+def toPic (gr : Array pos) (Nx Ny : Nat) : Array String :=
+  Id.run do
+    let mut rows : Array String := #[]
+    for i in [:Ny] do
+      let mut str := ""
+      for j in [:Nx] do
+        if gr.contains (i, j) then str := str.push '#' else str := str.push '.'
+      rows := rows.push str
+    return rows

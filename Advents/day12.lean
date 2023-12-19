@@ -18,48 +18,29 @@ def test := "???.### 1,1,3
 ????.######..#####. 1,6,5
 ?###???????? 3,2,1"
 
+/-- `atest`is simply the splitting of `test` into its array of lines. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- `String.ep s` takes as input a string `s` and "easy parses" it.
+It breaks it at the (unique) space ` `, converts the LHS to a
+list of characters and the RHS to a list of natural numbers. -/
 def String.ep (s : String) : List Char × List Nat :=
   match s.splitOn " " with
     | [l, r] => (l.toList, r.toList.getNumbers)
     | _ => dbg_trace "misparsed"; default
 
+/-- `red` is the type representing the parsed input of the problem.
+It consists of a pair `(cs, ns)`, where
+* `cs` is a list of characters -- a succession of `#`, `?` and `.`;
+* `ns` a list of natural numbers, representing consecutive groups of
+  `#`s separated by `.`s.
+-/
 abbrev red := List Char × List Nat
 
-partial
-def noDouble : red → Nat × Option red
-  | ([], 0::cs) => noDouble ([], cs)
-  | ([], []) => (1, none)
-  | ([], _) => default
-  | ('#'::_cs, []) => default
-  | ('#'::_cs, 0::_ns) => default
-  | ('#'::'#'::cs, n::ns) => noDouble ('#'::cs, (n - 1)::ns)
-  | ('#'::'.'::cs, 1::ns) => noDouble (cs, ns)
-  | ('#'::'.'::_cs, _::_ns) => default
-  | (['#'], 1::ns) => noDouble ([], ns)
-  | (['#'], _) => (0, none)
-  | ('#'::'?'::cs, 1::ns) => noDouble (cs, ns)
-  | ('#'::'?'::cs, n::ns) => noDouble ('#'::cs, (n-1)::ns)
-  | ('.'::cs, ns) => noDouble (cs, ns)
-  | ('?'::cs, 0::ns) => noDouble (cs, ns)
-  | ('?'::cs, []) => noDouble (cs, [])
-  | x => (0, some x)
-
-/-
-partial
-def tot (r : red) : Nat :=
-  let (n, rl) := noDouble r
-  match rl with
-    | none => n
-    | some rl =>
-      let (m, rr) := noDouble (rl.1.reverse, rl.2.reverse)
-      match rr with
-        | some ('?'::cs, ns) => tot ('#'::cs, ns) + tot (cs, ns) + n + m
-        | _ => 0
---  | x => dbg_trace s!"1000 {x}"; 1000 --(1000, 1000)
--/
-
+/-- `tot r` takes as input an element of `red` and returns
+the number of assignments of `?` in the first element of the
+pair that are compatible con the control sequence given by
+the second pair. -/
 partial
 def tot : red → Nat
   | ([], 0::cs) => tot ([], cs)
@@ -85,9 +66,7 @@ def tot : red → Nat
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let ls := ((dat.map String.ep)).map tot
-  dbg_trace (ls.zip dat).qsort (Prod.fst · > Prod.fst  ·)
   ls.sum
---  (((dat.map String.ep)).map tot).sum
 
 #assert part1 atest == 21
 

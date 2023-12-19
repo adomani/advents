@@ -229,13 +229,13 @@ Distance:  9  40  200
 Both questions revolve around computing the number
 of integers on which a second-degree polynomial is
 positive.
-While the length of the real interval is simply the
+While the length of the real interval where
+the polynomial is positive is simply the
 square root of the discriminant of the quadratic,
-the exact number of integer points inside is depends
+the number of integer points inside it depends
 on the exact location of the interval.
-It turns out that I could only solve part 1 by a
-brute-force enumeration, while for part 2 the
-discriminant approach worked well.
+I could only solve part 1 by brute-force enumeration,
+while for part 2 the discriminant approach worked well.
 
 The issue with part 1 is particularly frustrating,
 since the correct answer is at most 1 away from the
@@ -268,7 +268,7 @@ following an order naturally described as
 * first a lexicographic ordering of the
   frequency of each card in each hand;
 * second a lexicographic ordering of the
-  cards, in the given order.
+  cards, in the dealt order.
 
 By abstracting the sorting rules out of the main
 functions, a good part of the code can be used
@@ -279,8 +279,8 @@ for both parts.
 Using rules very similar to poker, the first part
 involves sorting a list of 5-card hands and doing
 operations with the sorted rank of each hand (plus
-also using a number given that the input gives with
-with each hand).
+also using a number given next to each hand
+in the given input).
 
 #### Part 2
 
@@ -384,7 +384,7 @@ differences of lists of numbers until all differences
 are zero.
 After that, you should extend either on the right or on
 the left the initial sequence so that the final pattern
-of zeros persisted.
+of zeros persists.
 
 Equivalently, you could compute the polynomial of smallest
 degree, whose values on `{1, 2, ..., n}` are the initial
@@ -492,6 +492,361 @@ Same setup as for part 1, except that I increased the introduced
 spacing in the *expansion* step.
 
 [Solution in Lean](Advents/day11.lean)
+
+---
+
+#  [Day 12](https://adventofcode.com/2023/day/12)
+
+Counting ways of filling in `#`s and `.`s.  (Missing part 2)
+
+####  Test
+
+<pre>
+???.### 1,1,3
+.??..??...?##. 1,1,3
+?#?#?#?#?#?#?#? 1,3,1,6
+????.#...#... 4,1,1
+????.######..#####. 1,6,5
+?###???????? 3,2,1
+</pre>
+
+### Description
+
+I solved part 1, but part 2 is still in progress!
+
+[Solution in Lean](Advents/day12.lean)
+
+---
+
+#  [Day 13](https://adventofcode.com/2023/day/13)
+
+Finding axes of symmetry among rock and ash.
+
+####  Test
+
+<pre>
+#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.
+
+#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#
+</pre>
+
+### Description
+
+The input data consists of several maps with locations of ash and rocks.
+The goals revolve around finding horizontal or vertical axes of symmetry
+in the maps.
+
+#### Part 1
+
+Each map has exactly one axis of symmetry.
+From the positions of the axes, you can compute the answer.
+
+#### Part 2
+
+It turns out that, by changing exactly one map point
+from ash to rock or viceversa, that the resulting map
+acquires an axis of symmetry *different* from the
+original one.
+Of course, after the switch, the old axis of symmetry
+may no longer be an axis of symmetry.
+All that matters is that, after the switch, there are
+at most two axes of symmetry:
+* the new one that must be present,
+* the old one, in case it stays.
+
+In some maps, there may be several location switches that
+comply with these rules, but they all happen to produce
+the *same new* axis of symmetry.
+Processing the locations of the new axes of symmetry as before
+yields the answer to part 2.
+
+[Solution in Lean](Advents/day13.lean)
+
+---
+
+#  [Day 14](https://adventofcode.com/2023/day/14)
+
+Rolling rocks in a maze.  (Missing part 2)
+
+####  Test
+
+<pre>
+O....#....
+O.OO#....#
+.....##...
+OO.#O....O
+.O.....O#.
+O.#..O.#.#
+..O..#O..O
+.......O..
+#....###..
+#OO..#....
+</pre>
+
+### Description
+
+The data is a map with locations of
+* round (moving) rocks, denoted by `O`;
+* non-moving rocks, denoted by `#`;
+* empty spaces, denoted by `·`.
+
+In both parts, the surface described map can be tilted
+so that the moving rocks roll in direction of the tilt
+until they reach either the boundary of the surface or
+a fixed rock.
+
+#### Part 1
+
+The goal was to perform a single tilt, figure out the
+final positions of the moving rocks and compute the
+*total load* -- a weight determined by the final positions.
+
+#### Part 2
+
+Instead of tilting only once, now we successively tilt
+in succession in each of the four directions
+north, west, south, east, doing each such cycle of four
+tilts 1000000000 times.
+After that, we still need to compute the *total load*
+of the final configuration.
+
+[Solution in Lean](Advents/day14.lean)
+
+---
+
+#  [Day 15](https://adventofcode.com/2023/day/15)
+
+Fitting lenses.
+
+####  Test
+
+<pre>
+rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
+</pre>
+
+### Description
+
+#### Part 1
+
+The first part gives the instructions for converting strings
+to natural numbers, using the ASCII values of their characters.
+
+#### Part 2
+
+The second part parses a little more the input and uses it
+as instructions to create a list of boxes containing lens
+arrangements.
+
+From the final arrangement, you get the answer to part 2.
+
+[Solution in Lean](Advents/day15.lean)
+
+---
+
+#  [Day 16](https://adventofcode.com/2023/day/16)
+
+Reflecting mirrors and heating lava.  (Missing part 2)
+
+### Description
+
+The input is a map with locations of mirrors.
+A ray of light starting from a point on the boundary of the grid,
+starts to move inwards,
+* getting reflected upon hitting `/` and `\` and
+* getting split upon hitting
+  * `|`, while moving horizontally;
+  * `-`, while moving vertically.
+
+#### Part 1
+
+Compute the number of visited locations, assuming that the ray
+enters the grid from the location in the top-left corner,
+pointing to the right.
+
+#### Part 2
+
+Compute the maximum number of visited locations, assuming that the ray
+enters from *anywhere* on the boundary of the grid.
+
+[Solution in Lean](Advents/day16.lean)
+
+---
+
+#  [Day 17](https://adventofcode.com/2023/day/17)
+
+Pushing lava through the city.  (Missing)
+
+### Description
+
+The input is a map with single digit entries in each position.
+
+#### Part 1
+
+The goal is to enter from the top-left, moving around the grid
+while minimizing the total sum of the path and not being
+allowed to walk back or move more than 2 consecutive steps
+in the same direction.
+
+#### Part 2
+
+Unknown.
+
+[Solution in Lean](Advents/day17.lean)
+
+---
+
+#  [Day 18](https://adventofcode.com/2023/day/18)
+
+Digging out a hole for the lava.
+
+####  Test
+
+<pre>
+R 6 (#70c710)
+D 5 (#0dc571)
+L 2 (#5713f0)
+D 2 (#d2c081)
+R 2 (#59c680)
+D 2 (#411b91)
+L 5 (#8ceee2)
+U 2 (#caa173)
+L 1 (#1b58a2)
+U 2 (#caa171)
+R 2 (#7807d2)
+U 3 (#a77fa3)
+L 2 (#015232)
+U 2 (#7a21e3)
+</pre>
+
+### Description
+
+The input is a list of directions `U`, `D`, `L`, `R`, numbers and a further code.
+It encodes a digging plan to collect the lava.
+
+#### Part 1
+
+The first letter and first number encode how many cubes to dig in each direction.
+The answer to the puzzle is the number of cubes enclosed in the volume that the
+instructions dig out.
+
+#### Part 2
+
+The question is similar, except that this part uses the second code.
+As before, these are instructions for digging out a hole.
+The last digit is a code for a direction.
+The six characters following `#` represent the digits of a hexadecimal number.
+This hexadecimal number is the number of holes that should be dug out in each direction.
+
+As for part 1, the answer to the puzzle is the number of cubes enclosed in the
+volume that the instructions dig out.
+
+[Solution in Lean](Advents/day18_data.lean)
+
+---
+
+#  [Day 18](https://adventofcode.com/2023/day/18)
+
+Digging out a hole for the lava.
+
+####  Test
+
+<pre>
+R 6 (#70c710)
+D 5 (#0dc571)
+L 2 (#5713f0)
+D 2 (#d2c081)
+R 2 (#59c680)
+D 2 (#411b91)
+L 5 (#8ceee2)
+U 2 (#caa173)
+L 1 (#1b58a2)
+U 2 (#caa171)
+R 2 (#7807d2)
+U 3 (#a77fa3)
+L 2 (#015232)
+U 2 (#7a21e3)
+</pre>
+
+### Description
+
+The input is a list of directions `U`, `D`, `L`, `R`, numbers and a further code.
+It encodes a digging plan to collect the lava.
+
+#### Part 1
+
+The first letter and first number encode how many cubes to dig in each direction.
+The answer to the puzzle is the number of cubes enclosed in the volume that the
+instructions dig out.
+
+#### Part 2
+
+The question is similar, except that this part uses the second code.
+As before, these are instructions for digging out a hole.
+The last digit is a code for a direction.
+The six characters following `#` represent the digits of a hexadecimal number.
+This hexadecimal number is the number of holes that should be dug out in each direction.
+
+As for part 1, the answer to the puzzle is the number of cubes enclosed in the
+volume that the instructions dig out.
+
+[Solution in Lean](Advents/day18.lean)
+
+---
+
+#  [Day 19](https://adventofcode.com/2023/day/19)
+
+Classifying `x`, `m`, `a`, `s` parts.
+
+####  Test
+
+<pre>
+px{a<2006:qkq,m>2090:A,rfg}
+pv{a>1716:R,A}
+lnx{m>1548:A,A}
+rfg{s<537:gd,x>2440:R,A}
+qs{s>3448:A,lnx}
+qkq{x<1416:A,crn}
+crn{x>2662:A,R}
+in{s<1351:px,qqz}
+qqz{s>2770:qs,m<1801:hdj,R}
+gd{a>3333:R,R}
+hdj{m>838:A,pv}
+
+{x=787,m=2655,a=1222,s=2876}
+{x=1679,m=44,a=2067,s=496}
+{x=2036,m=264,a=79,s=2244}
+{x=2461,m=1339,a=466,s=291}
+{x=2127,m=1623,a=2188,s=1013}
+</pre>
+
+### Description
+
+The input is a list of instructions and parts with four natural number entries `x`, `m`, `a`, `s`.
+The instructions provide a workflow for deciding whether each part is accepted or rejected.
+
+#### Part 1
+
+The goal is to figure out what parts of the initial input are accepted: the answer is the sum of the products of all the values of each accepted part.
+
+#### Part 2
+
+For the second part, ignore the actual parts, and only process the instructions.
+The question is how many parts are accepted by the workflow, assuming
+that all parts have each entry in the range `[1, 4000]`.
+
+[Solution in Lean](Advents/day19.lean)
 
 ---
 

@@ -95,13 +95,13 @@ Toy boat race, with times and record distances.
 Both questions revolve around computing the number
 of integers on which a second-degree polynomial is
 positive.
-While the length of the real interval is simply the
+While the length of the real interval where
+the polynomial is positive is simply the
 square root of the discriminant of the quadratic,
-the exact number of integer points inside is depends
+the number of integer points inside it depends
 on the exact location of the interval.
-It turns out that I could only solve part 1 by a
-brute-force enumeration, while for part 2 the
-discriminant approach worked well.
+I could only solve part 1 by brute-force enumeration,
+while for part 2 the discriminant approach worked well.
 
 The issue with part 1 is particularly frustrating,
 since the correct answer is at most 1 away from the
@@ -118,7 +118,7 @@ following an order naturally described as
 * first a lexicographic ordering of the
   frequency of each card in each hand;
 * second a lexicographic ordering of the
-  cards, in the given order.
+  cards, in the dealt order.
 
 By abstracting the sorting rules out of the main
 functions, a good part of the code can be used
@@ -129,8 +129,8 @@ for both parts.
 Using rules very similar to poker, the first part
 involves sorting a list of 5-card hands and doing
 operations with the sorted rank of each hand (plus
-also using a number given that the input gives with
-with each hand).
+also using a number given next to each hand
+in the given input).
 
 #### Part 2
 
@@ -138,7 +138,7 @@ The second part, changes the sorting function.
 In the first sorting (the *frequency* phase), the card
 labeled by `J` should be interpreted as the most
 beneficial that it could be.
-Given the rules for sorting, the revised `Joker` 
+Given the rules for sorting, the revised `Joker`
 card is always best assigned to the most-frequent
 value.
 The second, tie-breaking sorting is lexicographic
@@ -174,8 +174,8 @@ For the two parts, the goal is to compute iterated first
 differences of lists of numbers until all differences
 are zero.
 After that, you should extend either on the right or on
-the left the initial sequence so that the final pattern 
-of zeros persisted.
+the left the initial sequence so that the final pattern
+of zeros persists.
 
 Equivalently, you could compute the polynomial of smallest
 degree, whose values on `{1, 2, ..., n}` are the initial
@@ -230,4 +230,170 @@ accumulated the distances and divided by two.
 
 Same setup as for part 1, except that I increased the introduced
 spacing in the *expansion* step.
+--
+Counting ways of filling in `#`s and `.`s.  (Missing part 2)
+
+### Description
+
+I solved part 1, but part 2 is still in progress!
+--
+Finding axes of symmetry among rock and ash.
+
+### Description
+
+The input data consists of several maps with locations of ash and rocks.
+The goals revolve around finding horizontal or vertical axes of symmetry
+in the maps.
+
+#### Part 1
+
+Each map has exactly one axis of symmetry.
+From the positions of the axes, you can compute the answer.
+
+#### Part 2
+
+It turns out that, by changing exactly one map point
+from ash to rock or viceversa, that the resulting map
+acquires an axis of symmetry *different* from the
+original one.
+Of course, after the switch, the old axis of symmetry
+may no longer be an axis of symmetry.
+All that matters is that, after the switch, there are
+at most two axes of symmetry:
+* the new one that must be present,
+* the old one, in case it stays.
+
+In some maps, there may be several location switches that
+comply with these rules, but they all happen to produce
+the *same new* axis of symmetry.
+Processing the locations of the new axes of symmetry as before
+yields the answer to part 2.
+--
+Rolling rocks in a maze.  (Missing part 2)
+
+### Description
+
+The data is a map with locations of
+* round (moving) rocks, denoted by `O`;
+* non-moving rocks, denoted by `#`;
+* empty spaces, denoted by `·`.
+
+In both parts, the surface described map can be tilted
+so that the moving rocks roll in direction of the tilt
+until they reach either the boundary of the surface or
+a fixed rock.
+
+#### Part 1
+
+The goal was to perform a single tilt, figure out the
+final positions of the moving rocks and compute the
+*total load* -- a weight determined by the final positions.
+
+#### Part 2
+
+Instead of tilting only once, now we successively tilt
+in succession in each of the four directions
+north, west, south, east, doing each such cycle of four
+tilts 1000000000 times.
+After that, we still need to compute the *total load*
+of the final configuration.
+--
+Fitting lenses.
+
+### Description
+
+#### Part 1
+
+The first part gives the instructions for converting strings
+to natural numbers, using the ASCII values of their characters.
+
+#### Part 2
+
+The second part parses a little more the input and uses it
+as instructions to create a list of boxes containing lens
+arrangements.
+
+From the final arrangement, you get the answer to part 2.
+--
+Reflecting mirrors and heating lava.  (Missing part 2)
+
+### Description
+
+The input is a map with locations of mirrors.
+A ray of light starting from a point on the boundary of the grid,
+starts to move inwards,
+* getting reflected upon hitting `/` and `\` and
+* getting split upon hitting
+  * `|`, while moving horizontally;
+  * `-`, while moving vertically.
+
+#### Part 1
+
+Compute the number of visited locations, assuming that the ray
+enters the grid from the location in the top-left corner,
+pointing to the right.
+
+#### Part 2
+
+Compute the maximum number of visited locations, assuming that the ray
+enters from *anywhere* on the boundary of the grid.
+--
+Pushing lava through the city.  (Missing)
+
+### Description
+
+The input is a map with single digit entries in each position.
+
+#### Part 1
+
+The goal is to enter from the top-left, moving around the grid
+while minimizing the total sum of the path and not being
+allowed to walk back or move more than 2 consecutive steps
+in the same direction.
+
+#### Part 2
+
+Unknown.
+--
+Digging out a hole for the lava.
+
+### Description
+
+The input is a list of directions `U`, `D`, `L`, `R`, numbers and a further code.
+It encodes a digging plan to collect the lava.
+
+#### Part 1
+
+The first letter and first number encode how many cubes to dig in each direction.
+The answer to the puzzle is the number of cubes enclosed in the volume that the
+instructions dig out.
+
+#### Part 2
+
+The question is similar, except that this part uses the second code.
+As before, these are instructions for digging out a hole.
+The last digit is a code for a direction.
+The six characters following `#` represent the digits of a hexadecimal number.
+This hexadecimal number is the number of holes that should be dug out in each direction.
+
+As for part 1, the answer to the puzzle is the number of cubes enclosed in the
+volume that the instructions dig out.
+
+--
+Classifying `x`, `m`, `a`, `s` parts.
+
+### Description
+
+The input is a list of instructions and parts with four natural number entries `x`, `m`, `a`, `s`.
+The instructions provide a workflow for deciding whether each part is accepted or rejected.
+
+#### Part 1
+
+The goal is to figure out what parts of the initial input are accepted: the answer is the sum of the products of all the values of each accepted part.
+
+#### Part 2
+
+For the second part, ignore the actual parts, and only process the instructions.
+The question is how many parts are accepted by the workflow, assuming
+that all parts have each entry in the range `[1, 4000]`.
 --

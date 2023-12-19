@@ -17,9 +17,6 @@ SJLL7
 |F--J
 LJ.LJ"
 
-/-- A `pos`ition is a pair of integers. -/
-abbrev pos := Int × Int
-
 /-- `nbs` is the list of neighbours of `(0, 0)`, horizontally, vertically and diagonally. -/
 def nbs := Id.run do
   let mut t := #[]
