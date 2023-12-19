@@ -709,7 +709,7 @@ Unknown.
 
 #  [Day 18](https://adventofcode.com/2023/day/18)
 
-Day 18
+Digging out a hole for the lava.
 
 ####  Test
 
@@ -729,6 +729,28 @@ U 3 (#a77fa3)
 L 2 (#015232)
 U 2 (#7a21e3)
 </pre>
+
+### Description
+
+The input is a list of directions `U`, `D`, `L`, `R`, numbers and a further code.
+It encodes a digging plan to collect the lava.
+
+#### Part 1
+
+The first letter and first number encode how many cubes to dig in each direction.
+The answer to the puzzle is the number of cubes enclosed in the volume that the
+instructions dig out.
+
+#### Part 2
+
+The question is similar, except that this part uses the second code.
+As before, these are instructions for digging out a hole.
+The last digit is a code for a direction.
+The six characters following `#` represent the digits of a hexadecimal number.
+This hexadecimal number is the number of holes that should be dug out in each direction.
+
+As for part 1, the answer to the puzzle is the number of cubes enclosed in the
+volume that the instructions dig out.
 
 [Solution in Lean](Advents/day18_data.lean)
 
@@ -736,7 +758,7 @@ U 2 (#7a21e3)
 
 #  [Day 18](https://adventofcode.com/2023/day/18)
 
-Day 18
+Digging out a hole for the lava.
 
 ####  Test
 
@@ -756,6 +778,28 @@ U 3 (#a77fa3)
 L 2 (#015232)
 U 2 (#7a21e3)
 </pre>
+
+### Description
+
+The input is a list of directions `U`, `D`, `L`, `R`, numbers and a further code.
+It encodes a digging plan to collect the lava.
+
+#### Part 1
+
+The first letter and first number encode how many cubes to dig in each direction.
+The answer to the puzzle is the number of cubes enclosed in the volume that the
+instructions dig out.
+
+#### Part 2
+
+The question is similar, except that this part uses the second code.
+As before, these are instructions for digging out a hole.
+The last digit is a code for a direction.
+The six characters following `#` represent the digits of a hexadecimal number.
+This hexadecimal number is the number of holes that should be dug out in each direction.
+
+As for part 1, the answer to the puzzle is the number of cubes enclosed in the
+volume that the instructions dig out.
 
 [Solution in Lean](Advents/day18.lean)
 
