@@ -807,7 +807,7 @@ volume that the instructions dig out.
 
 #  [Day 19](https://adventofcode.com/2023/day/19)
 
-Classifying `x`, `m`, `a`, `s` parts
+Classifying `x`, `m`, `a`, `s` parts.
 
 ####  Test
 

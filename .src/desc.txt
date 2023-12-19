@@ -380,7 +380,7 @@ As for part 1, the answer to the puzzle is the number of cubes enclosed in the
 volume that the instructions dig out.
 
 --
-Classifying `x`, `m`, `a`, `s` parts
+Classifying `x`, `m`, `a`, `s` parts.
 
 ### Description
 
