@@ -39,8 +39,6 @@ def Array.toNats (dat : Array String) : HashMap pos Nat :=
       tot := tot ++ row
     return tot
 
-#check RBTree
-
 /-- `dir` is the Type of the four cardinal directions `N`, `W`, `S`, `E` and a "don't move" direction `X`. -/
 inductive dir | N | W | S | E | X
   deriving BEq, DecidableEq, Inhabited, Repr, Hashable
@@ -91,29 +89,63 @@ structure path where
   (sum  : Nat)
   (loc  : Array pos)
   (cpos : pos)
-  (past : dir × dir)
+  (past : dir × dir × dir)
   deriving Inhabited
 
 
 def path.add (gr : HashMap pos Nat) (p : path) (x : dir) : path :=
   let new := x + p.cpos
   { sum  := p.sum + gr.findD new 0
-    cpos := new
     loc  := p.loc.push new
-    past := (p.past.2, x) }
+    cpos := new
+    past := (p.past.2.1, p.past.2.2, x) }
 
 instance : ToString path where
   toString x := s!"\n* sum: {x.sum}, past: {x.past}\n* {x.loc}"
 
-instance : Ord path where
-  compare x y := compare x.sum y.sum
+variable {α} [Ord α] in
+#synth Ord Int --(List α)
 
+def LexCompare {α} [Ord α] : List α → List α → Ordering
+    | [], [] => .eq
+    | [], _ => .lt
+    | _, [] => .gt
+    | x::xs, y::ys => match compare x y with
+      | .eq => LexCompare xs ys
+      | c => c
+
+instance {α} [Ord α] : Ord (List α) where
+  compare x y := LexCompare x y
+
+partial
+def ArrayLexCompare {α} [Inhabited α] [Ord α] (a b : Array α) : Ordering :=
+  if a.size = 0 then .lt else
+  if b.size = 0 then .gt else
+  match compare a.back b.back with
+    | .eq => ArrayLexCompare a.pop b.pop
+    | c => c
+
+instance {α} [Inhabited α] [Ord α] : Ord (Array α) where
+  compare x y := ArrayLexCompare x y
+
+
+instance {α β} [Ord α] [Ord β] : Ord (α × β) where
+  compare x y := match compare x.1 y.1 with
+    | .eq => compare x.2 y.2
+    | g => g
+
+instance : Ord path where
+  compare x y := compare (x.sum, x.loc) (y.sum, y.loc)
+--    match compare (x.sum) (y.sum) with
+--      | .eq => compare (x.loc.toList) y.loc.toList
+--,
+--,
 def getNbs (sz : Nat) (curr : path) :=
   let cpos := curr.cpos
   (mvs (sz) cpos).filter fun d : dir =>
-    let cp2 := curr.past.2
-    (! (d == cp2.rev)) &&
-    (! (curr.past.1 == cp2 && d == cp2)) --&& (! (d + cpos) ∈ curr.loc)
+    let cp3 := curr.past.2.2
+    (! (d == cp3.rev)) ||
+    (! (curr.past.1 == cp3 && curr.past.2.1 == cp3 && d == cp3)) --&& (! (d + cpos) ∈ curr.loc)
 
 #eval [.N, .S, .E, .W].map dir.rev
 
@@ -123,48 +155,83 @@ def getNbs (sz : Nat) (curr : path) :=
   let grid := dat.toNats
   let ip : pos := (0, 0)
   let ip : pos := (0, sz)
-  let init : path := ⟨grid.findD ip default, #[ip], ip, (.X, .X)⟩ --(#[grid.findD ip default], (.X, ip))
+  let init : path := ⟨grid.findD ip default, #[ip], ip, (.X, .X, .X)⟩ --(#[grid.findD ip default], (.X, ip))
   IO.println <| getNbs sz init
 
 
 def test1 := "03
 21"
-#check Array.pop
-def btest := (test1.splitOn "\n").toArray
-#check String.take
+
+def test2 :=
+"000001
+111101
+110011
+111001
+111100
+111110"
+
+
+def btest := (test2.splitOn "\n").toArray
+
+#eval atest
+#eval btest
+
+#eval (atest.size, atest[0]!.length)
+#eval (btest.size, btest[0]!.length)
+
 #eval do
-  let tak := 7
+  let tak := 3
+--  let dat := (dat.toList.take tak).toArray.map (String.take · tak)
   let dat := btest
-  let dat := (dat.toList.take tak).toArray.map (String.take · tak)
   let dat := atest
+--  IO.println dat
+--#exit
 --  let sz : Nat := 1
   let sz : Nat := dat.size-1
 --  IO.println s!"{sz} {dat.size-1}"
   let grid := dat.toNats
+--  IO.println grid.toList
   let ip : pos := (0, 0)
-  let init : path := ⟨(grid.findD ip default) * 0, #[ip], ip, (.X, .X)⟩
+  let init : path := ⟨(grid.findD ip default) * 0, #[ip], ip, (.X, .X, .X)⟩
   let mut toEnd : Array path := #[]
   let mut pths : RBTree path compare := RBTree.empty.insert init
   let mut upb := 200
-  while ! pths.isEmpty do
-      let cc := pths.max.get!
-      pths := pths.erase cc
---    for cc in pths do
-      if cc.sum ≤ upb then
+  let mut con := 1
+  while con ≤ 30 && ! pths.isEmpty do
+    con := con + 1
+    IO.print s!"{con} "
+--      let cc := pths.max.get!
+--      pths := pths.erase cc
+    let mut spth :RBTree path compare := RBTree.empty
+    for cc in pths do
+--        IO.println s!"{con} is con and {cc.loc.size} is the length of the path"
+--      if cc.sum ≤ upb then
         if cc.cpos = ((sz, sz) : pos) then
+--          dbg_trace "final place: {cc.cpos}"
           toEnd := toEnd.push cc
           upb := min upb cc.sum
-          dbg_trace "updated upb: {upb}"
-          pths := pths.erase cc
+  --        dbg_trace "updated upb: {upb} {cc.loc.size}"
         else
           let nbs := getNbs sz cc
           let news := nbs.map fun x : dir => cc.add grid x
-          for nn in news do pths := pths.insert nn
+          for nn in news do
+            if nn.sum ≤ upb then
+--              dbg_trace "inserting {nn}"
+              spth := spth.insert nn
+--        dbg_trace spth.toList
+        pths := spth
+--              pths := pths.insert nn
+--    for cc in pths do if cc.loc.size < con then
+----      dbg_trace "erasing with con {con} and sum {cc.sum}"
+--      pths := pths.erase cc
       --if upb ≤ cc.sum then
   IO.println "\ntoEnd:\n"
-  IO.println (toEnd.qsort (path.sum · < path.sum ·))[0]!
-  for p in toEnd do IO.println p.sum
-  draw dat
+  let sorted := (toEnd.qsort (path.sum · < path.sum ·)) --[0]!
+--  for s in sorted do IO.println s.sum; draw <| toPic s.loc sz sz
+--  draw <| toPic (sorted.map (path.loc)) sz sz
+  IO.println (sorted[0]!.sum)
+--  for p in toEnd do IO.println p.sum
+--  draw dat
 
 #exit
 
