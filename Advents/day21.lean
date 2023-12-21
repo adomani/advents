@@ -34,6 +34,9 @@ inductive dir | L | R | U | D
 instance : ToString dir where
   toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓"
 
+/-- `dirs` is the list of directions `[.U, .D, .L, .R]`. -/
+abbrev dirs : List dir := [.U, .D, .L, .R]
+
 /-- converts a unit vector into the direction that is
 obtained by a counter-clockwise rotation.
 It is useful for defining orientations. -/
@@ -54,14 +57,31 @@ def findS (dat : Array String) : pos :=
       return x
   (sx, (dat[sx]!.find (· == 'S')).byteIdx)
 
+#assert
+  let dat := atest
+  findS dat == (↑(dat.size / 2), ↑(dat.size / 2))
+
+#assert
+  let dat := ← IO.FS.lines input
+  findS dat == (↑(dat.size / 2), ↑(dat.size / 2))
+
+/-- returns the position of the first available rock (`#`) in `dat`. -/
+def findRk (dat : Array String) : pos :=
+  match dat.findIdx? (String.contains · '#') with
+    | none => dbg_trace "no rocks!"; default
+    | some s => (s, (dat[s]!.find (· == '#')).byteIdx)
+
+#assert findRk atest == (1, 5)
+#assert findRk (← IO.FS.lines input) == (1, 19)
+
 /-- creates the `HashSet` containing all the positions of all the rocks in `dat`. -/
-def getRocks (dat : Array String) : HashSet pos :=
+def getRocks (dat : Array String) (c : Char := '#') : HashSet pos :=
   Id.run do
     let mut rks : HashSet pos := .empty
     for i in [:dat.size] do
       let row := dat[i]!.toList
       for j in [:row.length] do
-        if row[j]! == '#' then
+        if row[j]! == c then
           rks := rks.insert (i, j)
     return rks
 
@@ -82,18 +102,20 @@ def mvs (rk gd : HashSet pos) (bd : Array pos) (f : pos → pos) : HashSet pos �
   let mut new : HashSet pos := gd
   let mut nbd := #[]
   for g in bd do
-    let mvs := ([.U, .D, .L, .R].map (toPos · + g)).filter fun x => (rk.find? (f x)).isNone
+    let mvs := (dirs.map (toPos · + g)).filter fun x => (rk.find? (f x)).isNone
     for m in mvs do
       let (n, tf) := new.insert' m
       new := n
       if !tf then nbd := nbd.push m
   return (new, nbd)
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1.
+/-- `parts dat n f` takes as input the input of the problem, an optional number of iterations
+`n` and an optional function `f : pos → pos`.
+It returns the possible locations that the gardener can reach in `n` steps.
 
 It recursively applies `mvs` to its output, starting from the position of `S` and
 the layout of the garden. -/
-def part1 (dat : Array String) (n : Nat := 64) (f : pos → pos := id) : Nat :=
+def parts (dat : Array String) (n : Nat := 64) (f : pos → pos := id) : HashSet pos :=
   let rk := getRocks dat
   Id.run do
   let init := findS dat
@@ -101,7 +123,13 @@ def part1 (dat : Array String) (n : Nat := 64) (f : pos → pos := id) : Nat :=
   let mut gd : HashSet pos := HashSet.empty.insert init
   for _ in [:n] do
     (gd, bd) := (mvs rk gd bd f)
-  return (gd.toArray.filter fun (x, y) => (x + y) % 2 == n % 2).size
+  return gd
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1.
+
+It uses `parts` as the main program. -/
+def part1 (dat : Array String) (n : Nat := 64) : Nat :=
+  ((parts dat n).toArray.filter fun (x, y) => (x + y) % 2 == n % 2).size
 
 #assert part1 atest 6 == 16
 
@@ -151,13 +179,273 @@ abbrev onlyS (dat : Array String) : Bool :=
 
 #assert onlyS (← IO.FS.lines input)
 
+/-- `findUnreachable dat` finds all locations of the centres of
+
+ `#`
+`#.#`
+ `#`
+
+on the layout determined by `dat`.
+They turn out to be the only inaccessible locations on the garden that are marked with a `.`.
+-/
+def findUnreachable (dat : Array String) : Array pos :=
+  let rks := getRocks dat
+  Id.run do
+  let mut out := #[]
+  for i in [:dat.size] do
+    for j in [:dat.size] do
+      let p : pos := (i, j)
+      let cond := (dirs.map (rks.find? <| toPos · + p)).all Option.isSome
+      if (rks.find? p).isNone ∧ cond then
+        out := out.push p
+  return out
+
+#assert findUnreachable atest == #[]
+#assert findUnreachable (← IO.FS.lines input) == #[(5, 31), (59, 91), (61, 68), (79, 78), (111, 116)]
+
+def draw2 (dat : Array String) (mh : Nat) : Array String × Nat :=
+  let unr := findUnreachable dat
+  let S := findS dat
+  let rk1 := findRk dat
+  let r := getRocks dat
+  let g := parts dat mh (fun p@(x, y) =>
+    if max (x- S.1).natAbs (y- S.2).natAbs ≤ mh then p else rk1)
+  Id.run do
+  let mut tot := 0
+  let mut rows := #[]
+  for i in [:130] do
+    let mut row := ""
+    for j in [:130] do
+      let p : pos := (i, j)
+      let pd := p - (65, 65)
+      tot := tot + 1
+      if mh < pd.1.natAbs + pd.2.natAbs then row := row.push ' '; tot := tot - 1 else
+      if i == S.1 && j = S.2 then row := row.push 'S' else
+      if (r.find? p).isSome then row := row.push '#' else
+      if (g.find? p).isSome then row := row.push 'O' else
+      if p ∈ unr then row := row.push 'U' else
+      row := row.push '.'
+    rows := rows.push row
+  return (rows, tot)
+
+/-- `Nat.factorial n` -- the factorial of `n`. -/
+def Nat.factorial : Nat → Nat
+  | 0 => 1
+  | n + 1 => (n + 1) * n.factorial
+
+/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
+def Nat.binom (n : Int) (k : Nat) : Int :=
+  ((List.range k).map fun i : Nat => n - i).prod / k.factorial
+
+#check Nat.binom
+
+#eval show MetaM _ from do
+  for mh in [8:12] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let S := findS dat
+    let rks := getRocks dat
+    let rk1 := findRk dat
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+--    let res := parts dat mh (fun p@(x, y) =>
+--      if max (x- S.1).natAbs (y- S.2).natAbs ≤ (dat.size / 2) then p else rk1)
+    let (dh, val) := draw2 dat mh
+    if ↑val != 4 * Nat.binom (mh + 1) 2 + 1 + if mh = 2 then 1 else 0 then IO.println s!"ERROR!!! {mh}"
+--  IO.println s!"{val} = {4 * Nat.binom (mh + 1) 2 + 1}\n"
+    draw <| (draw2 dat mh).1
+
+#eval show MetaM _ from do
+  for mh in [85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let S := findS dat
+    let rks := getRocks dat
+    let rk1 := findRk dat
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [2 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [3 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [4 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [5 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [6 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [7 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [8 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [9 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [10 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#eval show MetaM _ from do
+  for mh in [11 * 130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+    IO.println (res.toArray.filter fun (x, y) => (x + y) % 2 == 1).size
+
+#exit
+#eval show MetaM _ from do
+  for mh in [130 + 85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let S := findS dat
+    let rks := getRocks dat
+    let rk1 := findRk dat
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+--    let res := parts dat mh (fun p@(x, y) =>
+--      if max (x- S.1).natAbs (y- S.2).natAbs ≤ (dat.size / 2) then p else rk1)
+    let (dh, val) := draw2 dat mh
+--  IO.println s!"{val} = {4 * Nat.binom (mh + 1) 2 + 1}\n"
+    draw <| dh
+
+#eval show MetaM _ from do
+  for mh in [85] do --let mh := 4
+    let dat ← IO.FS.lines input
+    let S := findS dat
+    let rks := getRocks dat
+    let rk1 := findRk dat
+    let res := parts dat mh (fun (x, y) => (x % dat.size, y % dat.size))
+--    let res := parts dat mh (fun p@(x, y) =>
+--      if max (x- S.1).natAbs (y- S.2).natAbs ≤ (dat.size / 2) then p else rk1)
+    let (dh, val) := draw2 dat mh
+--  IO.println s!"{val} = {4 * Nat.binom (mh + 1) 2 + 1}\n"
+    draw <| toPic res.toArray 170 170 --dh
+
+
+
+/-!  This code computes the steps that the gardener can take in a single fundamental domain, assuming
+that they can move in there for as long as they want.
+-/
+
+/-
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let totRks : Nat := (dat.map fun s : String => (s.toList.filter (· == '#')).length).sum
+  let S := findS dat
+  let rk1 := findRk dat
+  let res := parts dat 129 (fun p@(x, y) =>
+    if max (x- S.1).natAbs (y- S.2).natAbs ≤ (dat.size / 2) then p else rk1)
+  IO.println <| s!"{res.size + totRks} vs {(dat.map String.length).sum}"
+  let top := toPic res.toArray dat.size dat.size
+--  draw <| top
+--  draw dat
+  let mut out := #[]
+  for i in [:dat.size] do
+    let di := dat[i]!
+    let gi := top[i]!
+    for j in [:dat.size] do
+      if di.get! ⟨j⟩ == '.' ∧ gi.get! ⟨j⟩ == '.' then out := out.push (i, j); IO.println (i, j)
+  let pars := [0, 1].map fun i : Nat => (res.toArray.filter fun ((x, y) : pos) => (x + y).toNat % 2 == i).size
+  IO.println <| s!"even: {pars[0]!} odd: {pars[1]!}"
+
+-- (5, 31)
+-- (59, 91)
+-- (61, 68)
+-- (79, 78)
+-- (111, 116)
+-- even: 7645 odd: 7576
+129 finds all odd positions
+130 finds all even positions
+--/
+
+def eoAccessible (dat : Array String) : Nat × Nat :=
+  Id.run do
+  let mut rks := (getRocks dat '.').insert (findS dat)
+  for i in findUnreachable dat do
+    rks := rks.erase i
+  let (ev, odd) := rks.toArray.partition fun (x, y) => (x + y) % 2 == 0
+  (ev.size, odd.size)
+
+#assert eoAccessible (← IO.FS.lines input) == (7645, 7576)
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest
+  let totRks : Nat := (dat.map fun s : String => (s.toList.filter (· == '#')).length).sum
+  let S := findS dat
+  let rk1 := findRk dat
+  let res := parts dat 150 (fun p@(x, y) =>
+    if max (x- S.1).natAbs (y- S.2).natAbs ≤ (dat.size / 2) then p else rk1)
+  IO.println <| s!"{res.size + totRks} vs {(dat.map String.length).sum}"
+  let top := toPic res.toArray dat.size dat.size
+  draw <| top
+  draw dat
+  let mut out := #[]
+  for i in [:dat.size] do
+    let di := dat[i]!
+    let gi := top[i]!
+    for j in [:dat.size] do
+      if di.get! ⟨j⟩ == '.' ∧ gi.get! ⟨j⟩ == '.' then out := out.push (i, j); IO.println (i, j)
+  let pars := [0, 1].map fun i : Nat => (res.toArray.filter fun ((x, y) : pos) => (x + y).toNat % 2 == i).size
+  IO.println <| s!"even: {pars[0]!} odd: {pars[1]!}"
+
+
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest
+  let S := findS dat
+  let rk1 := findRk dat
+  let low := 150
+  for i in [low] do
+    let res := parts dat i (fun p@(x, y) =>
+      if max (x- S.1).natAbs (y- S.2).natAbs ≤ (dat.size / 2) then p else rk1)
+    draw <| toPic (res.toArray.map (· + ((1 : Int), (1 : Int)))) (dat.size + 2) (dat.size + 2)
+  draw dat
+
+
 /-- given the locations of the rocks and the possible locations of the gardener
 returns the locations where the gardeners could be in one more step. -/
 def mvsF (rk gd : HashSet pos) (f : pos → Bool) : HashSet pos :=
   Id.run do
   let mut new : HashSet pos := gd
   for g in gd do
-    let mvs := ([.U, .D, .L, .R].map (toPos · + g)).filter fun x => f x && (rk.find? x).isNone
+    let mvs := (dirs.map (toPos · + g)).filter fun x => f x && (rk.find? x).isNone
     for m in mvs do
       new := new.insert m
   return new
@@ -195,8 +483,6 @@ def partFUpto (dat : Array String) (f : pos → Bool) : Nat × HashSet pos :=
   let res := partFUpto dat (fun (x, y) => x.natAbs + y.natAbs ≤ 65)
 --  IO.println res
 
-#eval 0
-
 --  determine the number of steps and the number of locations that
 --  the gardener can visit while staying in a single fundamental
 --  domain for the L¹-norm.
@@ -208,6 +494,13 @@ def partFUpto (dat : Array String) (f : pos → Bool) : Nat × HashSet pos :=
 --  draw <| toPic res.2.toArray dat.size dat.size
 --  IO.println (res.1, res.2.size)
 
+
+#eval 26501365 % 130
+
+#eval
+  let steps := 26501365
+  let (q, r) := (steps / 130, steps % 130)
+  (q, r, q * 130 + r == steps)
 
 #eval
   let steps := 26501365
