@@ -411,13 +411,13 @@ Where can the gardener be.  (Missing part 2)
 
 ### Description
 
-The puzzle input is a map with locations of rocks (`#`) and garden path (`.`).
+The puzzle input is a map with locations of rocks (`#`), garden path (`.`) and gardener's initial position (`S`), also on the garden path.
 
-The gardener starts at the location labeled with `S` and moves one step one of the four directions left, right, up, down, avoiding the rocks.
+The gardener starts at the location labeled with `S` and moves one step in one of the four directions left, right, up, down, avoiding the rocks.
 
 #### Part 1
 
-Find in how many positions can the gardener be it they walk 64 steps.
+Find in how many positions can the gardener be if they walk 64 steps.
 
 #### Part 2
 
