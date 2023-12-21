@@ -64,7 +64,7 @@ section meta
 open Lean Elab Command
 
 /-- `#assert x` takes a `Bool`ean `x` and fails if `x` is `false`.
-It runs `#eval show MetaM _ from do guard x`-/
+It runs `run_cmd Elab.Command.liftTermElabM do guard x`-/
 macro (name := cmdAssert) "#assert" cmd:term : command =>
   `(command| run_cmd Elab.Command.liftTermElabM do guard $cmd)
 
