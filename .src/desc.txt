@@ -397,3 +397,49 @@ For the second part, ignore the actual parts, and only process the instructions.
 The question is how many parts are accepted by the workflow, assuming
 that all parts have each entry in the range `[1, 4000]`.
 --
+State machine sending pulses.  (Missing)
+
+### Description
+
+The input is a list of nodes in a network of nodes that can send high or low pulses.
+
+#### Part 1
+
+The goal is to figure out how many pulses are sent by pushing the button 1000 times.
+--
+Where can the gardener be.  (Missing part 2)
+
+### Description
+
+The puzzle input is a map with locations of rocks (`#`), garden path (`.`) and
+gardener's initial position (`S`), also on the garden path.
+
+The gardener starts at the location labeled with `S` and moves one step in one of the four directions left, right, up, down, avoiding the rocks.
+
+#### Part 1
+
+Find in how many positions can the gardener be if they walk 64 steps.
+
+#### Part 2
+
+Assuming that the input data is periodic,
+find in how many positions can the gardener be if they walk 26501365 steps.
+--
+Falling bricks.
+
+### Description
+
+The input describes the position in 3-dimensional space of several "linear" bricks.
+We first should figure out where the would settle, were they to fall vertically,
+without ever rotating in any direction.
+
+#### Part 1
+
+Once the bricks settle, part 1 asks to find how many bricks can be removed separately,
+so that all the remaining bricks are still propped up in their respective positions.
+
+#### Part 2
+
+Asks to determine how many bricks would fall with any single removal and add up their
+numbers.
+--

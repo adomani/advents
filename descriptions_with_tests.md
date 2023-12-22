@@ -752,55 +752,6 @@ This hexadecimal number is the number of holes that should be dug out in each di
 As for part 1, the answer to the puzzle is the number of cubes enclosed in the
 volume that the instructions dig out.
 
-[Solution in Lean](Advents/day18_data.lean)
-
----
-
-#  [Day 18](https://adventofcode.com/2023/day/18)
-
-Digging out a hole for the lava.
-
-####  Test
-
-<pre>
-R 6 (#70c710)
-D 5 (#0dc571)
-L 2 (#5713f0)
-D 2 (#d2c081)
-R 2 (#59c680)
-D 2 (#411b91)
-L 5 (#8ceee2)
-U 2 (#caa173)
-L 1 (#1b58a2)
-U 2 (#caa171)
-R 2 (#7807d2)
-U 3 (#a77fa3)
-L 2 (#015232)
-U 2 (#7a21e3)
-</pre>
-
-### Description
-
-The input is a list of directions `U`, `D`, `L`, `R`, numbers and a further code.
-It encodes a digging plan to collect the lava.
-
-#### Part 1
-
-The first letter and first number encode how many cubes to dig in each direction.
-The answer to the puzzle is the number of cubes enclosed in the volume that the
-instructions dig out.
-
-#### Part 2
-
-The question is similar, except that this part uses the second code.
-As before, these are instructions for digging out a hole.
-The last digit is a code for a direction.
-The six characters following `#` represent the digits of a hexadecimal number.
-This hexadecimal number is the number of holes that should be dug out in each direction.
-
-As for part 1, the answer to the puzzle is the number of cubes enclosed in the
-volume that the instructions dig out.
-
 [Solution in Lean](Advents/day18.lean)
 
 ---
@@ -850,3 +801,95 @@ that all parts have each entry in the range `[1, 4000]`.
 
 ---
 
+#  [Day 20](https://adventofcode.com/2023/day/20)
+
+State machine sending pulses.  (Missing)
+
+### Description
+
+The input is a list of nodes in a network of nodes that can send high or low pulses.
+
+#### Part 1
+
+The goal is to figure out how many pulses are sent by pushing the button 1000 times.
+
+[Solution in Lean](Advents/day20.lean)
+
+---
+
+#  [Day 21](https://adventofcode.com/2023/day/21)
+
+Where can the gardener be.  (Missing part 2)
+
+####  Test
+
+<pre>
+...........
+.....###.#.
+.###.##..#.
+..#.#...#..
+....#.#....
+.##..S####.
+.##..#...#.
+.......##..
+.##.#.####.
+.##..##.##.
+...........
+</pre>
+
+### Description
+
+The puzzle input is a map with locations of rocks (`#`), garden path (`.`) and
+gardener's initial position (`S`), also on the garden path.
+
+The gardener starts at the location labeled with `S` and moves one step in one of the four directions left, right, up, down, avoiding the rocks.
+
+#### Part 1
+
+Find in how many positions can the gardener be if they walk 64 steps.
+
+#### Part 2
+
+Assuming that the input data is periodic,
+find in how many positions can the gardener be if they walk 26501365 steps.
+
+[Solution in Lean](Advents/day21.lean)
+
+---
+
+#  [Day 22](https://adventofcode.com/2023/day/22)
+
+Falling bricks.
+
+####  Test
+
+<pre>
+1,0,1~1,2,1
+0,0,2~2,0,2
+0,2,3~2,2,3
+0,0,4~0,2,4
+2,0,5~2,2,5
+0,1,6~2,1,6
+1,1,8~1,1,9
+</pre>
+
+### Description
+
+The input describes the position in 3-dimensional space of several
+</pre>linear" bricks.
+We first should figure out where the would settle, were they to fall vertically,
+without ever rotating in any direction.
+
+#### Part 1
+
+Once the bricks settle, part 1 asks to find how many bricks can be removed separately,
+so that all the remaining bricks are still propped up in their respective positions.
+
+#### Part 2
+
+Asks to determine how many bricks would fall with any single removal and add up their
+numbers.
+
+[Solution in Lean](Advents/day22.lean)
+
+---
