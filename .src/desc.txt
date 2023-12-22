@@ -425,7 +425,7 @@ Find in how many positions can the gardener be if they walk 64 steps.
 Assuming that the input data is periodic,
 find in how many positions can the gardener be if they walk 26501365 steps.
 --
-Falling bricks.  (Missing part 2)
+Falling bricks.
 
 ### Description
 

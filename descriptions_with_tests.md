@@ -859,7 +859,7 @@ find in how many positions can the gardener be if they walk 26501365 steps.
 
 #  [Day 22](https://adventofcode.com/2023/day/22)
 
-Falling bricks.  (Missing part 2)
+Falling bricks.
 
 ####  Test
 

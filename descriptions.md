@@ -21,4 +21,4 @@
 |[19](descriptions_with_tests.md#day-19)|Classifying `x`, `m`, `a`, `s` parts.|
 |[20](descriptions_with_tests.md#day-20)|State machine sending pulses.  (Missing)|
 |[21](descriptions_with_tests.md#day-21)|Where can the gardener be.  (Missing part 2)|
-|[22](descriptions_with_tests.md#day-22)|Falling bricks.  (Missing part 2)|
+|[22](descriptions_with_tests.md#day-22)|Falling bricks.|
