@@ -93,13 +93,6 @@ structure path where
   deriving Inhabited
 
 
-def path.add (gr : HashMap pos Nat) (p : path) (x : dir) : path :=
-  let new := x + p.cpos
-  { sum  := p.sum + gr.findD new 0
-    loc  := p.loc.push new
-    cpos := new
-    past := (p.past.2.1, p.past.2.2, x) }
-
 instance : ToString path where
   toString x := s!"\n* sum: {x.sum}, past: {x.past}\n* {x.loc}"
 
@@ -119,15 +112,16 @@ instance {α} [Ord α] : Ord (List α) where
 
 partial
 def ArrayLexCompare {α} [Inhabited α] [Ord α] (a b : Array α) : Ordering :=
-  if a.size = 0 then .lt else
-  if b.size = 0 then .gt else
-  match compare a.back b.back with
-    | .eq => ArrayLexCompare a.pop b.pop
-    | c => c
+  match a.size, b.size with
+    | 0, 0 => .eq
+    | 0, _ => .lt
+    | _, 0 => .gt
+    | _, _ => match compare a.back b.back with
+      | .eq => ArrayLexCompare a.pop b.pop
+      | c => c
 
 instance {α} [Inhabited α] [Ord α] : Ord (Array α) where
   compare x y := ArrayLexCompare x y
-
 
 instance {α β} [Ord α] [Ord β] : Ord (α × β) where
   compare x y := match compare x.1 y.1 with
@@ -138,16 +132,29 @@ instance : Ord path where
   compare x y := compare (x.sum, x.loc) (y.sum, y.loc)
 --    match compare (x.sum) (y.sum) with
 --      | .eq => compare (x.loc.toList) y.loc.toList
---,
---,
+
+def path.add (gr : HashMap pos Nat) (p : path) (x : dir) : path :=
+  let new := x + p.cpos
+  { sum  := p.sum + gr.findD new 0
+    loc  := p.loc.push new
+    cpos := new
+    past := (p.past.2.1, p.past.2.2, x) }
+
 def getNbs (sz : Nat) (curr : path) :=
   let cpos := curr.cpos
   (mvs (sz) cpos).filter fun d : dir =>
     let cp3 := curr.past.2.2
-    (! (d == cp3.rev)) ||
+    ((curr.loc.contains cpos)) &&
+    ( let dc := cpos - ((sz/2 : Int), (sz/2 : Int)); (10 * sz / (2 * 11))^2 ≤ dc.1 ^ 2 + dc.2 ^ 2) &&
+--    ((if 3 ≤ curr.loc.size then let c1 := curr.loc.pop.pop.back; c1.1 < cpos.1 || c1.2 < cpos.2 else true )) &&
+    (! (d == cp3.rev)) &&
     (! (curr.past.1 == cp3 && curr.past.2.1 == cp3 && d == cp3)) --&& (! (d + cpos) ∈ curr.loc)
 
 #eval [.N, .S, .E, .W].map dir.rev
+
+#eval getNbs 10 ⟨0, #[(1, 0), (1, 1)], (1, 1), (.E, .E, .E)⟩
+
+--#exit
 
 #eval do
   let dat := atest
@@ -163,12 +170,12 @@ def test1 := "03
 21"
 
 def test2 :=
-"000001
-111101
-110011
-111001
-111100
-111110"
+"111112
+222212
+221122
+222112
+222211
+222221"
 
 
 def btest := (test2.splitOn "\n").toArray
@@ -180,8 +187,9 @@ def btest := (test2.splitOn "\n").toArray
 #eval (btest.size, btest[0]!.length)
 
 #eval do
-  let tak := 3
+  let tak := 30
 --  let dat := (dat.toList.take tak).toArray.map (String.take · tak)
+  let dat := (test1.splitOn "\n").toArray
   let dat := btest
   let dat := atest
 --  IO.println dat
@@ -197,12 +205,12 @@ def btest := (test2.splitOn "\n").toArray
   let mut pths : RBTree path compare := RBTree.empty.insert init
   let mut upb := 200
   let mut con := 1
-  while con ≤ 30 && ! pths.isEmpty do
+  while con ≤ tak && ! pths.isEmpty do
     con := con + 1
     IO.print s!"{con} "
 --      let cc := pths.max.get!
 --      pths := pths.erase cc
-    let mut spth :RBTree path compare := RBTree.empty
+    let mut spth : RBTree path compare := RBTree.empty
     for cc in pths do
 --        IO.println s!"{con} is con and {cc.loc.size} is the length of the path"
 --      if cc.sum ≤ upb then
@@ -210,6 +218,7 @@ def btest := (test2.splitOn "\n").toArray
 --          dbg_trace "final place: {cc.cpos}"
           toEnd := toEnd.push cc
           upb := min upb cc.sum
+          toEnd := toEnd.filter (path.sum · ≤ upb + 1)
   --        dbg_trace "updated upb: {upb} {cc.loc.size}"
         else
           let nbs := getNbs sz cc
@@ -219,7 +228,8 @@ def btest := (test2.splitOn "\n").toArray
 --              dbg_trace "inserting {nn}"
               spth := spth.insert nn
 --        dbg_trace spth.toList
-        pths := spth
+    dbg_trace spth.size
+    pths := spth
 --              pths := pths.insert nn
 --    for cc in pths do if cc.loc.size < con then
 ----      dbg_trace "erasing with con {con} and sum {cc.sum}"
@@ -229,7 +239,7 @@ def btest := (test2.splitOn "\n").toArray
   let sorted := (toEnd.qsort (path.sum · < path.sum ·)) --[0]!
 --  for s in sorted do IO.println s.sum; draw <| toPic s.loc sz sz
 --  draw <| toPic (sorted.map (path.loc)) sz sz
-  IO.println (sorted[0]!.sum)
+  IO.println sorted -- (sorted[0]!.sum)
 --  for p in toEnd do IO.println p.sum
 --  draw dat
 
