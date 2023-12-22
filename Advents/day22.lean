@@ -112,8 +112,7 @@ def getPos (dat : Array String) : HashSet vol :=
 * a `vol`ume `d`, and
 * a `brick` `bk`.
 
-It determines if translating `bk` by `d` we overlap with a `vol`ume occupied by `bks`.
--/
+It determines if translating `bk` by `d` we overlap with a `vol`ume occupied by `bks`. -/
 def checkNbr (bks : HashSet vol) (d : vol) (bk : brick) : Bool :=
   let (bk, dir, lth) :=
     -- if the brick is vertical...
@@ -166,15 +165,15 @@ def part1 (dat : Array String) : Nat :=
   Id.run do
   let mut bksH := getPos dat
   let mut bks := (bricks dat).qsort fun b c => (b.src.2.2 < c.src.2.2)
-  let mut bksFall := bks.filter <| canFall bksH
+  let mut bksFall := bks.find? <| canFall bksH
   let mut con := 0
-  while bksFall != #[] ∧ con ≤ 10000 do
+  while bksFall.isSome do
     con := con + 1
-    let curr := bksFall[0]!
+    let curr := bksFall.get!
     let (newH, newB) := fallOne bksH curr
     bksH := newH
     bks := (bks.modify (bks.findIdx? (· == curr)).get! (fun _ => newB))
-    bksFall := (bks.filter <| canFall bksH)
+    bksFall := bks.find? <| canFall bksH
   let mut tot := 0
   let mut bks' : HashSet brick := .empty
   for d in bks do
@@ -193,4 +192,49 @@ def part1 (dat : Array String) : Nat :=
 
 #assert part1 atest == 5
 
-solve 1 441
+#eval "Sorry, part 1 is somewhat slow: ~45 seconds!  However, the answer is 441"
+--solve 1 441
+
+/-!
+#  Question 2
+-/
+
+def findFalls (bksH : HashSet vol) (bks : Array brick) (one : brick) : Nat :=
+  Id.run do
+  let mut falling := #[one]
+  let mut falls := 0
+  let mut bksH' := bksH
+  let mut bks' := bks
+  let mut curr := falling[0]!
+  while falling != #[] do
+    curr := falling[0]!
+    for i in curr.toArray do bksH' := bksH'.erase i
+    bks' := bks'.erase curr
+    falls := falls + 1
+    falling := falling.erase curr
+    for i in bks' do
+      if canFall bksH' i ∧ ! falling.contains i then
+        falling := falling.push i
+  falls - 1
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat :=
+  Id.run do
+  let mut bksH := getPos dat
+  let mut bks := (bricks dat).qsort fun b c => (b.src.2.2 < c.src.2.2)
+  let mut bksFall := bks.find? <| canFall bksH
+  let mut con := 0
+  while bksFall.isSome do
+    con := con + 1
+    let curr := bksFall.get!
+    let (newH, newB) := fallOne bksH curr
+    bksH := newH
+    bks := (bks.modify (bks.findIdx? (· == curr)).get! (fun _ => newB))
+    bksFall := bks.find? <| canFall bksH
+  let tots := bks.map <| findFalls bksH bks
+  return tots.sum
+
+#assert part2 atest == 7
+
+#eval "Sorry, part 2 is very slow: ~24 minutes!  However, the answer is 80778"
+--solve 2 80778
