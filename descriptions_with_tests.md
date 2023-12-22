@@ -839,19 +839,57 @@ Where can the gardener be.  (Missing part 2)
 
 ### Description
 
-The puzzle input is a map with locations of rocks (`#`) and garden path (`.`).
+The puzzle input is a map with locations of rocks (`#`), garden path (`.`) and
+gardener's initial position (`S`), also on the garden path.
 
-The gardener starts at the location labeled with `S` and moves one step one of the four directions left, right, up, down, avoiding the rocks.
+The gardener starts at the location labeled with `S` and moves one step in one of the four directions left, right, up, down, avoiding the rocks.
 
 #### Part 1
 
-Find in how many positions can the gardener be it they walk 64 steps.
+Find in how many positions can the gardener be if they walk 64 steps.
 
 #### Part 2
 
 Assuming that the input data is periodic,
-find in how many positions can the gardener be it they walk 26501365 steps.
+find in how many positions can the gardener be if they walk 26501365 steps.
 
 [Solution in Lean](Advents/day21.lean)
+
+---
+
+#  [Day 22](https://adventofcode.com/2023/day/22)
+
+Falling bricks.  (Missing part 2)
+
+####  Test
+
+<pre>
+1,0,1~1,2,1
+0,0,2~2,0,2
+0,2,3~2,2,3
+0,0,4~0,2,4
+2,0,5~2,2,5
+0,1,6~2,1,6
+1,1,8~1,1,9
+</pre>
+
+### Description
+
+The input describes the position in 3-dimensional space of several
+</pre>linear" bricks.
+We first should figure out where the would settle, were they to fall vertically,
+without ever rotating in any direction.
+
+#### Part 1
+
+Once the bricks settle, part 1 asks to find how many bricks can be removed separately,
+so that all the remaining bricks are still propped up in their respective positions.
+
+#### Part 2
+
+Asks to determine how many bricks would fall with any single removal and add up their
+numbers.
+
+[Solution in Lean](Advents/day22.lean)
 
 ---
