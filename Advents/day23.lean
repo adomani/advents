@@ -190,13 +190,6 @@ def go (mz : HashMap pos dir) (p next : pos) : Array pos :=
   dbg_trace con
   return pth --(if curr = q then pth else pth)
 
-def go1 (mz : HashMap pos dir) (p next : pos) : Nat × Array (pos × pos) :=
-  let pth := go mz p next
-  let fin := pth.back
-  let newSteps := (fin.nbs'' mz).map (· + fin)
-  dbg_trace pth
-  (pth.size - 1, newSteps.map (Prod.mk fin))
-
 def chooseBack (mz : HashMap pos dir) (sz : Nat) : Array pos × Nat :=
   Id.run do
   let mut tot := 0
@@ -217,15 +210,74 @@ def chooseBack (mz : HashMap pos dir) (sz : Nat) : Array pos × Nat :=
     newD := newSteps.back
   return (bifr, tot)
 
-def cmp
+def go1 (mz : HashMap pos dir) (p next : pos) : Nat × Array (pos × pos) :=
+  let pth := go mz p next
+  let fin := pth.back
+  let newSteps := (fin.nbs'' mz).map (· + fin)
+--  dbg_trace pth
+  (pth.size - 1, newSteps.map (Prod.mk fin))
+
+partial
+def ArrayLexCompare {α} [Inhabited α] [Ord α] (a b : Array α) : Ordering :=
+  match a.size, b.size with
+    | 0, 0 => .eq
+    | 0, _ => .lt
+    | _, 0 => .gt
+    | _, _ => match compare a.back b.back with
+      | .eq => ArrayLexCompare a.pop b.pop
+      | c => c
+
+instance {α} [Inhabited α] [Ord α] : Ord (Array α) where
+  compare x y := ArrayLexCompare x y
+
+instance {α β} [Ord α] [Ord β] : Ord (α × β) where
+  compare x y := match compare x.1 y.1 with
+    | .eq => compare x.2 y.2
+    | g => g
 
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest
+  let dat ← IO.FS.lines input
   let mz := getPos dat
   let sz := dat.size - 2
   IO.println s!"{sz}"
-  let x : RBTree (Nat × Array (pos × pos)) ()
+  let mut x : RBTree (Nat × Array (pos × pos)) (fun x y => compare x y) := RBTree.empty
+  x := x.insert (0, #[((0, 1), (1, 1))])
+  let mut con := 0
+  let mut tots := #[]
+  while ! x.isEmpty do
+    con := con + 1
+    for old@(lth, steps) in x do
+      let (lthNew, newPairs) := go1 mz steps.back.1 steps.back.2
+      for fins in newPairs do
+        if fins.2 = ((sz : Int), (sz : Int)) then
+          tots := tots.push (lth + lthNew); IO.println s!"found {tots.back} after {con} iterations"
+        else x := x.insert (lth + lthNew, steps.push fins)
+      x := x.erase old
+  IO.print x.toList
+  IO.print <| tots.qsort (· > ·)
+  --let mut curr : Array (pos × pos) := #[((0, 1), (1, 1))]
+
+  --let extend := go1 mz (0, 1) (1, 1)
+  --IO.println s!"extend: {extend}"
+
+#exit
+  let mut
+
+  x := RBTree.empty.insert extend.2
+
+    for old@(part, steps) in x do
+      if steps.back.2 = ((sz : Int), (sz : Int)) then tots := tots.push (part + extend.1)
+      else x := x.insert (go1 mz steps.back.1 steps.back.2)
+--      let newSteps := steps.back.1.nbs'' mz
+--      for ls in newSteps do
+--        let extend := go1 mz steps.back.1 ls
+--        else x := x.insert (part + extend.1, steps.push extend.2.back)
+      x := x.erase old
+  IO.print tots
+#exit
+--  for l in x do IO.println l
+#exit
   let mut part := 0
   let news := #[((0, 1), (1, 1))]
   let (part, news) := go1 mz (0, 1) (1, 1)
