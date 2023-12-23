@@ -893,3 +893,57 @@ numbers.
 [Solution in Lean](Advents/day22.lean)
 
 ---
+
+#  [Day 23](https://adventofcode.com/2023/day/23)
+
+Maze and icy slopes.  (Missing part 2)
+
+####  Test
+
+<pre>
+#.#####################
+#.......#########...###
+#######.#########.#.###
+###.....#.>.>.###.#.###
+###v#####.#v#.###.#.###
+###.>...#.#.#.....#...#
+###v###.#.#.#########.#
+###...#.#.#.......#...#
+#####.#.#.#######.#.###
+#.....#.#.#.......#...#
+#.#####.#.#.#########v#
+#.#...#...#...###...>.#
+#.#.#v#######v###.###v#
+#...#.>.#...>.>.#.###.#
+#####v#.#.###v#.#.###.#
+#.....#...#...#.#.#...#
+#.#########.###.#.#.###
+#...###...#...#...#.###
+###.###.#.###v#####v###
+#...#...#.#.>.>.#.>.###
+#.###.###.#.###.#.#v###
+#.....###...###...#...#
+#####################.#
+</pre>
+
+### Description
+
+The input is a maze with some locations marked with `>`, `<`, `v`, `^`.
+The two parts ask to find the longest, non-backtracking path through the maze,
+possibly with further constraints.
+
+#### Part 1
+
+In part 1, besides not being allowed to backtrack, the path cannot go in a direction
+opposing one of the marked locations.
+It turns out that most (all?) such locations are at places where there is a bifurcation
+in the maze.
+
+#### Part 2
+
+In part 2, the path is only required to not backtrack: the special locations should be
+ignored now.
+
+[Solution in Lean](Advents/day23.lean)
+
+---
