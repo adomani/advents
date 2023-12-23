@@ -164,26 +164,85 @@ def go (mz : HashMap pos dir) (p next : pos) : Array pos :=
     pth := pth.push curr
     match curr.nbs mz with
       | nb@#[_, _] =>
-        let ncurr := ((nb.reverse).erase prev)[0]!
+        let ncurr := (nb.erase prev)[0]!
         prev := curr
-        curr := ncurr
+        match mz.find? ncurr with
+          | none => dbg_trace "oh no!"; return default
+          | some d =>
+            if d = .S ∨ d.toPos = (ncurr - prev) then
+              curr := ncurr
+            else return pth
       | _ => return pth
   dbg_trace con
   return pth --(if curr = q then pth else pth)
 
+def addInfo (mz : HashMap pos dir) (p : pos) :=
+  (p, if (mz.find? p).getD default ≠ .S then
+        s!"XXX {(mz.find? p).getD default}"
+      else default)
+
+def tailInfo (mz : HashMap pos dir) (pth : Array pos) :=
+  #[pth.pop.pop.back, pth.pop.back, pth.back].map <| addInfo mz
+
+def headInfo (mz : HashMap pos dir) (pth : Array pos) :=
+  #[pth[0]!, pth[1]!, pth[2]!].map <| addInfo mz
+
+def htInfo (mz : HashMap pos dir) (pth : Array pos) :=
+  (headInfo mz pth, tailInfo mz pth)
+
+def chooseBack (mz : HashMap pos dir) (sz : Nat) : Array pos :=
+  Id.run do
+  let mut init : pos := (0, 1)
+  let mut bifr := #[init]
+  let mut newD : pos := (1, 1)
+  let mut pth := go mz init newD
+  bifr := bifr.push pth.back
+  let mut con := 0
+  while con ≤ 1000 ∧ pth.pop.back ≠ (sz, sz) do
+    con := con + 1
+    let newSteps := pth.back.nbs'' mz
+    pth := go mz pth.back (pth.back + newSteps.back)
+    init := pth.back
+    bifr := bifr.push init
+    newD := newSteps.back
+  return bifr
+
 #eval do
-  let dat := atest
   let dat ← IO.FS.lines input
+  let dat := atest
   let mz := getPos dat
+  let sz := dat.size - 2
+  IO.println s!"{sz}"
+  IO.println <| chooseBack mz sz
 --  let mut free := #[]
 --  for d in mz do
 --    if ! forced mz d.1 then free := free.push d; --IO.println s!"{d}, {(d.1.nbs mz).size}"
 --  let init : ray := ((5, 3), .R)
 --  let pth := dist mz ((5, 3)) ((3, 11)) (5, 4)
-  let pth := go mz ((0, 1)) (1, 1)
+  let mut init : pos := (0, 1)
+  let mut newD : pos := (1, 1)
+  IO.println s!"From {init}, going {newD}"
+--  IO.println s!"Start from {init}, going {newD}"
+  let mut pth := go mz init newD
+  let mut con := 0
+  while con ≤ 100 ∧ pth.pop.back ≠ (sz, sz) do
+    con := con + 1
+    let (h, t) := htInfo mz pth
+    IO.println <| s!"{h}\n  ...\n{t}"
+    IO.println ""
+    IO.println s!"From {init}, going {newD}"
+    let newSteps := pth.back.nbs'' mz
+    pth := go mz pth.back (pth.back + newSteps.back)
+    init := pth.back
+    newD := newSteps.back
+  IO.println ""
+--  let newSteps := pth.back.nbs'' mz
+--  IO.println s!"directions? {newSteps}"
+--  let pth := go mz pth.back (pth.back + newSteps.back)
+
 --  IO.println (pos.nbs mz (5, 7))
-  let wInfo := (pth.map fun p => (p, if (mz.find? p).getD default ≠ .S then s!"XXX {(mz.find? p).getD default}" else default))
-  for w in wInfo do IO.println <| w
+--  let wInfo := (pth.map fun p => (p, if (mz.find? p).getD default ≠ .S then s!"XXX {(mz.find? p).getD default}" else default))
+--  for w in wInfo do IO.println <| w
   draw dat
 
 
