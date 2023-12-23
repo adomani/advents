@@ -235,6 +235,48 @@ instance {α β} [Ord α] [Ord β] : Ord (α × β) where
     | .eq => compare x.2 y.2
     | g => g
 
+def findPaths (dat : Array String) : Array Nat :=
+  let mz := getPos dat
+  let sz := dat.size - 2
+  Id.run do
+  let mut x : RBTree (Nat × Array (pos × pos)) (fun x y => compare x y) := RBTree.empty
+  x := x.insert (0, #[((0, 1), (1, 1))])
+  let mut con := 0
+  let mut tots := #[]
+  while ! x.isEmpty do
+    con := con + 1
+    for old@(lth, steps) in x do
+      let (lthNew, newPairs) := go1 mz steps.back.1 steps.back.2
+      for fins in newPairs do
+        if fins.2 = ((sz : Int), (sz : Int)) then
+          tots := tots.push (lth + lthNew)
+        else x := x.insert (lth + lthNew, steps.push fins)
+      x := x.erase old
+  tots.qsort (· > ·)
+
+#assert findPaths atest == #[94, 90, 86, 82, 82, 74]
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
+  (findPaths dat)[0]!
+
+#assert part1 atest == 94
+
+solve 1 2366
+
+/-!
+#  Question 2
+-/
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat := sorry
+--def part2 (dat : String) : Nat :=
+
+--#assert part2 atest == ???
+
+--solve 2
+
+
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
@@ -314,26 +356,3 @@ instance {α β} [Ord α] [Ord β] : Ord (α × β) where
 --  let wInfo := (pth.map fun p => (p, if (mz.find? p).getD default ≠ .S then s!"XXX {(mz.find? p).getD default}" else default))
 --  for w in wInfo do IO.println <| w
   draw dat
-
-
-
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---solve 1
-
-/-!
-#  Question 2
--/
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---solve 2
