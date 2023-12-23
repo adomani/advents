@@ -113,6 +113,20 @@ def forced (mz : HashMap pos dir) (p : pos) : Bool :=
 
 abbrev ray := pos × dir
 
+def addInfo (mz : HashMap pos dir) (p : pos) :=
+  (p, if (mz.find? p).getD default ≠ .S then
+        s!"XXX {(mz.find? p).getD default}"
+      else default)
+
+def tailInfo (mz : HashMap pos dir) (pth : Array pos) :=
+  #[pth.pop.pop.back, pth.pop.back, pth.back].map <| addInfo mz
+
+def headInfo (mz : HashMap pos dir) (pth : Array pos) :=
+  #[pth[0]!, pth[1]!, pth[2]!].map <| addInfo mz
+
+def htInfo (mz : HashMap pos dir) (pth : Array pos) :=
+  (headInfo mz pth, tailInfo mz pth)
+
 /-
 def distRays (mz : HashMap pos dir) (p q : ray) : Option Nat × Array ray :=
   Id.run do
@@ -176,36 +190,34 @@ def go (mz : HashMap pos dir) (p next : pos) : Array pos :=
   dbg_trace con
   return pth --(if curr = q then pth else pth)
 
-def addInfo (mz : HashMap pos dir) (p : pos) :=
-  (p, if (mz.find? p).getD default ≠ .S then
-        s!"XXX {(mz.find? p).getD default}"
-      else default)
+def go1 (mz : HashMap pos dir) (p next : pos) : Nat × Array (pos × pos) :=
+  let pth := go mz p next
+  let fin := pth.back
+  let newSteps := (fin.nbs'' mz).map (· + fin)
+  dbg_trace pth
+  (pth.size - 1, newSteps.map (Prod.mk fin))
 
-def tailInfo (mz : HashMap pos dir) (pth : Array pos) :=
-  #[pth.pop.pop.back, pth.pop.back, pth.back].map <| addInfo mz
-
-def headInfo (mz : HashMap pos dir) (pth : Array pos) :=
-  #[pth[0]!, pth[1]!, pth[2]!].map <| addInfo mz
-
-def htInfo (mz : HashMap pos dir) (pth : Array pos) :=
-  (headInfo mz pth, tailInfo mz pth)
-
-def chooseBack (mz : HashMap pos dir) (sz : Nat) : Array pos :=
+def chooseBack (mz : HashMap pos dir) (sz : Nat) : Array pos × Nat :=
   Id.run do
+  let mut tot := 0
   let mut init : pos := (0, 1)
   let mut bifr := #[init]
   let mut newD : pos := (1, 1)
   let mut pth := go mz init newD
+  tot := tot + pth.size - 1
   bifr := bifr.push pth.back
   let mut con := 0
   while con ≤ 1000 ∧ pth.pop.back ≠ (sz, sz) do
     con := con + 1
     let newSteps := pth.back.nbs'' mz
     pth := go mz pth.back (pth.back + newSteps.back)
+    tot := tot + pth.size - 1
     init := pth.back
     bifr := bifr.push init
     newD := newSteps.back
-  return bifr
+  return (bifr, tot)
+
+def cmp
 
 #eval do
   let dat ← IO.FS.lines input
@@ -213,10 +225,16 @@ def chooseBack (mz : HashMap pos dir) (sz : Nat) : Array pos :=
   let mz := getPos dat
   let sz := dat.size - 2
   IO.println s!"{sz}"
+  let x : RBTree (Nat × Array (pos × pos)) ()
+  let mut part := 0
+  let news := #[((0, 1), (1, 1))]
+  let (part, news) := go1 mz (0, 1) (1, 1)
+  IO.println <| go1 mz (0, 1) (1, 1)
   IO.println <| chooseBack mz sz
---  let mut free := #[]
---  for d in mz do
---    if ! forced mz d.1 then free := free.push d; --IO.println s!"{d}, {(d.1.nbs mz).size}"
+  let mut free := #[]
+  for d in mz do
+    if ! forced mz d.1 then free := free.push d; --IO.println s!"{d}, {(d.1.nbs mz).size}"
+  IO.println s!"free: {free.size}\n{free}"
 --  let init : ray := ((5, 3), .R)
 --  let pth := dist mz ((5, 3)) ((3, 11)) (5, 4)
   let mut init : pos := (0, 1)
