@@ -262,7 +262,7 @@ def part1 (dat : Array String) : Nat :=
 
 #assert part1 atest == 94
 
-solve 1 2366
+--solve 1 2366
 
 /-!
 #  Question 2
@@ -276,10 +276,16 @@ def part2 (dat : Array String) : Nat := sorry
 
 --solve 2
 
-
+#check String.replace
+#check List.Nodup
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
+  let dat := dat.map (String.replace · "<" ".")
+  let dat := dat.map (String.replace · ">" ".")
+  let dat := dat.map (String.replace · "v" ".")
+  let dat := dat.map (String.replace · "^" ".")
+  draw dat
   let mz := getPos dat
   let sz := dat.size - 2
   IO.println s!"{sz}"
@@ -287,16 +293,20 @@ def part2 (dat : Array String) : Nat := sorry
   x := x.insert (0, #[((0, 1), (1, 1))])
   let mut con := 0
   let mut tots := #[]
-  while ! x.isEmpty do
+  while (! x.isEmpty) do
     con := con + 1
     for old@(lth, steps) in x do
       let (lthNew, newPairs) := go1 mz steps.back.1 steps.back.2
       for fins in newPairs do
+
         if fins.2 = ((sz : Int), (sz : Int)) then
           tots := tots.push (lth + lthNew); IO.println s!"found {tots.back} after {con} iterations"
-        else x := x.insert (lth + lthNew, steps.push fins)
+        else if fins.1 ∉ steps.map Prod.fst
+          then x := x.insert (lth + lthNew, steps.push fins)
       x := x.erase old
-  IO.print x.toList
+--      for y in x do
+--        if ! y.2.toList.Nodup then x := x.erase y
+--  IO.print x.toList
   IO.print <| tots.qsort (· > ·)
   --let mut curr : Array (pos × pos) := #[((0, 1), (1, 1))]
 
