@@ -279,8 +279,8 @@ def part2 (dat : Array String) : Nat := sorry
 #check String.replace
 #check List.Nodup
 #eval do
-  let dat := atest
   let dat ← IO.FS.lines input
+  let dat := atest
   let dat := dat.map (String.replace · "<" ".")
   let dat := dat.map (String.replace · ">" ".")
   let dat := dat.map (String.replace · "v" ".")
