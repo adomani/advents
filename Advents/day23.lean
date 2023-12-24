@@ -279,16 +279,26 @@ def part2 (dat : Array String) : Nat := sorry
 #check String.replace
 #check List.Nodup
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest
+  let dat ← IO.FS.lines input
   let dat := dat.map (String.replace · "<" ".")
   let dat := dat.map (String.replace · ">" ".")
   let dat := dat.map (String.replace · "v" ".")
   let dat := dat.map (String.replace · "^" ".")
-  draw dat
   let mz := getPos dat
   let sz := dat.size - 2
+  let mut fc := #[]
+  for x in mz do
+    let nx := x.1.nbs'' mz
+    if nx.size ≠ 2 then
+      fc := fc.push (x, nx.size)
+      IO.println (x, nx.size)
   IO.println s!"{sz}"
+  for (p, _) in fc do
+    for q in p.1.nbs'' mz do
+      IO.println (go1 mz p.1 q)
+  draw dat
+#exit
   let mut x : RBTree (Nat × Array (pos × pos)) (fun x y => compare x y) := RBTree.empty
   x := x.insert (0, #[((0, 1), (1, 1))])
   let mut con := 0
