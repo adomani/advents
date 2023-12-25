@@ -463,3 +463,33 @@ in the maze.
 In part 2, the path is only required to not backtrack: the special locations should be
 ignored now.
 --
+Hitting snowflakes.  (Missing part 2)
+
+### Description
+
+The input describes snowflakes describing linear trajectories:
+for each snowflakes, the data consists of its initial position and its velocity vector.
+
+#### Part 1
+
+Ignoring the `z`-axis, we should figure out how many `(x, y)`-coordinates of each
+ray will intersect in some region of the plane in *future* time.
+
+#### Part 2
+
+Considering the full information, figure out the coordinates of a point in space
+such that starting from there with some velocity vector, you will hit all snowflakes.
+--
+Wiring diagram. (Only one part, not done only in Lean!)
+
+### Description
+
+The data encodes a wiring diagram -- a graph.
+We should find a cut-set of size three for the graph and compute the product of the
+number of vertices in the two components.
+
+_Note._
+I used Lean to print a `dot` file with the graph.
+Looked at the graph drawn by `dot` and visually determined bounds.
+Then used `grep/sed/awk` to extract the final answer.
+--

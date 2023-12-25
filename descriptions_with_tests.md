@@ -947,3 +947,40 @@ ignored now.
 [Solution in Lean](Advents/day23.lean)
 
 ---
+
+#  [Day 25](https://adventofcode.com/2023/day/25)
+
+Wiring diagram. (Only one part, not done only in Lean!)
+
+####  Test
+
+<pre>
+jqt: rhn xhk nvd
+rsh: frs pzl lsr
+xhk: hfx
+cmg: qnr nvd lhk bvb
+rhn: xhk bvb hfx
+bvb: xhk hfx
+pzl: lsr hfx nvd
+qnr: nvd
+ntq: jqt hfx bvb xhk
+nvd: lhk
+lsr: lhk
+rzs: qnr cmg lsr rsh
+frs: qnr lhk lsr
+</pre>
+
+### Description
+
+The data encodes a wiring diagram -- a graph.
+We should find a cut-set of size three for the graph and compute the product of the
+number of vertices in the two components.
+
+_Note._
+I used Lean to print a `dot` file with the graph.
+Looked at the graph drawn by `dot` and visually determined bounds.
+Then used `grep/sed/awk` to extract the final answer.
+
+[Solution in Lean](Advents/day25.lean)
+
+---
