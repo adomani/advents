@@ -948,6 +948,39 @@ ignored now.
 
 ---
 
+#  [Day 24](https://adventofcode.com/2023/day/24)
+
+Hitting snowflakes.  (Missing part 2)
+
+####  Test
+
+<pre>
+19, 13, 30 @ -2,  1, -2
+18, 19, 22 @ -1, -1, -2
+20, 25, 34 @ -2, -2, -4
+12, 31, 28 @ -1, -2, -1
+20, 19, 15 @  1, -5, -3
+</pre>
+
+### Description
+
+The input describes snowflakes describing linear trajectories:
+for each snowflakes, the data consists of its initial position and its velocity vector.
+
+#### Part 1
+
+Ignoring the `z`-axis, we should figure out how many `(x, y)`-coordinates of each
+ray will intersect in some region of the plane in *future* time.
+
+#### Part 2
+
+Considering the full information, figure out the coordinates of a point in space
+such that starting from there with some velocity vector, you will hit all snowflakes.
+
+[Solution in Lean](Advents/day24.lean)
+
+---
+
 #  [Day 25](https://adventofcode.com/2023/day/25)
 
 Wiring diagram. (Only one part, not done only in Lean!)
@@ -979,7 +1012,7 @@ number of vertices in the two components.
 _Note._
 I used Lean to print a `dot` file with the graph.
 Looked at the graph drawn by `dot` and visually determined bounds.
-Then used `grep/sed/awk` to extract the final answer.
+Then I used `awk` to extract the final answer.
 
 [Solution in Lean](Advents/day25.lean)
 
