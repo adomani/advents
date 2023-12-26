@@ -44,6 +44,17 @@ def List.getNumbers (l : List Char) : List Nat :=
     let fin := getNumbers (l1.dropWhile (Char.isDigit ·))
   d1 :: fin
 
+/-- `String.getInts l` takes as input a string `l`, removes everything that is neither a digit,
+not a minus sign (`-`) and interprets the rest as a list of integers. -/
+partial
+def String.getInts (l : String) : List Int :=
+  let cond : Char → Bool := fun c => (Char.isDigit c) || (c == '-')
+  let l1 := l.dropWhile (!cond ·)
+  if l1.length == 0 then [] else
+    let d1 := String.toInt! (l1.takeWhile cond)
+    let fin := getInts (l1.dropWhile cond)
+  d1 :: fin
+
 /-- Transpose an array of strings. -/
 def Array.transpose (s : Array String) : Array String :=
   let rows := s.map (List.toArray ∘ String.toList)
@@ -157,3 +168,9 @@ def toPic (gr : Array pos) (Nx Ny : Nat) : Array String :=
         if gr.contains (i, j) then str := str.push '#' else str := str.push '.'
       rows := rows.push str
     return rows
+
+section tests
+
+#assert "0 2 -3".getInts = [0, 2, -3]
+
+end tests

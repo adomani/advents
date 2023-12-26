@@ -1,17 +1,6 @@
 import Advents.Utils
 --open Lean
 
-/-- `String.getInts l` takes as input a string `l`, removes everything that is neither a digit,
-not a minus sign (`-`) and interprets the rest as a list of integers. -/
-partial
-def String.getInts (l : String) : List Int :=
-  let cond : Char → Bool := fun c => (Char.isDigit c) || (c == '-')
-  let l1 := l.dropWhile (!cond ·)
-  if l1.length == 0 then [] else
-    let d1 := String.toInt! (l1.takeWhile cond)
-    let fin := getInts (l1.dropWhile cond)
-  d1 :: fin
-
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day24.input"
 

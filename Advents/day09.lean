@@ -15,19 +15,6 @@ def test := "0 3 6 9 12 15
 1 3 6 10 15 21
 10 13 16 21 30 45"
 
-/-- `String.getInts l` takes as input a string `l`, removes everything that is neither a digit,
-not a minus sign (`-`) and interprets the rest as a list of integers. -/
-partial
-def String.getInts (l : String) : List Int :=
-  let cond : Char → Bool := fun c => (Char.isDigit c) || (c == '-')
-  let l1 := l.dropWhile (!cond ·)
-  if l1.length == 0 then [] else
-    let d1 := String.toInt! (l1.takeWhile cond)
-    let fin := getInts (l1.dropWhile cond)
-  d1 :: fin
-
-#assert "0 2 -3".getInts = [0, 2, -3]
-
 /-- `Nat.factorial n` -- the factorial of `n`. -/
 def Nat.factorial : Nat → Nat
   | 0 => 1
