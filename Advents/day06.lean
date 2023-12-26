@@ -19,7 +19,7 @@ Distance:  9  40  200"
 
 /-- Extract the two lists of natural numbers from the input data. -/
 def getData (s : String) : List (List Nat) :=
-  (s.splitOn "\n").map (List.getNumbers ∘ String.toList)
+  (s.splitOn "\n").map String.getNats
 
 /-- The solution to part 1. -/
 def part1 (str : String) : Nat :=
@@ -39,7 +39,7 @@ solve 1 1312850 file
 
 /-- Extract the pair of natural numbers from the input data. -/
 def getData2 (s : String) : Nat × Nat :=
-  match (s.toList.filter (· != ' ')).getNumbers with
+  match (String.mk (s.toList.filter (· != ' '))).getNats with
     | [a, b] => (a, b)
     | _ => dbg_trace "oh no!"; default
 

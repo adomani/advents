@@ -19,7 +19,7 @@ def count_powers (l r : Array Nat) : Nat :=
   let appsize := appearing.size
   if appsize == 0 then 0 else 2 ^ (appsize - 1)
 
-#assert .getNumbers "askdlkaj12kj3lkj5".toList == [12, 3, 5]
+#assert String.getNats "askdlkaj12kj3lkj5" == [12, 3, 5]
 
 /-- `parseCard s` takes as input a string, assumes that it is of the form
 `Card <index>: <space_separated_nats> | <space_separated_nats>`
@@ -27,7 +27,7 @@ and returns the two  `Array` extracted from the two `<space_separated_nats>` sub
 def parseCard (s : String) : Array Nat × Array Nat :=
   let sdrop := s.dropWhile (· != ':')
   if let [s1, s2] := sdrop.splitOn "|" then
-    (s1.toList.getNumbers.toArray, s2.toList.getNumbers.toArray)
+    (s1.getNats.toArray, s2.getNats.toArray)
   else
     default
 

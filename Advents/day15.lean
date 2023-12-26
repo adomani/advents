@@ -108,7 +108,7 @@ def focPowOne (a : Array String) : Nat :=
   Id.run do
   let mut tot := 0
   for s in [:a.size] do
-    tot := tot + (s + 1) * (a[s]!.toList).getNumbers[0]!
+    tot := tot + (s + 1) * a[s]!.getNats[0]!
   return tot
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/

@@ -74,7 +74,7 @@ instance : ToString brick where
 /-- `String.toBrick s` converts a string `s` to a brick, by parsing `s` according to the
 rules of the day. -/
 def String.toBrick (s : String) : brick :=
-  match s.toList.getNumbers with
+  match s.getNats with
     | [a, b, c, d, e, f] =>
       -- first, we reorganize `(a, b, c), (d, e, f)` so that `(a, b, c) < (d, e, f)`
       let (x, y) := ((a, b, c), (d, e, f))

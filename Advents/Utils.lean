@@ -33,15 +33,15 @@ instance {A B} [Add A] [Add B] : Add (A × B) where
 instance {A B} [Sub A] [Sub B] : Sub (A × B) where
  sub x y := (x.1 - y.1, x.2 - y.2)
 
-/-- `List.getNumbers l` takes as input a list of characters and returns the list of
+/-- `List.getNats l` takes as input a list of characters and returns the list of
 `Nat` where each entry is the natural number corresponding to each consecutive
 sequence of digits in `l`, in their order. -/
 partial
-def List.getNumbers (l : List Char) : List Nat :=
+def String.getNats (l : String) : List Nat :=
   let l1 := l.dropWhile (!Char.isDigit ·)
   if l1.length == 0 then [] else
-    let d1 := String.toNat! ⟨l1.takeWhile (Char.isDigit ·)⟩
-    let fin := getNumbers (l1.dropWhile (Char.isDigit ·))
+    let d1 := String.toNat! ⟨l1.toList.takeWhile (Char.isDigit ·)⟩
+    let fin := getNats (l1.dropWhile (Char.isDigit ·))
   d1 :: fin
 
 /-- `String.getInts l` takes as input a string `l`, removes everything that is neither a digit,
@@ -110,7 +110,7 @@ elab "solve" part:num n:(num)? f:("file")?: command => do
   let rf := mkIdent <| if f.isSome then `IO.FS.readFile else `IO.FS.lines
   elabCommand (← `(command|
     #eval show MetaM _ from do
-      let day := ((System.FilePath.toString $inp).toList.getNumbers)[0]!
+      let day := ((System.FilePath.toString $inp).getNats)[0]!
       let answer := $p1 <| ← $rf $inp
       IO.println <| f!"Day {day}, part {$part}: {answer}"
       let ans := ($nn).getD answer
