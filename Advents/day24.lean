@@ -51,7 +51,7 @@ def det {α} [BEq α] [Inhabited α] [Add α] [Mul α] [HMul Int α α] (m : Arr
     if ! m.back[a]! == default then
       deti := deti + ((-1) ^ a : Int) * m.back[a]! * det (m.pop.map (Array.eraseIdx · a))
   ((-1) ^ (ms + 1) : Int) * deti
-set_option profiler true
+
 #assert det #[#[1, 0], #[0, 1]] == 1
 #assert det #[#[1, 0, 0], #[0, 1, 0], #[0, 0, 1]] == 1
 
