@@ -138,3 +138,4 @@ def addMyGames (num : Nat) : MetaM Unit := do
     let tadd2 := ← cadd tot.2 (Name.str .anonymous ("powers" ++ ⟨Nat.toDigits 10 i⟩))
     tot := (tadd1, tadd2)
   IO.println f!"Day 2, part 1: {tot.1}\nDay 2, part 2: {tot.2}"
+  guard (tot == (2169, 60948))

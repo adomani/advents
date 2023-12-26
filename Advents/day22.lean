@@ -29,28 +29,6 @@ abbrev vol := Int × Int × Int
 instance : HMul Nat vol vol where
   hMul a x := (a * x.1, a * x.2.1, a * x.2.2)
 
-section Instances_for_orders
-/-!
-# Instances for orders
-
-We introduce here instances on products, so that `vol` acquires them.
--/
-
-variable {α β} [LT α] [LT β]
-/-- The lexicographic order of a product. -/
-instance : LT (α × β) where
-  lt x y := (x.1 < y.1) ∨ ((x.1 = y.1) ∧ (x.2 < y.2))
-
-theorem Prod.lt_iff {x y : α × β} : x < y ↔
-    (x.1 < y.1) ∨ ((x.1 = y.1) ∧ (x.2 < y.2)) := Iff.rfl
-
-variable [DecidableEq α] [∀ a b : α, Decidable (a < b)] [∀ a b : β, Decidable (a < b)] in
-/-- If two ordered types have enough decidable assumptions, then the lexicographic
-product of the two types also has decidable inequalities. -/
-instance {a b : α × β} : Decidable (a < b) := decidable_of_iff' _ Prod.lt_iff
-
-end Instances_for_orders
-
 /-- A `brick` is a "linear" string of `vol`umes.  It is encoded by
 * `src`, its beginning position -- chosen so that the brick is in the
   positive orthant starting from `src`;
