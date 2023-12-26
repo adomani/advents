@@ -28,10 +28,6 @@ on `cols`, even though `Nat × Nat × Nat` has them.
 -/
 abbrev cols := Nat × Nat × Nat
 
-/-- We can add two `cols` componentwise. -/
-instance : Add cols where
-  add x y := (x.1 + y.1, x.2.1 + y.2.1, x.2.2 + y.2.2)
-
 /-- We can multiply a `cols` on the left by a scalar in `Nat`, multiplying each component. -/
 instance : HMul Nat cols cols where
   hMul a c := (a * c.1, a * c.2.1, a * c.2.2)

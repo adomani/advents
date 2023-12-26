@@ -19,10 +19,6 @@ on `cols`, even though `Nat × Nat × Nat` has them.
 -/
 abbrev cols := Nat × Nat × Nat
 
-/-- We can add two `cols` componentwise. -/
-instance : Add cols where
-  add x y := (x.1 + y.1, x.2.1 + y.2.1, x.2.2 + y.2.2)
-
 /-- `one_color s` takes a string `s` as input and returns a `cols`.
 If, ignoring spaces, the string is of the form
 `<digits> <red/green/blue>`
