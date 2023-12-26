@@ -26,25 +26,18 @@ def test := "...........
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- the four directions `L`eft, `R`ight, `U`p, `D`own. -/
-inductive dir | L | R | U | D
-  deriving BEq, DecidableEq, Inhabited, Repr
-
-/-- represent each direction by the corresponding arrow. -/
-instance : ToString dir where
-  toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓"
-
 /-- `dirs` is the list of directions `[.U, .D, .L, .R]`. -/
 abbrev dirs : List dir := [.U, .D, .L, .R]
 
 /-- converts a unit vector into the direction that is
 obtained by a counter-clockwise rotation.
 It is useful for defining orientations. -/
-def toPos : dir → pos
+def toCCWPos : dir → pos
   | .L => (  0, - 1)
   | .R => (  0,   1)
   | .U => (- 1,   0)
   | .D => (  1,   0)
+  | .S => (  0,   0)
 
 /-- finds the character `S` in `dat`, returning its two integer coordinates. -/
 def findS (dat : Array String) : pos :=
@@ -102,7 +95,7 @@ def mvs (rk gd : HashSet pos) (bd : Array pos) (f : pos → pos) : HashSet pos �
   let mut new : HashSet pos := gd
   let mut nbd := #[]
   for g in bd do
-    let mvs := (dirs.map (toPos · + g)).filter fun x => (rk.find? (f x)).isNone
+    let mvs := (dirs.map (toCCWPos · + g)).filter fun x => (rk.find? (f x)).isNone
     for m in mvs do
       let (n, tf) := new.insert' m
       new := n

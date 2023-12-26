@@ -38,31 +38,6 @@ def test := "#.#####################
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- the four directions `L`eft, `R`ight, `U`p, `D`own,
-and... `S`tay. -/
-inductive dir | L | R | U | D | S
-  deriving BEq, DecidableEq, Inhabited, Repr
-
-/-- represent each direction by the corresponding arrow. -/
-instance : ToString dir where
-  toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .S => "·"
-
-/-- `dir.toPos` converts a `dir`ection to the corresponding unit vector. -/
-def dir.toPos : dir →  pos
-  | .D => (  1,   0)
-  | .U => (- 1,   0)
-  | .L => (  0, - 1)
-  | .R => (  0,   1)
-  | .S => (  0,   0)
-
-/-- `Char.toDir` converts a single character to the corresponding unit vector. -/
-def Char.toDir : Char → dir
-  | '<' => .L
-  | '>' => .R
-  | '^' => .U
-  | 'v' => .D
-  | _ => .S
-
 /-- `uts` are the unit vectors pointing in the four cardinal directions. -/
 def uts : Array pos := #[(  1,   0), (- 1,   0), (  0, - 1), (  0,   1)]
 
