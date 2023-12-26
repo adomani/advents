@@ -192,7 +192,7 @@ def part1 (dat : Array String) : Nat :=
 
 #assert part1 atest == 5
 
-#eval "Sorry, part 1 is somewhat slow: ~45 seconds!  However, the answer is 441"
+#eval "Day 22, part 1: 441 (prerecorded, the actual computation takes: ~45 seconds!"
 --solve 1 441
 
 /-!
@@ -236,5 +236,5 @@ def part2 (dat : Array String) : Nat :=
 
 #assert part2 atest == 7
 
-#eval "Sorry, part 2 is very slow: ~24 minutes!  However, the answer is 80778"
+#eval "Day 22, part 2: 80778 (prerecorded, the actual computation takes: ~24 minutes!"
 --solve 2 80778
