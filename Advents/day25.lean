@@ -72,11 +72,12 @@ def printGraph (dat : Array String) (name : String := "test_graph") : IO Unit :=
   let dat ← IO.FS.lines input
   printGraph dat "Day25_graph"
 
-grep -A1 height Day25_graph.gv |
-  sed -n 's|.*pos="\([0-9]*\),\([0-9]*\)",|\1 \2|p' |
-  awk '($1+0 < 28610) { bef++ } ($1+0 > 28610) { aft++ } END {
-    printf("before: %s\nafter: %s\ntotal: %s\nanswer: %s\n", bef, aft, bef+aft, bef*aft)
-  }'
+awk -F'"' '/[^[]pos/ {
+  split($2, coos, ",")
+  if (coos[1] < 28610) { bef++ } else { aft++ }
+} END {
+  printf("before: %s\nafter: %s\ntotal: %s\nanswer: %s\n", bef, aft, bef+aft, bef*aft)
+}' Day25_graph.gv
 
 # before: 799
 # after: 775
