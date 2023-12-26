@@ -22,6 +22,9 @@ def test := "467..114..
 ...$.*....
 .664.598.."
 
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
+
 /-- `nbs` is the list of neighbours of `(0, 0)`, horizontally, vertically and diagonally. -/
 def nbs := Id.run do
   let mut t := #[]
@@ -110,6 +113,8 @@ def part1 (rows : Array String) : Nat :=
       tot := tot + dig
   return tot
 
+#assert part1 atest == 4361
+
 solve 1 531932
 
 /-!
@@ -157,6 +162,6 @@ def part2 (rows : Array String) : Nat :=
       | _ => 0
   gearRatios.sum
 
-#assert part2 ((test.splitOn "\n").toArray) == 467835
+#assert part2 atest == 467835
 
 solve 2 73646890

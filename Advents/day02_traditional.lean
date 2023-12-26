@@ -89,6 +89,9 @@ Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"
 
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
+
 /-- `part1 rows` takes an array of strings `rows` as input and produces that natural number
 that sums the Game IDs of all games that are possible assuming the number of cubes is bounded
 by `limit`. -/
@@ -98,7 +101,7 @@ def part1 (rows : Array String) : Nat :=
   let smallIDs := small.map Prod.fst
   smallIDs.sum
 
---#assert part1 (test.splitOn "\n").toArray == 8
+#assert part1 atest == 8
 
 solve 1 2169
 
@@ -126,6 +129,6 @@ def part2 (rows : Array String) : Nat :=
   let powers := sups.map fun ((a, b, c) : cols) => a * b * c
   powers.sum
 
---#assert part2 (test.splitOn "\n").toArray == 2286
+#assert part2 atest == 2286
 
 solve 2 60948

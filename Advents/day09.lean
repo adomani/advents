@@ -15,6 +15,9 @@ def test := "0 3 6 9 12 15
 1 3 6 10 15 21
 10 13 16 21 30 45"
 
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
+
 /-- `Nat.factorial n` -- the factorial of `n`. -/
 def Nat.factorial : Nat → Nat
   | 0 => 1
@@ -92,7 +95,7 @@ def parts (dat : Array (List Int)) : Int :=
 def part1 (oasis : Array String) : Int :=
   parts <| oasis.map (String.getInts)
 
-#assert part1 (test.splitOn "\n").toArray == 114
+#assert part1 atest == 114
 
 solve 1 1884768153
 
@@ -104,6 +107,6 @@ solve 1 1884768153
 def part2 (oasis : Array String) : Int :=
   parts <| (oasis.map (String.getInts)).map .reverse
 
-#assert part2 (test.splitOn "\n").toArray == 2
+#assert part2 atest == 2
 
 solve 2 1031
