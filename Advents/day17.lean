@@ -50,6 +50,8 @@ def dir.rev : dir → dir
     | .R => .L
     | .S => .S
 
+#assert #[.U, .D, .R, .L, .S].map dir.rev == #[.D, .U, .L, .R, .S]
+
 /-- Adding a direction to a position moves one step in the corresponding direction. -/
 instance : HAdd dir pos pos where
   hAdd := (dir.toPos · + ·)
@@ -62,14 +64,19 @@ def mvs (sz : Nat) (p : pos) : Array dir :=
   let right : Option dir := if p.2 < sz then some .R else none
   #[up, left, down, right].reduceOption
 
-#eval
-  mvs 4 (4, 3)
+#assert mvs 4 (4, 3) == #[.U, .L, .R]
 
 --abbrev path := Array Nat × pos × pos
 --
 --instance : Ord path where
 --  compare x y := compare x.1.sum y.1.sum
 
+/-- A `path` is a structure containing
+* `.sum`, the current sum of the values along the path;
+* `.loc`, the array of visited `pos`itions;
+* `.cpos`, the current position;
+* `.past`, the last three `dir`ections in which the path moved.
+-/
 structure path where
   (sum  : Nat)
   (loc  : Array pos)
@@ -77,14 +84,12 @@ structure path where
   (past : dir × dir × dir)
   deriving Inhabited
 
-
 instance : ToString path where
   toString x := s!"\n* sum: {x.sum}, past: {x.past}\n* {x.loc}"
 
-variable {α} [Ord α] in
-#synth Ord Int --(List α)
-
-def LexCompare {α} [Ord α] : List α → List α → Ordering
+instance {α} [Ord α] : Ord (List α) where
+  compare := LexCompare where
+  LexCompare {α} [Ord α] : List α → List α → Ordering
     | [], [] => .eq
     | [], _ => .lt
     | _, [] => .gt
@@ -92,11 +97,10 @@ def LexCompare {α} [Ord α] : List α → List α → Ordering
       | .eq => LexCompare xs ys
       | c => c
 
-instance {α} [Ord α] : Ord (List α) where
-  compare x y := LexCompare x y
-
 partial
-def ArrayLexCompare {α} [Inhabited α] [Ord α] (a b : Array α) : Ordering :=
+instance {α} [Inhabited α] [Ord α] : Ord (Array α) where
+  compare := ArrayLexCompare where
+  ArrayLexCompare {α} [Inhabited α] [Ord α] (a b : Array α) : Ordering :=
   match a.size, b.size with
     | 0, 0 => .eq
     | 0, _ => .lt
@@ -105,13 +109,15 @@ def ArrayLexCompare {α} [Inhabited α] [Ord α] (a b : Array α) : Ordering :=
       | .eq => ArrayLexCompare a.pop b.pop
       | c => c
 
-instance {α} [Inhabited α] [Ord α] : Ord (Array α) where
-  compare x y := ArrayLexCompare x y
-
 instance {α β} [Ord α] [Ord β] : Ord (α × β) where
   compare x y := match compare x.1 y.1 with
     | .eq => compare x.2 y.2
     | g => g
+
+local instance : ToString Ordering where
+  toString | .eq => "(=)" | .lt => "(<)" | .gt => "(>)"
+
+#eval do IO.println <| Ord.compare (0, 2) (1, 1)
 
 instance : Ord path where
   compare x y := compare (x.sum, x.loc) (y.sum, y.loc)
@@ -130,12 +136,11 @@ def getNbs (sz : Nat) (curr : path) :=
   (mvs (sz) cpos).filter fun d : dir =>
     let cp3 := curr.past.2.2
     ((curr.loc.contains cpos)) &&
-    ( let dc := cpos - ((sz/2 : Int), (sz/2 : Int)); (10 * sz / (2 * 11))^2 ≤ dc.1 ^ 2 + dc.2 ^ 2) &&
+    ( let (dx, dy) := cpos - ((sz/2 : Int), (sz/2 : Int))
+      (10 * sz / (2 * 11))^2 ≤ dx ^ 2 + dy ^ 2) &&
 --    ((if 3 ≤ curr.loc.size then let c1 := curr.loc.pop.pop.back; c1.1 < cpos.1 || c1.2 < cpos.2 else true )) &&
     (! (d == cp3.rev)) &&
     (! (curr.past.1 == cp3 && curr.past.2.1 == cp3 && d == cp3)) --&& (! (d + cpos) ∈ curr.loc)
-
-#eval [.U, .D, .R, .L].map dir.rev
 
 #eval getNbs 10 ⟨0, #[(1, 0), (1, 1)], (1, 1), (.R, .R, .R)⟩
 
