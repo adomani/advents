@@ -62,9 +62,9 @@ def mvs (sz : Nat) (p : pos) : Array dir :=
   let left  : Option dir := if 0 < p.2 then some .L else none
   let down  : Option dir := if p.1 < sz then some .D else none
   let right : Option dir := if p.2 < sz then some .R else none
-  #[up, left, down, right].reduceOption
+  #[right, down, up, left].reduceOption
 
-#assert mvs 4 (4, 3) == #[.U, .L, .R]
+#assert mvs 4 (4, 3) == #[.R, .U, .L]
 
 --abbrev path := Array Nat × pos × pos
 --
@@ -124,7 +124,7 @@ local instance : ToString Ordering where
 #eval do IO.println <| Ord.compare (0, 2) (1, 1)
 
 instance : Ord path where
-  compare x y := compare (x.sum, x.loc) (y.sum, y.loc)
+  compare x y := compare (x.sum, -(x.cpos.1 + x.cpos.2), x.loc) (y.sum, -(y.cpos.1 + y.cpos.2), y.loc)
 
 def path.add (gr : HashMap pos Nat) (p : path) (x : dir) : path :=
   let new := x + p.cpos
@@ -136,13 +136,9 @@ def path.add (gr : HashMap pos Nat) (p : path) (x : dir) : path :=
 def getNbs (sz : Nat) (curr : path) :=
   let cpos := curr.cpos
   (mvs sz cpos).filter fun d : dir =>
-    let cp3 := curr.past.2.2
-    (!(curr.loc.contains cpos)) &&
-    ( let (dx, dy) := cpos - ((sz/2 : Int), (sz/2 : Int))
-      (10 * sz / (2 * 11))^2 ≤ dx ^ 2 + dy ^ 2) &&
---    ((if 3 ≤ curr.loc.size then let c1 := curr.loc.pop.pop.back; c1.1 < cpos.1 || c1.2 < cpos.2 else true )) &&
-    (! (d == cp3.rev)) &&
-    (! (curr.past.1 == cp3 && curr.past.2.1 == cp3 && d == cp3)) --&& (! (d + cpos) ∈ curr.loc)
+    let (d0, d1, d2) := curr.past
+    (! (d == d2.rev)) &&
+    (! (d0 == d1 && d0 == d2 && d0 == d))
 
 def getNbs' (sz : Nat) (curr : path) :=
   let cpos := curr.cpos
@@ -180,7 +176,7 @@ def test2 :=
 222211
 222221"
 
-
+set_option profiler true
 def btest := (test2.splitOn "\n").toArray
 
 #eval atest
@@ -188,56 +184,52 @@ def btest := (test2.splitOn "\n").toArray
 
 #eval (atest.size, atest[0]!.length)
 #eval (btest.size, btest[0]!.length)
+def mkLB (sz : Nat) (p : path) : Nat :=
+  p.sum + (sz - p.cpos.1).natAbs + (sz - p.cpos.2).natAbs
 
 #eval do
-  let tak := 30
---  let dat := (dat.toList.take tak).toArray.map (String.take · tak)
-  let dat := (test1.splitOn "\n").toArray
-  let dat := atest
+  let tak := 500
   let dat := btest
---  IO.println dat
---#exit
---  let sz : Nat := 1
+  let dat ← IO.FS.lines input --:= (test1.splitOn "\n").toArray
+  let dat := atest
   let sz : Nat := dat.size-1
---  IO.println s!"{sz} {dat.size-1}"
   let grid := dat.toNats
---  IO.println grid.toList
   let ip : pos := (0, 0)
-  let init : path := ⟨(grid.findD ip default) * 0, #[ip], ip, (.S, .S, .S)⟩
+  let init : path := ⟨/-(grid.findD ip default) *-/ 0, #[ip], ip, (.S, .S, .S)⟩
   let mut toEnd : Array path := #[]
   let mut pths : RBTree path compare := RBTree.empty.insert init
-  let mut upb := 200
+  let mut upb := 1005
   let mut con := 1
-  while con ≤ tak && ! pths.isEmpty do
+  let mut curLB := mkLB sz pths.min.get!
+  while con < tak && ! pths.isEmpty do
     con := con + 1
-    IO.print s!"{con} "
---      let cc := pths.max.get!
---      pths := pths.erase cc
-    let mut spth : RBTree path compare := RBTree.empty
+--    let mut spth : RBTree path compare := RBTree.empty
     for cc in pths do
---        IO.println s!"{con} is con and {cc.loc.size} is the length of the path"
---      if cc.sum ≤ upb then
+        let (cx, cy) := cc.cpos
         if cc.cpos = ((sz, sz) : pos) then
---          dbg_trace "final place: {cc.cpos}"
           toEnd := toEnd.push cc
           upb := min upb cc.sum
           toEnd := toEnd.filter (path.sum · ≤ upb + 1)
-  --        dbg_trace "updated upb: {upb} {cc.loc.size}"
         else
-          let nbs := getNbs sz cc
-          let news := nbs.map fun x : dir => cc.add grid x
-          for nn in news do
-            if nn.sum ≤ upb then
---              dbg_trace "inserting {nn}"
-              spth := spth.insert nn
---        dbg_trace spth.toList
-    dbg_trace spth.size
-    pths := spth
---              pths := pths.insert nn
---    for cc in pths do if cc.loc.size < con then
-----      dbg_trace "erasing with con {con} and sum {cc.sum}"
---      pths := pths.erase cc
-      --if upb ≤ cc.sum then
+        if mkLB sz cc ≤ curLB then
+          let bd := 1
+--          if ((cx + cy)) * (10 * con + 10) ≤ cc.loc.size * (10 * con + 10) then
+            if cx ≤ bd ∨ sz - bd ≤ cy then
+              let nbs := (getNbs sz cc).erase
+                (if cc.loc.size ≤ (sz - 2) / 2 then .L else
+                 if (sz + 2) / 2 ≤ cc.loc.size then .U else .S)
+              let news := nbs.map fun x : dir => cc.add grid x
+              for nn in news do
+                if nn.sum ≤ upb then
+                  pths := pths.insert nn
+        pths := pths.erase cc
+    IO.println s!"{con} {pths.size}"
+    curLB := mkLB sz pths.min.get!
+  IO.println ""
+--  IO.print pths.toList
+  IO.print pths.min
+--  draw dat
+--  for p in pths do IO.println p.sum
   IO.println "\ntoEnd:\n"
   let sorted := (toEnd.qsort (path.sum · < path.sum ·)) --[0]!
 --  for s in sorted do IO.println s.sum; draw <| toPic s.loc sz sz
