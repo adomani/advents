@@ -23,5 +23,5 @@
 |[21](descriptions_with_tests.md#day-21)|Where can the gardener be.  (Missing part 2)|
 |[22](descriptions_with_tests.md#day-22)|Falling bricks.|
 |[23](descriptions_with_tests.md#day-23)|Maze and icy slopes.  (Missing part 2)|
-|[24](descriptions_with_tests.md#day-24)|Hitting snowflakes.  (Missing part 2)|
+|[24](descriptions_with_tests.md#day-24)|Hitting snowflakes.|
 |[25](descriptions_with_tests.md#day-25)|Wiring diagram. (Only one part, not done only in Lean!)|

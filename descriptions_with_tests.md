@@ -950,7 +950,7 @@ ignored now.
 
 #  [Day 24](https://adventofcode.com/2023/day/24)
 
-Hitting snowflakes.  (Missing part 2)
+Hitting snowflakes.
 
 ####  Test
 
@@ -976,6 +976,11 @@ ray will intersect in some region of the plane in *future* time.
 
 Considering the full information, figure out the coordinates of a point in space
 such that starting from there with some velocity vector, you will hit all snowflakes.
+
+I solved this, using what is probably the easiest, non-trivial example of a Schubert
+calculus computation: finding the lines in space that meet 4 given general lines.
+
+The implementation is a little clunky and especially computing determinants is really slow!
 
 [Solution in Lean](Advents/day24.lean)
 
@@ -1012,7 +1017,7 @@ number of vertices in the two components.
 _Note._
 I used Lean to print a `dot` file with the graph.
 Looked at the graph drawn by `dot` and visually determined bounds.
-Then I used `awk` to extract the final answer.
+Then used `awk` to extract the final answer.
 
 [Solution in Lean](Advents/day25.lean)
 
