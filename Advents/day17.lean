@@ -39,42 +39,22 @@ def Array.toNats (dat : Array String) : HashMap pos Nat :=
       tot := tot ++ row
     return tot
 
-/-- `dir` is the Type of the four cardinal directions `N`, `W`, `S`, `E` and a "don't move" direction `X`. -/
-inductive dir | N | W | S | E | X
-  deriving BEq, DecidableEq, Inhabited, Repr, Hashable
-
-/-- Custom printing each cardinal direction as an arrow pointing in that direction. -/
-instance : ToString dir where
-  toString
-    | .N => "↑"
-    | .W => "←"
-    | .S => "↓"
-    | .E => "→"
-    | .X => "·"
-
 def dir.rev : dir → dir
-    | .N => .S
-    | .W => .E
-    | .S => .N
-    | .E => .W
-    | .X => .X
-
-def dir.toPos : dir → pos
-  | .N => (- 1,   0)
-  | .W => (  0, - 1)
-  | .S => (  1,   0)
-  | .E => (  0,   1)
-  | .X => (  0,   0)
+    | .U => .D
+    | .L => .R
+    | .D => .U
+    | .R => .L
+    | .S => .S
 
 /-- Adding a direction to a position moves one step in the corresponding direction. -/
 instance : HAdd dir pos pos where
   hAdd := (dir.toPos · + ·)
 
 def mvs (m : Nat) (p : pos) : Array dir :=
-  let up    : Option dir := if 0 < p.1 then some .N else none
-  let left  : Option dir := if 0 < p.2 then some .W else none
-  let down  : Option dir := if p.1 < m then some .S else none
-  let right : Option dir := if p.2 < m then some .E else none
+  let up    : Option dir := if 0 < p.1 then some .U else none
+  let left  : Option dir := if 0 < p.2 then some .L else none
+  let down  : Option dir := if p.1 < m then some .D else none
+  let right : Option dir := if p.2 < m then some .R else none
   #[up, left, down, right].reduceOption
 
 #eval
@@ -150,9 +130,9 @@ def getNbs (sz : Nat) (curr : path) :=
     (! (d == cp3.rev)) &&
     (! (curr.past.1 == cp3 && curr.past.2.1 == cp3 && d == cp3)) --&& (! (d + cpos) ∈ curr.loc)
 
-#eval [.N, .S, .E, .W].map dir.rev
+#eval [.U, .D, .R, .L].map dir.rev
 
-#eval getNbs 10 ⟨0, #[(1, 0), (1, 1)], (1, 1), (.E, .E, .E)⟩
+#eval getNbs 10 ⟨0, #[(1, 0), (1, 1)], (1, 1), (.R, .R, .R)⟩
 
 --#exit
 
@@ -162,7 +142,7 @@ def getNbs (sz : Nat) (curr : path) :=
   let grid := dat.toNats
   let ip : pos := (0, 0)
   let ip : pos := (0, sz)
-  let init : path := ⟨grid.findD ip default, #[ip], ip, (.X, .X, .X)⟩ --(#[grid.findD ip default], (.X, ip))
+  let init : path := ⟨grid.findD ip default, #[ip], ip, (.S, .S, .S)⟩ --(#[grid.findD ip default], (.X, ip))
   IO.println <| getNbs sz init
 
 
@@ -190,8 +170,8 @@ def btest := (test2.splitOn "\n").toArray
   let tak := 30
 --  let dat := (dat.toList.take tak).toArray.map (String.take · tak)
   let dat := (test1.splitOn "\n").toArray
-  let dat := btest
   let dat := atest
+  let dat := btest
 --  IO.println dat
 --#exit
 --  let sz : Nat := 1
@@ -200,7 +180,7 @@ def btest := (test2.splitOn "\n").toArray
   let grid := dat.toNats
 --  IO.println grid.toList
   let ip : pos := (0, 0)
-  let init : path := ⟨(grid.findD ip default) * 0, #[ip], ip, (.X, .X, .X)⟩
+  let init : path := ⟨(grid.findD ip default) * 0, #[ip], ip, (.S, .S, .S)⟩
   let mut toEnd : Array path := #[]
   let mut pths : RBTree path compare := RBTree.empty.insert init
   let mut upb := 200
@@ -318,7 +298,7 @@ def btest := (test2.splitOn "\n").toArray
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
 
---#assert part1 (test.splitOn "\n").toArray == ???
+--#assert part1 atest == ???
 
 --solve 1
 
@@ -330,6 +310,6 @@ def part1 (dat : Array String) : Nat := sorry
 def part2 (dat : Array String) : Nat := sorry
 --def part2 (dat : String) : Nat :=
 
---#assert part2 (test.splitOn "\n").toArray == ???
+--#assert part2 atest == ???
 
 --solve 2
