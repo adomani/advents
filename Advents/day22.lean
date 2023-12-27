@@ -29,28 +29,6 @@ abbrev vol := Int × Int × Int
 instance : HMul Nat vol vol where
   hMul a x := (a * x.1, a * x.2.1, a * x.2.2)
 
-section Instances_for_orders
-/-!
-# Instances for orders
-
-We introduce here instances on products, so that `vol` acquires them.
--/
-
-variable {α β} [LT α] [LT β]
-/-- The lexicographic order of a product. -/
-instance : LT (α × β) where
-  lt x y := (x.1 < y.1) ∨ ((x.1 = y.1) ∧ (x.2 < y.2))
-
-theorem Prod.lt_iff {x y : α × β} : x < y ↔
-    (x.1 < y.1) ∨ ((x.1 = y.1) ∧ (x.2 < y.2)) := Iff.rfl
-
-variable [DecidableEq α] [∀ a b : α, Decidable (a < b)] [∀ a b : β, Decidable (a < b)] in
-/-- If two ordered types have enough decidable assumptions, then the lexicographic
-product of the two types also has decidable inequalities. -/
-instance {a b : α × β} : Decidable (a < b) := decidable_of_iff' _ Prod.lt_iff
-
-end Instances_for_orders
-
 /-- A `brick` is a "linear" string of `vol`umes.  It is encoded by
 * `src`, its beginning position -- chosen so that the brick is in the
   positive orthant starting from `src`;
@@ -74,7 +52,7 @@ instance : ToString brick where
 /-- `String.toBrick s` converts a string `s` to a brick, by parsing `s` according to the
 rules of the day. -/
 def String.toBrick (s : String) : brick :=
-  match s.toList.getNumbers with
+  match s.getNats with
     | [a, b, c, d, e, f] =>
       -- first, we reorganize `(a, b, c), (d, e, f)` so that `(a, b, c) < (d, e, f)`
       let (x, y) := ((a, b, c), (d, e, f))
@@ -192,7 +170,7 @@ def part1 (dat : Array String) : Nat :=
 
 #assert part1 atest == 5
 
-#eval "Sorry, part 1 is somewhat slow: ~45 seconds!  However, the answer is 441"
+#eval "Day 22, part 1: 441   (prerecorded, the actual computation takes: ~45 seconds!"
 --solve 1 441
 
 /-!
@@ -236,5 +214,5 @@ def part2 (dat : Array String) : Nat :=
 
 #assert part2 atest == 7
 
-#eval "Sorry, part 2 is very slow: ~24 minutes!  However, the answer is 80778"
+#eval "Day 22, part 2: 80778 (prerecorded, the actual computation takes: ~24 minutes!"
 --solve 2 80778

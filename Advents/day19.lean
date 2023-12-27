@@ -128,7 +128,7 @@ def part1 (dat : Array String) : Nat :=
   let res := dataParts.map (valPart dat)
   res.sum
 
-#assert part1 (test.splitOn "\n").toArray == 19114
+#assert part1 atest == 19114
 
 solve 1 342650
 

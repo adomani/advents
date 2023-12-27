@@ -893,3 +893,132 @@ numbers.
 [Solution in Lean](Advents/day22.lean)
 
 ---
+
+#  [Day 23](https://adventofcode.com/2023/day/23)
+
+Maze and icy slopes.  (Missing part 2)
+
+####  Test
+
+<pre>
+#.#####################
+#.......#########...###
+#######.#########.#.###
+###.....#.>.>.###.#.###
+###v#####.#v#.###.#.###
+###.>...#.#.#.....#...#
+###v###.#.#.#########.#
+###...#.#.#.......#...#
+#####.#.#.#######.#.###
+#.....#.#.#.......#...#
+#.#####.#.#.#########v#
+#.#...#...#...###...>.#
+#.#.#v#######v###.###v#
+#...#.>.#...>.>.#.###.#
+#####v#.#.###v#.#.###.#
+#.....#...#...#.#.#...#
+#.#########.###.#.#.###
+#...###...#...#...#.###
+###.###.#.###v#####v###
+#...#...#.#.>.>.#.>.###
+#.###.###.#.###.#.#v###
+#.....###...###...#...#
+#####################.#
+</pre>
+
+### Description
+
+The input is a maze with some locations marked with `>`, `<`, `v`, `^`.
+The two parts ask to find the longest, non-backtracking path through the maze,
+possibly with further constraints.
+
+#### Part 1
+
+In part 1, besides not being allowed to backtrack, the path cannot go in a direction
+opposing one of the marked locations.
+It turns out that most (all?) such locations are at places where there is a bifurcation
+in the maze.
+
+#### Part 2
+
+In part 2, the path is only required to not backtrack: the special locations should be
+ignored now.
+
+[Solution in Lean](Advents/day23.lean)
+
+---
+
+#  [Day 24](https://adventofcode.com/2023/day/24)
+
+Hitting snowflakes.
+
+####  Test
+
+<pre>
+19, 13, 30 @ -2,  1, -2
+18, 19, 22 @ -1, -1, -2
+20, 25, 34 @ -2, -2, -4
+12, 31, 28 @ -1, -2, -1
+20, 19, 15 @  1, -5, -3
+</pre>
+
+### Description
+
+The input describes snowflakes describing linear trajectories:
+for each snowflakes, the data consists of its initial position and its velocity vector.
+
+#### Part 1
+
+Ignoring the `z`-axis, we should figure out how many `(x, y)`-coordinates of each
+ray will intersect in some region of the plane in *future* time.
+
+#### Part 2
+
+Considering the full information, figure out the coordinates of a point in space
+such that starting from there with some velocity vector, you will hit all snowflakes.
+
+I solved this, using what is probably the easiest, non-trivial example of a Schubert
+calculus computation: finding the lines in space that meet 4 given general lines.
+
+The implementation is a little clunky and especially computing determinants is really slow!
+
+[Solution in Lean](Advents/day24.lean)
+
+---
+
+#  [Day 25](https://adventofcode.com/2023/day/25)
+
+Wiring diagram. (Only one part, not done only in Lean!)
+
+####  Test
+
+<pre>
+jqt: rhn xhk nvd
+rsh: frs pzl lsr
+xhk: hfx
+cmg: qnr nvd lhk bvb
+rhn: xhk bvb hfx
+bvb: xhk hfx
+pzl: lsr hfx nvd
+qnr: nvd
+ntq: jqt hfx bvb xhk
+nvd: lhk
+lsr: lhk
+rzs: qnr cmg lsr rsh
+frs: qnr lhk lsr
+</pre>
+
+### Description
+
+The data encodes a wiring diagram -- a graph.
+We should find a cut-set of size three for the graph and compute the product of the
+number of vertices in the two components.
+
+_Note._
+I used Lean to print a `dot` file with the graph.
+Looked at the graph drawn by `dot` and visually determined bounds.
+Then used `awk` to extract the final answer.
+
+[Solution in Lean](Advents/day25.lean)
+
+---

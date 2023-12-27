@@ -15,18 +15,8 @@ def test := "0 3 6 9 12 15
 1 3 6 10 15 21
 10 13 16 21 30 45"
 
-/-- `String.getInts l` takes as input a string `l`, removes everything that is neither a digit,
-not a minus sign (`-`) and interprets the rest as a list of integers. -/
-partial
-def String.getInts (l : String) : List Int :=
-  let cond : Char → Bool := fun c => (Char.isDigit c) || (c == '-')
-  let l1 := l.dropWhile (!cond ·)
-  if l1.length == 0 then [] else
-    let d1 := String.toInt! (l1.takeWhile cond)
-    let fin := getInts (l1.dropWhile cond)
-  d1 :: fin
-
-#assert "0 2 -3".getInts = [0, 2, -3]
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
 
 /-- `Nat.factorial n` -- the factorial of `n`. -/
 def Nat.factorial : Nat → Nat
@@ -105,7 +95,7 @@ def parts (dat : Array (List Int)) : Int :=
 def part1 (oasis : Array String) : Int :=
   parts <| oasis.map (String.getInts)
 
-#assert part1 (test.splitOn "\n").toArray == 114
+#assert part1 atest == 114
 
 solve 1 1884768153
 
@@ -117,6 +107,6 @@ solve 1 1884768153
 def part2 (oasis : Array String) : Int :=
   parts <| (oasis.map (String.getInts)).map .reverse
 
-#assert part2 (test.splitOn "\n").toArray == 2
+#assert part2 atest == 2
 
 solve 2 1031

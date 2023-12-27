@@ -28,10 +28,6 @@ on `cols`, even though `Nat × Nat × Nat` has them.
 -/
 abbrev cols := Nat × Nat × Nat
 
-/-- We can add two `cols` componentwise. -/
-instance : Add cols where
-  add x y := (x.1 + y.1, x.2.1 + y.2.1, x.2.2 + y.2.2)
-
 /-- We can multiply a `cols` on the left by a scalar in `Nat`, multiplying each component. -/
 instance : HMul Nat cols cols where
   hMul a c := (a * c.1, a * c.2.1, a * c.2.2)
@@ -142,3 +138,4 @@ def addMyGames (num : Nat) : MetaM Unit := do
     let tadd2 := ← cadd tot.2 (Name.str .anonymous ("powers" ++ ⟨Nat.toDigits 10 i⟩))
     tot := (tadd1, tadd2)
   IO.println f!"Day 2, part 1: {tot.1}\nDay 2, part 2: {tot.2}"
+  guard (tot == (2169, 60948))

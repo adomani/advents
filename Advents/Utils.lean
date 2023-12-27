@@ -25,6 +25,13 @@ def Array.prod [Mul α] (l : Array α) : α :=
 
 end sums
 
+section Instances_for_orders
+/-!
+# Instances for orders
+
+We introduce here instances on products, so that `vol` acquires them.
+-/
+
 /-- the component-wise addition of pairs of integers. -/
 instance {A B} [Add A] [Add B] : Add (A × B) where
   add x y := (x.1 + y.1, x.2 + y.2)
@@ -33,15 +40,41 @@ instance {A B} [Add A] [Add B] : Add (A × B) where
 instance {A B} [Sub A] [Sub B] : Sub (A × B) where
  sub x y := (x.1 - y.1, x.2 - y.2)
 
-/-- `List.getNumbers l` takes as input a list of characters and returns the list of
+variable {α β} [LT α] [LT β]
+/-- The lexicographic order of a product. -/
+instance : LT (α × β) where
+  lt x y := (x.1 < y.1) ∨ ((x.1 = y.1) ∧ (x.2 < y.2))
+
+theorem Prod.lt_iff {x y : α × β} : x < y ↔
+    (x.1 < y.1) ∨ ((x.1 = y.1) ∧ (x.2 < y.2)) := Iff.rfl
+
+variable [DecidableEq α] [∀ a b : α, Decidable (a < b)] [∀ a b : β, Decidable (a < b)] in
+/-- If two ordered types have enough decidable assumptions, then the lexicographic
+product of the two types also has decidable inequalities. -/
+instance {a b : α × β} : Decidable (a < b) := decidable_of_iff' _ Prod.lt_iff
+
+end Instances_for_orders
+
+/-- `List.getNats l` takes as input a list of characters and returns the list of
 `Nat` where each entry is the natural number corresponding to each consecutive
 sequence of digits in `l`, in their order. -/
 partial
-def List.getNumbers (l : List Char) : List Nat :=
+def String.getNats (l : String) : List Nat :=
   let l1 := l.dropWhile (!Char.isDigit ·)
   if l1.length == 0 then [] else
-    let d1 := String.toNat! ⟨l1.takeWhile (Char.isDigit ·)⟩
-    let fin := getNumbers (l1.dropWhile (Char.isDigit ·))
+    let d1 := String.toNat! ⟨l1.toList.takeWhile (Char.isDigit ·)⟩
+    let fin := getNats (l1.dropWhile (Char.isDigit ·))
+  d1 :: fin
+
+/-- `String.getInts l` takes as input a string `l`, removes everything that is neither a digit,
+not a minus sign (`-`) and interprets the rest as a list of integers. -/
+partial
+def String.getInts (l : String) : List Int :=
+  let cond : Char → Bool := fun c => (Char.isDigit c) || (c == '-')
+  let l1 := l.dropWhile (!cond ·)
+  if l1.length == 0 then [] else
+    let d1 := String.toInt! (l1.takeWhile cond)
+    let fin := getInts (l1.dropWhile cond)
   d1 :: fin
 
 /-- Transpose an array of strings. -/
@@ -59,6 +92,31 @@ def Array.transpose (s : Array String) : Array String :=
 
 /-- A `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int
+
+/-- the four directions `L`eft, `R`ight, `U`p, `D`own,
+and... `S`tay. -/
+inductive dir | L | R | U | D | S
+  deriving BEq, DecidableEq, Inhabited, Repr
+
+/-- represent each direction by the corresponding arrow. -/
+instance : ToString dir where
+  toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .S => "·"
+
+/-- `dir.toPos` converts a `dir`ection to the corresponding unit vector. -/
+def dir.toPos : dir →  pos
+  | .D => (  1,   0)
+  | .U => (- 1,   0)
+  | .L => (  0, - 1)
+  | .R => (  0,   1)
+  | .S => (  0,   0)
+
+/-- `Char.toDir` converts a single character to the corresponding unit vector. -/
+def Char.toDir : Char → dir
+  | '<' => .L
+  | '>' => .R
+  | '^' => .U
+  | 'v' => .D
+  | _ => .S
 
 section meta
 open Lean Elab Command
@@ -99,7 +157,7 @@ elab "solve" part:num n:(num)? f:("file")?: command => do
   let rf := mkIdent <| if f.isSome then `IO.FS.readFile else `IO.FS.lines
   elabCommand (← `(command|
     #eval show MetaM _ from do
-      let day := ((System.FilePath.toString $inp).toList.getNumbers)[0]!
+      let day := ((System.FilePath.toString $inp).getNats)[0]!
       let answer := $p1 <| ← $rf $inp
       IO.println <| f!"Day {day}, part {$part}: {answer}"
       let ans := ($nn).getD answer
@@ -157,3 +215,9 @@ def toPic (gr : Array pos) (Nx Ny : Nat) : Array String :=
         if gr.contains (i, j) then str := str.push '#' else str := str.push '.'
       rows := rows.push str
     return rows
+
+section tests
+
+#assert "0 2 -3".getInts = [0, 2, -3]
+
+end tests
