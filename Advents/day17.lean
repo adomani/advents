@@ -121,8 +121,6 @@ local instance : ToString Ordering where
 
 instance : Ord path where
   compare x y := compare (x.sum, x.loc) (y.sum, y.loc)
---    match compare (x.sum) (y.sum) with
---      | .eq => compare (x.loc.toList) y.loc.toList
 
 def path.add (gr : HashMap pos Nat) (p : path) (x : dir) : path :=
   let new := x + p.cpos
@@ -133,7 +131,7 @@ def path.add (gr : HashMap pos Nat) (p : path) (x : dir) : path :=
 
 def getNbs (sz : Nat) (curr : path) :=
   let cpos := curr.cpos
-  (mvs (sz) cpos).filter fun d : dir =>
+  (mvs sz cpos).filter fun d : dir =>
     let cp3 := curr.past.2.2
     ((curr.loc.contains cpos)) &&
     ( let (dx, dy) := cpos - ((sz/2 : Int), (sz/2 : Int))
