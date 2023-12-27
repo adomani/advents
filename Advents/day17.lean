@@ -78,9 +78,13 @@ def mvs (sz : Nat) (p : pos) : Array dir :=
 * `.past`, the last three `dir`ections in which the path moved.
 -/
 structure path where
+  /-- `path.sum`, the current sum of the values along the path -/
   (sum  : Nat)
+  /-- `path.loc`, the array of visited `pos`itions -/
   (loc  : Array pos)
+  /-- `path.cpos`, the current position -/
   (cpos : pos)
+  /-- `path.past`, the last three `dir`ections in which the path moved -/
   (past : dir × dir × dir)
   deriving Inhabited
 
@@ -130,6 +134,17 @@ def path.add (gr : HashMap pos Nat) (p : path) (x : dir) : path :=
     past := (p.past.2.1, p.past.2.2, x) }
 
 def getNbs (sz : Nat) (curr : path) :=
+  let cpos := curr.cpos
+  (mvs sz cpos).filter fun d : dir =>
+    let cp3 := curr.past.2.2
+    (!(curr.loc.contains cpos)) &&
+    ( let (dx, dy) := cpos - ((sz/2 : Int), (sz/2 : Int))
+      (10 * sz / (2 * 11))^2 ≤ dx ^ 2 + dy ^ 2) &&
+--    ((if 3 ≤ curr.loc.size then let c1 := curr.loc.pop.pop.back; c1.1 < cpos.1 || c1.2 < cpos.2 else true )) &&
+    (! (d == cp3.rev)) &&
+    (! (curr.past.1 == cp3 && curr.past.2.1 == cp3 && d == cp3)) --&& (! (d + cpos) ∈ curr.loc)
+
+def getNbs' (sz : Nat) (curr : path) :=
   let cpos := curr.cpos
   (mvs sz cpos).filter fun d : dir =>
     let cp3 := curr.past.2.2
