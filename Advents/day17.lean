@@ -28,6 +28,8 @@ def test := "2413432311323
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- convert the input for the problem into a `HashMap`,
+assigning to each `pos`ition the corresponding natural number. -/
 def Array.toNats (dat : Array String) : HashMap pos Nat :=
   let lth := dat.size
   let wdth := dat[0]!.length
@@ -39,6 +41,8 @@ def Array.toNats (dat : Array String) : HashMap pos Nat :=
       tot := tot ++ row
     return tot
 
+/-- `dir.rev d` reverses the direction `d`:
+it swaps the pairs `U ↔ D` and `L ↔ R` and fixes `S`. -/
 def dir.rev : dir → dir
     | .U => .D
     | .L => .R
@@ -50,11 +54,12 @@ def dir.rev : dir → dir
 instance : HAdd dir pos pos where
   hAdd := (dir.toPos · + ·)
 
-def mvs (m : Nat) (p : pos) : Array dir :=
+/-- the available moves in a grid of size `sz × sz` at the `pos`ition `p`. -/
+def mvs (sz : Nat) (p : pos) : Array dir :=
   let up    : Option dir := if 0 < p.1 then some .U else none
   let left  : Option dir := if 0 < p.2 then some .L else none
-  let down  : Option dir := if p.1 < m then some .D else none
-  let right : Option dir := if p.2 < m then some .R else none
+  let down  : Option dir := if p.1 < sz then some .D else none
+  let right : Option dir := if p.2 < sz then some .R else none
   #[up, left, down, right].reduceOption
 
 #eval
