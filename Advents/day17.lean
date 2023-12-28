@@ -187,8 +187,13 @@ def btest := (test2.splitOn "\n").toArray
 def mkLB (sz : Nat) (p : path) : Nat :=
   p.sum + (sz - p.cpos.1).natAbs + (sz - p.cpos.2).natAbs
 
+def mkUB (sz : Nat) (p : path) : Nat :=
+  p.sum + 1 * ((sz - p.cpos.1).natAbs + (sz - p.cpos.2).natAbs)
+
+#eval return (← IO.FS.lines input).size
+
 #eval do
-  let tak := 500
+  let tak := 20
   let dat := btest
   let dat ← IO.FS.lines input --:= (test1.splitOn "\n").toArray
   let dat := atest
@@ -198,33 +203,36 @@ def mkLB (sz : Nat) (p : path) : Nat :=
   let init : path := ⟨/-(grid.findD ip default) *-/ 0, #[ip], ip, (.S, .S, .S)⟩
   let mut toEnd : Array path := #[]
   let mut pths : RBTree path compare := RBTree.empty.insert init
-  let mut upb := 1005
+  let mut upb := 105
   let mut con := 1
   let mut curLB := mkLB sz pths.min.get!
+  let mut curUB := mkUB sz pths.min.get!
   while con < tak && ! pths.isEmpty do
     con := con + 1
 --    let mut spth : RBTree path compare := RBTree.empty
     for cc in pths do
-        let (cx, cy) := cc.cpos
+--        let (cx, cy) := cc.cpos
         if cc.cpos = ((sz, sz) : pos) then
           toEnd := toEnd.push cc
           upb := min upb cc.sum
           toEnd := toEnd.filter (path.sum · ≤ upb + 1)
         else
-        if mkLB sz cc ≤ curLB then
-          let bd := 1
---          if ((cx + cy)) * (10 * con + 10) ≤ cc.loc.size * (10 * con + 10) then
-            if cx ≤ bd ∨ sz - bd ≤ cy then
-              let nbs := (getNbs sz cc).erase
-                (if cc.loc.size ≤ (sz - 2) / 2 then .L else
-                 if (sz + 2) / 2 ≤ cc.loc.size then .U else .S)
-              let news := nbs.map fun x : dir => cc.add grid x
-              for nn in news do
-                if nn.sum ≤ upb then
-                  pths := pths.insert nn
+          if mkUB sz cc ≤ curUB then
+--            let bd := 1
+--            if ((cx + cy)) * (10 * con + 10) ≤ cc.loc.size * (10 * con + 10) then
+--              if cx ≤ bd ∨ sz - bd ≤ cy then
+            let nbs := (getNbs sz cc)
+            --.erase
+            --  (if cc.loc.size ≤ (sz - 2) / 2 then .L else
+            --   if (sz + 2) / 2 ≤ cc.loc.size then .U else .S)
+            let news := nbs.map fun (x : dir) => cc.add grid x
+            for nn in news do
+              if nn.sum ≤ upb then
+                pths := pths.insert nn
         pths := pths.erase cc
-    IO.println s!"{con} {pths.size}"
-    curLB := mkLB sz pths.min.get!
+    curLB := min curLB (mkLB sz pths.min.get!)
+--    for x in pths do if curLB < mkLB sz x then pths := pths.erase x
+    IO.println s!"con: {con} size: {pths.size}, min: {pths.min.get!.sum}"
   IO.println ""
 --  IO.print pths.toList
   IO.print pths.min
