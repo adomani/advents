@@ -140,7 +140,7 @@ def getNbs (curr : path) (sz : Nat) (szy : Nat) : Array dir :=
     (! (d == d2.rev)) &&
     (! (d0 == d1 && d0 == d2 && d0 == d))
 
-def getNbs' (curr : path) (sz : Nat) (szy : Nat := 0) : Array dir :=
+def getNbs' (curr : path) (sz : Nat) (szy : Nat) : Array dir :=
   let cpos := curr.cpos
   (mvs cpos sz szy).filter fun d : dir =>
     let cp3 := curr.past.2.2
@@ -184,16 +184,16 @@ def btest := (test2.splitOn "\n").toArray
 
 #eval (atest.size, atest[0]!.length)
 #eval (btest.size, btest[0]!.length)
-def mkLB (p : path) (sz : Nat) : Nat :=
-  p.sum + (sz - p.cpos.1).natAbs + (sz - p.cpos.2).natAbs
+def mkLB (p : path) (sz szy : Nat) : Nat :=
+  p.sum + (sz - p.cpos.1).natAbs + (szy - p.cpos.2).natAbs
 
-def mkUB (p : path) (sz : Nat) : Nat :=
-  p.sum + 1 * ((sz - p.cpos.1).natAbs + (sz - p.cpos.2).natAbs)
+def mkUB (p : path) (sz szy : Nat) : Nat :=
+  p.sum + 1 * ((sz - p.cpos.1).natAbs + (szy - p.cpos.2).natAbs)
 
 partial
 def mkPath1 (grid : HashMap pos Nat) (p : path) (sz : Nat) (szy : Nat) : path :=
   let pcurr := p.cpos
-  if pcurr = ((sz, sz) : pos) then p else
+  if pcurr = ((sz, szy) : pos) then p else
     let next := getNbs p sz szy
     if pcurr.1 ≤ pcurr.2 then
       mkPath1 grid (p.add grid next[0]!) sz szy
@@ -204,10 +204,10 @@ def mkPath1 (grid : HashMap pos Nat) (p : path) (sz : Nat) (szy : Nat) : path :=
 partial
 def mkPath (grid : HashMap pos Nat) (p : path) (sz : Nat) (szy : Nat) : path :=
   let pcurr := p.cpos
-  if pcurr = ((sz, sz) : pos) then p else
+  if pcurr = ((sz, szy) : pos) then p else
     let next := getNbs p sz szy
     if pcurr.1 ≤ pcurr.2 then
-      if sz-50 ≤ pcurr.2 then
+      if sz-10 ≤ pcurr.2 then
         let mv : dir := if next.contains .D then .D else if next.contains .R then .R else .L
         mkPath grid (p.add grid mv) sz szy
       else
@@ -220,21 +220,52 @@ def mkPath (grid : HashMap pos Nat) (p : path) (sz : Nat) (szy : Nat) : path :=
       let mv : dir := if next.contains .D then .D else if next.contains .R then .R else .U
       mkPath grid (p.add grid mv) sz szy
 
-/-
+def findPath (grid : HashMap pos Nat) (ip fin : pos) (sz szy : Nat) : path :=
+  let init : path := ⟨0, #[ip], ip, (.S, .S, .S)⟩
+  Id.run do
+  let mut toEnd : Array path := #[]
+  let mut pths : RBTree path compare := RBTree.empty.insert init
+  let mut upb := (mkPath grid init sz szy).sum
+  let mut con := 1
+  let mut curUB := (mkPath grid pths.min.get! sz szy).sum
+  let mut curPth := default
+  while ! pths.isEmpty do
+    con := con + 1
+    for cc in pths do
+        curUB := min curUB (mkPath grid cc sz szy).sum
+        if cc.cpos = ((sz, sz) : pos) then
+          toEnd := toEnd.push cc
+          if cc.sum < upb then
+            upb := min upb cc.sum
+            curPth := cc
+          toEnd := toEnd.filter (path.sum · ≤ upb + 1)
+        else
+          if (mkPath grid cc sz szy).sum < curUB + 5 then
+            let nbs := (getNbs cc sz szy)
+            let news := nbs.map fun (x : dir) => cc.add grid x
+            for nn in news do
+              if nn.sum ≤ upb then
+                pths := pths.insert nn
+        pths := pths.erase cc
+    dbg_trace s!"con: {con} size: {pths.size}, min: {pths.min.get!.sum}"
+  curPth
+
+
+--/-
 #eval do
   let tak := 2--0
   let dat := btest
-  let dat ← IO.FS.lines input --:= (test1.splitOn "\n").toArray
   let dat := atest
+  let dat ← IO.FS.lines input --:= (test1.splitOn "\n").toArray
   let sz : Nat := dat.size-1
   let grid := dat.toNats
   let ip : pos := (1, 1)
   let init : path := ⟨/-(grid.findD ip default) *-/ 0, #[ip], ip, (.S, .S, .S)⟩
   let compl := mkPath grid init sz sz
   IO.println <| compl
---  draw <| toPic compl.loc sz.succ sz.succ
+  draw <| toPic compl.loc sz.succ sz.succ
 --  draw dat
--/
+--/
 
 #eval return (← IO.FS.lines input).size
 
