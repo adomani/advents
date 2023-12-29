@@ -232,24 +232,36 @@ def findPath (grid : HashMap pos Nat) (ip fin : pos) (sz szy : Nat) : path :=
   while ! pths.isEmpty do
     con := con + 1
     for cc in pths do
-        curUB := min curUB (mkPath grid cc sz szy).sum
-        if cc.cpos = ((sz, sz) : pos) then
-          toEnd := toEnd.push cc
-          if cc.sum < upb then
-            upb := min upb cc.sum
-            curPth := cc
-          toEnd := toEnd.filter (path.sum · ≤ upb + 1)
-        else
-          if (mkPath grid cc sz szy).sum < curUB + 5 then
-            let nbs := (getNbs cc sz szy)
-            let news := nbs.map fun (x : dir) => cc.add grid x
-            for nn in news do
-              if nn.sum ≤ upb then
-                pths := pths.insert nn
-        pths := pths.erase cc
+      curUB := min curUB (mkPath grid cc sz szy).sum
+      if cc.cpos = fin then
+        toEnd := toEnd.push cc
+        if cc.sum < upb then
+          upb := min upb cc.sum
+          curPth := cc
+        toEnd := toEnd.filter (path.sum · ≤ upb + 1)
+      else
+        if (mkPath grid cc sz szy).sum < curUB + 5 then
+          let nbs := (getNbs cc sz szy)
+          let news := nbs.map fun (x : dir) => cc.add grid x
+          for nn in news do
+            if nn.sum ≤ upb then
+              pths := pths.insert nn
+      pths := pths.erase cc
     dbg_trace s!"con: {con} size: {pths.size}, min: {pths.min.get!.sum}"
   curPth
 
+#eval do
+  let tak := 4
+  let dat := btest
+  let dat ← IO.FS.lines input --:= (test1.splitOn "\n").toArray
+  let dat := atest
+  let sz : Nat := dat.size-1
+  let szy : Nat := dat.size-1
+  let grid := dat.toNats
+  let ip : pos := (0, 0)
+  let init : path := ⟨0, #[ip], ip, (.S, .S, .S)⟩
+  IO.println <| findPath grid ip (2, 10) 4 4
+  draw dat
 
 --/-
 #eval do
