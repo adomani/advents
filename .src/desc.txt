@@ -397,7 +397,7 @@ For the second part, ignore the actual parts, and only process the instructions.
 The question is how many parts are accepted by the workflow, assuming
 that all parts have each entry in the range `[1, 4000]`.
 --
-State machine sending pulses.  (Missing)
+State machine sending pulses.  (Missing part 2)
 
 ### Description
 
@@ -406,6 +406,12 @@ The input is a list of nodes in a network of nodes that can send high or low pul
 #### Part 1
 
 The goal is to figure out how many pulses are sent by pushing the button 1000 times.
+
+#### Part 2
+
+The node labeled `rx` is a control module that only receives pulses.
+In part 2, the goal is to figure out how many times do you need to press the button in order
+for the node `rx` to receive a single low pulse.
 --
 Where can the gardener be.  (Missing part 2)
 

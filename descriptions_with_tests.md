@@ -803,7 +803,27 @@ that all parts have each entry in the range `[1, 4000]`.
 
 #  [Day 20](https://adventofcode.com/2023/day/20)
 
-State machine sending pulses.  (Missing)
+State machine sending pulses.  (Missing part 2)
+
+####  Test 1
+
+<pre>
+broadcaster -> a, b, c
+%a -> b
+%b -> c
+%c -> inv
+&inv -> a
+</pre>
+
+####  Test 2
+
+<pre>
+broadcaster -> a
+%a -> inv, con
+&inv -> b
+%b -> con
+&con -> output
+</pre>
 
 ### Description
 
@@ -812,6 +832,12 @@ The input is a list of nodes in a network of nodes that can send high or low pul
 #### Part 1
 
 The goal is to figure out how many pulses are sent by pushing the button 1000 times.
+
+#### Part 2
+
+The node labeled `rx` is a control module that only receives pulses.
+In part 2, the goal is to figure out how many times do you need to press the button in order
+for the node `rx` to receive a single low pulse.
 
 [Solution in Lean](Advents/day20.lean)
 
