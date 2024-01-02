@@ -803,7 +803,7 @@ that all parts have each entry in the range `[1, 4000]`.
 
 #  [Day 20](https://adventofcode.com/2023/day/20)
 
-State machine sending pulses.  (Missing part 2)
+State machine sending pulses.
 
 ####  Test 1
 
@@ -838,6 +838,11 @@ The goal is to figure out how many pulses are sent by pushing the button 1000 ti
 The node labeled `rx` is a control module that only receives pulses.
 In part 2, the goal is to figure out how many times do you need to press the button in order
 for the node `rx` to receive a single low pulse.
+
+The answer that I coded exploits the [shape of the layout](Advents/day20_modules.pdf).
+In particular, it uses the four
+</pre>sub-layouts" and works out separate periodicities in each one of them,
+before merging the information in the final answer.
 
 [Solution in Lean](Advents/day20.lean)
 

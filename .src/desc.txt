@@ -397,7 +397,7 @@ For the second part, ignore the actual parts, and only process the instructions.
 The question is how many parts are accepted by the workflow, assuming
 that all parts have each entry in the range `[1, 4000]`.
 --
-State machine sending pulses.  (Missing part 2)
+State machine sending pulses.
 
 ### Description
 
@@ -412,6 +412,10 @@ The goal is to figure out how many pulses are sent by pushing the button 1000 ti
 The node labeled `rx` is a control module that only receives pulses.
 In part 2, the goal is to figure out how many times do you need to press the button in order
 for the node `rx` to receive a single low pulse.
+
+The answer that I coded exploits the [shape of the layout](Advents/day20_modules.pdf).
+In particular, it uses the four "sub-layouts" and works out separate periodicities in each one of them,
+before merging the information in the final answer.
 --
 Where can the gardener be.  (Missing part 2)
 
