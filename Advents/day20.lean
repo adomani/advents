@@ -152,7 +152,12 @@ the "last emitted signal", following the convention:
 * a *high* pulse is `some true`;
 * a *low* pulse is `some false`;
 * no pulse is `none`.
--/
+
+The optional `ct` argument records the count of `high` vs `low` pulses emitted so far.
+The optional `v?` argument determines the verbosity of the function.
+The optional `tracked` argument is an array of strings: if a module with name in `tracked` emits
+a `low` pulse, then `onePush` updates a `HashSet`, to keep track of the emission.
+This is useful for part 2. -/
 def onePush (gr : HashMap String (Char × Array String)) (st : HashMap String (module × Option Bool))
     (ct : Nat × Nat) (v? : Bool := false) (tracked : Array String := default) :
     HashMap String (module × Option Bool) × (Nat × Nat) × HashSet String :=
@@ -219,6 +224,11 @@ solve 1 730797576
 #  Question 2
 -/
 
+/-- `findRep gr tracked` takes as input a layout for the modules and an array of tracked modules.
+For each module in `tracked`, it computes the number of times the button needs to be pushed for
+the module to emit a `low` pulse.
+
+`findRep` returns the array of such numbers of iterations. -/
 def findRep (gr : HashMap String (Char × Array String)) (tracked : Array String) : Array Nat :=
   Id.run do
   let mut st := init gr
@@ -232,10 +242,21 @@ def findRep (gr : HashMap String (Char × Array String)) (tracked : Array String
     st := st1
   return reph.toArray.map Prod.snd
 
+/-- `selectHeads gr` takes as input a layout for the modules.
+It returns the array of conjunction modules that are adjacent
+to the frist layer of modules around the `broadcaster` module.
+
+These modules should all return a `low` pulse in order to solve the part 2. -/
+def selectHeads (gr: HashMap String (Char × Array String)) : Array String :=
+  let tgts := getTgts gr
+  let l1 := (tgts.find? "broadcaster").get!
+  let l2 := (l1.map (tgts.find? · |>.get!)).foldl (· ++ ·) #[]
+  l2.filter fun x => (gr.find? x).get!.1 == '&'
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
   let gr := grid dat
-  let fr := findRep gr #["bz", "xz", "jj", "gf"]
+  let fr := findRep gr (selectHeads gr)
   fr.foldl Nat.lcm 1
 
 solve 2 226732077152351
