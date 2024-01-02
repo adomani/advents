@@ -63,6 +63,7 @@ desc_tests () {
       s=\n\n[\n]*=\n\n=g
       s=\n[\n]*</pre>=\n</pre>=g
       s=  *\n=\n=g
+      s=\n[\n]*$=\n=
     '
 )
 }
