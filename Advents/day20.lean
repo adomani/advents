@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean (HashMap)
+open Lean (HashMap HashSet)
 
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day20.input"
@@ -36,8 +36,11 @@ def btest := (test2.splitOn "\n").toArray
 * `b`,  a *broadcaster* module -- an array of strings.
 -/
 inductive module
+  /-- A *flip-flop* module is a single `Bool`ean. -/
   | ff : Bool → module
+  /-- A *conjunction* module is an array of pairs `String × Bool` -/
   | cj : Array (String × Bool) → module
+  /-- A *broadcaster* module is an array of strings. -/
   | b  : Array String → module
   deriving Inhabited, Repr, BEq, DecidableEq
 
@@ -70,21 +73,24 @@ def grid (dat : Array String) : HashMap String (Char × Array String) :=
     st := st.insert nm (c, tgts)
   return st
 
+section pushing_data_around
+
+variable (gr : HashMap String (Char × Array String))
 /-- returns the HashMap sending a module `s` to the array of modules having `s` as target. -/
-def getSrcs (dat : Array String) : HashMap String (Array String) :=
+def getSrcs : HashMap String (Array String) :=
   Id.run do
   let mut y : HashMap String (Array String) := .empty
-  for (s, _, d) in grid dat do
+  for (s, _, d) in gr do
     for t in d do
       let srcs := (y.find? t).getD #[]
       y := y.insert t (srcs.push s)
   return y
 
-#assert (getSrcs atest).find? "c" == #["b", "broadcaster"]
-#assert (getSrcs atest).find? "broadcaster" == none
+#assert (getSrcs (grid atest)).find? "c" == #["b", "broadcaster"]
+#assert (getSrcs (grid atest)).find? "broadcaster" == none
 
 /-- returns the HashMap sending a module `s` to the array of modules having `s` as source. -/
-def getTgts (gr : HashMap String (Char × Array String)) : HashMap String (Array String) :=
+def getTgts : HashMap String (Array String) :=
   Id.run do
   let mut x := .empty
   for (s, _, a) in gr do x := x.insert s a
@@ -93,13 +99,13 @@ def getTgts (gr : HashMap String (Char × Array String)) : HashMap String (Array
 #assert (getTgts (grid atest)).find! "broadcaster" == #["a", "b", "c"]
 #assert (getTgts (grid (← IO.FS.lines input))).find! "broadcaster" == #["fb", "xk", "gr", "vj"]
 
-/-- `init dat` takes as input an array `dat` of strings.
-It returns the initial grid, according to the layout in `dat`. -/
-def init (dat : Array String) : HashMap String (module × Option Bool) :=
-  let srcs := getSrcs dat
+/-- `init gr` takes as input a `HashMap` `gr` representing a layout of modules.
+It returns the initial grid, according to the layout in `gr`. -/
+def init : HashMap String (module × Option Bool) :=
+  let srcs := getSrcs gr
   Id.run do
   let mut st : HashMap String (module × Option Bool) := .empty
-  for (nm, c, tgts) in dat.map parseOne do
+  for (nm, c, tgts) in gr do
     match c with
       | '@' => st := st.insert nm (.b tgts, false)
       | '%' => st := st.insert nm (.ff false, none)
@@ -108,6 +114,8 @@ def init (dat : Array String) : HashMap String (module × Option Bool) :=
         st := st.insert nm (.cj <| cons.map (Prod.mk · false), false)
       | _ => dbg_trace "init error"
   return st
+
+end pushing_data_around
 
 /-- processes a single `pulse` to the module `s`. It returns the modified state. -/
 def pulseOne (srcs' : HashMap String (Array String)) (st : HashMap String (module × Option Bool))
@@ -136,8 +144,8 @@ def pulseOne (srcs' : HashMap String (Array String)) (st : HashMap String (modul
       if s ∈ ["output", "rx"] then (st, #[]) else
         dbg_trace "pulseOne received none? {s}"; (st, #[])
 
-/-- `onePush dat st` takes as input an array `dat` of strings and a module configuration `st`.
-Given the layout determined by `dat`, `onePush` returns the configuration obtained from `st`
+/-- `onePush gr st` takes as input a `HashMap` `gr` encoding the module configuration and a "state" `HashMap` `st`.
+Given the layout determined by `gr`, `onePush` returns the configuration obtained from `st`
 as a consequence of pushing the button once.
 The configuration `st` records, besides the module associated with each string, also
 the "last emitted signal", following the convention:
@@ -145,14 +153,14 @@ the "last emitted signal", following the convention:
 * a *low* pulse is `some false`;
 * no pulse is `none`.
 -/
-def onePush (dat : Array String) (st : HashMap String (module × Option Bool))
-    (ct : Nat × Nat) (v? : Bool := false) :
-    HashMap String (module × Option Bool) × (Nat × Nat):=
-  let gr := grid dat
+def onePush (gr : HashMap String (Char × Array String)) (st : HashMap String (module × Option Bool))
+    (ct : Nat × Nat) (v? : Bool := false) (tracked : Array String := default) :
+    HashMap String (module × Option Bool) × (Nat × Nat) × HashSet String :=
   let tgts := getTgts gr
-  let srcs := getSrcs dat
+  let srcs := getSrcs gr
   Id.run do
   let mut str := ""
+  let mut marker : HashSet String := .empty
   if v? then for s in st do str := str ++ s!"{s}\n"
              dbg_trace str
   let mut next := st
@@ -171,26 +179,29 @@ def onePush (dat : Array String) (st : HashMap String (module × Option Bool))
       queue := queue ++ newTgs
       hl := hl + if signal then (1, 0) else (0, 1)
       if v? then dbg_trace "# {curr} → '{sig}' → '{ns}' -- (high, low) = {hl}\n"
+      if tracked.contains curr ∧ !signal then
+        marker := marker.insert curr
     con := con + 1
-  (next, hl)
+  (next, hl, marker)
 
-/-- `pushN dat n` returns the effect of pushing the button `n` times on the configuration
-determined by `dat`. -/
-def pushN (dat : Array String) (n : Nat := 1000) (ct : Nat × Nat := default) (v? : Bool := false) : Nat :=
+/-- `pushN gr n` returns the effect of pushing the button `n` times
+on the configuration encoded in `gr`. -/
+def pushN (gr : HashMap String (Char × Array String))
+    (n : Nat := 1000) (ct : Nat × Nat := default) (v? : Bool := false) : Nat :=
   Id.run do
-    let mut fin := init dat
+    let mut fin := init gr
     let mut hl := ct
     for i in [:n] do
       if v? then dbg_trace "*** PUSH {i+1} ***\n"
       if v? ∧ i ≤ 3 then
-        (fin, hl) := onePush dat fin hl v?
+        (fin, hl, _) := onePush gr fin hl v?
       else
-        (fin, hl) := onePush dat fin hl
+        (fin, hl, _) := onePush gr fin hl
     if v? then dbg_trace hl
     return hl.1 * hl.2
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := pushN dat
+def part1 (dat : Array String) : Nat := pushN (grid dat)
 
 #assert part1 atest == 32000000
 #assert part1 btest == 11687500
@@ -203,3 +214,28 @@ def part1 (dat : Array String) : Nat := pushN dat
 -/
 
 solve 1 730797576
+
+/-!
+#  Question 2
+-/
+
+def findRep (gr : HashMap String (Char × Array String)) (tracked : Array String) : Array Nat :=
+  Id.run do
+  let mut st := init gr
+  let mut con := 0
+  let mut reph : HashMap String Nat := .empty
+  while (reph.size ≠ tracked.size) do
+    con := con + 1
+    let (st1, _, rep1) := onePush (tracked := tracked) gr st default
+    for r in rep1 do
+      reph := reph.insert r con
+    st := st1
+  return reph.toArray.map Prod.snd
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat :=
+  let gr := grid dat
+  let fr := findRep gr #["bz", "xz", "jj", "gf"]
+  fr.foldl Nat.lcm 1
+
+solve 2 226732077152351
