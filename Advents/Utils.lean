@@ -96,7 +96,7 @@ abbrev pos := Int × Int
 /-- the four directions `L`eft, `R`ight, `U`p, `D`own,
 and... `S`tay. -/
 inductive dir | L | R | U | D | S
-  deriving BEq, DecidableEq, Inhabited, Repr
+  deriving BEq, DecidableEq, Inhabited, Repr, Hashable
 
 /-- represent each direction by the corresponding arrow. -/
 instance : ToString dir where
