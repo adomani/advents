@@ -18,6 +18,7 @@ to match English spelling of digits,
 before moving on to the next character.
 
 I also recycled the previous function for the reverse scanning.
+
 -- Day 2
 RGB-coloured cubes in a bag, finding sups and products.
 
@@ -34,6 +35,7 @@ evaluation is the solution to the problem that has it as its input.
 
 The conversion is a little clunky, but this is just due to my limited
 experience with parsing `Lean.Syntax`.
+
 -- Day 3
 Operations and numbers scattered on a rectangular grid: compute a value from the natural numbers adjacent to certain symbols.
 
@@ -45,6 +47,7 @@ symbols and chaining consecutive digits to get numbers.
 The biggest speed-up that I obtained was by extracting the
 two rows surrounding a symbol, before looking for digit
 neighbours of a given symbol!
+
 -- Day 4
 A game with cards: computing the number of matches between two lists of natural numbers, some recursion.
 
@@ -63,6 +66,7 @@ list of numbers.
 Since the loop is over the initial length, I did not have to
 take care that the list finished at the right place:
 the algorithm does not reach any of the excess entries.
+
 -- Day 5
 Seeds growing into locations as a series of permutations.
 
@@ -88,6 +92,7 @@ increasing range, or at a place where there is a break.
 Reverse-engineering where the breaks are and selecting the
 ones contained in the 'seed ranges' turns out to be
 sufficient to solve the question.
+
 -- Day 6
 Toy boat race, with times and record distances.
 
@@ -109,6 +114,7 @@ since the correct answer is at most 1 away from the
 calculation involving the discriminant, but fixing
 the 'off-by-one' error involved too much fiddling
 around for my taste!
+
 -- Day 7
 Camel cards, a simplified version of poker.
 
@@ -145,6 +151,7 @@ value.
 The second, tie-breaking sorting is lexicographic
 as before, except that the relative order of the
 card `J` with all the others is different.
+
 -- Day 8
 Traveling through the desert with ghosts.
 
@@ -166,6 +173,7 @@ Thus, the answer is the least common multiple of the periods.
 
 *Note*.
 The periods for my input are all themselves multiples of 269.
+
 -- Day 9
 Oasis measurements: compute iterated differences of sequences of integers.
 
@@ -183,6 +191,7 @@ degree, whose values on `{1, 2, ..., n}` are the initial
 sequence.
 The two extensions are then simply the evaluation of the
 polynomial at `n + 1` and at `0`.
+
 -- Day 10
 Paths along pipes.
 
@@ -213,6 +222,7 @@ Now, from any location not on the path, start moving right.
 * If you reach the path, look at whether the arrow is pointing
   towards you or away: in one case you are in, in the other out!
 * If you reach the boundary of the grid, then you are out.
+
 -- Day 11
 Distances between galaxies in an expanding universe.
 
@@ -231,12 +241,14 @@ accumulated the distances and divided by two.
 
 Same setup as for part 1, except that I increased the introduced
 spacing in the *expansion* step.
+
 -- Day 12
 Counting ways of filling in `#`s and `.`s.  (Missing part 2)
 
 ### Description
 
 I solved part 1, but part 2 is still in progress!
+
 -- Day 13
 Finding axes of symmetry among rock and ash.
 
@@ -269,6 +281,7 @@ comply with these rules, but they all happen to produce
 the *same new* axis of symmetry.
 Processing the locations of the new axes of symmetry as before
 yields the answer to part 2.
+
 -- Day 14
 Rolling rocks in a maze.  (Missing part 2)
 
@@ -298,6 +311,7 @@ north, west, south, east, doing each such cycle of four
 tilts 1000000000 times.
 After that, we still need to compute the *total load*
 of the final configuration.
+
 -- Day 15
 Fitting lenses.
 
@@ -315,6 +329,7 @@ as instructions to create a list of boxes containing lens
 arrangements.
 
 From the final arrangement, you get the answer to part 2.
+
 -- Day 16
 Reflecting mirrors and heating lava.  (Missing part 2)
 
@@ -338,6 +353,7 @@ pointing to the right.
 
 Compute the maximum number of visited locations, assuming that the ray
 enters from *anywhere* on the boundary of the grid.
+
 -- Day 17
 Pushing lava through the city.  (Missing)
 
@@ -355,6 +371,7 @@ in the same direction.
 #### Part 2
 
 Unknown.
+
 -- Day 18
 Digging out a hole for the lava.
 
@@ -380,6 +397,7 @@ This hexadecimal number is the number of holes that should be dug out in each di
 As for part 1, the answer to the puzzle is the number of cubes enclosed in the
 volume that the instructions dig out.
 
+
 -- Day 19
 Classifying `x`, `m`, `a`, `s` parts.
 
@@ -397,6 +415,7 @@ The goal is to figure out what parts of the initial input are accepted: the answ
 For the second part, ignore the actual parts, and only process the instructions.
 The question is how many parts are accepted by the workflow, assuming
 that all parts have each entry in the range `[1, 4000]`.
+
 -- Day 20
 State machine sending pulses.
 
@@ -417,6 +436,7 @@ for the node `rx` to receive a single low pulse.
 The answer that I coded exploits the [shape of the layout](Advents/day20_modules.pdf).
 In particular, it uses the four "sub-layouts" and works out separate periodicities in each one of them,
 before merging the information in the final answer.
+
 -- Day 21
 Where can the gardener be.  (Missing part 2)
 
@@ -435,6 +455,7 @@ Find in how many positions can the gardener be if they walk 64 steps.
 
 Assuming that the input data is periodic,
 find in how many positions can the gardener be if they walk 26501365 steps.
+
 -- Day 22
 Falling bricks.
 
@@ -453,6 +474,7 @@ so that all the remaining bricks are still propped up in their respective positi
 
 Asks to determine how many bricks would fall with any single removal and add up their
 numbers.
+
 -- Day 23
 Maze and icy slopes.  (Missing part 2)
 
@@ -473,6 +495,7 @@ in the maze.
 
 In part 2, the path is only required to not backtrack: the special locations should be
 ignored now.
+
 -- Day 24
 Hitting snowflakes.
 
@@ -495,6 +518,7 @@ I solved this, using what is probably the easiest, non-trivial example of a Schu
 calculus computation: finding the lines in space that meet 4 given general lines.
 
 The implementation is a little clunky and especially computing determinants is really slow!
+
 -- Day 25
 Wiring diagram. (Only one part, not done only in Lean!)
 
