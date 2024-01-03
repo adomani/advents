@@ -102,6 +102,14 @@ inductive dir | L | R | U | D | S
 instance : ToString dir where
   toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .S => "·"
 
+/-- `dir.rev` reverses a `dir`ection. -/
+def dir.rev : dir →  dir
+  | .D => .U
+  | .U => .D
+  | .L => .R
+  | .R => .L
+  | .S => .S
+
 /-- `dir.toPos` converts a `dir`ection to the corresponding unit vector. -/
 def dir.toPos : dir →  pos
   | .D => (  1,   0)
