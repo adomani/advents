@@ -119,7 +119,7 @@ def Char.toPos : Char → pos
 def part1 (dat : Array String) : Int :=
   content <| (getMvs dat).map fun ((c, n) : Char × Nat) => n * c.toPos
 
-#assert part1 (test.splitOn "\n").toArray == 62
+#assert part1 atest == 62
 
 solve 1 40745
 

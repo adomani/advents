@@ -66,7 +66,7 @@ It returns a pair consisting of
 -/
 def get_seed_instrs (maps : String) : List Nat × List (List (List Nat)) :=
   let nums := maps.splitOn "map"
-  let nums_and_empties := (nums.map (String.splitOn · "\n")).join.map (List.getNumbers ∘ String.toList)
+  let nums_and_empties := (nums.map (String.splitOn · "\n")).join.map String.getNats
   let cnums := compact nums_and_empties
   (cnums[0]![0]!, cnums.drop 1)
 

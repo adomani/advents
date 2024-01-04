@@ -105,19 +105,10 @@ solve 1 7066
 #  Question 2
 -/
 
-/-- the four directions `L`eft, `R`ight, `U`p, `D`own,
-and... `S`tay. -/
-inductive out | L | R | U | D | S
-  deriving BEq, DecidableEq, Inhabited, Repr
-
-/-- represent each direction by the corresponding arrow. -/
-instance : ToString out where
-  toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .S => "·"
-
 /-- converts a unit vector into the direction that is
 obtained by a counter-clockwise rotation.
 It is useful for defining orientations. -/
-def toLeft : pos → out
+def toLeft : pos → dir
   | (  1,   0) => .R
   | (- 1,   0) => .L
   | (  0, - 1) => .D
@@ -125,7 +116,7 @@ def toLeft : pos → out
   | _ => .S
 
 /-- orient a path, assuming that it is a cycle. -/
-def orientPath (path : Array pos) : Array (pos × out) :=
+def orientPath (path : Array pos) : Array (pos × dir) :=
   let ps := path.size
   Id.run do
     let lst := path.back
@@ -143,7 +134,7 @@ def orientPath (path : Array pos) : Array (pos × out) :=
       prev := (curr, dir)
     return oriented
 
-variable (orp : Array (pos × out)) in
+variable (orp : Array (pos × dir)) in
 /-- check whether a position is inside an oriented path. -/
 def inside? (p : pos) : Bool :=
   let pth := orp.map Prod.fst
@@ -157,7 +148,7 @@ def inside? (p : pos) : Bool :=
         prev := curr
         curr := curr + (0,1)
       if bd ≤ curr.2 then false else
-      return ! (curr, out.L) ∈ orp
+      return ! (curr, .L) ∈ orp
 
 /-- `test2` is the second test string for the problem. -/
 def test2 := "...........
@@ -178,7 +169,7 @@ def part2 (dat : Array String) : Nat :=
   let mut con := 0
   for i in [:dat.size] do
     let mut outside := #[]
-    let cou := orp.filter fun x : pos × out => x.1.1 == i
+    let cou := orp.filter fun x : pos × dir => x.1.1 == i
     let cop := cou.map Prod.fst
     for j in [:dat[0]!.length] do
       let pp : pos := (i, j)

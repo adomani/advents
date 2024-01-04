@@ -20,7 +20,7 @@ def atest := (test.splitOn "\n").toArray
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
 
---#assert part1 (test.splitOn "\n").toArray == ???
+--#assert part1 atest == ???
 
 --solve 1
 

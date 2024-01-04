@@ -39,9 +39,9 @@ desc_tests () {
     if [ ! "${d}" == "day02.lean" ] && [ ! "${d}" == "day02_syntax.lean" ]; then
     dig=$( printf '%s' "${d}" | sed 's=day[0]*\([0-9]*\).*\.lean=\1=')
     desc="$(
-      awk -v day="${dig}" 'BEGIN{ con=1 }
-        !/^--$/ && (con == day) { print $0 }
-        /^--$/ { con++ }' ../"${descFile}"
+      awk -v day="${dig}" 'BEGIN{ con=0 }
+        !/^-- Day [0-9]*$/ && (con == day) { print $0 }
+        /^-- Day [0-9]*$/ { con++ }' ../"${descFile}"
       )"
     printf '#  [Day %s](https://adventofcode.com/2023/day/%s)\n\n%s\n\n' "${dig}" "${dig}" "$(
       printf '%s' "${desc}" | head -1
@@ -63,6 +63,7 @@ desc_tests () {
       s=\n\n[\n]*=\n\n=g
       s=\n[\n]*</pre>=\n</pre>=g
       s=  *\n=\n=g
+      s=\n[\n]*$=\n=
     '
 )
 }
@@ -76,12 +77,13 @@ desc () {
       print "|Day|Description|\n|:-:|-|"
       link=sprintf("(%s#day-", fil)
     }
-    /^--$/ {
+    2 <= NR && /^-- Day [0-9]*$/ {
       printf("|[%s]%s%s)|%s|\n", con, link, con, acc)
       con++
       acc=""
     }
-    !/^--$/ && (acc == "") { acc=$0 }' .src/desc.txt
+    !/^-- Day [0-9]*$/ && (acc == "") { acc=$0 }
+    END { printf("|[%s]%s%s)|%s|\n", con, link, con, acc) }' .src/desc.txt
 )
 }
 

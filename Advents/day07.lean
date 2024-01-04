@@ -17,6 +17,9 @@ KK677 28
 KTJJT 220
 QQQJA 483"
 
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
+
 /-- `parseCC s` takes as input a string `s` as in each line of `test` and returns the pair
 consisting of the first part of the string, followed by the number. -/
 def parseCC (s : String) : String × Nat :=
@@ -90,7 +93,7 @@ def parts (dat : Array String) : Nat :=
 def part1 (dat : Array String) : Nat :=
   parts cards (fun x => tally x.1.toList) dat
 
-#assert part1 (test.splitOn "\n").toArray == 6440
+#assert part1 atest == 6440
 
 solve 1 248396258
 
@@ -110,6 +113,6 @@ def cards2 := "AKQT98765432J"
 def part2 (dat : Array String) : Nat :=
   parts cards2 (fun x => (addJ <| (tally (x.1.toList.filter (· != 'J'))).toList).toArray) dat
 
-#assert part2 (test.splitOn "\n").toArray == 5905
+#assert part2 atest == 5905
 
 solve 2 246436046
