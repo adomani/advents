@@ -18,14 +18,67 @@ def test := "???.### 1,1,3
 ????.######..#####. 1,6,5
 ?###???????? 3,2,1"
 
+/-- `atest`is simply the splitting of `test` into its array of lines. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- `String.ep s` takes as input a string `s` and "easy parses" it.
+It breaks it at the (unique) space ` `, converts the LHS to a
+list of characters and the RHS to a list of natural numbers. -/
 def String.ep (s : String) : List Char × List Nat :=
   match s.splitOn " " with
-    | [l, r] => (l.toList, r.toList.getNumbers)
+    | [l, r] => (l.toList, r.getNats)
     | _ => dbg_trace "misparsed"; default
 
+/-- `red` is the type representing the parsed input of the problem.
+It consists of a pair `(cs, ns)`, where
+* `cs` is a list of characters -- a succession of `#`, `?` and `.`;
+* `ns` a list of natural numbers, representing consecutive groups of
+  `#`s separated by `.`s.
+-/
 abbrev red := List Char × List Nat
+
+namespace part1
+
+/-- `tot r` takes as input an element of `red` and returns
+the number of assignments of `?` in the first element of the
+pair that are compatible con the control sequence given by
+the second pair. -/
+partial
+def tot : red → Nat
+  | ([], 0::cs) => tot ([], cs)
+  | ([], []) => 1
+  | ([], _) => default
+  | ('#'::_cs, []) => default
+  | ('#'::_cs, 0::_ns) => default
+  | ('#'::'#'::cs, n::ns) => tot ('#'::cs, (n - 1)::ns)
+  | ('#'::'.'::cs, 1::ns) => tot (cs, ns)
+  | ('#'::'.'::_cs, _::_ns) => default
+  | (['#'], 1::ns) => tot ([], ns)
+  | (['#'], _) => 0
+  | ('#'::'?'::cs, 1::ns) => tot (cs, ns)
+  | ('#'::'?'::cs, n::ns) => tot ('#'::cs, (n-1)::ns)
+  | ('.'::cs, ns) => tot (cs, ns)
+  | ('?'::cs, 0::ns) => tot (cs, ns)
+  | ('?'::cs, []) => tot (cs, [])
+  | ('?'::cs, ns) => tot ('#'::cs, ns) + tot (cs, ns)
+  | x => dbg_trace s!"1000 {x}"; 1000 --(1000, 1000)
+
+#assert (atest.map String.ep).map tot == #[1, 4, 1, 1, 4, 10]
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
+  let ls := ((dat.map String.ep)).map tot
+  ls.sum
+
+#assert part1 atest == 21
+
+solve 1 6935
+
+end part1
+
+/-!
+#  Question 2
+-/
 
 partial
 def noDouble : red → Nat × Option red
@@ -89,9 +142,9 @@ def tot' (n : Nat) (r : red) : Nat × Nat :=
   | ('?'::cs, ns) => tot' n.succ ('#'::cs, ns) + tot' n.succ (cs, ns)
   | x => dbg_trace s!"1000 {x}"; (n, 1000) --(1000, 1000)
 
-def tot (r : red) : Nat := (tot' 0 r).2
+def tot1 (r : red) : Nat := (tot' 0 r).2
 
-#assert (atest.map String.ep).map tot == #[1, 4, 1, 1, 4, 10]
+#assert (atest.map String.ep).map tot1 == #[1, 4, 1, 1, 4, 10]
 
 /-
 #[(12, 1), (87, 4), (6, 1), (11, 1), (35, 4), (115, 10)]
@@ -107,11 +160,11 @@ def tot (r : red) : Nat := (tot' 0 r).2
   0
   --IO.print "ciao"
 
-#eval tot <| "??#.?#?#??????#.?#?#??????#.?#?#??? 1,3,1,1,3,1,1,3,1".ep
+#eval tot1 <| "??#.?#?#??????#.?#?#??????#.?#?#??? 1,3,1,1,3,1,1,3,1".ep
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
-  let ls := ((dat.map String.ep)).map tot
+  let ls := ((dat.map String.ep)).map tot1
 --  dbg_trace (ls.zip dat).qsort (Prod.fst · > Prod.fst  ·)
   ls.sum
 --  (((dat.map String.ep)).map tot).sum
@@ -140,10 +193,6 @@ solve 1 6935
 ??##?#?????.. 5,1
 -/
 
-/-!
-#  Question 2
--/
-
 def extendRed (r : red) (n : Nat := 5) : red :=
   let (l, r) := r
   (['?'].intercalate (List.replicate n l), (List.replicate n r).join)
@@ -154,7 +203,7 @@ def extendRed (r : red) (n : Nat := 5) : red :=
 
 def String.reparseOne (s : String) : List String × List Nat :=
   match s.splitOn " " with
-    | [l, r] => ((l.splitOn ".").filter (! · == ""), r.toList.getNumbers)
+    | [l, r] => ((l.splitOn ".").filter (! · == ""), r.getNats)
     | _ => dbg_trace s!"reparseOne error: {s}"; default
 
 #eval do
@@ -205,10 +254,10 @@ def repl (s : String) (n : Nat := 5) : String :=
   let mut fin := 0
   let dat := atest
   let dat ← IO.FS.lines input
-  for ind in [:dat.size] do
-    let x := repl dat[ind]! mul
-    fin := fin + step x.reparseOne
-  IO.println fin
+  --for ind in [:dat.size] do
+  --  let x := repl dat[ind]! mul
+  --  fin := fin + step x.reparseOne
+  --IO.println fin
 
 
 

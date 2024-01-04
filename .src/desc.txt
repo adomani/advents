@@ -1,3 +1,4 @@
+-- Day 1
 Finding the first and last digit (or the English name of a digit) in each row of the input.
 
 ### Description
@@ -17,7 +18,8 @@ to match English spelling of digits,
 before moving on to the next character.
 
 I also recycled the previous function for the reverse scanning.
---
+
+-- Day 2
 RGB-coloured cubes in a bag, finding sups and products.
 
 ### Comments
@@ -33,7 +35,8 @@ evaluation is the solution to the problem that has it as its input.
 
 The conversion is a little clunky, but this is just due to my limited
 experience with parsing `Lean.Syntax`.
---
+
+-- Day 3
 Operations and numbers scattered on a rectangular grid: compute a value from the natural numbers adjacent to certain symbols.
 
 ### Description
@@ -44,7 +47,8 @@ symbols and chaining consecutive digits to get numbers.
 The biggest speed-up that I obtained was by extracting the
 two rows surrounding a symbol, before looking for digit
 neighbours of a given symbol!
---
+
+-- Day 4
 A game with cards: computing the number of matches between two lists of natural numbers, some recursion.
 
 ### Description
@@ -62,7 +66,8 @@ list of numbers.
 Since the loop is over the initial length, I did not have to
 take care that the list finished at the right place:
 the algorithm does not reach any of the excess entries.
---
+
+-- Day 5
 Seeds growing into locations as a series of permutations.
 
 ### Description
@@ -87,7 +92,8 @@ increasing range, or at a place where there is a break.
 Reverse-engineering where the breaks are and selecting the
 ones contained in the 'seed ranges' turns out to be
 sufficient to solve the question.
---
+
+-- Day 6
 Toy boat race, with times and record distances.
 
 ### Description
@@ -95,20 +101,21 @@ Toy boat race, with times and record distances.
 Both questions revolve around computing the number
 of integers on which a second-degree polynomial is
 positive.
-While the length of the real interval is simply the
+While the length of the real interval where
+the polynomial is positive is simply the
 square root of the discriminant of the quadratic,
-the exact number of integer points inside is depends
+the number of integer points inside it depends
 on the exact location of the interval.
-It turns out that I could only solve part 1 by a
-brute-force enumeration, while for part 2 the
-discriminant approach worked well.
+I could only solve part 1 by brute-force enumeration,
+while for part 2 the discriminant approach worked well.
 
 The issue with part 1 is particularly frustrating,
 since the correct answer is at most 1 away from the
 calculation involving the discriminant, but fixing
 the 'off-by-one' error involved too much fiddling
 around for my taste!
---
+
+-- Day 7
 Camel cards, a simplified version of poker.
 
 ### Description
@@ -118,7 +125,7 @@ following an order naturally described as
 * first a lexicographic ordering of the
   frequency of each card in each hand;
 * second a lexicographic ordering of the
-  cards, in the given order.
+  cards, in the dealt order.
 
 By abstracting the sorting rules out of the main
 functions, a good part of the code can be used
@@ -129,8 +136,8 @@ for both parts.
 Using rules very similar to poker, the first part
 involves sorting a list of 5-card hands and doing
 operations with the sorted rank of each hand (plus
-also using a number given that the input gives with
-with each hand).
+also using a number given next to each hand
+in the given input).
 
 #### Part 2
 
@@ -138,13 +145,14 @@ The second part, changes the sorting function.
 In the first sorting (the *frequency* phase), the card
 labeled by `J` should be interpreted as the most
 beneficial that it could be.
-Given the rules for sorting, the revised `Joker` 
+Given the rules for sorting, the revised `Joker`
 card is always best assigned to the most-frequent
 value.
 The second, tie-breaking sorting is lexicographic
 as before, except that the relative order of the
 card `J` with all the others is different.
---
+
+-- Day 8
 Traveling through the desert with ghosts.
 
 ### Description
@@ -165,7 +173,8 @@ Thus, the answer is the least common multiple of the periods.
 
 *Note*.
 The periods for my input are all themselves multiples of 269.
---
+
+-- Day 9
 Oasis measurements: compute iterated differences of sequences of integers.
 
 ### Description
@@ -174,15 +183,16 @@ For the two parts, the goal is to compute iterated first
 differences of lists of numbers until all differences
 are zero.
 After that, you should extend either on the right or on
-the left the initial sequence so that the final pattern 
-of zeros persisted.
+the left the initial sequence so that the final pattern
+of zeros persists.
 
 Equivalently, you could compute the polynomial of smallest
 degree, whose values on `{1, 2, ..., n}` are the initial
 sequence.
 The two extensions are then simply the evaluation of the
 polynomial at `n + 1` and at `0`.
---
+
+-- Day 10
 Paths along pipes.
 
 ### Description
@@ -212,7 +222,8 @@ Now, from any location not on the path, start moving right.
 * If you reach the path, look at whether the arrow is pointing
   towards you or away: in one case you are in, in the other out!
 * If you reach the boundary of the grid, then you are out.
---
+
+-- Day 11
 Distances between galaxies in an expanding universe.
 
 ### Description
@@ -230,4 +241,295 @@ accumulated the distances and divided by two.
 
 Same setup as for part 1, except that I increased the introduced
 spacing in the *expansion* step.
---
+
+-- Day 12
+Counting ways of filling in `#`s and `.`s.  (Missing part 2)
+
+### Description
+
+I solved part 1, but part 2 is still in progress!
+
+-- Day 13
+Finding axes of symmetry among rock and ash.
+
+### Description
+
+The input data consists of several maps with locations of ash and rocks.
+The goals revolve around finding horizontal or vertical axes of symmetry
+in the maps.
+
+#### Part 1
+
+Each map has exactly one axis of symmetry.
+From the positions of the axes, you can compute the answer.
+
+#### Part 2
+
+It turns out that, by changing exactly one map point
+from ash to rock or viceversa, that the resulting map
+acquires an axis of symmetry *different* from the
+original one.
+Of course, after the switch, the old axis of symmetry
+may no longer be an axis of symmetry.
+All that matters is that, after the switch, there are
+at most two axes of symmetry:
+* the new one that must be present,
+* the old one, in case it stays.
+
+In some maps, there may be several location switches that
+comply with these rules, but they all happen to produce
+the *same new* axis of symmetry.
+Processing the locations of the new axes of symmetry as before
+yields the answer to part 2.
+
+-- Day 14
+Rolling rocks in a maze.  (Missing part 2)
+
+### Description
+
+The data is a map with locations of
+* round (moving) rocks, denoted by `O`;
+* non-moving rocks, denoted by `#`;
+* empty spaces, denoted by `·`.
+
+In both parts, the surface described map can be tilted
+so that the moving rocks roll in direction of the tilt
+until they reach either the boundary of the surface or
+a fixed rock.
+
+#### Part 1
+
+The goal was to perform a single tilt, figure out the
+final positions of the moving rocks and compute the
+*total load* -- a weight determined by the final positions.
+
+#### Part 2
+
+Instead of tilting only once, now we successively tilt
+in succession in each of the four directions
+north, west, south, east, doing each such cycle of four
+tilts 1000000000 times.
+After that, we still need to compute the *total load*
+of the final configuration.
+
+-- Day 15
+Fitting lenses.
+
+### Description
+
+#### Part 1
+
+The first part gives the instructions for converting strings
+to natural numbers, using the ASCII values of their characters.
+
+#### Part 2
+
+The second part parses a little more the input and uses it
+as instructions to create a list of boxes containing lens
+arrangements.
+
+From the final arrangement, you get the answer to part 2.
+
+-- Day 16
+Reflecting mirrors and heating lava.
+
+### Description
+
+The input is a map with locations of mirrors.
+A ray of light starting from a point on the boundary of the grid,
+starts to move inwards,
+* getting reflected upon hitting `/` and `\` and
+* getting split upon hitting
+  * `|`, while moving horizontally;
+  * `-`, while moving vertically.
+
+#### Part 1
+
+Compute the number of visited locations, assuming that the ray
+enters the grid from the location in the top-left corner,
+pointing to the right.
+
+#### Part 2
+
+Compute the maximum number of visited locations, assuming that the ray
+enters from *anywhere* on the boundary of the grid.
+
+*My input contained no empty line: every row and column of the diagram had at least one mirror.*
+-- Day 17
+Pushing lava through the city.  (Missing)
+
+### Description
+
+The input is a map with single digit entries in each position.
+
+#### Part 1
+
+The goal is to enter from the top-left, moving around the grid
+while minimizing the total sum of the path and not being
+allowed to walk back or move more than 2 consecutive steps
+in the same direction.
+
+#### Part 2
+
+Unknown.
+
+-- Day 18
+Digging out a hole for the lava.
+
+### Description
+
+The input is a list of directions `U`, `D`, `L`, `R`, numbers and a further code.
+It encodes a digging plan to collect the lava.
+
+#### Part 1
+
+The first letter and first number encode how many cubes to dig in each direction.
+The answer to the puzzle is the number of cubes enclosed in the volume that the
+instructions dig out.
+
+#### Part 2
+
+The question is similar, except that this part uses the second code.
+As before, these are instructions for digging out a hole.
+The last digit is a code for a direction.
+The six characters following `#` represent the digits of a hexadecimal number.
+This hexadecimal number is the number of holes that should be dug out in each direction.
+
+As for part 1, the answer to the puzzle is the number of cubes enclosed in the
+volume that the instructions dig out.
+
+
+-- Day 19
+Classifying `x`, `m`, `a`, `s` parts.
+
+### Description
+
+The input is a list of instructions and parts with four natural number entries `x`, `m`, `a`, `s`.
+The instructions provide a workflow for deciding whether each part is accepted or rejected.
+
+#### Part 1
+
+The goal is to figure out what parts of the initial input are accepted: the answer is the sum of the products of all the values of each accepted part.
+
+#### Part 2
+
+For the second part, ignore the actual parts, and only process the instructions.
+The question is how many parts are accepted by the workflow, assuming
+that all parts have each entry in the range `[1, 4000]`.
+
+-- Day 20
+State machine sending pulses.
+
+### Description
+
+The input is a list of nodes in a network of nodes that can send high or low pulses.
+
+#### Part 1
+
+The goal is to figure out how many pulses are sent by pushing the button 1000 times.
+
+#### Part 2
+
+The node labeled `rx` is a control module that only receives pulses.
+In part 2, the goal is to figure out how many times do you need to press the button in order
+for the node `rx` to receive a single low pulse.
+
+The answer that I coded exploits the [shape of the layout](Advents/day20_modules.pdf).
+In particular, it uses the four "sub-layouts" and works out separate periodicities in each one of them,
+before merging the information in the final answer.
+
+-- Day 21
+Where can the gardener be.  (Missing part 2)
+
+### Description
+
+The puzzle input is a map with locations of rocks (`#`), garden path (`.`) and
+gardener's initial position (`S`), also on the garden path.
+
+The gardener starts at the location labeled with `S` and moves one step in one of the four directions left, right, up, down, avoiding the rocks.
+
+#### Part 1
+
+Find in how many positions can the gardener be if they walk 64 steps.
+
+#### Part 2
+
+Assuming that the input data is periodic,
+find in how many positions can the gardener be if they walk 26501365 steps.
+
+-- Day 22
+Falling bricks.
+
+### Description
+
+The input describes the position in 3-dimensional space of several "linear" bricks.
+We first should figure out where the would settle, were they to fall vertically,
+without ever rotating in any direction.
+
+#### Part 1
+
+Once the bricks settle, part 1 asks to find how many bricks can be removed separately,
+so that all the remaining bricks are still propped up in their respective positions.
+
+#### Part 2
+
+Asks to determine how many bricks would fall with any single removal and add up their
+numbers.
+
+-- Day 23
+Maze and icy slopes.  (Missing part 2)
+
+### Description
+
+The input is a maze with some locations marked with `>`, `<`, `v`, `^`.
+The two parts ask to find the longest, non-backtracking path through the maze,
+possibly with further constraints.
+
+#### Part 1
+
+In part 1, besides not being allowed to backtrack, the path cannot go in a direction
+opposing one of the marked locations.
+It turns out that most (all?) such locations are at places where there is a bifurcation
+in the maze.
+
+#### Part 2
+
+In part 2, the path is only required to not backtrack: the special locations should be
+ignored now.
+
+-- Day 24
+Hitting snowflakes.
+
+### Description
+
+The input describes snowflakes describing linear trajectories:
+for each snowflakes, the data consists of its initial position and its velocity vector.
+
+#### Part 1
+
+Ignoring the `z`-axis, we should figure out how many `(x, y)`-coordinates of each
+ray will intersect in some region of the plane in *future* time.
+
+#### Part 2
+
+Considering the full information, figure out the coordinates of a point in space
+such that starting from there with some velocity vector, you will hit all snowflakes.
+
+I solved this, using what is probably the easiest, non-trivial example of a Schubert
+calculus computation: finding the lines in space that meet 4 given general lines.
+
+The implementation is a little clunky and especially computing determinants is really slow!
+
+-- Day 25
+Wiring diagram. (Only one part -- done, but not only in Lean!)
+
+### Description
+
+The data encodes a wiring diagram -- a graph.
+We should find a cut-set of size three for the graph and compute the product of the
+number of vertices in the two components.
+
+_Note._
+I used Lean to print a `dot` file with the graph.
+Looked at the graph drawn by `dot` and visually determined bounds.
+Then used `awk` to extract the final answer.

@@ -13,11 +13,14 @@ def input : System.FilePath := "Advents/day<newDay>.input"
 /-- `test` is the test string for the problem. -/
 def test := ""
 
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
 
---#assert part1 (test.splitOn "\n").toArray == ???
+--#assert part1 atest == ???
 
 --solve 1
 
@@ -29,6 +32,6 @@ def part1 (dat : Array String) : Nat := sorry
 def part2 (dat : Array String) : Nat := sorry
 --def part2 (dat : String) : Nat :=
 
---#assert part2 (test.splitOn "\n").toArray == ???
+--#assert part2 atest == ???
 
 --solve 2
