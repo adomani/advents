@@ -1036,7 +1036,7 @@ The implementation is a little clunky and especially computing determinants is r
 
 #  [Day 25](https://adventofcode.com/2023/day/25)
 
-Wiring diagram. (Only one part, not done only in Lean!)
+Wiring diagram. (Only one part -- done, but not only in Lean!)
 
 ####  Test
 
