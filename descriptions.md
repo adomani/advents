@@ -15,7 +15,7 @@
 |[13](descriptions_with_tests.md#day-13)|Finding axes of symmetry among rock and ash.|
 |[14](descriptions_with_tests.md#day-14)|Rolling rocks in a maze.  (Missing part 2)|
 |[15](descriptions_with_tests.md#day-15)|Fitting lenses.|
-|[16](descriptions_with_tests.md#day-16)|Reflecting mirrors and heating lava.  (Missing part 2)|
+|[16](descriptions_with_tests.md#day-16)|Reflecting mirrors and heating lava.|
 |[17](descriptions_with_tests.md#day-17)|Pushing lava through the city.  (Missing)|
 |[18](descriptions_with_tests.md#day-18)|Digging out a hole for the lava.|
 |[19](descriptions_with_tests.md#day-19)|Classifying `x`, `m`, `a`, `s` parts.|

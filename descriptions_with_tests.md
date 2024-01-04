@@ -657,7 +657,22 @@ From the final arrangement, you get the answer to part 2.
 
 #  [Day 16](https://adventofcode.com/2023/day/16)
 
-Reflecting mirrors and heating lava.  (Missing part 2)
+Reflecting mirrors and heating lava.
+
+####  Test
+
+<pre>
+.|...\\....
+|.-.\\.....
+.....|-...
+........|.
+..........
+.........\\
+..../.\\\\..
+.-.-/..|..
+.|....-|.\\
+..//.|....
+</pre>
 
 ### Description
 
@@ -679,6 +694,8 @@ pointing to the right.
 
 Compute the maximum number of visited locations, assuming that the ray
 enters from *anywhere* on the boundary of the grid.
+
+*My input contained no empty line: every row and column of the diagram had at least one mirror.*
 
 [Solution in Lean](Advents/day16.lean)
 
