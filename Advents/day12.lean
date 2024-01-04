@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+set_option profiler true
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day12.input"
 
@@ -82,10 +84,26 @@ end part1
 #eval "ciao".toList.getD 5 'u'
 partial
 def doOne (l : List Char) (n : Nat) : Option (List (List Char)) :=
-  if (l.length ≤ n - 1) ∧ (l.contains '#') then none else
-  if l.length ≤ n - 1 then some [['A']] else
-  if l.getD n 'A' = '#' then doOne (l.drop 1) n else
-  if l[0]! = '#' then some ([l.drop n.succ]) else
+  if (l.length ≤ n - 1) ∧ (l.contains '#') then
+    --dbg_trace "α"
+    none
+  else
+  if l.length ≤ n - 1 then
+    --dbg_trace "β"
+    some [['A']]
+  else
+  if l[0]! = '#' ∧ l.getD n 'B' = '#' then
+    --dbg_trace "γ"
+    none
+  else
+  if l.getD n 'A' = '#' then
+    doOne (l.drop 1) n
+  else
+  if l[0]! = '#' then
+    --dbg_trace "δ"
+    some ([l.drop n.succ])
+  else
+    --dbg_trace "ε"
   some (l.drop n.succ :: (doOne (l.drop 1) n).getD default)
 --  default
 
@@ -104,9 +122,44 @@ def doAll : List (List Char) → List Nat → Nat
       let news := nls.map fun nl =>
         if nl = ['A'] then doAll ls (n::ns) else
         doAll (nl :: ls) ns
-      dbg_trace news
+      --dbg_trace news
       news.sum
 --  | _, _ => default
+
+def String.reparseOne (s : String) : List String × List Nat :=
+  match s.splitOn " " with
+    | [l, r] => ((l.splitOn ".").filter (! · == ""), r.getNats)
+    | _ => dbg_trace s!"reparseOne error: {s}"; default
+
+#eval do
+  let t := "#?# 2"
+  let fir := t.ep
+  let (l, r) := t.reparseOne
+  let da := doAll (l.map String.toList) r
+  if part1.tot fir ≠ da then
+    IO.println s!"\n1st: {part1.tot fir}  {fir}\n2nd: {da}  {(l, r)}\n"
+  IO.println <| da
+
+
+#eval show MetaM _ from do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let mut total := 0
+  let mut tots := #[]
+  for t in dat do
+    let (l, r) := t.reparseOne
+    let da := doAll (l.map String.toList) r
+    total := total + da
+    tots := tots.push da
+  IO.println <| total
+--  guard (total == 21)
+--  guard (tots == #[1, 4, 1, 1, 4, 10])
+
+def extendRed (r : red) (n : Nat := 5) : red :=
+  let (l, r) := r
+  (['?'].intercalate (List.replicate n l), (List.replicate n r).join)
+
+#exit
 
 #eval
   let l := ["???????"].map String.toList
@@ -121,26 +174,6 @@ def doAll : List (List Char) → List Nat → Nat
   let n := [1,1,3]
 --  doAll l n
   (doOne l[0]! n[0]!, doAll l n)
-
-def String.reparseOne (s : String) : List String × List Nat :=
-  match s.splitOn " " with
-    | [l, r] => ((l.splitOn ".").filter (! · == ""), r.getNats)
-    | _ => dbg_trace s!"reparseOne error: {s}"; default
-
-#eval do
-  let dat ← IO.FS.lines input
-  let dat := ["#?# 2"]
-  let mut total := 0
-  for t in dat do
-    let fir := t.ep
-    let (l, r) := t.reparseOne
-    let da := doAll (l.map String.toList) r
-    if part1.tot fir ≠ da then IO.println s!"{t}\n1st: '{fir}' {part1.tot fir}\n2nd: '{(l, r)}' {da}\n"
-    total := total + da
-  IO.println <| total
-
-
-
 
 #eval do
   let dat := atest
