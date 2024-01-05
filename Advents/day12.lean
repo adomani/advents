@@ -67,21 +67,50 @@ def tot : red → Nat
 
 #assert (atest.map String.ep).map tot == #[1, 4, 1, 1, 4, 10]
 
+end part1
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
-  let ls := ((dat.map String.ep)).map tot
+  let ls := ((dat.map String.ep)).map part1.tot
   ls.sum
 
 #assert part1 atest == 21
 
 solve 1 6935
 
-end part1
-
 /-!
 #  Question 2
 -/
-#eval "ciao".toList.getD 5 'u'
+
+/-- a `h`ash, a `q`uestion mark, a `s`kipped spring. -/
+inductive spring | h | q | s
+  deriving BEq, DecidableEq, Hashable
+
+instance : Inhabited spring := ⟨.s⟩
+
+instance : ToString spring where
+  toString
+    | .h => "#"
+    | .q => "?"
+    | .s => "."
+
+def Char.toSpring : Char → spring
+  | '#' => .h
+  | '?' => .q
+  | c   => dbg_trace "misparsed {c}"; .s
+
+def String.reparseOne (s : String) : List String × List Nat :=
+  match s.splitOn " " with
+    | [l, r] => ((l.splitOn ".").filter (! · == ""), r.getNats)
+    | _ => dbg_trace s!"reparseOne error: {s}"; default
+
+#exit
+def repl (s : String) (n : Nat := 5) : String :=
+  match s.splitOn " " with
+    | [l, r] =>
+      "?".intercalate (List.replicate n l) ++ " " ++
+      ",".intercalate (List.replicate n r)
+    | _ => dbg_trace s!"oh no! {s}"; default
 
 variable (n : Nat) in
 def doOne (l : List Char) : Option (List (List Char)) :=
@@ -91,7 +120,7 @@ def doOne (l : List Char) : Option (List (List Char)) :=
   else match l with
   | _::xs =>
     if l.getD n 'A' = '#' then doOne xs
-    else if l[0]! = '#' then some ([l.drop n.succ])
+    else if l[0]! = '#' then some [l.drop n.succ]
     else some (xs.drop n :: (doOne xs).getD default)
   | _ => default
 
@@ -100,10 +129,29 @@ def doOne (l : List Char) : Option (List (List Char)) :=
   let n := 2
   doOne n l
 
+/-- `Nat.factorial n` -- the factorial of `n`. -/
+def Nat.factorial : Nat → Nat
+  | 0 => 1
+  | n + 1 => (n + 1) * n.factorial
+
+/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
+def Nat.binom (n : Nat) (k : Nat) : Nat :=
+  ((List.range k).map (n - ·)).prod / k.factorial
+
+#eval (List.range 12).map <| Nat.binom 10
+
+def evalOne (cs : List Char) (ns : List Nat) : Nat :=
+  (cs.length.succ - ns.sum).binom ns.length
+
 def doAll : List (List Char) → List Nat → Nat
   |     l,    [] => if l.all fun cs => cs.all (· == '?') then 1 else 0
   |    [],     _ => 0
-  | l::ls, n::ns => match doOne n l with
+--  |   [l],    ns => evalOne l ns
+  | l::ls, n::ns =>
+--    let _x :=
+--      if ((l::ls).map fun cs => cs.all (· == '?')).all (·) then dbg_trace "found"; 0 else 0; _x +
+    if ls = [] ∧ ! l.contains '#' then evalOne l (n::ns) else
+    match doOne n l with
     | none => 0
     | some nls =>
       let news := nls.map fun nl =>
@@ -113,10 +161,21 @@ def doAll : List (List Char) → List Nat → Nat
       news.sum
   termination_by _ => by rename_i x y; exact x.length + y.length
 
-def String.reparseOne (s : String) : List String × List Nat :=
-  match s.splitOn " " with
-    | [l, r] => ((l.splitOn ".").filter (! · == ""), r.getNats)
-    | _ => dbg_trace s!"reparseOne error: {s}"; default
+#eval do
+  for i in [:10] do
+    let n := (4 + i)
+    let ls := List.replicate (18 + i) '?'
+    IO.println <| doAll [ls] [n, 1, 1]
+
+open List in
+#eval do
+  let n := 9
+  let guess  := (range 12).map fun i => Nat.binom 10 i
+  let guess' := (range 12).map fun i => evalOne (replicate (n+i) '?') (replicate i 1)
+  IO.println guess
+  IO.println guess'
+  let actual := (range 12).map fun i => (doAll [replicate (n+i) '?'] <| replicate i 1)
+  IO.println <| guess == actual
 
 #eval do
   let t := "#?# 2"
@@ -127,31 +186,109 @@ def String.reparseOne (s : String) : List String × List Nat :=
     IO.println s!"\n1st: {part1.tot fir}  {fir}\n2nd: {da}  {(l, r)}\n"
   IO.println <| da
 
-/-- `Nat.factorial n` -- the factorial of `n`. -/
-def Nat.factorial : Nat → Nat
-  | 0 => 1
-  | n + 1 => (n + 1) * n.factorial
+#check List.splitAt
 
-/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
-def Nat.binom (n : Nat) (k : Nat) : Int :=
-  ((List.range k).map (n - ·)).prod / k.factorial
+#eval List.splitAt 1 [0, 1, 2]
+
+def doTwo (l : List (List Char)) (ns : List Nat) :
+    Array ((List Char × List Nat) × (List (List Char) × List Nat)) :=
+  match l with
+  | [] => if ns.isEmpty then #[((['a'], [1]), ([['b']], [0]))] else default --#[(['?'], [2])]
+  | l::ls => Id.run do
+    let mut tots := #[]
+    for i in [:ns.length] do
+      let (src, tgt) := ns.splitAt i
+--      if src.sum + src.length ≤ l.length then
+      tots := tots.push ((l, src), (ls, tgt))
+    return tots
+
+partial
+def memos (l : List (List Char)) (ns : List Nat) : HashMap (List Bool × List Nat) Nat :=
+  Id.run do
+  let mut mem : HashMap (List Bool × List Nat) Nat := .empty
+  let arr := doTwo l ns
+  for (x, _) in arr do
+    let conv : List Bool := x.1.map (· == '#')
+    if ! mem.contains (conv, x.2) then mem := mem.insert (conv, x.2) (doAll [x.1] x.2)
+  let arrparts := arr.map fun (_, xs) =>
+    memos xs.1 xs.2
+  for x in arrparts do
+    for y in x do
+      mem := mem.insert y.1 y.2
+  return mem
+
+partial
+def combine (l : List (List Char)) (ns : List Nat) : Nat :=
+  if l.length ≤ 1 then doAll l ns else
+  let arr := doTwo l ns
+  let arrparts := arr.map fun (x, xs) =>
+    let doa := doAll [x.1] x.2
+    if doa = 0 then 0 else
+    doa * combine xs.1 xs.2
+  arrparts.sum
+
+partial
+def combine' (l : List (List Char)) (ns : List Nat) :=
+  if l.length ≤ 1 then doAll l ns else
+  let mem := memos l ns
+  mem.size
+
+#eval show MetaM _ from do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let mut total := 0
+  let mut tots := #[]
+  for t in dat do
+    let t := repl t 4
+    let (l, r) := t.reparseOne
+    let da := combine (l.map String.toList) r
+    total := total + da
+    tots := tots.push da
+  IO.println <| total
+--  IO.println <| tots
+--  guard ([21, 6935].contains total)
 
 
+#eval 0
+
+partial
+def Nat.factors (n : Nat) (p : Nat := 2) : Array Nat :=
+  match n with
+    | 0 => #[0]
+    | 1 => #[]
+    | n =>
+      if n % p = 0 then ((n / p).factors p).push p
+      else if n.sqrt < p then #[n]
+      else n.factors p.succ
 
 #eval do
-  for i in [:10] do
-    let n := (4 + i)
-    let ls := List.replicate (18 + i) '?'
-    IO.println <| doAll [ls] [n, 1, 1]
+  let mut tots := true
+  for n in [5:5000] do
+    tots := tots && n == n.factors.prod
+  IO.println tots
 
-#eval (List.range 12).map <| Nat.binom 10
-
-#eval do
-  let n := 9
-  for i in [:12] do
-    IO.println <| doAll [List.replicate (n+i) '?'] <| List.replicate i 1
+#eval [6935, 312695, 44446615].map Nat.factors
 
 #exit
+/-
+-- repl 1
+interpretation of _eval took 125ms
+6935
+
+-- repl 2
+interpretation of _eval took 5.18s
+312695
+
+-- repl 3
+interpretation of _eval took 776s
+44446615
+
+-- repl 4
+interpretation of _eval took 5.83e+03s
+10799907995
+-/
+
+
 
 #eval show MetaM _ from do
   let dat := atest
@@ -164,40 +301,55 @@ def Nat.binom (n : Nat) (k : Nat) : Int :=
     total := total + da
     tots := tots.push da
   IO.println <| total
---  guard (total == 21)
+  guard ([21, 6935].contains total)
 --  guard (tots == #[1, 4, 1, 1, 4, 10])
 
 def extendRed (r : red) (n : Nat := 5) : red :=
   let (l, r) := r
   (['?'].intercalate (List.replicate n l), (List.replicate n r).join)
 
-def repl (s : String) (n : Nat := 5) : String :=
-  match s.splitOn " " with
-    | [l, r] =>
-      "?".intercalate (List.replicate n l) ++ " " ++
-      ",".intercalate (List.replicate n r)
-    | _ => dbg_trace s!"oh no! {s}"; default
-
 #eval repl "### 1,2,3"
 
+def second (dat : Array String) (i : Nat := 5) : Array Nat :=
+  Id.run do
+  let mut total := #[]
+  for t in dat do
+    let (l, r) := (repl t i).reparseOne
+    let da := doAll (l.map String.toList) r
+    total := total.push da
+  total
 
-#eval show MetaM _ from do
+#assert second atest == #[1, 16384, 1, 16, 2500, 506250]
+--#assert second atest == #[1, 16384, 1, 16, 2500, 506250]
+--#assert second atest == #[1, 16384, 1, 16, 2500, 506250]
+--#assert second atest == #[1, 16384, 1, 16, 2500, 506250]
+
+
+#exit
+#eval do
   let dat ← IO.FS.lines input
   let dat := atest
+  IO.println <| second dat
+
+#exit
+
+#eval show MetaM _ from do
   let dat := #["?????.??.???. 1,1,1"]
   let dat := #["??#?#???#??????#?##? 7,4,5", "?#??.##???? 1,4", "? 1", "????????? 2,5"]
+  let dat := atest
+  let dat ← IO.FS.lines input
   let mut total := 0
-  let mut tots := #[]
+--  let mut tots := #[]
   for t in dat do
-    let t := repl t
+    let t := repl t 2
     let (l, r) := t.reparseOne
 --    let x := (repl t).ep
 --    IO.println <| part1.tot x
     let da := doAll (l.map String.toList) r
     total := total + da
-    tots := tots.push da
+--    tots := tots.push da
   IO.println <| total
-  IO.println <| tots
+--  IO.println <| tots
 
 
 #exit
