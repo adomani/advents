@@ -165,53 +165,56 @@ def doOne (l : springs) : Option (List springs) :=
     else some (xs.drop n :: (doOne xs).getD default)
   | _ => default
 
-#eval
+#assert
   let l := "?#?????".toList.map Char.toSpring
   let n := 2
-  doOne n l
+  doOne n l == (some [[.q, .q, .q, .q], [.q, .q, .q]])
 
 def doAll : List springs → List Nat → Nat
   |     l,    [] => if l.all fun cs => cs.all (· == .q) then 1 else 0
   |    [],     _ => 0
---  |   [l],    ns => evalOne l ns
   | l::ls, n::ns =>
---    let _x :=
---      if ((l::ls).map fun cs => cs.all (· == .q)).all (·) then dbg_trace "found"; 0 else 0; _x +
     if ls = [] ∧ ! l.contains .h then evalOne l (n::ns) else
     match doOne n l with
     | none => 0
     | some nls =>
       let news := nls.map fun nl =>
         if nl = [.s] then doAll ls (n::ns) else
-        doAll (nl :: ls) ns
+        doAll (nl::ls) ns
       --dbg_trace news
       news.sum
   termination_by _ => by rename_i x y; exact x.length + y.length
 
-#eval do
+#assert
+  Id.run do
+  let mut vals := []
   for i in [:10] do
     let n := (4 + i)
     let ls := List.replicate (18 + i) '?'.toSpring
-    IO.println <| doAll [ls] [n, 1, 1]
+    vals := doAll [ls] [n, 1, 1] :: vals
+  List.replicate 10 286 == vals
 
 open List in
-#eval do
+#assert
   let n := 9
   let guess  := (range 12).map fun i => Nat.binom 10 i
   let guess' := (range 12).map fun i => evalOne (replicate (n+i) '?') (replicate i 1)
-  IO.println guess
-  IO.println guess'
   let actual := (range 12).map fun i => (doAll [replicate (n+i) .q] <| replicate i 1)
-  IO.println <| guess == actual
+  guess == actual && guess == guess'
 
-#eval do
+#assert
   let t := "#?# 2"
   let fir := t.ep
-  let (l, r) := t.reparseOne
-  let da := doAll l r
-  if part1.tot fir ≠ da then
-    IO.println s!"\n1st: {part1.tot fir}  {fir}\n2nd: {da}  {(l, r)}\n"
-  IO.println <| da
+  let lr := t.reparseOne
+  let da := doAll lr.1 lr.2
+  da == 0 && part1.tot fir == da
+
+#assert
+  let tots := atest.map fun t =>
+    let t := repl t 1
+    let lr := t.reparseOne
+    doAll lr.1 lr.2
+  tots.sum == 21 && tots == #[1, 4, 1, 1, 4, 10]
 
 #eval show MetaM _ from do
   let dat := atest
