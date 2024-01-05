@@ -82,6 +82,27 @@ solve 1 6935
 #  Question 2
 -/
 
+def repl (s : String) (n : Nat := 5) : String :=
+  match s.splitOn " " with
+    | [l, r] =>
+      "?".intercalate (List.replicate n l) ++ " " ++
+      ",".intercalate (List.replicate n r)
+    | _ => dbg_trace s!"oh no! {s}"; default
+
+/-- `Nat.factorial n` -- the factorial of `n`. -/
+def Nat.factorial : Nat → Nat
+  | 0 => 1
+  | n + 1 => (n + 1) * n.factorial
+
+/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
+def Nat.binom (n : Nat) (k : Nat) : Nat :=
+  ((List.range k).map (n - ·)).prod / k.factorial
+
+#eval (List.range 12).map <| Nat.binom 10
+
+def evalOne (cs : List α) (ns : List Nat) : Nat :=
+  (cs.length.succ - ns.sum).binom ns.length
+
 /-- a `h`ash, a `q`uestion mark, a `s`kipped spring. -/
 inductive spring | h | q | s | e
   deriving BEq, DecidableEq, Hashable
@@ -101,13 +122,6 @@ def Char.toSpring : Char → spring
   | c   => dbg_trace "misparsed {c}"; .s
 
 abbrev springs := List spring
-
-def repl (s : String) (n : Nat := 5) : String :=
-  match s.splitOn " " with
-    | [l, r] =>
-      "?".intercalate (List.replicate n l) ++ " " ++
-      ",".intercalate (List.replicate n r)
-    | _ => dbg_trace s!"oh no! {s}"; default
 
 def String.reparseOne (s : String) : List springs × List Nat :=
   match s.splitOn " " with
@@ -132,20 +146,6 @@ def doOne (l : springs) : Option (List springs) :=
   let l := "?#?????".toList.map Char.toSpring
   let n := 2
   doOne n l
-
-/-- `Nat.factorial n` -- the factorial of `n`. -/
-def Nat.factorial : Nat → Nat
-  | 0 => 1
-  | n + 1 => (n + 1) * n.factorial
-
-/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
-def Nat.binom (n : Nat) (k : Nat) : Nat :=
-  ((List.range k).map (n - ·)).prod / k.factorial
-
-#eval (List.range 12).map <| Nat.binom 10
-
-def evalOne (cs : List α) (ns : List Nat) : Nat :=
-  (cs.length.succ - ns.sum).binom ns.length
 
 def doAll : List springs → List Nat → Nat
   |     l,    [] => if l.all fun cs => cs.all (· == .q) then 1 else 0
@@ -190,9 +190,20 @@ open List in
     IO.println s!"\n1st: {part1.tot fir}  {fir}\n2nd: {da}  {(l, r)}\n"
   IO.println <| da
 
-#check List.splitAt
-
-#eval List.splitAt 1 [0, 1, 2]
+#eval show MetaM _ from do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let mut total := 0
+  let mut tots := #[]
+  for t in dat do
+    let t := repl t 1
+    let (l, r) := t.reparseOne
+    let da := doAll l r
+    total := total + da
+    tots := tots.push da
+  IO.println <| total
+--  IO.println <| tots
+--  guard ([21, 6935].contains total)
 
 def doTwo (l : List springs) (ns : List Nat) :
     Array ((springs × List Nat) × (List springs × List Nat)) :=
@@ -215,21 +226,6 @@ def combine (l : List springs) (ns : List Nat) : Nat :=
     if doa = 0 then 0 else
     doa * combine xs.1 xs.2
   arrparts.sum
-
-#eval show MetaM _ from do
-  let dat := atest
-  let dat ← IO.FS.lines input
-  let mut total := 0
-  let mut tots := #[]
-  for t in dat do
-    let t := repl t 1
-    let (l, r) := t.reparseOne
-    let da := doAll l r
-    total := total + da
-    tots := tots.push da
-  IO.println <| total
---  IO.println <| tots
---  guard ([21, 6935].contains total)
 
 
 partial
