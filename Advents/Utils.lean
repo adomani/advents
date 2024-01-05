@@ -77,6 +77,52 @@ def String.getInts (l : String) : List Int :=
     let fin := getInts (l1.dropWhile cond)
   d1 :: fin
 
+section Nats_and_Ints
+
+/-- `Nat.factors n` returns the array of prime factors of `n`, with repetitions,
+in decreasing order. -/
+def Nat.factors (n : Nat) (p : Nat := 2) : Array Nat :=
+  if p0 : p = 0 then #[0] else if p1 : p = 1 then #[n] else if pn : n ≤ p then #[n] else
+  match n with
+    | 0 => #[0]
+    | 1 => #[]
+    | n =>
+      have : n / p < n := by
+        apply Nat.div_lt_self (Nat.pos_of_ne_zero ?_)
+        · apply Nat.lt_of_le_of_ne ?_ (Ne.symm p1)
+          exact Nat.succ_le.mpr <| Nat.pos_of_ne_zero p0
+        · apply Nat.ne_zero_iff_zero_lt.mpr
+          exact Nat.lt_of_le_of_lt p.zero_le (Nat.not_le.mp pn)
+      if n % p = 0 then ((n / p).factors p).push p
+      else if n.sqrt < p then #[n]
+      else
+        have : n - p.succ < n - p := Nat.sub_lt_sub_left (Nat.not_le.mp pn) p.lt_succ_self
+        n.factors p.succ
+  termination_by _ => (n, n - p)
+
+/-- `Int.natFactors n` returns the array of prime factors of `n.natAbs`, with repetitions,
+in decreasing order.
+If you want to remember the sign of `n`, use `Int.factors` instead. -/
+def Int.natFactors (n : Int) : Array Nat :=
+  n.natAbs.factors
+
+/-- `Int.factors n` returns the array of natural prime factors of `n`, with repetitions,
+in decreasing order, preceded by `-1` if `n` is negative. -/
+def Int.factors (n : Int) : Array Int :=
+  let nf := n.natFactors.map Nat.cast
+  if 0 ≤ n then nf else #[-1] ++ nf
+
+/-- `Nat.factorial n` -- the factorial of `n`. -/
+def Nat.factorial : Nat → Nat
+  | 0 => 1
+  | n + 1 => (n + 1) * n.factorial
+
+/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
+def Nat.binom (n : Nat) (k : Nat) : Nat :=
+  ((List.range k).map (n - ·)).prod / k.factorial
+
+end Nats_and_Ints
+
 /-- Transpose an array of strings. -/
 def Array.transpose (s : Array String) : Array String :=
   let rows := s.map (List.toArray ∘ String.toList)
@@ -227,5 +273,13 @@ def toPic (gr : Array pos) (Nx Ny : Nat) : Array String :=
 section tests
 
 #assert "0 2 -3".getInts = [0, 2, -3]
+
+#assert Id.run do
+  let mut tots := true
+  for n in [0:5000] do
+    tots := tots && n == n.factors.prod
+  tots
+
+#assert (List.range 12).map (Nat.binom 10) == [1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1, 0]
 
 end tests
