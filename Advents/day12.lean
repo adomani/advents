@@ -104,7 +104,7 @@ def evalOne (cs : List α) (ns : List Nat) : Nat :=
   (cs.length.succ - ns.sum).binom ns.length
 
 /-- a `h`ash, a `q`uestion mark, a `s`kipped spring. -/
-inductive spring | h | q | s | e
+inductive spring | h | q | s
   deriving BEq, DecidableEq, Hashable
 
 instance : Inhabited spring := ⟨.s⟩
@@ -114,7 +114,6 @@ instance : ToString spring where
     | .h => "#"
     | .q => "?"
     | .s => "."
-    | .e => "X"
 
 def Char.toSpring : Char → spring
   | '#' => .h
@@ -134,7 +133,7 @@ variable (n : Nat) in
 def doOne (l : springs) : Option (List springs) :=
   if (l.length ≤ n - 1) ∧ (l.contains .h) then none
   else if l.length ≤ n - 1 then some [[.s]]
-  else if l[0]! = .h ∧ l.getD n .e = .h then none
+  else if l[0]! = .h ∧ l.getD n .s = .h then none
   else match l with
   | _::xs =>
     if l.getD n .s = .h then doOne xs
@@ -208,7 +207,7 @@ open List in
 def doTwo (l : List springs) (ns : List Nat) :
     Array ((springs × List Nat) × (List springs × List Nat)) :=
   match l with
-  | [] => if ns.isEmpty then #[(([.e], [1]), ([[.e]], [0]))] else default --#[(['?'], [2])]
+  | [] => if ns.isEmpty then #[(([.s], [1]), ([[.s]], [0]))] else default --#[(['?'], [2])]
   | l::ls => Id.run do
     let mut tots := #[]
     for i in [:ns.length] do
