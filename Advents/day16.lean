@@ -58,32 +58,33 @@ def dir.split : Char → dir → Array dir
 /-- An auxilliary function to process mirrors encoded in the string `s`.
 It returns data that `getHSteps` and `getVSteps` use. -/
 def getHVSteps (s : String) (left_or_up : dir) (f : Int → pos) : HashMap ray (Array ray) :=
-  let idxs := s.toList.findIdxs (· != '.')
+  let sc := s.toList
+  let idxs := sc.findIdxs (· != '.')
   if idxs.isEmpty then .empty else
   Id.run do
   let mut new : HashMap ray (Array ray) := .empty
 
   -- insert the entry `(last+1, .S)` pointing `left_or_up`
   let lastMirrorIdx := idxs[idxs.length-1]!
-  let lastSplit := left_or_up.split s.toList[lastMirrorIdx]!
+  let lastSplit := left_or_up.split sc[lastMirrorIdx]!
   let lastInsertable := lastSplit.map (f lastMirrorIdx, ·)
   new := new.insert (f s.length, .S) lastInsertable
 
   -- insert the entry `(-1, .S)` pointing `right_or_down = left_or_up.rev`
   let firstMirrorIdx := idxs[0]!
-  let firstSplit := left_or_up.rev.split s.toList[firstMirrorIdx]!
+  let firstSplit := left_or_up.rev.split sc[firstMirrorIdx]!
   let firstInsertable := firstSplit.map (f firstMirrorIdx, ·)
   new := new.insert (f (- 1), .S) firstInsertable
 
   -- insert the entries in the middle (could probably include the two special cases above)
   for i in [:idxs.length] do
     let prev := if i = 0 then 0 else idxs[i - 1]!
-    let cand := match left_or_up.split s.toList[prev]! with
+    let cand := match left_or_up.split sc[prev]! with
       | #[] => #[(f (prev - 1), .S)]
       | x   => x.map (f prev, ·)
     new := new.insert (f idxs[i]!, left_or_up) cand
-    let next := if i = idxs.length - 1 then s.length else idxs[i + 1]!
-    let cand := match left_or_up.rev.split (s.toList.getD next 'A') with
+    let next := if i = idxs.length - 1 then s.length - 1 else idxs[i + 1]!
+    let cand := match left_or_up.rev.split sc[next]! with
       | #[] => #[(f next, .S)]
       | x   => x.map (f next, ·)
     new := new.insert (f idxs[i]!, left_or_up.rev) cand
@@ -145,10 +146,10 @@ def init (dat : Array String) : HashMap ray (Array ray) :=
   Id.run do
   let mut new := .empty
   for r in [:dat.size] do
-    for x in getHSteps (dat.getD r "") r do
+    for x in getHSteps dat[r]! r do
       new := new.insert x.1 x.2
   for r in [:datt.size] do
-    for x in getVSteps (datt.getD r "") r do
+    for x in getVSteps datt[r]! r do
       new := new.insert x.1 x.2
   return new
 
