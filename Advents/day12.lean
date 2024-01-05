@@ -98,17 +98,6 @@ def repl (s : String) (n : Nat := 5) : String :=
 
 #assert repl "a b" == "a?a?a?a?a b,b,b,b,b"
 
-/-- `Nat.factorial n` -- the factorial of `n`. -/
-def Nat.factorial : Nat → Nat
-  | 0 => 1
-  | n + 1 => (n + 1) * n.factorial
-
-/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
-def Nat.binom (n : Nat) (k : Nat) : Nat :=
-  ((List.range k).map (n - ·)).prod / k.factorial
-
-#assert (List.range 12).map (Nat.binom 10) == [1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1, 0]
-
 /-- mostly used when `α = spring`, that is `List α = springs`. -/
 def evalOne (cs : List α) (ns : List Nat) : Nat :=
   (cs.length.succ - ns.sum).binom ns.length
@@ -234,11 +223,11 @@ def splitHs (s : String) : List String × List String :=
   let mut total := 0
   let mut tots := #[]
   for t in dat do
-    let t := repl t 2
+    let t := repl t 1
     let t? := String.replace t "#" "?"
     let t! := String.replace t "#" "."
 --    dbg_trace "{t}\n{t?}\n{t!}\n"
-    let (l, r) := t?.reparseOne
+    let (l, r) := t.reparseOne
     let da := doAll l r
     total := total + da
     tots := tots.push da
@@ -289,19 +278,19 @@ def combine1' (l : List springs) (ns : List Nat) :=
   let mem := memos l ns
   mem.size
 
+
+#eval
+  let facs := [-6935, 312695, 44446615, 10799907995].map Int.factors
+  (facs, facs.map <| (Array.erase · 5 |>.prod))
+
+#eval
+  let facs := [6935, 312695, 44446615, 10799907995].map Nat.factors
+  facs.map <| (Array.erase · 5 |>.prod)
+
+
 #exit
 
 #eval 0
-
-partial
-def Nat.factors (n : Nat) (p : Nat := 2) : Array Nat :=
-  match n with
-    | 0 => #[0]
-    | 1 => #[]
-    | n =>
-      if n % p = 0 then ((n / p).factors p).push p
-      else if n.sqrt < p then #[n]
-      else n.factors p.succ
 
 #eval do
   let mut tots := true
@@ -309,7 +298,7 @@ def Nat.factors (n : Nat) (p : Nat := 2) : Array Nat :=
     tots := tots && n == n.factors.prod
   IO.println tots
 
-#eval [6935, 312695, 44446615].map Nat.factors
+#eval [6935, 312695, 44446615, 10799907995].map Nat.factors
 
 #exit
 /-
