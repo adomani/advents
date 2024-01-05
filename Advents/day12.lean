@@ -1,8 +1,6 @@
 import Advents.Utils
 open Lean
 
-set_option profiler true
-
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day12.input"
 
@@ -81,6 +79,8 @@ solve 1 6935
 /-!
 #  Question 2
 -/
+
+set_option profiler true
 
 /-- assumes `s` is of the form `no_spaces_left no_spaces_right`.
 Returns a string with a single space:
@@ -215,6 +215,13 @@ open List in
     let lr := t.reparseOne
     doAll lr.1 lr.2
   tots.sum == 21 && tots == #[1, 4, 1, 1, 4, 10]
+
+#assert
+  let tots := (← IO.FS.lines input).map fun t =>
+    let t := repl t 1
+    let lr := t.reparseOne
+    doAll lr.1 lr.2
+  tots.sum == 6935
 
 #eval show MetaM _ from do
   let dat := atest
