@@ -96,6 +96,8 @@ def repl (s : String) (n : Nat := 5) : String :=
       ",".intercalate (List.replicate n r)
     | _ => dbg_trace s!"oh no! {s}"; default
 
+#assert repl "a b" == "a?a?a?a?a b,b,b,b,b"
+
 /-- `Nat.factorial n` -- the factorial of `n`. -/
 def Nat.factorial : Nat → Nat
   | 0 => 1
@@ -105,29 +107,43 @@ def Nat.factorial : Nat → Nat
 def Nat.binom (n : Nat) (k : Nat) : Nat :=
   ((List.range k).map (n - ·)).prod / k.factorial
 
-#eval (List.range 12).map <| Nat.binom 10
+#assert (List.range 12).map (Nat.binom 10) == [1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1, 0]
 
 /-- mostly used when `α = spring`, that is `List α = springs`. -/
 def evalOne (cs : List α) (ns : List Nat) : Nat :=
   (cs.length.succ - ns.sum).binom ns.length
 
-/-- a `h`ash, a `q`uestion mark, a `s`kipped spring. -/
-inductive spring | h | q | s
+/-- A `spring` represents one of the three possibilities:
+* a `h`ash spring, corresponding to the character `#`;
+* a `q`uestion mark spring, corresponding to the character `?`;
+* a `s`kipped spring, corresponding to the character `.`.
+-/
+inductive spring
+  /-- a `h`ash spring `#` -/
+  | h
+  /-- a `q`uestion mark spring `?` -/
+  | q
+  /-- a `s`kipped spring `.` -/
+  | s
   deriving BEq, DecidableEq, Hashable
 
+/-- The default element of a `spring` is `spring.s` -- the skipped spring. -/
 instance : Inhabited spring := ⟨.s⟩
 
+/-- pretty-print each `spring` by the corresponding character. -/
 instance : ToString spring where
   toString
     | .h => "#"
     | .q => "?"
     | .s => "."
 
+/-- convert a character to a `spring`.  It assumes that the character is `#` or `?`. -/
 def Char.toSpring : Char → spring
   | '#' => .h
   | '?' => .q
   | c   => dbg_trace "misparsed {c}"; .s
 
+/-- The type `springs` is a list of `spring`. -/
 abbrev springs := List spring
 
 def String.reparseOne (s : String) : List springs × List Nat :=
