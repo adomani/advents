@@ -83,7 +83,7 @@ solve 1 6935
 -/
 
 /-- a `h`ash, a `q`uestion mark, a `s`kipped spring. -/
-inductive spring | h | q | s
+inductive spring | h | q | s | e
   deriving BEq, DecidableEq, Hashable
 
 instance : Inhabited spring := ⟨.s⟩
@@ -93,18 +93,15 @@ instance : ToString spring where
     | .h => "#"
     | .q => "?"
     | .s => "."
+    | .e => "X"
 
 def Char.toSpring : Char → spring
   | '#' => .h
   | '?' => .q
   | c   => dbg_trace "misparsed {c}"; .s
 
-def String.reparseOne (s : String) : List String × List Nat :=
-  match s.splitOn " " with
-    | [l, r] => ((l.splitOn ".").filter (! · == ""), r.getNats)
-    | _ => dbg_trace s!"reparseOne error: {s}"; default
+abbrev springs := List spring
 
-#exit
 def repl (s : String) (n : Nat := 5) : String :=
   match s.splitOn " " with
     | [l, r] =>
@@ -112,20 +109,27 @@ def repl (s : String) (n : Nat := 5) : String :=
       ",".intercalate (List.replicate n r)
     | _ => dbg_trace s!"oh no! {s}"; default
 
+def String.reparseOne (s : String) : List springs × List Nat :=
+  match s.splitOn " " with
+    | [l, r] =>
+      let chars := (l.splitOn ".").filter (! · == "")
+      (chars.map fun s => s.toList.map Char.toSpring, r.getNats)
+    | _ => dbg_trace s!"reparseOne error: {s}"; default
+
 variable (n : Nat) in
-def doOne (l : List Char) : Option (List (List Char)) :=
-  if (l.length ≤ n - 1) ∧ (l.contains '#') then none
-  else if l.length ≤ n - 1 then some [['A']]
-  else if l[0]! = '#' ∧ l.getD n 'B' = '#' then none
+def doOne (l : springs) : Option (List springs) :=
+  if (l.length ≤ n - 1) ∧ (l.contains .h) then none
+  else if l.length ≤ n - 1 then some [[.s]]
+  else if l[0]! = .h ∧ l.getD n .e = .h then none
   else match l with
   | _::xs =>
-    if l.getD n 'A' = '#' then doOne xs
-    else if l[0]! = '#' then some [l.drop n.succ]
+    if l.getD n .s = .h then doOne xs
+    else if l[0]! = .h then some [l.drop n.succ]
     else some (xs.drop n :: (doOne xs).getD default)
   | _ => default
 
 #eval
-  let l := "?#?????".toList
+  let l := "?#?????".toList.map Char.toSpring
   let n := 2
   doOne n l
 
@@ -140,22 +144,22 @@ def Nat.binom (n : Nat) (k : Nat) : Nat :=
 
 #eval (List.range 12).map <| Nat.binom 10
 
-def evalOne (cs : List Char) (ns : List Nat) : Nat :=
+def evalOne (cs : List α) (ns : List Nat) : Nat :=
   (cs.length.succ - ns.sum).binom ns.length
 
-def doAll : List (List Char) → List Nat → Nat
-  |     l,    [] => if l.all fun cs => cs.all (· == '?') then 1 else 0
+def doAll : List springs → List Nat → Nat
+  |     l,    [] => if l.all fun cs => cs.all (· == .q) then 1 else 0
   |    [],     _ => 0
 --  |   [l],    ns => evalOne l ns
   | l::ls, n::ns =>
 --    let _x :=
---      if ((l::ls).map fun cs => cs.all (· == '?')).all (·) then dbg_trace "found"; 0 else 0; _x +
-    if ls = [] ∧ ! l.contains '#' then evalOne l (n::ns) else
+--      if ((l::ls).map fun cs => cs.all (· == .q)).all (·) then dbg_trace "found"; 0 else 0; _x +
+    if ls = [] ∧ ! l.contains .h then evalOne l (n::ns) else
     match doOne n l with
     | none => 0
     | some nls =>
       let news := nls.map fun nl =>
-        if nl = ['A'] then doAll ls (n::ns) else
+        if nl = [.s] then doAll ls (n::ns) else
         doAll (nl :: ls) ns
       --dbg_trace news
       news.sum
@@ -164,7 +168,7 @@ def doAll : List (List Char) → List Nat → Nat
 #eval do
   for i in [:10] do
     let n := (4 + i)
-    let ls := List.replicate (18 + i) '?'
+    let ls := List.replicate (18 + i) '?'.toSpring
     IO.println <| doAll [ls] [n, 1, 1]
 
 open List in
@@ -174,14 +178,14 @@ open List in
   let guess' := (range 12).map fun i => evalOne (replicate (n+i) '?') (replicate i 1)
   IO.println guess
   IO.println guess'
-  let actual := (range 12).map fun i => (doAll [replicate (n+i) '?'] <| replicate i 1)
+  let actual := (range 12).map fun i => (doAll [replicate (n+i) .q] <| replicate i 1)
   IO.println <| guess == actual
 
 #eval do
   let t := "#?# 2"
   let fir := t.ep
   let (l, r) := t.reparseOne
-  let da := doAll (l.map String.toList) r
+  let da := doAll l r
   if part1.tot fir ≠ da then
     IO.println s!"\n1st: {part1.tot fir}  {fir}\n2nd: {da}  {(l, r)}\n"
   IO.println <| da
@@ -190,10 +194,10 @@ open List in
 
 #eval List.splitAt 1 [0, 1, 2]
 
-def doTwo (l : List (List Char)) (ns : List Nat) :
-    Array ((List Char × List Nat) × (List (List Char) × List Nat)) :=
+def doTwo (l : List springs) (ns : List Nat) :
+    Array ((springs × List Nat) × (List springs × List Nat)) :=
   match l with
-  | [] => if ns.isEmpty then #[((['a'], [1]), ([['b']], [0]))] else default --#[(['?'], [2])]
+  | [] => if ns.isEmpty then #[(([.e], [1]), ([[.e]], [0]))] else default --#[(['?'], [2])]
   | l::ls => Id.run do
     let mut tots := #[]
     for i in [:ns.length] do
@@ -203,22 +207,7 @@ def doTwo (l : List (List Char)) (ns : List Nat) :
     return tots
 
 partial
-def memos (l : List (List Char)) (ns : List Nat) : HashMap (List Bool × List Nat) Nat :=
-  Id.run do
-  let mut mem : HashMap (List Bool × List Nat) Nat := .empty
-  let arr := doTwo l ns
-  for (x, _) in arr do
-    let conv : List Bool := x.1.map (· == '#')
-    if ! mem.contains (conv, x.2) then mem := mem.insert (conv, x.2) (doAll [x.1] x.2)
-  let arrparts := arr.map fun (_, xs) =>
-    memos xs.1 xs.2
-  for x in arrparts do
-    for y in x do
-      mem := mem.insert y.1 y.2
-  return mem
-
-partial
-def combine (l : List (List Char)) (ns : List Nat) : Nat :=
+def combine (l : List springs) (ns : List Nat) : Nat :=
   if l.length ≤ 1 then doAll l ns else
   let arr := doTwo l ns
   let arrparts := arr.map fun (x, xs) =>
@@ -227,27 +216,43 @@ def combine (l : List (List Char)) (ns : List Nat) : Nat :=
     doa * combine xs.1 xs.2
   arrparts.sum
 
-partial
-def combine' (l : List (List Char)) (ns : List Nat) :=
-  if l.length ≤ 1 then doAll l ns else
-  let mem := memos l ns
-  mem.size
-
 #eval show MetaM _ from do
   let dat := atest
   let dat ← IO.FS.lines input
   let mut total := 0
   let mut tots := #[]
   for t in dat do
-    let t := repl t 4
+    let t := repl t 1
     let (l, r) := t.reparseOne
-    let da := combine (l.map String.toList) r
+    let da := doAll l r
     total := total + da
     tots := tots.push da
   IO.println <| total
 --  IO.println <| tots
 --  guard ([21, 6935].contains total)
 
+
+partial
+def memos (l : List springs) (ns : List Nat) : HashMap (springs × List Nat) Nat :=
+  Id.run do
+  let mut mem : HashMap (springs × List Nat) Nat := .empty
+  let arr := doTwo l ns
+  for (x, _) in arr do
+    if ! mem.contains x then mem := mem.insert x (doAll [x.1] x.2)
+  let arrparts := arr.map fun (_, xs) =>
+    memos xs.1 xs.2
+  for x in arrparts do
+    for y in x do
+      mem := mem.insert y.1 y.2
+  return mem
+
+partial
+def combine1' (l : List springs) (ns : List Nat) :=
+  if l.length ≤ 1 then doAll l ns else
+  let mem := memos l ns
+  mem.size
+
+#exit
 
 #eval 0
 
