@@ -209,12 +209,12 @@ open List in
   let da := doAll lr.1 lr.2
   da == 0 && part1.tot fir == da
 
-#assert
+#assert  -- `atest` yields 21
   let tots := atest.map fun t =>
     let t := repl t 1
     let lr := t.reparseOne
     doAll lr.1 lr.2
-  tots.sum == 21 && tots == #[1, 4, 1, 1, 4, 10]
+  tots == #[1, 4, 1, 1, 4, 10]
 
 #assert
   let tots := (← IO.FS.lines input).map fun t =>
@@ -223,14 +223,22 @@ open List in
     doAll lr.1 lr.2
   tots.sum == 6935
 
+def splitHs (s : String) : List String × List String :=
+
+  default
+
+
 #eval show MetaM _ from do
   let dat := atest
   let dat ← IO.FS.lines input
   let mut total := 0
   let mut tots := #[]
   for t in dat do
-    let t := repl t 1
-    let (l, r) := t.reparseOne
+    let t := repl t 2
+    let t? := String.replace t "#" "?"
+    let t! := String.replace t "#" "."
+--    dbg_trace "{t}\n{t?}\n{t!}\n"
+    let (l, r) := t?.reparseOne
     let da := doAll l r
     total := total + da
     tots := tots.push da
