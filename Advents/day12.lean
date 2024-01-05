@@ -82,6 +82,13 @@ solve 1 6935
 #  Question 2
 -/
 
+/-- assumes `s` is of the form `no_spaces_left no_spaces_right`.
+Returns a string with a single space:
+* the string *before* the space is `no_spaces_left?···?no_spaces_left`,
+  where `no_spaces_left` appears `r` times;
+* the string *after* the space is `no_spaces_right,···,no_spaces_right`,
+  where `no_spaces_right` appears `r` times.
+-/
 def repl (s : String) (n : Nat := 5) : String :=
   match s.splitOn " " with
     | [l, r] =>
@@ -100,6 +107,7 @@ def Nat.binom (n : Nat) (k : Nat) : Nat :=
 
 #eval (List.range 12).map <| Nat.binom 10
 
+/-- mostly used when `α = spring`, that is `List α = springs`. -/
 def evalOne (cs : List α) (ns : List Nat) : Nat :=
   (cs.length.succ - ns.sum).binom ns.length
 
