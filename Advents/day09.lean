@@ -18,20 +18,8 @@ def test := "0 3 6 9 12 15
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- `Nat.factorial n` -- the factorial of `n`. -/
-def Nat.factorial : Nat → Nat
-  | 0 => 1
-  | n + 1 => (n + 1) * n.factorial
-
-/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
-def Nat.binom (n : Int) (k : Nat) : Int :=
-  ((List.range k).map fun i : Nat => n - i).prod / k.factorial
-
-#assert Nat.binom 5 3 = 10
-#assert Nat.binom (-5) 2 = 15
-
 /-- `xbinom coeff degree n` equals `coeff * (n + degree` *choose* `degree)`. -/
-def xbinom (coeff : Int) (degree : Nat) (n : Int) : Int := coeff * Nat.binom (n + degree) degree
+def xbinom (coeff : Int) (degree : Nat) (n : Nat) : Int := coeff * Nat.binom (n + degree) degree
 
 /-- `firstDiff l` takes an input a list `l` of integers and returns the list of first differences of `l`.
 The resulting list has length one less than the original one. -/
@@ -72,7 +60,7 @@ def cs (l : List Int) : List (Nat × Int) :=
 
 /-- `toPol a n` takes as input an array of pairs `(degree, coeff)` and an integer `n`.
 It returns the value `∑ (degree, coeff) in a, coeff * (n choose degree)`. -/
-def toPol (a : Array (Nat × Int)) (n : Int) : Int :=
+def toPol (a : Array (Nat × Int)) (n : Nat) : Int :=
   (a.map fun (d, c) => xbinom c d n).sum
 
 /-- `part1 dat` takes as input an array `dat` of lists of integers.
