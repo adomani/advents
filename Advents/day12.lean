@@ -216,10 +216,13 @@ def splitHs (s : String) : List String × List String :=
 
   default
 
+def count (s : String) (f : String → String := id) : Nat := let (l, r) :=
+  (f s).reparseOne; doAll l r
 
 #eval show MetaM _ from do
   let dat := atest
   let dat ← IO.FS.lines input
+  let tota := dat.map (count · (repl · 1))
   let mut total := 0
   let mut tots := #[]
   for t in dat do
@@ -227,24 +230,31 @@ def splitHs (s : String) : List String × List String :=
     let t? := String.replace t "#" "?"
     let t! := String.replace t "#" "."
 --    dbg_trace "{t}\n{t?}\n{t!}\n"
-    let (l, r) := t.reparseOne
-    let da := doAll l r
+    let da := count t
     total := total + da
     tots := tots.push da
   IO.println <| total
+  IO.println <| tota.sum
 --  IO.println <| tots
 --  guard ([21, 6935].contains total)
 
 def doTwo (l : List springs) (ns : List Nat) :
     Array ((springs × List Nat) × (List springs × List Nat)) :=
   match l with
-  | [] => if ns.isEmpty then #[(([.s], [1]), ([[.s]], [0]))] else default --#[(['?'], [2])]
+  | [] =>
+    if ns.isEmpty then
+      --dbg_trace "here"
+      #[(([.q], [1]), ([[.s]], [0]))]
+    else
+      --dbg_trace "there"
+      default --#[(['?'], [2])]
   | l::ls => Id.run do
     let mut tots := #[]
-    for i in [:ns.length] do
+    for i in [:ns.length.succ] do
       let (src, tgt) := ns.splitAt i
---      if src.sum + src.length ≤ l.length then
+      if src.sum + src.length ≤ l.length.succ then
       tots := tots.push ((l, src), (ls, tgt))
+    --dbg_trace tots
     return tots
 
 partial
@@ -257,6 +267,28 @@ def combine (l : List springs) (ns : List Nat) : Nat :=
     doa * combine xs.1 xs.2
   arrparts.sum
 
+def count2 (s : String) (f : String → String := id) : Nat := let (l, r) :=
+  (f s).reparseOne; combine l r
+
+#eval show MetaM _ from do
+--  let dat := (← IO.FS.lines input)[1]!
+  let dat := "???.? 1,1"
+  IO.println dat
+  IO.println <| (count dat, count2 dat)
+
+
+#eval show MetaM _ from do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let mut tot2 := 0
+  for t in dat do
+--  let tota := dat.map (count  · (repl · 1))
+    tot2 := tot2 + (count2 t (repl · 1))
+--  let tot2 := dat.map (count2 · (repl · 3))
+  IO.println tot2
+--  IO.println (tota.sum, tot2.sum)
+--  IO.println <| dat.map (count  · (repl · 1))
+--  IO.println <| dat.map (count2 · (repl · 1))
 
 partial
 def memos (l : List springs) (ns : List Nat) : HashMap (springs × List Nat) Nat :=
@@ -307,11 +339,11 @@ interpretation of _eval took 125ms
 6935
 
 -- repl 2
-interpretation of _eval took 5.18s
+interpretation of _eval took 1.97s
 312695
 
 -- repl 3
-interpretation of _eval took 776s
+interpretation of _eval took 74.2s
 44446615
 
 -- repl 4
@@ -319,6 +351,11 @@ interpretation of _eval took 5.83e+03s
 10799907995
 -/
 
+/- repl 3, with count2
+interpretation of _eval took 1.02e+04s
+day12.lean:280:0
+11384064480
+-/
 
 
 #eval show MetaM _ from do
