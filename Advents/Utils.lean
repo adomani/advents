@@ -280,6 +280,9 @@ section tests
     tots := tots && n == n.factors.prod
   tots
 
+#assert Nat.binom 5 3 = 10
+--#assert Int.binom (-5) 2 = 15
+
 #assert (List.range 12).map (Nat.binom 10) == [1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1, 0]
 
 end tests
