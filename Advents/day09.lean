@@ -1,5 +1,4 @@
 import Advents.Utils
-open Lean
 
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day09.input"
@@ -24,7 +23,7 @@ def xbinom (coeff : Int) (degree n : Nat) : Int := coeff * Nat.binom (n + degree
 /-- The difference of two lists of integers is simply the componentwise difference.
 The length of the result is the length of the shortest of the two lists. -/
 instance : Sub (List Int) where
-  sub x y := x.zipWith (· - ·) y
+  sub := List.zipWith (· - ·)
 
 #assert ([0, 1] - [4] : List Int) = [- 4]
 #assert ([0, 1] - [4, 1, 1] : List Int) = [- 4, 0]
