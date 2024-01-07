@@ -243,7 +243,7 @@ Same setup as for part 1, except that I increased the introduced
 spacing in the *expansion* step.
 
 -- Day 12
-Counting ways of filling in `#`s and `.`s.  (Missing part 2)
+Counting ways of filling in `#`s and `.`s. (Missing part 2)
 
 ### Description
 
@@ -356,7 +356,7 @@ enters from *anywhere* on the boundary of the grid.
 
 *My input contained no empty line: every row and column of the diagram had at least one mirror.*
 -- Day 17
-Pushing lava through the city.  (Missing)
+Pushing lava through the city. (Missing)
 
 ### Description
 
@@ -439,7 +439,7 @@ In particular, it uses the four "sub-layouts" and works out separate periodiciti
 before merging the information in the final answer.
 
 -- Day 21
-Where can the gardener be.  (Missing part 2)
+Where can the gardener be. (Missing part 2)
 
 ### Description
 
@@ -477,7 +477,7 @@ Asks to determine how many bricks would fall with any single removal and add up 
 numbers.
 
 -- Day 23
-Maze and icy slopes.  (Missing part 2)
+Maze and icy slopes. (Missing part 2)
 
 ### Description
 

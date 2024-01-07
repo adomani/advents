@@ -497,7 +497,7 @@ spacing in the *expansion* step.
 
 #  [Day 12](https://adventofcode.com/2023/day/12)
 
-Counting ways of filling in `#`s and `.`s.  (Missing part 2)
+Counting ways of filling in `#`s and `.`s. (Missing part 2)
 
 ####  Test
 
@@ -867,7 +867,7 @@ before merging the information in the final answer.
 
 #  [Day 21](https://adventofcode.com/2023/day/21)
 
-Where can the gardener be.  (Missing part 2)
+Where can the gardener be. (Missing part 2)
 
 ####  Test
 
@@ -944,7 +944,7 @@ numbers.
 
 #  [Day 23](https://adventofcode.com/2023/day/23)
 
-Maze and icy slopes.  (Missing part 2)
+Maze and icy slopes. (Missing part 2)
 
 ####  Test
 
