@@ -142,29 +142,28 @@ def String.reparseOne (s : String) : List springs × List Nat :=
       (chars.map fun s => s.toList.map Char.toSpring, r.getNats)
     | _ => dbg_trace s!"reparseOne error: {s}"; default
 
-variable (n : Nat) in
-def doOne (l : springs) : Option (List springs) :=
+def doOne (l : springs) (n : Nat) : Option (List springs) :=
   if (l.length ≤ n - 1) ∧ (l.contains .h) then none
   else if l.length ≤ n - 1 then some [[.s]]
   else if l[0]! = .h ∧ l.getD n .s = .h then none
   else match l with
   | _::xs =>
-    if l.getD n .s = .h then doOne xs
+    if l.getD n .s = .h then doOne xs n
     else if l[0]! = .h then some [l.drop n.succ]
-    else some (xs.drop n :: (doOne xs).getD default)
+    else some (xs.drop n :: (doOne xs n).getD default)
   | _ => default
 
 #assert
   let l := "?#?????".toList.map Char.toSpring
   let n := 2
-  doOne n l == (some [[.q, .q, .q, .q], [.q, .q, .q]])
+  doOne l n == (some [[.q, .q, .q, .q], [.q, .q, .q]])
 
 def doAll : List springs → List Nat → Nat
   |     l,    [] => if l.all fun cs => cs.all (· == .q) then 1 else 0
   |    [],     _ => 0
   | l::ls, n::ns =>
     if ls = [] ∧ ! l.contains .h then evalOne l (n::ns) else
-    match doOne n l with
+    match doOne l n with
     | none => 0
     | some nls =>
       let news := nls.map fun nl =>
@@ -240,22 +239,134 @@ def count (s : String) (f : String → String := id) : Nat := let (l, r) :=
 
 def doTwo (l : List springs) (ns : List Nat) :
     Array ((springs × List Nat) × (List springs × List Nat)) :=
+  if (l.map List.length).sum ≤ ns.sum + ns.length - l.length - 1 then default else
   match l with
   | [] =>
     if ns.isEmpty then
-      --dbg_trace "here"
+      dbg_trace "here"
       #[(([.q], [1]), ([[.s]], [0]))]
     else
-      --dbg_trace "there"
+      dbg_trace "there"
       default --#[(['?'], [2])]
-  | l::ls => Id.run do
+  | l::ls =>
+    Id.run do
     let mut tots := #[]
-    for i in [:ns.length.succ] do
+    for i in [:ns.length + 1] do
       let (src, tgt) := ns.splitAt i
-      if src.sum + src.length ≤ l.length.succ then
-      tots := tots.push ((l, src), (ls, tgt))
+--      dbg_trace "{i}: {src} ++ {tgt}"
+      if src.sum + src.length - 1 ≤ l.length ∧
+         tgt.sum + tgt.length - ls.length ≤ (ls.map List.length).sum
+      then
+        tots := tots.push ((l, src), (ls, tgt))
     --dbg_trace tots
     return tots
+
+#eval do
+  let dat := atest
+  let dat := #["??.? 1,1"]
+  let dat ← IO.FS.lines input
+  for instr in [dat[1]!] do
+--  IO.println <| doOneRec (dat[0]!.reparseOne)
+--  let (sps, ns) := atest[atest.size - 1]!.reparseOne
+--  for instr in dat do
+    IO.println s!"\n---\nNew '{instr}'"
+    let (sps, ns) := instr.reparseOne
+    for d in doTwo sps ns do
+      IO.println <| s!"{d}"
+--      IO.println <| s!"doOneRec {doOneRec sp nats}"
+
+partial
+def doSeq (l : List springs) (ns : List Nat) :
+    HashSet (Array (springs × List Nat)) :=
+  Id.run do
+  let mut x := .empty
+  if l.length = 1 then x := x.insert #[(l[0]!, ns)]
+  for (beg, ends) in doTwo l ns do
+    match ends.1 with
+    | [e] => x := x.insert (#[beg] ++ #[(e, ends.2)])
+    | _ =>
+--    let endscon := ends.1.filter fun d1 => ! d1.contains .s
+    let endscon := ends.1
+    let dos := doSeq endscon ends.2
+    for d in dos do
+--      let dcon := d.filter fun d1 => ! d1.1.contains .s
+      x := x.insert (#[beg] ++ d)
+  return x
+
+#eval do
+  let dat := #["#.# 1,1"]
+  let dat := atest
+--  let (sps, ns) := atest[atest.size - 1]!.reparseOne
+  for d in dat do
+    IO.println s!"\n---\nNew '{d}'"
+    let (sps, ns) := d.reparseOne
+    for xx in doTwo sps ns do
+      IO.println <| xx
+      for yy in doTwo xx.2.1 xx.2.2 do
+        IO.println s!"  {yy}"
+        for zz in doTwo yy.2.1 yy.2.2 do
+          IO.println s!"    {zz}"
+    IO.println "\nfrom here:"
+    for d in doSeq sps ns do IO.println <| d
+    IO.println "\nUndo one:"
+    for d in doSeq sps ns do
+      for (sp, nats) in d do
+      IO.println <| (doOne sp nats[0]!, nats.drop 1)
+
+/-
+Now I should revisit `doOne` to break each `springs × Array Nat` into
+smaller pieces that can be then fed into `doSeq`... -/
+#check List.contains
+def doOneRec' (s : springs) (l : List Nat) : List ((springs × Nat) ⊕ Nat) :=
+  if ! s.contains .h then [.inr (evalOne s l)] else
+  match l with
+  | [] => if s.contains .h then [.inr 0] else [.inr 1]
+--  | [n] => let res := (doOne s n).getD []; res.map (·, 0)
+--  | [n] => let res := (doOne s n).getD []; res.map (·, 0)
+  | n::ns =>
+    let first := doOne s n
+    match first with
+    | none => [.inr 0] --[([.h], 0)]
+    | some f =>
+--      dbg_trace "f: {f}  with {ns}"
+      let parts := ((f.filter (!List.contains · .s)).map fun sp => doOneRec' sp ns)
+      --let p1 := parts.filter fun p => p.map fun x => match x with
+      -- | .inr _ => true
+      -- | .inl y => y.1.contains .s
+      let pj := parts.join
+      pj
+
+def doOneRec (s : springs) (l : List Nat) : List (Nat) :=
+  if ! s.contains .h then [(evalOne s l)] else
+  match l with
+  | [] => if s.contains .h then [0] else [1]
+--  | [n] => let res := (doOne s n).getD []; res.map (·, 0)
+--  | [n] => let res := (doOne s n).getD []; res.map (·, 0)
+  | n::ns =>
+    let first := doOne s n
+    match first with
+    | none => [0] --[([.h], 0)]
+    | some f =>
+--      dbg_trace "f: {f}  with {ns}"
+      let parts := ((f.filter (!List.contains · .s)).map fun sp => doOneRec sp ns)
+      --let p1 := parts.filter fun p => p.map fun x => match x with
+      -- | .inr _ => true
+      -- | .inl y => y.1.contains .s
+      let pj := parts.join
+      pj
+
+#eval do
+  let dat := atest
+  let dat := #["??.? 1,1"]
+--  IO.println <| doOneRec (dat[0]!.reparseOne)
+--  let (sps, ns) := atest[atest.size - 1]!.reparseOne
+  for instr in dat do
+    IO.println s!"\n---\nNew '{instr}'"
+    let (sps, ns) := instr.reparseOne
+    for d in doSeq sps ns do
+      for (sp, nats) in d do
+      IO.println <| s!"doOne    {(doOne sp nats[0]!, nats.drop 1)}"
+      IO.println <| s!"doOneRec {doOneRec sp nats}"
 
 partial
 def combine (l : List springs) (ns : List Nat) : Nat :=
@@ -270,12 +381,82 @@ def combine (l : List springs) (ns : List Nat) : Nat :=
 def count2 (s : String) (f : String → String := id) : Nat := let (l, r) :=
   (f s).reparseOne; combine l r
 
+#eval
+  5 + 2 + 3 + 5 + 1 + 1 + 6 + 1 + 3 + 1 + 2 + 1
+
+#eval
+  (5 * 2 * 3) + (5 * 1 * 1) + (6 * 1 * 3) + (1 * 2 * 1) + 0 + ((6 * 2 * 1) + (1 * 1 * 1))
+
+#eval do
+  let dat := #["??.? 1,1"]
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let mut tot := 0
+--  IO.println <| doOneRec (dat[0]!.reparseOne)
+--  let (sps, ns) := atest[atest.size - 1]!.reparseOne
+--  for instr in dat do
+  for i in [:dat.size] do
+--  for i in [dat.size / 20: dat.size / 20 + (dat.size / 80)] do
+    let instr := dat[i]!
+    let mut acc := 0
+--    IO.println s!"New '{instr}' ---> {count instr}"
+    let rinstr := repl instr 2
+    let (sps, ns) := rinstr.reparseOne
+    for d in doSeq sps ns do
+      let mut toMul := 1
+--      IO.println "\nnew d"
+      for (sp, nats) in d do
+        let inrs := (doOneRec sp nats)
+--      IO.println <| s!"doOne    {(doOne sp nats[0]!, nats.drop 1)}"
+--        let inrs := (doOneRec sp nats).map fun h : springs × Nat ⊕ Nat => match h with
+----        match doOneRec sp nats with
+--          | .inr n => n
+--          | _ => 0
+        toMul := toMul * inrs.sum
+--        IO.println <| s!"doSeq    {(sp, nats)}"
+--        IO.println <| s!"doOneRec {doOneRec sp nats}"
+      acc := acc + toMul
+--      IO.println s!"  {toMul}"
+    tot := tot + acc
+--    if acc != count2 rinstr then
+--      IO.println s!"oh no: {acc}"
+  IO.println tot
+
+#exit
+    for xx in doTwo sps ns do
+      IO.println <| xx
+      for yy in doTwo xx.2.1 xx.2.2 do
+        IO.println s!"  {yy}"
+        for zz in doTwo yy.2.1 yy.2.2 do
+          IO.println s!"    {zz}"
+    IO.println "\nfrom here:"
+    for d in doSeq sps ns do IO.println <| d
+    IO.println "\nUndo one:"
+
 #eval show MetaM _ from do
 --  let dat := (← IO.FS.lines input)[1]!
   let dat := "???.? 1,1"
   IO.println dat
   IO.println <| (count dat, count2 dat)
 
+--18683879
+/-
+interpretation of _eval._boxed took 69.7s
+
+-/
+#eval do
+--  let dat ← IO.FS.lines input
+--  for d in dat do IO.println <| repl d
+--  IO.println <| count2 "?##????????????##????????????##????????????##????????????##?????????? 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2"
+--  IO.println <| Nat.factors 18683879
+  let init := "?????.??.???. 1,1,1"
+  let init := "?##?????????? 2,2,2"
+  let init := "??????.??..? 2,1,2"
+  IO.println <| count2 (repl (String.replace (String.replace init "?##?" ".") " 2," " ") 5)
+  IO.println <| count2 (repl init)
+#eval #[34157 / 547, 34157 % 547]
+
+#exit
 
 #eval show MetaM _ from do
   let dat := atest
@@ -283,7 +464,7 @@ def count2 (s : String) (f : String → String := id) : Nat := let (l, r) :=
   let mut tot2 := 0
   for t in dat do
 --  let tota := dat.map (count  · (repl · 1))
-    tot2 := tot2 + (count2 t (repl · 1))
+    tot2 := tot2 + (count2 t (repl · 3))
 --  let tot2 := dat.map (count2 · (repl · 3))
   IO.println tot2
 --  IO.println (tota.sum, tot2.sum)
