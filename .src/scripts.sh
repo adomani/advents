@@ -83,7 +83,8 @@ desc () {
       acc=""
     }
     !/^-- Day [0-9]*$/ && (acc == "") { acc=$0 }
-    END { printf("|[%s]%s%s)|%s|\n", con, link, con, acc) }' .src/desc.txt
+    END { printf("|[%s]%s%s)|%s|\n", con, link, con, acc) }' .src/desc.txt |
+      column -s'|' -o'|' -t | sed 's=|= | =g; s=^ ==; s= $=='
 )
 }
 
