@@ -38,15 +38,6 @@ def test := "#.#####################
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- the four directions `L`eft, `R`ight, `U`p, `D`own,
-and... `S`tay. -/
-inductive dir | L | R | U | D | S
-  deriving BEq, DecidableEq, Inhabited, Repr
-
-/-- represent each direction by the corresponding arrow. -/
-instance : ToString dir where
-  toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .S => "·"
-
 /-- converts a unit vector into the direction that is
 obtained by a counter-clockwise rotation.
 It is useful for defining orientations. -/
@@ -55,20 +46,6 @@ def pos.toLeft : pos → dir
   | (- 1,   0) => .U
   | (  0, - 1) => .L
   | (  0,   1) => .R
-  | _ => .S
-
-def dir.toPos : dir →  pos
-  | .D => (  1,   0)
-  | .U => (- 1,   0)
-  | .L => (  0, - 1)
-  | .R => (  0,   1)
-  | .S => (  0,   0)
-
-def Char.toDir : Char → dir
-  | '<' => .L
-  | '>' => .R
-  | '^' => .U
-  | 'v' => .D
   | _ => .S
 
 def uts : Array pos := #[(  1,   0), (- 1,   0), (  0, - 1), (  0,   1)]
