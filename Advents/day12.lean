@@ -26,7 +26,7 @@ It breaks it at the (unique) space ` `, converts the LHS to a
 list of characters and the RHS to a list of natural numbers. -/
 def String.ep (s : String) : List Char × List Nat :=
   match s.splitOn " " with
-    | [l, r] => (l.toList, r.toList.getNumbers)
+    | [l, r] => (l.toList, r.getNats)
     | _ => dbg_trace "misparsed"; default
 
 /-- `red` is the type representing the parsed input of the problem.

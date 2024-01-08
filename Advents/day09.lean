@@ -1,5 +1,4 @@
 import Advents.Utils
-open Lean
 
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day09.input"
@@ -15,42 +14,23 @@ def test := "0 3 6 9 12 15
 1 3 6 10 15 21
 10 13 16 21 30 45"
 
-/-- `String.getInts l` takes as input a string `l`, removes everything that is neither a digit,
-not a minus sign (`-`) and interprets the rest as a list of integers. -/
-partial
-def String.getInts (l : String) : List Int :=
-  let cond : Char → Bool := fun c => (Char.isDigit c) || (c == '-')
-  let l1 := l.dropWhile (!cond ·)
-  if l1.length == 0 then [] else
-    let d1 := String.toInt! (l1.takeWhile cond)
-    let fin := getInts (l1.dropWhile cond)
-  d1 :: fin
-
-#assert "0 2 -3".getInts = [0, 2, -3]
-
-/-- `Nat.factorial n` -- the factorial of `n`. -/
-def Nat.factorial : Nat → Nat
-  | 0 => 1
-  | n + 1 => (n + 1) * n.factorial
-
-/-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
-def Nat.binom (n : Int) (k : Nat) : Int :=
-  ((List.range k).map fun i : Nat => n - i).prod / k.factorial
-
-#assert Nat.binom 5 3 = 10
-#assert Nat.binom (-5) 2 = 15
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
 
 /-- `xbinom coeff degree n` equals `coeff * (n + degree` *choose* `degree)`. -/
-def xbinom (coeff : Int) (degree : Nat) (n : Int) : Int := coeff * Nat.binom (n + degree) degree
+def xbinom (coeff : Int) (degree n : Nat) : Int := coeff * Nat.binom (n + degree) degree
 
-/-- `firstDiff l` takes an input a list `l` of integers and returns the list of first differences of `l`.
-The resulting list has length one less than the original one. -/
-def firstDiff (l : List Int) : List Int :=
-  (List.range (l.length - 1)).map fun i => (l[i+1]! - l[i]!)
+/-- The difference of two lists of integers is simply the componentwise difference.
+The length of the result is the length of the shortest of the two lists. -/
+instance : Sub (List Int) where
+  sub := List.zipWith (· - ·)
+
+#assert ([0, 1] - [4] : List Int) = [- 4]
+#assert ([0, 1] - [4, 1, 1] : List Int) = [- 4, 0]
 
 /-- `degCoeff l` takes an input a list `l` of integers and returns
 a degree `d` and a leading coefficient `c` such that `c * (x choose d)` is a polynomial
-whose values on `{ 0, .., l.length - 1 }` "approximate" `l`.
+whose values on `{ 0, ..., l.length - 1 }` "approximate" `l`.
 In practice, it is found by computing iterated first differences and recording the last non-zero list. -/
 def degCoeff (l : List Int) : Nat × Int :=
   if l.all (· == l.getD 0 0) then (0, 0) else
@@ -58,31 +38,23 @@ def degCoeff (l : List Int) : Nat × Int :=
   let mut vals := l
   let mut lcs := #[l.getD 0 0]
   while vals.any (· != 0) do
-    vals := firstDiff vals
+    vals := vals.drop 1 - vals  -- compute the first difference of the list `vals`
     lcs := lcs.push vals[0]!
   return (lcs.size - 2, lcs.pop.back)
 
-/-- The difference of two lists of integers is simply the componentwise difference.
-The length of the result is the length of the shortest of the two lists. -/
-instance : Sub (List Int) where
-  sub x y := x.zipWith (· - ·) y
-
-#assert ([0, 1] - [4] : List Int) = [- 4]
-#assert ([0, 1] - [4, 1, 1] : List Int) = [- 4, 0]
-
 /-- `cs l` takes an input a list `l` of integers and iteratively returns coefficients and degrees of
 appearing in the "binomial" expansion re-creating the list `l` when evaluated on
-`{ 0, .., l.length - 1 }`. -/
+`{ 0, ..., l.length - 1 }`. -/
 partial
 def cs (l : List Int) : List (Nat × Int) :=
   let first := degCoeff l
   if first = default then default else
-  let new := cs (l - (List.range l.length).map fun x : Nat => xbinom first.2 first.1 x)
+  let new := cs (l - (List.range l.length).map (xbinom first.2 first.1 ·))
   first :: new
 
 /-- `toPol a n` takes as input an array of pairs `(degree, coeff)` and an integer `n`.
 It returns the value `∑ (degree, coeff) in a, coeff * (n choose degree)`. -/
-def toPol (a : Array (Nat × Int)) (n : Int) : Int :=
+def toPol (a : Array (Nat × Int)) (n : Nat) : Int :=
   (a.map fun (d, c) => xbinom c d n).sum
 
 /-- `part1 dat` takes as input an array `dat` of lists of integers.
@@ -96,16 +68,16 @@ def parts (dat : Array (List Int)) : Int :=
     let di := dat[idx]!
     let dis := di.length
     let csi := (cs di).toArray
-    let corr := di[(dis - 1)]! - (toPol csi (dis - 1))
+    let corr := di[dis - 1]! - (toPol csi (dis - 1))
     let part := toPol csi dis
     tot := tot + part + corr
   return tot
 
 /-- `part1 oasis` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (oasis : Array String) : Int :=
-  parts <| oasis.map (String.getInts)
+  parts <| oasis.map String.getInts
 
-#assert part1 (test.splitOn "\n").toArray == 114
+#assert part1 atest == 114
 
 solve 1 1884768153
 
@@ -115,8 +87,8 @@ solve 1 1884768153
 
 /-- `part2 oasis` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (oasis : Array String) : Int :=
-  parts <| (oasis.map (String.getInts)).map .reverse
+  parts <| (oasis.map String.getInts).map .reverse
 
-#assert part2 (test.splitOn "\n").toArray == 2
+#assert part2 atest == 2
 
 solve 2 1031

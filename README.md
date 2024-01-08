@@ -7,7 +7,7 @@ So far, this repository contains only the 2023 edition.
 Obviously, if you go to the files with code, there will be spoilers!
 
 The files directly linked from this page should contain virtually no spoilers,
-except possibly a [description](descriptions.md) of the questions,
+except possibly a [description](https://github.com/adomani/advents/tree/master/descriptions.md) of the questions,
 that involves some parsing of the given text.
 
 As soon as you navigate to a page that is not linked from here, you will likely find spoilers and complete solutions!
