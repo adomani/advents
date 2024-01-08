@@ -41,18 +41,7 @@ def Array.toNats (dat : Array String) : HashMap pos Nat :=
       tot := tot ++ row
     return tot
 
-/-- `dir.rev d` reverses the direction `d`:
-it swaps the pairs `U ↔ D` and `L ↔ R` and fixes `S`. -/
-def dir.rev : dir → dir
-    | .U => .D
-    | .L => .R
-    | .D => .U
-    | .R => .L
-    | .S => .S
-
-def dirs : Array dir := #[.U, .D, .R, .L]
-
-#assert (dirs.push .S).map dir.rev == #[.D, .U, .L, .R, .S]
+#assert #[.U, .D, .R, .L, .S].map dir.rev == #[.D, .U, .L, .R, .S]
 
 /-- Adding a direction to a position moves one step in the corresponding direction. -/
 instance : HAdd dir pos pos where
