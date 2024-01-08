@@ -1,5 +1,9 @@
 #! /bin/bash
 
+##  `getDat <d?>` takes an optional input `<d?>`.
+##  If `<d?>` is provided, then it returns `<d?>`.
+##  If `<d?>` is not provided, it returns one more than the number
+##  in the last file named `Advents/day[0]*<further_digits>.input`.
 getDay () {
 (
   if [ -z "${1}" ]; then
@@ -31,6 +35,7 @@ newday () {
   )
 }
 
+##  `desc_tests` prints to stdout the text that makes up the file `descriptions_with_tests.md`.
 desc_tests () {
 (
   croot ; cd Advents || return 1
@@ -39,9 +44,9 @@ desc_tests () {
     if [ ! "${d}" == "day02.lean" ] && [ ! "${d}" == "day02_syntax.lean" ]; then
     dig=$( printf '%s' "${d}" | sed 's=day[0]*\([0-9]*\).*\.lean=\1=')
     desc="$(
-      awk -v day="${dig}" 'BEGIN{ con=1 }
-        !/^--$/ && (con == day) { print $0 }
-        /^--$/ { con++ }' ../"${descFile}"
+      awk -v day="${dig}" 'BEGIN{ con=0 }
+        !/^-- Day [0-9]*$/ && (con == day) { print $0 }
+        /^-- Day [0-9]*$/ { con++ }' ../"${descFile}"
       )"
     printf '#  [Day %s](https://adventofcode.com/2023/day/%s)\n\n%s\n\n' "${dig}" "${dig}" "$(
       printf '%s' "${desc}" | head -1
@@ -63,10 +68,12 @@ desc_tests () {
       s=\n\n[\n]*=\n\n=g
       s=\n[\n]*</pre>=\n</pre>=g
       s=  *\n=\n=g
+      s=\n[\n]*$=\n=
     '
 )
 }
 
+##  `desc` prints to stdout the text that makes up the file `descriptions.md`.
 desc () {
 (
   croot
@@ -76,15 +83,19 @@ desc () {
       print "|Day|Description|\n|:-:|-|"
       link=sprintf("(%s#day-", fil)
     }
-    /^--$/ {
+    2 <= NR && /^-- Day [0-9]*$/ {
       printf("|[%s]%s%s)|%s|\n", con, link, con, acc)
       con++
       acc=""
     }
-    !/^--$/ && (acc == "") { acc=$0 }' .src/desc.txt
+    !/^-- Day [0-9]*$/ && (acc == "") { acc=$0 }
+    END { printf("|[%s]%s%s)|%s|\n", con, link, con, acc) }' .src/desc.txt |
+      column -s'|' -o'|' -t | sed 's=|= | =g; s=^ ==; s= $=='
 )
 }
 
+##  Creates the files `descriptions_with_tests.md` and `descriptions.md`,
+##  overwriting them if they already exist.
 aoc () {
 (
   croot
@@ -93,13 +104,24 @@ aoc () {
 )
 }
 
-leanall () {
+##  An auxilliary function for processing all the `dayXX.lean` files
+##  with an option of timing the individual runs.
+leanWith () {
 (
   croot || exit 1
   for fil in Advents/day??.lean; do
     nm="$(printf ' %s' "${fil}" | sed 's=.*\(day[0-9]*\).*=\1=' )"
     brown 'Process '; lcyan "${nm}"$'\n'
-    lake env lean "${fil}"
+    if [ -z "${1}" ]
+      then lake env lean "${fil}"
+      else time lake env lean "${fil}"
+    fi
   done
 )
 }
+
+##  Processes all the `dayXX.lean` files.
+leanall () { leanWith; }
+
+##  Processes all the `dayXX.lean` files, returning timing information for each.
+leantime () { leanWith 'time'; }

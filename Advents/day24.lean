@@ -69,7 +69,6 @@ def det {α} [BEq α] [Inhabited α] [Add α] [Mul α] [HMul Int α α] (m : Arr
 #assert det #[#[1, 0, 0], #[0, 1, 0], #[0, 0, 1]] == 1
 #assert det #[#[43, 46, -3], #[70, 100, -6], #[31, 97, -5]] == 0
 
-
 /-- finds the coefficients of the equation defining the line through `p` with
 velocity `v`. -/
 def getLine (p v : pos) : Array Rat :=

@@ -497,7 +497,7 @@ spacing in the *expansion* step.
 
 #  [Day 12](https://adventofcode.com/2023/day/12)
 
-Counting ways of filling in `#`s and `.`s.  (Missing part 2)
+Counting ways of filling in `#`s and `.`s. (Missing part 2)
 
 ####  Test
 
@@ -657,7 +657,22 @@ From the final arrangement, you get the answer to part 2.
 
 #  [Day 16](https://adventofcode.com/2023/day/16)
 
-Reflecting mirrors and heating lava.  (Missing part 2)
+Reflecting mirrors and heating lava.
+
+####  Test
+
+<pre>
+.|...\\....
+|.-.\\.....
+.....|-...
+........|.
+..........
+.........\\
+..../.\\\\..
+.-.-/..|..
+.|....-|.\\
+..//.|....
+</pre>
 
 ### Description
 
@@ -679,6 +694,8 @@ pointing to the right.
 
 Compute the maximum number of visited locations, assuming that the ray
 enters from *anywhere* on the boundary of the grid.
+
+*My input contained no empty line: every row and column of the diagram had at least one mirror.*
 
 [Solution in Lean](Advents/day16.lean)
 
@@ -803,7 +820,27 @@ that all parts have each entry in the range `[1, 4000]`.
 
 #  [Day 20](https://adventofcode.com/2023/day/20)
 
-State machine sending pulses.  (Missing)
+State machine sending pulses.
+
+####  Test 1
+
+<pre>
+broadcaster -> a, b, c
+%a -> b
+%b -> c
+%c -> inv
+&inv -> a
+</pre>
+
+####  Test 2
+
+<pre>
+broadcaster -> a
+%a -> inv, con
+&inv -> b
+%b -> con
+&con -> output
+</pre>
 
 ### Description
 
@@ -813,13 +850,24 @@ The input is a list of nodes in a network of nodes that can send high or low pul
 
 The goal is to figure out how many pulses are sent by pushing the button 1000 times.
 
+#### Part 2
+
+The node labeled `rx` is a control module that only receives pulses.
+In part 2, the goal is to figure out how many times do you need to press the button in order
+for the node `rx` to receive a single low pulse.
+
+The answer that I coded exploits the [shape of the layout](Advents/day20_modules.pdf).
+In particular, it uses the four
+</pre>sub-layouts" and works out separate periodicities in each one of them,
+before merging the information in the final answer.
+
 [Solution in Lean](Advents/day20.lean)
 
 ---
 
 #  [Day 21](https://adventofcode.com/2023/day/21)
 
-Where can the gardener be.  (Missing part 2)
+Where can the gardener be. (Missing part 2)
 
 ####  Test
 
@@ -896,7 +944,7 @@ numbers.
 
 #  [Day 23](https://adventofcode.com/2023/day/23)
 
-Maze and icy slopes.  (Missing part 2)
+Maze and icy slopes. (Missing part 2)
 
 ####  Test
 
@@ -988,7 +1036,7 @@ The implementation is a little clunky and especially computing determinants is r
 
 #  [Day 25](https://adventofcode.com/2023/day/25)
 
-Wiring diagram. (Only one part, not done only in Lean!)
+Wiring diagram. (Only one part -- done, but not only in Lean!)
 
 ####  Test
 
