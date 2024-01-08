@@ -1,5 +1,9 @@
 #! /bin/bash
 
+##  `getDat <d?>` takes an optional input `<d?>`.
+##  If `<d?>` is provided, then it returns `<d?>`.
+##  If `<d?>` is not provided, it returns one more than the number
+##  in the last file named `Advents/day[0]*<further_digits>.input`.
 getDay () {
 (
   if [ -z "${1}" ]; then
@@ -31,6 +35,7 @@ newday () {
   )
 }
 
+##  `desc_tests` prints to stdout the text that makes up the file `descriptions_with_tests.md`.
 desc_tests () {
 (
   croot ; cd Advents || return 1
@@ -68,6 +73,7 @@ desc_tests () {
 )
 }
 
+##  `desc` prints to stdout the text that makes up the file `descriptions.md`.
 desc () {
 (
   croot
@@ -88,6 +94,8 @@ desc () {
 )
 }
 
+##  Creates the files `descriptions_with_tests.md` and `descriptions.md`,
+##  overwriting them if they already exist.
 aoc () {
 (
   croot
@@ -96,13 +104,24 @@ aoc () {
 )
 }
 
-leanall () {
+##  An auxilliary function for processing all the `dayXX.lean` files
+##  with an option of timing the individual runs.
+leanWith () {
 (
   croot || exit 1
   for fil in Advents/day??.lean; do
     nm="$(printf ' %s' "${fil}" | sed 's=.*\(day[0-9]*\).*=\1=' )"
     brown 'Process '; lcyan "${nm}"$'\n'
-    lake env lean "${fil}"
+    if [ -z "${1}" ]
+      then lake env lean "${fil}"
+      else time lake env lean "${fil}"
+    fi
   done
 )
 }
+
+##  Processes all the `dayXX.lean` files.
+leanall () { leanWith; }
+
+##  Processes all the `dayXX.lean` files, returning timing information for each.
+leantime () { leanWith 'time'; }
