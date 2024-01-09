@@ -113,7 +113,7 @@ def toLeft : pos → dir
   | (- 1,   0) => .L
   | (  0, - 1) => .D
   | (  0,   1) => .U
-  | _ => .S
+  | _ => .X
 
 /-- orient a path, assuming that it is a cycle. -/
 def orientPath (path : Array pos) : Array (pos × dir) :=

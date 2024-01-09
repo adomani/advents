@@ -140,13 +140,13 @@ def Array.transpose (s : Array String) : Array String :=
 abbrev pos := Int × Int
 
 /-- the four directions `L`eft, `R`ight, `U`p, `D`own,
-and... `S`tay. -/
-inductive dir | L | R | U | D | S
+and... `X`tay. -/
+inductive dir | L | R | U | D | X
   deriving BEq, DecidableEq, Inhabited, Repr, Hashable
 
 /-- represent each direction by the corresponding arrow. -/
 instance : ToString dir where
-  toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .S => "·"
+  toString | .L => "←" | .R => "→" | .U => "↑" | .D => "↓" | .X => "·"
 
 /-- `dir.rev` reverses a `dir`ection. -/
 def dir.rev : dir →  dir
@@ -154,7 +154,7 @@ def dir.rev : dir →  dir
   | .U => .D
   | .L => .R
   | .R => .L
-  | .S => .S
+  | .X => .X
 
 /-- `dir.toPos` converts a `dir`ection to the corresponding unit vector. -/
 def dir.toPos : dir →  pos
@@ -162,7 +162,7 @@ def dir.toPos : dir →  pos
   | .U => (- 1,   0)
   | .L => (  0, - 1)
   | .R => (  0,   1)
-  | .S => (  0,   0)
+  | .X => (  0,   0)
 
 /-- `Char.toDir` converts a single character to the corresponding unit vector. -/
 def Char.toDir : Char → dir
@@ -170,7 +170,7 @@ def Char.toDir : Char → dir
   | '>' => .R
   | '^' => .U
   | 'v' => .D
-  | _ => .S
+  | _ => .X
 
 section meta
 open Lean Elab Command
