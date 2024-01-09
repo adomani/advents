@@ -37,7 +37,7 @@ def toCCWPos : dir → pos
   | .R => (  0,   1)
   | .U => (- 1,   0)
   | .D => (  1,   0)
-  | .S => (  0,   0)
+  | .X => (  0,   0)
 
 /-- finds the character `S` in `dat`, returning its two integer coordinates. -/
 def findS (dat : Array String) : pos :=

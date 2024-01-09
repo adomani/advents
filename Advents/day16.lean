@@ -64,28 +64,28 @@ def getHVSteps (s : String) (left_or_up : dir) (f : Int → pos) : HashMap ray (
   Id.run do
   let mut new : HashMap ray (Array ray) := .empty
 
-  -- insert the entry `(last+1, .S)` pointing `left_or_up`
+  -- insert the entry `(last+1, .X)` pointing `left_or_up`
   let lastMirrorIdx := idxs[idxs.length-1]!
   let lastSplit := left_or_up.split sc[lastMirrorIdx]!
   let lastInsertable := lastSplit.map (f lastMirrorIdx, ·)
-  new := new.insert (f s.length, .S) lastInsertable
+  new := new.insert (f s.length, .X) lastInsertable
 
-  -- insert the entry `(-1, .S)` pointing `right_or_down = left_or_up.rev`
+  -- insert the entry `(-1, .X)` pointing `right_or_down = left_or_up.rev`
   let firstMirrorIdx := idxs[0]!
   let firstSplit := left_or_up.rev.split sc[firstMirrorIdx]!
   let firstInsertable := firstSplit.map (f firstMirrorIdx, ·)
-  new := new.insert (f (- 1), .S) firstInsertable
+  new := new.insert (f (- 1), .X) firstInsertable
 
   -- insert the entries in the middle (could probably include the two special cases above)
   for i in [:idxs.length] do
     let prev := if i = 0 then 0 else idxs[i - 1]!
     let cand := match left_or_up.split sc[prev]! with
-      | #[] => #[(f (prev - 1), .S)]
+      | #[] => #[(f (prev - 1), .X)]
       | x   => x.map (f prev, ·)
     new := new.insert (f idxs[i]!, left_or_up) cand
     let next := if i = idxs.length - 1 then s.length - 1 else idxs[i + 1]!
     let cand := match left_or_up.rev.split sc[next]! with
-      | #[] => #[(f next, .S)]
+      | #[] => #[(f next, .X)]
       | x   => x.map (f next, ·)
     new := new.insert (f idxs[i]!, left_or_up.rev) cand
   return new
@@ -189,7 +189,7 @@ def reduceToPos (path : HashMap ray ray) : HashSet pos :=
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let new := init dat
-  let first : ray := ((0, -1), .S)
+  let first : ray := ((0, -1), .X)
   let path := mkPath new first
   let fin := reduceToPos path
   let res := fin.toList.filter fun x :pos =>
@@ -214,10 +214,10 @@ def part2 (dat : Array String) : Nat :=
   let mut mm := 0
   let mut out := ((List.range dat.size).map fun x : Nat =>
     ([
-      ((       x, dat.size), dir.S),
-      ((       x,       -1), dir.S),
-      ((dat.size,        x), dir.S),
-      ((      -1,        x), dir.S)] : List ray)).join.toArray
+      ((       x, dat.size), .X),
+      ((       x,       -1), .X),
+      ((dat.size,        x), .X),
+      ((      -1,        x), .X)] : List ray)).join.toArray
   while ! out.isEmpty do
     let first := out.back
     let path := mkPath new first
