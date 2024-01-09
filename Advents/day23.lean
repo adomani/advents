@@ -43,7 +43,7 @@ def uts : Array pos := #[(  1,   0), (- 1,   0), (  0, - 1), (  0,   1)]
 
 /-- `getPos dat` takes as input an array `dat` of strings, representing the input of the puzzle.
 It returns a `HashMap` enconding, for each `pos`ition on the map, the corresponding information:
-* a `.S` `dir`ection, symbolizing that there is no ice on the `pos`ition;
+* a `.X` `dir`ection, symbolizing that there is no ice on the `pos`ition;
 * a `dir`ection pointing where the icy slope pushes.
 -/
 def getPos (dat : Array String) : HashMap pos dir :=
@@ -103,7 +103,7 @@ def go (mz : HashMap pos dir) (p next : pos) : Nat × Array (pos × pos) :=
           match mz.find? ncurr with
             | none => dbg_trace "oh no!"; return default
             | some d =>
-              if d = .S ∨ d.toPos = (ncurr - prev) then
+              if d = .X ∨ d.toPos = (ncurr - prev) then
                 curr := ncurr
               else return pth
         | _ => return pth
