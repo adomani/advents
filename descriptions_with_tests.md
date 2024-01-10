@@ -1028,7 +1028,7 @@ such that starting from there with some velocity vector, you will hit all snowfl
 I solved this, using what is probably the easiest, non-trivial example of a Schubert
 calculus computation: finding the lines in space that meet 4 given general lines.
 
-The implementation is a little clunky and especially computing determinants is really slow!
+The solution uses a very ad-hoc implementation of row reduction and determinants!
 
 [Solution in Lean](Advents/day24.lean)
 
