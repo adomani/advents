@@ -7,5 +7,5 @@
 * Day 21, part 2
 * Day 22, speed up falling bricks
 * Day 23, part 2
-* Day 24, speed up computation of determinant
+* Day 24, fix part 2 example?
 * Day 25, use Lean
