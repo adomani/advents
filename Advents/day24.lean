@@ -1,5 +1,4 @@
 import Advents.Utils
---open Lean
 
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day24.input"
@@ -34,9 +33,6 @@ instance : HMul (Array (Array Rat)) (Array Rat) (Array Rat) where
 instance : HMul Rat vol vol where
   hMul a x := (a * x.1, a * x.2.1, a * x.2.2)
 
-local instance : HMul Int Rat Rat where
-  hMul := (· * ·)
-
 /-- converts an input line into a pair of `(x, y, z)`-coordinates
 representing the initial position and velocity. -/
 def getpvOne (s : String) : vol × vol :=
@@ -51,23 +47,39 @@ def getpv (dat : Array String) : Array (vol × vol) := dat.map getpvOne
 def getpvXY (dat : Array String) : Array (pos × pos) :=
   (getpv dat).map fun ((a, b, _), (d, e, _)) => ((a.num, b.num), (d.num, e.num))
 
-/-- A simple implementation of the determinant of a matrix, using Laplace expansion
-on the last row. -/
+local instance [Mul α] : HMul α (Array α) (Array α) where
+  hMul a := Array.map (a * ·)
+
+local instance [Sub α] : Sub (Array α) where
+  sub x y := x.zipWith y (· - ·)
+
+/-- A simple implementation of row reduction of a matrix. -/
 partial
-def det {α} [BEq α] [Inhabited α] [Add α] [Mul α] [HMul Int α α] (m : Array (Array α)) : α :=
+def red (m : Array (Array Rat)) : Array (Array Rat) :=
+  if m.size ≤ 1 then m else
+    let firstIdxs := m.map fun row => row.toList.findIdx (· != 0)
+    let min := firstIdxs.minD m[0]!.size.succ
+    if min == m[0]!.size.succ then m else
+      let fInd := (firstIdxs.findIdx? (· == min)).getD 0
+      let m' := m.eraseIdx fInd
+      let sgn := (List.replicate fInd (-1 : Rat)).prod
+      let r1 := sgn * m[fInd]!
+      #[r1] ++ red (m'.map fun r => (r - r[min]! / r1[min]! * r1))
+
+/-- A simple implementation of the determinant of a matrix, using row-reduction. -/
+def det (m : Array (Array Rat)) : Rat :=
   let ms := m.size
   if ! (m.map Array.size).all (· == ms) then dbg_trace "wrong sizes"; default else
   if ms = 1 then m[0]![0]! else
-  Id.run do
-  let mut deti : α := default
-  for a in [:ms] do
-    if ! m.back[a]! == default then
-      deti := deti + ((-1) ^ a : Int) * m.back[a]! * det (m.pop.map (Array.eraseIdx · a))
-  ((-1) ^ (ms + 1) : Int) * deti
+  if ms = 2 then m[0]![0]! * m[1]![1]! - m[0]![1]! * m[1]![0]! else
+  let mr := red m
+  ((Array.range ms).map fun i => mr[i]![i]!).prod
 
-#assert det #[#[1, 0], #[0, 1]] == 1
-#assert det #[#[1, 0, 0], #[0, 1, 0], #[0, 0, 1]] == 1
-#assert det #[#[43, 46, -3], #[70, 100, -6], #[31, 97, -5]] == 0
+#assert det (#[#[1, 0], #[0, 1]] : Array (Array Rat)) == 1
+#assert det (#[#[1, 0, 0], #[0, 1, 0], #[0, 0, 1]] : Array (Array Rat)) == 1
+#assert det (#[#[43, 46, -3], #[70, 100, -6], #[31, 97, -5]] : Array (Array Rat)) == 0
+#assert det (#[#[43, 46, -3], #[0, 100, -6], #[0, 0, -5]] : Array (Array Rat)) == 43 * 100 * (-5)
+#assert det (#[#[43, 46], #[0, 100]] : Array (Array Rat)) == 43 * 100
 
 /-- finds the coefficients of the equation defining the line through `p` with
 velocity `v`. -/
@@ -80,11 +92,11 @@ in the form `#[x, y, z]` such that
 * either `z ≠ 0` and `(x / z, y / z)` lies in the intersection;
 * or `z = 0` and the lines are parallel.
 -/
-def solve2 {α} [BEq α] [Inhabited α] [Add α] [Mul α] [HMul Int α α] (x y : Array α) : Array α :=
+def solve2 (x y : Array Rat) : Array Rat :=
   Id.run do
   let mut ans := #[]
   for i in [:x.size] do
-    ans := ans.push <| ((- 1) ^ i.succ : Int) *  det #[Array.eraseIdx x i, Array.eraseIdx y i]
+    ans := ans.push <| ((-1) ^ i.succ : Int) * det #[Array.eraseIdx x i, Array.eraseIdx y i]
   ans
 
 /-- `inter x y` takes as input two arrays `x, y` of integers, assuming that they are
@@ -170,6 +182,7 @@ def mins (a : Array (Array Rat)) : Array Rat :=
   (Array.range a.size.succ).map fun i => ((-1) ^ i : Int) * (det (a.map fun r => r.eraseIdx i))
 
 #assert mins #[#[1, 2, 3], #[2, 3, 4]] == #[-1, 2, -1]
+#assert mins #[#[1, 2]] == #[2, -1]
 
 /-- `quadricContaining3lines pv1 pv2 pv3` takes as input three pairs consisting of a
 position and a velocity in space.
@@ -177,10 +190,10 @@ position and a velocity in space.
 It returns the 10 coefficients of the quadric containing the three lines going through
 each of the points and with the given initial velocities. -/
 def quadricContaining3lines (pv1 pv2 pv3 : vol × vol) : Array Rat :=
-  let coos := #[pv1, pv2, pv3]
-  let rels := (coos.toList.map fun x => [evals2 x.1, evals2 (x.1 + x.2), evals2 (x.1 - x.2)]).join
+  let coos := [pv1, pv2, pv3]
+  let rels := (coos.map fun x => [evals2 x.1, evals2 (x.1 + x.2), evals2 (x.1 - x.2)]).join
   let ls := mins rels.toArray
-  let gcd : Int := ls.foldl (fun x y => Int.gcd x y.num) 0
+  let gcd : Int := ls.foldl (fun x y => x.gcd y.num) 0
   ls.map (· / gcd)
 
 /-- `qeval q x` returns the evaluation of the quadric represented by `q` at the point whose
@@ -280,9 +293,7 @@ def part2 (dat : Array String) (i0 : Nat := 0) (i1 : Nat := 1) (i2 : Nat := 2) (
   let coo1 := getpvOne dat[i1]!
   let coo2 := getpvOne dat[i2]!
   let (pt, vt) := getpvOne dat[i3]!
-  let _q := quadricContaining3lines coo0 coo1 coo2
-  --  ideally, I could run the previous line to compute `q` directly from the data.
-  let q : Array Rat := #[99152456616352095153, 31268323746884196420, 68883081878393694944, -87476990994254268966807869665080568, -191578927814978880960, -136390457582647411920, 153891014299882693838040060221881320, -31603424001432941840, 41693653625411433802947742476397232, -17989250061443095666272048548759880765735386106836]
+  let q := quadricContaining3lines coo0 coo1 coo2
   let (c1, c2) := match roots (clq q pt vt) with
       | #[a, b] => (pt + a * vt, pt + b * vt)
       | _ => dbg_trace "oh no match!"; default
@@ -295,6 +306,4 @@ def part2 (dat : Array String) (i0 : Nat := 0) (i1 : Nat := 1) (i2 : Nat := 2) (
 
 --#assert part2 atest == 47
 
--- 90s
 solve 2 888708704663413
-#eval "Pre-computed quadric, since the implementation of `det` is slow."
