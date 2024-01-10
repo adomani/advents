@@ -287,7 +287,7 @@ def findStart (quad : Array Rat) (pv1 pv2 : vol × vol) (p : vol) : vol :=
   1 / (t2 - t1) * (t2 * inter1 - t1 * inter2)
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) (i0 : Nat := 0) (i1 : Nat := 1) (i2 : Nat := 2) (i3 : Nat := 3) :
+def part2 (dat : Array String) (i0 : Nat := 0) (i1 : Nat := 2) (i2 : Nat := 3) (i3 : Nat := 4) :
     Rat :=
   let coo0 := getpvOne dat[i0]!
   let coo1 := getpvOne dat[i1]!
@@ -304,6 +304,7 @@ def part2 (dat : Array String) (i0 : Nat := 0) (i1 : Nat := 1) (i2 : Nat := 2) (
   let fs := findStart q coo0 coo1 cand
   fs.1 + fs.2.1 + fs.2.2
 
---#assert part2 atest == 47
+--  fails excluding 0, 3, 4
+#assert part2 atest == 47
 
 solve 2 888708704663413
