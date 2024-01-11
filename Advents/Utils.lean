@@ -55,8 +55,8 @@ instance {a b : α × β} : Decidable (a < b) := decidable_of_iff' _ Prod.lt_iff
 
 end Instances_for_orders
 
-/-- `List.getNats l` takes as input a list of characters and returns the list of
-`Nat` where each entry is the natural number corresponding to each consecutive
+/-- `String.getNats l` takes as input a string and returns the list of `Nat`
+where each entry is the natural number corresponding to each consecutive
 sequence of digits in `l`, in their order. -/
 partial
 def String.getNats (l : String) : List Nat :=
