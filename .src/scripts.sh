@@ -42,6 +42,7 @@ newday () {
 desc_tests () {
 (
   yr="${1:-$currYear}"
+  baseDir="$(pwd)"
   croot ; cd ${AoCyear} || return 1
   descFile=.src/"${yr}"_desc.txt
   for d in day*.lean; do
@@ -50,7 +51,7 @@ desc_tests () {
     desc="$(
       awk -v day="${dig}" 'BEGIN{ con=0 }
         !/^-- Day [0-9]*$/ && (con == day) { print $0 }
-        /^-- Day [0-9]*$/ { con++ }' ../"${descFile}"
+        /^-- Day [0-9]*$/ { con++ }' "${baseDir}/${descFile}"
       )"
     printf '#  [Day %s](https://adventofcode.com/${currYear}/day/%s)\n\n%s\n\n' "${dig}" "${dig}" "$(
       printf '%s' "${desc}" | head -1
@@ -85,7 +86,7 @@ desc () {
 (
   yr="${1:-$currYear}"
   croot
-  awk -v fil='descriptions_with_tests.md' 'BEGIN {
+  awk -v fil="${AoCyear}/${yr}_descriptions_with_tests.md" 'BEGIN {
       con=1
       acc=""
       print "|Day|Description|\n|:-:|-|"
@@ -106,9 +107,10 @@ desc () {
 ##  overwriting them if they already exist.
 aoc () {
 (
+  yr="${1:-$currYear}"
   croot
-  desc_tests > "${AoCyear}"/descriptions_with_tests.md
-  desc > "${AoCyear}"/descriptions.md
+  desc_tests > "${AoCyear}"/${yr}_descriptions_with_tests.md
+  desc > "${AoCyear}"/${yr}_descriptions.md
 )
 }
 
