@@ -1,13 +1,16 @@
 #! /bin/bash
 
+currYear="$(date -d 'today - 10 month' +%Y)"
+AoCyear="Advents/AoC${currYear}"
+
 ##  `getDat <d?>` takes an optional input `<d?>`.
 ##  If `<d?>` is provided, then it returns `<d?>`.
 ##  If `<d?>` is not provided, it returns one more than the number
-##  in the last file named `Advents/day[0]*<further_digits>.input`.
+##  in the last file named `Advents/AoC<year>/day[0]*<further_digits>.input`.
 getDay () {
 (
   if [ -z "${1}" ]; then
-    ind="$( ls Advents/day*.input | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
+    ind="$( ls "${AoCyear}/day*.input" | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
     ind=$((ind+1))
   else ind="${1}"
   fi
@@ -16,10 +19,10 @@ getDay () {
 }
 
 ##  `newday <n>` downloads the `day/n/input` from `Advent of Code`
-##  and saves it to `Advents/i<0n>.txt`, where `<0n>` is a 2-digit
+##  and saves it to `Advents/AoC<year>/i<0n>.txt`, where `<0n>` is a 2-digit
 ##  representation of `<n>`, padded with zeros.
 ##  `newday` with no input makes a guess as to what input to download
-##  choosing the smallest index larger than the largest file `Advents/i<val>.txt`.
+##  choosing the smallest index larger than the largest file `Advents/AoC<year>/i<val>.txt`.
 newday () {
   (
     croot;
@@ -27,18 +30,18 @@ newday () {
     if [ ! "$(git rev-parse --abbrev-ref HEAD)" == "master" ];
     then git switch master; fi
     ind0="$( printf '%02d' "${ind}" )"
-    fname="Advents/day${ind0}"
+    fname="${AoCyear}/day${ind0}"
     touch "${fname}.input"
     sed "s=<newDay>=${ind0}=" template.lean >> "${fname}.lean"
     brown 'Used day '; printf '%s\n' "${ind}"
-#    wget "https://adventofcode.com/2023/day/${ind}/input" -O "Advents/day"$( printf '%02d' "${ind}")".input"
+#    wget "https://adventofcode.com/${currYear}/day/${ind}/input" -O "${AoCyear}/day"$( printf '%02d' "${ind}")".input"
   )
 }
 
 ##  `desc_tests` prints to stdout the text that makes up the file `descriptions_with_tests.md`.
 desc_tests () {
 (
-  croot ; cd Advents || return 1
+  croot ; cd ${AoCyear} || return 1
   descFile=.src/desc.txt
   for d in day*.lean; do
     if [ ! "${d}" == "day02.lean" ] && [ ! "${d}" == "day02_syntax.lean" ]; then
@@ -48,7 +51,7 @@ desc_tests () {
         !/^-- Day [0-9]*$/ && (con == day) { print $0 }
         /^-- Day [0-9]*$/ { con++ }' ../"${descFile}"
       )"
-    printf '#  [Day %s](https://adventofcode.com/2023/day/%s)\n\n%s\n\n' "${dig}" "${dig}" "$(
+    printf '#  [Day %s](https://adventofcode.com/${currYear}/day/%s)\n\n%s\n\n' "${dig}" "${dig}" "$(
       printf '%s' "${desc}" | head -1
     )"
     awk '
@@ -58,7 +61,7 @@ desc_tests () {
       END{ print acc }' "${d}"
     printf -- '\n%s\n\n[%s](%s)\n\n---\n\n' "$(
       printf "${desc}\n" | tail -n+2
-    )" "Solution in Lean" "Advents/${d/_traditional/}"
+    )" "Solution in Lean" "${AoCyear}/${d/_traditional/}"
   fi
   done | sed '
       s=def test\([0-9]*\)[^"]*["]*=\n####  Test \1\n\n<pre>\n=g
@@ -109,7 +112,7 @@ aoc () {
 leanWith () {
 (
   croot || exit 1
-  for fil in Advents/day??.lean; do
+  for fil in "${AoCyear}"/day??.lean; do
     nm="$(printf ' %s' "${fil}" | sed 's=.*\(day[0-9]*\).*=\1=' )"
     brown 'Process '; lcyan "${nm}"$'\n'
     if [ -z "${1}" ]
