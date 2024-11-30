@@ -3,7 +3,7 @@ import Advents.Utils
 namespace Day24
 
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/day24.input"
+def input : System.FilePath := "Advents/AoC2023/day24.input"
 
 /-!
 #  Question 1

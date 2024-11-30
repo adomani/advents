@@ -4,7 +4,7 @@ open Lean
 namespace Day11
 
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/day11.input"
+def input : System.FilePath := "Advents/AoC2023/day11.input"
 
 /-!
 #  Question 1

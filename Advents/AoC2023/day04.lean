@@ -4,7 +4,7 @@ open Lean
 namespace Day04
 
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/day04.input"
+def input : System.FilePath := "Advents/AoC2023/day04.input"
 
 --#eval do IO.println <| ← IO.FS.readFile input
 
