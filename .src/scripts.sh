@@ -41,8 +41,9 @@ newday () {
 ##  `desc_tests` prints to stdout the text that makes up the file `descriptions_with_tests.md`.
 desc_tests () {
 (
+  yr="${1:-$currYear}"
   croot ; cd ${AoCyear} || return 1
-  descFile=.src/desc.txt
+  descFile=.src/"${yr}"_desc.txt
   for d in day*.lean; do
     if [ ! "${d}" == "day02.lean" ] && [ ! "${d}" == "day02_syntax.lean" ]; then
     dig=$( printf '%s' "${d}" | sed 's=day[0]*\([0-9]*\).*\.lean=\1=')
@@ -77,8 +78,12 @@ desc_tests () {
 }
 
 ##  `desc` prints to stdout the text that makes up the file `descriptions.md`.
+##  Passing an optional input makes that input the prefx of the file.  This is typically
+##  a year, such as 2023.  The default value is the "current" year, which is the year that
+##  it was 10 months ago.
 desc () {
 (
+  yr="${1:-$currYear}"
   croot
   awk -v fil='descriptions_with_tests.md' 'BEGIN {
       con=1
@@ -92,7 +97,7 @@ desc () {
       acc=""
     }
     !/^-- Day [0-9]*$/ && (acc == "") { acc=$0 }
-    END { printf("|[%s]%s%s)|%s|\n", con, link, con, acc) }' .src/desc.txt |
+    END { printf("|[%s]%s%s)|%s|\n", con, link, con, acc) }' .src/"${yr}"_desc.txt |
       column -s'|' -o'|' -t | sed 's=|= | =g; s=^ ==; s= $=='
 )
 }
@@ -102,8 +107,8 @@ desc () {
 aoc () {
 (
   croot
-  desc_tests > descriptions_with_tests.md
-  desc > descriptions.md
+  desc_tests > "${AoCyear}"/descriptions_with_tests.md
+  desc > "${AoCyear}"/descriptions.md
 )
 }
 
