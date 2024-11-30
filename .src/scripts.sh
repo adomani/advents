@@ -10,7 +10,7 @@ AoCyear="Advents/AoC${currYear}"
 getDay () {
 (
   if [ -z "${1}" ]; then
-    ind="$( ls "${AoCyear}/day*.input" | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
+    ind="$( ls "${AoCyear}"/day*.input | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
     ind=$((ind+1))
   else ind="${1}"
   fi
