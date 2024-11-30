@@ -2,7 +2,7 @@
 
 currYear="$(date -d 'today - 10 month' +%Y)"
 rootDir='Advents/AoC'
-AoCyear="${rootDir}${currYear}"
+AoCyearFixed="${rootDir}${currYear}"
 
 ##  `getDat <d?>` takes an optional input `<d?>`.
 ##  If `<d?>` is provided, then it returns `<d?>`.
@@ -11,7 +11,7 @@ AoCyear="${rootDir}${currYear}"
 getDay () {
 (
   if [ -z "${1}" ]; then
-    ind="$( ls "${AoCyear}"/day*.input | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
+    ind="$( ls "${AoCyearFixed}"/day*.input | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
     ind=$((ind+1))
   else ind="${1}"
   fi
@@ -31,7 +31,7 @@ newday () {
     if [ ! "$(git rev-parse --abbrev-ref HEAD)" == "master" ];
     then git switch master; fi
     ind0="$( printf '%02d' "${ind}" )"
-    fname="${AoCyear}/day${ind0}"
+    fname="${AoCyearFixed}/day${ind0}"
     touch "${fname}.input"
     sed "s=_newDay_=${ind0}=; s=YYYY=${currYear}=g" template.lean >> "${fname}.lean"
     brown 'Used day '; printf '%s\n' "${ind}"
@@ -90,7 +90,7 @@ desc () {
   yr="${1:-$currYear}"
   AoCyear="${rootDir}${yr}"
   croot
-  awk -v fil="${AoCyear}/${yr}_descriptions_with_tests.md" 'BEGIN {
+  awk -v fil="${yr}_descriptions_with_tests.md" 'BEGIN {
       con=1
       acc=""
       print "|Day|Description|\n|:-:|-|"
