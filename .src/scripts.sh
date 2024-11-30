@@ -1,7 +1,8 @@
 #! /bin/bash
 
 currYear="$(date -d 'today - 10 month' +%Y)"
-AoCyear="Advents/AoC${currYear}"
+rootDir='Advents/AoC'
+AoCyear="${rootDir}${currYear}"
 
 ##  `getDat <d?>` takes an optional input `<d?>`.
 ##  If `<d?>` is provided, then it returns `<d?>`.
@@ -42,8 +43,10 @@ newday () {
 desc_tests () {
 (
   yr="${1:-$currYear}"
+  AoCyear="${rootDir}${yr}"
+  croot
   baseDir="$(pwd)"
-  croot ; cd ${AoCyear} || return 1
+  cd ${AoCyear} || return 1
   descFile=.src/"${yr}"_desc.txt
   for d in day*.lean; do
     if [ ! "${d}" == "day02.lean" ] && [ ! "${d}" == "day02_syntax.lean" ]; then
@@ -53,7 +56,7 @@ desc_tests () {
         !/^-- Day [0-9]*$/ && (con == day) { print $0 }
         /^-- Day [0-9]*$/ { con++ }' "${baseDir}/${descFile}"
       )"
-    printf '#  [Day %s](https://adventofcode.com/${currYear}/day/%s)\n\n%s\n\n' "${dig}" "${dig}" "$(
+    printf '#  [Day %s](https://adventofcode.com/%s/day/%s)\n\n%s\n\n' "${dig}" "${yr}" "${dig}" "$(
       printf '%s' "${desc}" | head -1
     )"
     awk '
@@ -85,6 +88,7 @@ desc_tests () {
 desc () {
 (
   yr="${1:-$currYear}"
+  AoCyear="${rootDir}${yr}"
   croot
   awk -v fil="${AoCyear}/${yr}_descriptions_with_tests.md" 'BEGIN {
       con=1
@@ -108,6 +112,7 @@ desc () {
 aoc () {
 (
   yr="${1:-$currYear}"
+  AoCyear="${rootDir}${yr}"
   croot
   desc_tests > "${AoCyear}"/${yr}_descriptions_with_tests.md
   desc > "${AoCyear}"/${yr}_descriptions.md
@@ -118,6 +123,8 @@ aoc () {
 ##  with an option of timing the individual runs.
 leanWith () {
 (
+  yr="${1:-$currYear}"
+  AoCyear="${rootDir}${yr}"
   croot || exit 1
   for fil in "${AoCyear}"/day??.lean; do
     nm="$(printf ' %s' "${fil}" | sed 's=.*\(day[0-9]*\).*=\1=' )"
