@@ -32,7 +32,7 @@ newday () {
     ind0="$( printf '%02d' "${ind}" )"
     fname="${AoCyear}/day${ind0}"
     touch "${fname}.input"
-    sed "s=<newDay>=${ind0}=" template.lean >> "${fname}.lean"
+    sed "s=_newDay_=${ind0}=; s=YYYY=${currYear}=g" template.lean >> "${fname}.lean"
     brown 'Used day '; printf '%s\n' "${ind}"
 #    wget "https://adventofcode.com/${currYear}/day/${ind}/input" -O "${AoCyear}/day"$( printf '%02d' "${ind}")".input"
   )

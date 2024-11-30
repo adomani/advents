@@ -1,8 +1,10 @@
 import Advents.Utils
 open Lean
 
+namespace Day_newDay_
+
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/day<newDay>.input"
+def input : System.FilePath := "Advents/AoCYYYY/day<newDay>.input"
 
 /-!
 #  Question 1
@@ -35,3 +37,5 @@ def part2 (dat : Array String) : Nat := sorry
 --#assert part2 atest == ???
 
 --solve 2
+
+end Day_newDay_
