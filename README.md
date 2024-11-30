@@ -2,7 +2,7 @@
 
 My current solutions of [Advent of Code](https://adventofcode.com/) in [Lean](https://lean-lang.org/): they are all in [Advents](https://github.com/adomani/advents/tree/master/Advents).
 
-So far, this repository contains only the 2023 and 2024 editions.
+So far, this repository contains only the [2023](https://adventofcode.com/2023) and [2024](https://adventofcode.com/2024) editions.
 
 Obviously, if you go to the files with code, there will be spoilers!
 
