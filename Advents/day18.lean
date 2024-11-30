@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day18
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day18.input"
 
@@ -98,7 +100,7 @@ corresponding to `c`.
 * The numbers `0, 1, 2, 3` get interpreted as `R`ight, `D`own, `L`eft, `U`p
   (used in part 2).
 -/
-def Char.toPos : Char → pos
+def _root_.Char.toPos : Char → pos
   | 'U' => ((- 1, 0) : pos)
   | '3' => ((- 1, 0) : pos)
 
@@ -129,7 +131,7 @@ solve 1 40745
 
 /-- `Char.toDec c` takes as input a character `c`, assumes that it represents
 a hexadecimal digit and returns the corresponding natural number. -/
-def Char.toDec (c : Char) : Nat :=
+def _root_.Char.toDec (c : Char) : Nat :=
   match c.toString.toNat? with
     | some n => n
     | none => c.val.val + 10 - 'a'.val.val
@@ -138,7 +140,7 @@ def Char.toDec (c : Char) : Nat :=
 
 /-- `String.toDec s` takes as input a string `s`, assumes that it represents
 the digits of a hexadecimal number and returns the corresponding natural number. -/
-def String.toDec (s : String) : Nat :=
+def _root_.String.toDec (s : String) : Nat :=
   go s.toList.reverse where
   /-- `go l` takes as input a list of characters, assumes that the entries represent
   the digits of a hexadecimal number and converts the list to the corresponding

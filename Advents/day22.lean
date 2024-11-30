@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day22
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day22.input"
 
@@ -76,10 +78,10 @@ def brick.toArray (bk : brick) : Array vol :=
 /-- `getPos dat` takes as input an array `dat` of strings.
 It returns the collection of all the `vol`umes occupied by some brick determined by `dat`.
 -/
-def getPos (dat : Array String) : HashSet vol :=
+def getPos (dat : Array String) : Std.HashSet vol :=
   let dat := bricks dat
   Id.run do
-  let mut s : HashSet vol := .empty
+  let mut s : Std.HashSet vol := .empty
   for b in dat do
     for i in b.toArray do
       s := s.insert i
@@ -91,7 +93,7 @@ def getPos (dat : Array String) : HashSet vol :=
 * a `brick` `bk`.
 
 It determines if translating `bk` by `d` we overlap with a `vol`ume occupied by `bks`. -/
-def checkNbr (bks : HashSet vol) (d : vol) (bk : brick) : Bool :=
+def checkNbr (bks : Std.HashSet vol) (d : vol) (bk : brick) : Bool :=
   let (bk, dir, lth) :=
     -- if the brick is vertical...
     if bk.dir = (0, 0, 1) then
@@ -99,15 +101,15 @@ def checkNbr (bks : HashSet vol) (d : vol) (bk : brick) : Bool :=
       (if d = (0, 0, -1) then (bk.src, bk.dir, 0) else (bk.src + bk.lth * bk.dir, bk.dir, 0)) else
       (bk.src, bk.dir, bk.lth)
   (2 ≤ bk.2.2) && ((Array.range lth.succ).map fun n =>
-    (bks.find? (bk + n * dir + d)).isNone).all (·)
+    (bks.get? (bk + n * dir + d)).isNone).all (·)
 
 /-- `canFall bks bk` check whether, with the occupied space in `bks`, the brick `bk` can fall. -/
-def canFall (bks : HashSet vol) (bk : brick) : Bool :=
+def canFall (bks : Std.HashSet vol) (bk : brick) : Bool :=
   checkNbr bks (0, 0, -1) bk
 
 /-- `supports bks bk` check whether, with the occupied space in `bks`, the brick `bk` has
 some brick on top of itself. -/
-def supports (bks : HashSet vol) (bk : brick) : Bool :=
+def supports (bks : Std.HashSet vol) (bk : brick) : Bool :=
   checkNbr bks (0, 0, 1) bk
 
 /-- We can add a `vol`ume to a brick, simply by adding the `vol`ume to the source of the brick. -/
@@ -116,7 +118,7 @@ instance : HAdd brick vol brick where
 
 /-- `canFallBy bks bk` determines by how many steps can a brick `bk` fall before meeting
 either the plane with `z`-coordinate equal to `1` or a `vol`ume occupied by `bks`. -/
-def canFallBy (bks : HashSet vol) (bk : brick) : Nat :=
+def canFallBy (bks : Std.HashSet vol) (bk : brick) : Nat :=
   let down : vol := (0, 0, -1)
   Id.run do
   let mut amt := 0
@@ -129,11 +131,11 @@ def canFallBy (bks : HashSet vol) (bk : brick) : Nat :=
 /-- `fallOne bksH bk` takes as input a collection `bksH` of occupied volume and a brick`bk`.
 It replaces the volume in `bksH` occupied by `bk` by the volume occupied by the result of
 making `bk` fall as much as `canFallBy bksH bk` allows. -/
-def fallOne (bksH : HashSet vol) (bk : brick) : HashSet vol × brick :=
+def fallOne (bksH : Std.HashSet vol) (bk : brick) : Std.HashSet vol × brick :=
   let n := canFallBy bksH bk
   let old := (Array.range bk.lth.succ).map (bk.src + · * bk.dir)
   Id.run do
-  let mut s : HashSet vol := bksH
+  let mut s : Std.HashSet vol := bksH
   for x in old do
     s := (s.erase x).insert (x + n * ((0, 0, -1) : vol))
   return (s, ⟨bk.src + n * ((0, 0, -1) : vol), bk.dir, bk.lth⟩)
@@ -153,12 +155,12 @@ def part1 (dat : Array String) : Nat :=
     bks := (bks.modify (bks.findIdx? (· == curr)).get! (fun _ => newB))
     bksFall := bks.find? <| canFall bksH
   let mut tot := 0
-  let mut bks' : HashSet brick := .empty
+  let mut bks' : Std.HashSet brick := .empty
   for d in bks do
     bks' := bks'.insert d
   for bk in bks' do
     let old := bk.toArray
-    let mut s : HashSet vol := bksH
+    let mut s : Std.HashSet vol := bksH
     for x in old do
       s := (s.erase x)
     let fallList := Id.run do
@@ -177,7 +179,7 @@ def part1 (dat : Array String) : Nat :=
 #  Question 2
 -/
 
-def findFalls (bksH : HashSet vol) (bks : Array brick) (one : brick) : Nat :=
+def findFalls (bksH : Std.HashSet vol) (bks : Array brick) (one : brick) : Nat :=
   Id.run do
   let mut falling := #[one]
   let mut falls := 0

@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day11
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day11.input"
 
@@ -53,8 +55,8 @@ def getGal (dat : Array String) : Array pos :=
 Assuming that the integers in `xs` are non-negative, `missingOne`
 returns the missing integers in `xs` in the range `[0,...,max xs]`. -/
 def missingOne (xs : Array Int) : Array Int :=
-  let missing := xs.sortAndDeduplicate
-  let last := missing.back
+  let missing := xs.sortDedup
+  let last := missing.back!
   Id.run do
     let mut fin : Array Int := #[]
     for i in [:last.toNat] do

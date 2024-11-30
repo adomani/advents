@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day02_traditional
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day02.input"
 
@@ -18,6 +20,8 @@ If you change it to a `def`, you will see that Lean fails to infer instances
 on `cols`, even though `Nat × Nat × Nat` has them.
 -/
 abbrev cols := Nat × Nat × Nat
+
+instance : Zero cols where zero := (0, 0, 0)
 
 /-- `one_color s` takes a string `s` as input and returns a `cols`.
 If, ignoring spaces, the string is of the form

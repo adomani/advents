@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day05
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day05.input"
 
@@ -66,7 +68,7 @@ It returns a pair consisting of
 -/
 def get_seed_instrs (maps : String) : List Nat × List (List (List Nat)) :=
   let nums := maps.splitOn "map"
-  let nums_and_empties := (nums.map (String.splitOn · "\n")).join.map String.getNats
+  let nums_and_empties := (nums.map (String.splitOn · "\n")).flatten.map String.getNats
   let cnums := compact nums_and_empties
   (cnums[0]![0]!, cnums.drop 1)
 

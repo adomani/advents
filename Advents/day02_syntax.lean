@@ -2,6 +2,8 @@ import Advents.Utils
 
 open Lean Elab Expr Meta
 
+namespace Day02
+
 /-- The syntax category `color` consists of the main building blocks for the games.
 Valid expressions are `<number> <color>`, where `<color>` is one of `red, green, blue`.
 -/

@@ -14,4 +14,4 @@ lean_exe «advents» {
   root := `Main
 }
 
-require std from git "https://github.com/leanprover/std4" @ "main"
+require batteries from git "https://github.com/leanprover-community/batteries" @ "main"

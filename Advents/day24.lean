@@ -1,5 +1,7 @@
 import Advents.Utils
 
+namespace Day24
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day24.input"
 
@@ -191,7 +193,7 @@ It returns the 10 coefficients of the quadric containing the three lines going t
 each of the points and with the given initial velocities. -/
 def quadricContaining3lines (pv1 pv2 pv3 : vol × vol) : Array Rat :=
   let coos := [pv1, pv2, pv3]
-  let rels := (coos.map fun x => [evals2 x.1, evals2 (x.1 + x.2), evals2 (x.1 - x.2)]).join
+  let rels := (coos.map fun x => [evals2 x.1, evals2 (x.1 + x.2), evals2 (x.1 - x.2)]).flatten
   let ls := mins rels.toArray
   let gcd : Int := ls.foldl (fun x y => x.gcd y.num) 0
   ls.map (· / gcd)

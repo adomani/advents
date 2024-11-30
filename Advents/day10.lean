@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day10
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day10.input"
 
@@ -62,7 +64,7 @@ def findToX (dat : Array (Array Char)) (X : pos) : Array pos :=
   let xx := nbs.map fun nb =>
     (possibleMoves dat (X + nb)).push (X + nb)
   let cands := ((xx.filter (X ∈ ·)).map <| fun x => x.filter (· != X))
-  cands.map (Array.back ·)
+  cands.map (Array.back! ·)
 
 /-
 #eval do
@@ -119,7 +121,7 @@ def toLeft : pos → dir
 def orientPath (path : Array pos) : Array (pos × dir) :=
   let ps := path.size
   Id.run do
-    let lst := path.back
+    let lst := path.back!
     let fst := path[0]!
     let mut prev := (lst, toLeft (fst - lst))
     let mut oriented := #[]

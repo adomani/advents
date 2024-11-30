@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day19
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day19.input"
 
@@ -191,7 +193,7 @@ instance : Add xmasWt where
                s := w.s + z.s }
 
 /-- `Char.Xmk c p` creates the `xmas` weight with interval `p` at `c`. -/
-def Char.Xmk (c : Char) (p : icc) : xmasWt :=
+def _root_.Char.Xmk (c : Char) (p : icc) : xmasWt :=
   match c with
     | 'x' => { x := p
                m := default

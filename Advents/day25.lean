@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day25
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day25.input"
 
@@ -30,7 +32,7 @@ def atest := (test.splitOn "\n").toArray
 
 /-- `wires` is the type containing all (ordered) pairs of `String`s that correspond
 to wires in the graph of today's puzzle. -/
-abbrev wires := HashSet (String × String)
+abbrev wires := Std.HashSet (String × String)
 
 /-- `getStringsOne1 s` takes as input a string `s` and returns the ordered pair
 consisting of the string on the left of the input and the array of strings on the right. -/
@@ -49,12 +51,12 @@ def getStringsOne (s : String) : List (String × String) :=
 /-- `getWires dat` converts the array of strings that is the input to a term of
 type `wires`, encoding the whole graphs. -/
 def getWires (dat : Array String) : wires :=
-  .ofList (dat.toList.map getStringsOne).join
+  .ofList (dat.toList.map getStringsOne).flatten
 
 /-- `getVerts dat` returns the array of vertices of the graph determined by the input. -/
 def getVerts (dat : Array String) : Array String :=
   let many := (dat.map fun x => let (a, as) := getStringsOne1 x; as.push a)
-  (many.foldr (· ++ ·) #[]).sortAndDeduplicate
+  (many.foldr (· ++ ·) #[]).sortDedup
 
 /-- prints an output that can be directly pasted to the command-line:
 it uses `dot` to visualize the graph encoded by `dat`. -/

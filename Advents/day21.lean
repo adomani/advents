@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day21
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day21.input"
 
@@ -68,9 +70,9 @@ def findRk (dat : Array String) : pos :=
 #assert findRk (← IO.FS.lines input) == (1, 19)
 
 /-- creates the `HashSet` containing all the positions of all the rocks in `dat`. -/
-def getRocks (dat : Array String) (c : Char := '#') : HashSet pos :=
+def getRocks (dat : Array String) (c : Char := '#') : Std.HashSet pos :=
   Id.run do
-    let mut rks : HashSet pos := .empty
+    let mut rks : Std.HashSet pos := .empty
     for i in [:dat.size] do
       let row := dat[i]!.toList
       for j in [:row.length] do
@@ -90,14 +92,14 @@ It returns a pair consisting of
 
 The expectation is that `mvs` will be ran recursively, feeding back its output as new `gd` and
 `bd` inputs to itself, until we built the whole `HashSet` of reachable positions. -/
-def mvs (rk gd : HashSet pos) (bd : Array pos) (f : pos → pos) : HashSet pos × Array pos :=
+def mvs (rk gd : Std.HashSet pos) (bd : Array pos) (f : pos → pos) : Std.HashSet pos × Array pos :=
   Id.run do
-  let mut new : HashSet pos := gd
+  let mut new : Std.HashSet pos := gd
   let mut nbd := #[]
   for g in bd do
-    let mvs := (dirs.map (toCCWPos · + g)).filter fun x => (rk.find? (f x)).isNone
+    let mvs := (dirs.map (toCCWPos · + g)).filter fun x => (rk.get? (f x)).isNone
     for m in mvs do
-      let (n, tf) := new.insert' m
+      let (tf, n) := new.containsThenInsert m
       new := n
       if !tf then nbd := nbd.push m
   return (new, nbd)
@@ -108,12 +110,12 @@ It returns the possible locations that the gardener can reach in `n` steps.
 
 It recursively applies `mvs` to its output, starting from the position of `S` and
 the layout of the garden. -/
-def parts (dat : Array String) (n : Nat := 64) (f : pos → pos := id) : HashSet pos :=
+def parts (dat : Array String) (n : Nat := 64) (f : pos → pos := id) : Std.HashSet pos :=
   let rk := getRocks dat
   Id.run do
   let init := findS dat
   let mut bd := #[init]
-  let mut gd : HashSet pos := HashSet.empty.insert init
+  let mut gd : Std.HashSet pos := Std.HashSet.empty.insert init
   for _ in [:n] do
     (gd, bd) := (mvs rk gd bd f)
   return gd

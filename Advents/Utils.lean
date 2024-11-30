@@ -1,13 +1,13 @@
-import Std
+import Batteries
 
 section sums
 variable {α}
 
-/--  Sum the elements of a `List`. -/
-def List.sum [Add α] [OfNat α 0] : List α → α
-  | []    => 0
-  | [m]   => m
-  | m::ms => m + ms.sum
+--/--  Sum the elements of a `List`. -/
+--def List.sum [Add α] [OfNat α 0] : List α → α
+--  | []    => 0
+--  | [m]   => m
+--  | m::ms => m + ms.sum
 
 /--  Sum the elements of an `Array`. -/
 def Array.sum [Add α] [OfNat α 0] (l : Array α) : α :=
@@ -98,7 +98,7 @@ def Nat.factors (n : Nat) (p : Nat := 2) : Array Nat :=
       else
         have : n - p.succ < n - p := Nat.sub_lt_sub_left (Nat.not_le.mp pn) p.lt_succ_self
         n.factors p.succ
-  termination_by _ => (n, n - p)
+  termination_by (n, n - p)
 
 /-- `Int.natFactors n` returns the array of prime factors of `n.natAbs`, with repetitions,
 in decreasing order.

@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day15
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day15.input"
 

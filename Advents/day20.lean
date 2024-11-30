@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean (HashMap HashSet)
 
+namespace Day20
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day20.input"
 
@@ -65,9 +67,9 @@ def parseOne (s : String) : String × Char × Array String :=
     | _ => dbg_trace s!"parseOne error on '{s}'"; default
 
 /-- records all the connections between modules and their types. -/
-def grid (dat : Array String) : HashMap String (Char × Array String) :=
+def grid (dat : Array String) : Std.HashMap String (Char × Array String) :=
   Id.run do
-  let mut st : HashMap String (Char × Array String) := .empty
+  let mut st : Std.HashMap String (Char × Array String) := .empty
   for d in dat do
     let (nm, c, tgts) := parseOne d
     st := st.insert nm (c, tgts)
@@ -75,42 +77,42 @@ def grid (dat : Array String) : HashMap String (Char × Array String) :=
 
 section pushing_data_around
 
-variable (gr : HashMap String (Char × Array String))
+variable (gr : Std.HashMap String (Char × Array String))
 /-- returns the HashMap sending a module `s` to the array of modules having `s` as target. -/
-def getSrcs : HashMap String (Array String) :=
+def getSrcs : Std.HashMap String (Array String) :=
   Id.run do
-  let mut y : HashMap String (Array String) := .empty
+  let mut y : Std.HashMap String (Array String) := .empty
   for (s, _, d) in gr do
     for t in d do
-      let srcs := (y.find? t).getD #[]
+      let srcs := (y.get? t).getD #[]
       y := y.insert t (srcs.push s)
   return y
 
-#assert (getSrcs (grid atest)).find? "c" == #["b", "broadcaster"]
-#assert (getSrcs (grid atest)).find? "broadcaster" == none
+#assert (getSrcs (grid atest)).get? "c" == #["b", "broadcaster"]
+#assert (getSrcs (grid atest)).get? "broadcaster" == none
 
 /-- returns the HashMap sending a module `s` to the array of modules having `s` as source. -/
-def getTgts : HashMap String (Array String) :=
+def getTgts : Std.HashMap String (Array String) :=
   Id.run do
   let mut x := .empty
   for (s, _, a) in gr do x := x.insert s a
   return x
 
-#assert (getTgts (grid atest)).find! "broadcaster" == #["a", "b", "c"]
-#assert (getTgts (grid (← IO.FS.lines input))).find! "broadcaster" == #["fb", "xk", "gr", "vj"]
+#assert (getTgts (grid atest)).get! "broadcaster" == #["a", "b", "c"]
+#assert (getTgts (grid (← IO.FS.lines input))).get! "broadcaster" == #["fb", "xk", "gr", "vj"]
 
 /-- `init gr` takes as input a `HashMap` `gr` representing a layout of modules.
 It returns the initial grid, according to the layout in `gr`. -/
-def init : HashMap String (module × Option Bool) :=
+def init : Std.HashMap String (module × Option Bool) :=
   let srcs := getSrcs gr
   Id.run do
-  let mut st : HashMap String (module × Option Bool) := .empty
+  let mut st : Std.HashMap String (module × Option Bool) := .empty
   for (nm, c, tgts) in gr do
     match c with
       | '@' => st := st.insert nm (.b tgts, false)
       | '%' => st := st.insert nm (.ff false, none)
       | '&' =>
-        let cons := (srcs.find? nm).getD #[]
+        let cons := (srcs.get? nm).getD #[]
         st := st.insert nm (.cj <| cons.map (Prod.mk · false), false)
       | _ => dbg_trace "init error"
   return st
@@ -118,10 +120,10 @@ def init : HashMap String (module × Option Bool) :=
 end pushing_data_around
 
 /-- processes a single `pulse` to the module `s`. It returns the modified state. -/
-def pulseOne (srcs' : HashMap String (Array String)) (st : HashMap String (module × Option Bool))
+def pulseOne (srcs' : Std.HashMap String (Array String)) (st : Std.HashMap String (module × Option Bool))
     (pulse : Bool) (s : String) :
-    HashMap String (module × Option Bool) × Array (String × Bool) :=
-  match st.find? s with
+    Std.HashMap String (module × Option Bool) × Array (String × Bool) :=
+  match st.get? s with
     --  process flip-flop, uses the input `pulse`
     | some (.ff tf, _sgn) =>
       if ! pulse then
@@ -129,9 +131,9 @@ def pulseOne (srcs' : HashMap String (Array String)) (st : HashMap String (modul
       else (st, #[])
     --  process conjunction
     | some (.cj ar, _sgn) =>
-      let srcs := (srcs'.find? s).getD #[]
+      let srcs := (srcs'.get? s).getD #[]
       let news := srcs.zipWith ar (fun nm a =>
-        match st.find? nm with
+        match st.get? nm with
           | none => a
           | some (_, tf) => (a.1, tf.getD a.2))
       let signal := news.any (! Prod.snd ·)
@@ -158,14 +160,14 @@ The optional `v?` argument determines the verbosity of the function.
 The optional `tracked` argument is an array of strings: if a module with name in `tracked` emits
 a `low` pulse, then `onePush` updates a `HashSet`, to keep track of the emission.
 This is useful for part 2. -/
-def onePush (gr : HashMap String (Char × Array String)) (st : HashMap String (module × Option Bool))
+def onePush (gr : Std.HashMap String (Char × Array String)) (st : Std.HashMap String (module × Option Bool))
     (ct : Nat × Nat) (v? : Bool := false) (tracked : Array String := default) :
-    HashMap String (module × Option Bool) × (Nat × Nat) × HashSet String :=
+    Std.HashMap String (module × Option Bool) × (Nat × Nat) × Std.HashSet String :=
   let tgts := getTgts gr
   let srcs := getSrcs gr
   Id.run do
   let mut str := ""
-  let mut marker : HashSet String := .empty
+  let mut marker : Std.HashSet String := .empty
   if v? then for s in st do str := str ++ s!"{s}\n"
              dbg_trace str
   let mut next := st
@@ -174,8 +176,8 @@ def onePush (gr : HashMap String (Char × Array String)) (st : HashMap String (m
   let mut hl := ct + (0, 1)  -- count from wherever we start, plus the extra `low` impulse of `button`
   while queue.size ≠ 0 do
     if v? then dbg_trace s!"* Step {con}: process {queue}\n"
-    let (curr, signal) := queue.back
-    let nbs := (tgts.find? curr).getD #[]
+    let (curr, signal) := queue.back?.getD default
+    let nbs := (tgts.get? curr).getD #[]
     queue := queue.pop
     let sig := if signal then "high" else "low"
     for ns in nbs do
@@ -191,7 +193,7 @@ def onePush (gr : HashMap String (Char × Array String)) (st : HashMap String (m
 
 /-- `pushN gr n` returns the effect of pushing the button `n` times
 on the configuration encoded in `gr`. -/
-def pushN (gr : HashMap String (Char × Array String))
+def pushN (gr : Std.HashMap String (Char × Array String))
     (n : Nat := 1000) (ct : Nat × Nat := default) (v? : Bool := false) : Nat :=
   Id.run do
     let mut fin := init gr
@@ -229,11 +231,11 @@ For each module in `tracked`, it computes the number of times the button needs t
 the module to emit a `low` pulse.
 
 `findRep` returns the array of such numbers of iterations. -/
-def findRep (gr : HashMap String (Char × Array String)) (tracked : Array String) : Array Nat :=
+def findRep (gr : Std.HashMap String (Char × Array String)) (tracked : Array String) : Array Nat :=
   Id.run do
   let mut st := init gr
   let mut con := 0
-  let mut reph : HashMap String Nat := .empty
+  let mut reph : Std.HashMap String Nat := .empty
   while (reph.size ≠ tracked.size) do
     con := con + 1
     let (st1, _, rep1) := onePush (tracked := tracked) gr st default
@@ -247,11 +249,11 @@ It returns the array of conjunction modules that are adjacent
 to the frist layer of modules around the `broadcaster` module.
 
 These modules should all return a `low` pulse in order to solve the part 2. -/
-def selectHeads (gr: HashMap String (Char × Array String)) : Array String :=
+def selectHeads (gr: Std.HashMap String (Char × Array String)) : Array String :=
   let tgts := getTgts gr
-  let l1 := (tgts.find? "broadcaster").get!
-  let l2 := (l1.map (tgts.find? · |>.get!)).foldl (· ++ ·) #[]
-  l2.filter fun x => (gr.find? x).get!.1 == '&'
+  let l1 := (tgts.get? "broadcaster").get!
+  let l2 := (l1.map (tgts.get? · |>.get!)).foldl (· ++ ·) #[]
+  l2.filter fun x => (gr.get? x).get!.1 == '&'
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=

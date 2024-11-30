@@ -40,7 +40,7 @@ def degCoeff (l : List Int) : Nat × Int :=
   while vals.any (· != 0) do
     vals := vals.drop 1 - vals  -- compute the first difference of the list `vals`
     lcs := lcs.push vals[0]!
-  return (lcs.size - 2, lcs.pop.back)
+  return (lcs.size - 2, lcs.pop.back!)
 
 /-- `cs l` takes an input a list `l` of integers and iteratively returns coefficients and degrees of
 appearing in the "binomial" expansion re-creating the list `l` when evaluated on

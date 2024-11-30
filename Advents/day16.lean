@@ -1,6 +1,8 @@
 import Advents.Utils
 open Lean
 
+namespace Day16
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/day16.input"
 
@@ -34,7 +36,7 @@ instance : HAdd dir pos pos where
 
 /-- `dir.split c d` takes as input a character `c` and a direction `d`.
 It returns the effect that `c` has on a ray moving in the direction `d`. -/
-def dir.split : Char → dir → Array dir
+def _root_.dir.split : Char → dir → Array dir
   | '-',  .R => #[.R]
   | '-',  .L => #[.L]
   | '-',   _ => #[.R, .L]
@@ -57,12 +59,12 @@ def dir.split : Char → dir → Array dir
 
 /-- An auxilliary function to process mirrors encoded in the string `s`.
 It returns data that `getHSteps` and `getVSteps` use. -/
-def getHVSteps (s : String) (left_or_up : dir) (f : Int → pos) : HashMap ray (Array ray) :=
+def getHVSteps (s : String) (left_or_up : dir) (f : Int → pos) : Std.HashMap ray (Array ray) :=
   let sc := s.toList
   let idxs := sc.findIdxs (· != '.')
   if idxs.isEmpty then .empty else
   Id.run do
-  let mut new : HashMap ray (Array ray) := .empty
+  let mut new : Std.HashMap ray (Array ray) := .empty
 
   -- insert the entry `(last+1, .X)` pointing `left_or_up`
   let lastMirrorIdx := idxs[idxs.length-1]!
@@ -101,7 +103,7 @@ The function only produces this information for the
 * `last+1`th position;
 * positions where there is a mirror.
 -/
-def getHSteps (s : String) (row : Int) : HashMap ray (Array ray) :=
+def getHSteps (s : String) (row : Int) : Std.HashMap ray (Array ray) :=
   getHVSteps s .L (row, ·)
 
 /-- `getVSteps s col` takes as input a string `s` and an integer `col`.
@@ -115,7 +117,7 @@ The function only produces this information for the
 * `last+1`th position;
 * positions where there is a mirror.
 -/
-def getVSteps (s : String) (col : Int) : HashMap ray (Array ray) :=
+def getVSteps (s : String) (col : Int) : Std.HashMap ray (Array ray) :=
   getHVSteps s .U (·, col)
 
 /-- `lth p` is the `ℓ¹`-length of the `pos`ition `p`:
@@ -141,7 +143,7 @@ run_cmd Lean.Elab.Command.liftTermElabM do
   guard <| res == ans
 
 /-- returns the `HashMap` with the locations of the mirrors -/
-def init (dat : Array String) : HashMap ray (Array ray) :=
+def init (dat : Array String) : Std.HashMap ray (Array ray) :=
   let datt := dat.transpose
   Id.run do
   let mut new := .empty
@@ -157,14 +159,14 @@ def init (dat : Array String) : HashMap ray (Array ray) :=
 starting `ray` `r`.
 It returns the `HashMap` of the horizontal or vertical pairs of `ray`s
 encoding the path of the ray of light through the maze. -/
-def mkPath (mirs : HashMap ray (Array ray)) (r : ray) : HashMap ray ray :=
+def mkPath (mirs : Std.HashMap ray (Array ray)) (r : ray) : Std.HashMap ray ray :=
   Id.run do
   let mut path := .empty
   let mut curr : Array ray := #[r]
   let mut con := 0
   while (! curr.isEmpty) do --∧ con ≤ 70 do
     con := con + 1
-    let news := curr.map mirs.find?
+    let news := curr.map mirs.get?
     let toAdd := (curr.zipWith news fun x y => (y.getD #[]).map (x, ·)).foldl (· ++ ·) #[]
     curr := (news.reduceOption.foldl (· ++ ·) #[]).filter (! path.contains ·)
     for x in toAdd do
@@ -175,7 +177,7 @@ def mkPath (mirs : HashMap ray (Array ray)) (r : ray) : HashMap ray ray :=
 the deflection points of a path in the maze.
 It strips off the information about the `dir`ection encoded in the `ray`s
 and remembers only the `pos`itions. -/
-def reduceToPos (path : HashMap ray ray) : HashSet pos :=
+def reduceToPos (path : Std.HashMap ray ray) : Std.HashSet pos :=
   Id.run do
   let mut fin := .empty
   for (a, b) in path do
@@ -217,9 +219,9 @@ def part2 (dat : Array String) : Nat :=
       ((       x, dat.size), .X),
       ((       x,       -1), .X),
       ((dat.size,        x), .X),
-      ((      -1,        x), .X)] : List ray)).join.toArray
+      ((      -1,        x), .X)] : List ray)).flatten.toArray
   while ! out.isEmpty do
-    let first := out.back
+    let first := out.back?.getD default
     let path := mkPath new first
     let fin := reduceToPos path
     let (res, toRemove) := fin.toList.partition fun x :pos =>
