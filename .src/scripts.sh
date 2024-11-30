@@ -114,8 +114,8 @@ aoc () {
   yr="${1:-$currYear}"
   AoCyear="${rootDir}${yr}"
   croot
-  desc_tests > "${AoCyear}"/${yr}_descriptions_with_tests.md
-  desc > "${AoCyear}"/${yr}_descriptions.md
+  desc_tests "${yr}" > "${AoCyear}"/${yr}_descriptions_with_tests.md
+  desc "${yr}" > "${AoCyear}"/${yr}_descriptions.md
 )
 }
 

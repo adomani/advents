@@ -41,7 +41,7 @@ before moving on to the next character.
 
 I also recycled the previous function for the reverse scanning.
 
-[Solution in Lean](Advents/day01.lean)
+[Solution in Lean](Advents/AoC2023/day01.lean)
 
 ---
 
@@ -73,7 +73,7 @@ evaluation is the solution to the problem that has it as its input.
 The conversion is a little clunky, but this is just due to my limited
 experience with parsing `Lean.Syntax`.
 
-[Solution in Lean](Advents/day02.lean)
+[Solution in Lean](Advents/AoC2023/day02.lean)
 
 ---
 
@@ -105,7 +105,7 @@ The biggest speed-up that I obtained was by extracting the
 two rows surrounding a symbol, before looking for digit
 neighbours of a given symbol!
 
-[Solution in Lean](Advents/day03.lean)
+[Solution in Lean](Advents/AoC2023/day03.lean)
 
 ---
 
@@ -140,7 +140,7 @@ Since the loop is over the initial length, I did not have to
 take care that the list finished at the right place:
 the algorithm does not reach any of the excess entries.
 
-[Solution in Lean](Advents/day04.lean)
+[Solution in Lean](Advents/AoC2023/day04.lean)
 
 ---
 
@@ -209,7 +209,7 @@ Reverse-engineering where the breaks are and selecting the
 ones contained in the 'seed ranges' turns out to be
 sufficient to solve the question.
 
-[Solution in Lean](Advents/day05.lean)
+[Solution in Lean](Advents/AoC2023/day05.lean)
 
 ---
 
@@ -243,7 +243,7 @@ calculation involving the discriminant, but fixing
 the 'off-by-one' error involved too much fiddling
 around for my taste!
 
-[Solution in Lean](Advents/day06.lean)
+[Solution in Lean](Advents/AoC2023/day06.lean)
 
 ---
 
@@ -295,7 +295,7 @@ The second, tie-breaking sorting is lexicographic
 as before, except that the relative order of the
 card `J` with all the others is different.
 
-[Solution in Lean](Advents/day07.lean)
+[Solution in Lean](Advents/AoC2023/day07.lean)
 
 ---
 
@@ -361,7 +361,7 @@ Thus, the answer is the least common multiple of the periods.
 *Note*.
 The periods for my input are all themselves multiples of 269.
 
-[Solution in Lean](Advents/day08.lean)
+[Solution in Lean](Advents/AoC2023/day08.lean)
 
 ---
 
@@ -392,7 +392,7 @@ sequence.
 The two extensions are then simply the evaluation of the
 polynomial at `n + 1` and at `0`.
 
-[Solution in Lean](Advents/day09.lean)
+[Solution in Lean](Advents/AoC2023/day09.lean)
 
 ---
 
@@ -452,7 +452,7 @@ Now, from any location not on the path, start moving right.
   towards you or away: in one case you are in, in the other out!
 * If you reach the boundary of the grid, then you are out.
 
-[Solution in Lean](Advents/day10.lean)
+[Solution in Lean](Advents/AoC2023/day10.lean)
 
 ---
 
@@ -491,7 +491,7 @@ accumulated the distances and divided by two.
 Same setup as for part 1, except that I increased the introduced
 spacing in the *expansion* step.
 
-[Solution in Lean](Advents/day11.lean)
+[Solution in Lean](Advents/AoC2023/day11.lean)
 
 ---
 
@@ -514,7 +514,7 @@ Counting ways of filling in `#`s and `.`s. (Missing part 2)
 
 I solved part 1, but part 2 is still in progress!
 
-[Solution in Lean](Advents/day12.lean)
+[Solution in Lean](Advents/AoC2023/day12.lean)
 
 ---
 
@@ -572,7 +572,7 @@ the *same new* axis of symmetry.
 Processing the locations of the new axes of symmetry as before
 yields the answer to part 2.
 
-[Solution in Lean](Advents/day13.lean)
+[Solution in Lean](Advents/AoC2023/day13.lean)
 
 ---
 
@@ -622,7 +622,7 @@ tilts 1000000000 times.
 After that, we still need to compute the *total load*
 of the final configuration.
 
-[Solution in Lean](Advents/day14.lean)
+[Solution in Lean](Advents/AoC2023/day14.lean)
 
 ---
 
@@ -651,7 +651,7 @@ arrangements.
 
 From the final arrangement, you get the answer to part 2.
 
-[Solution in Lean](Advents/day15.lean)
+[Solution in Lean](Advents/AoC2023/day15.lean)
 
 ---
 
@@ -769,7 +769,7 @@ This hexadecimal number is the number of holes that should be dug out in each di
 As for part 1, the answer to the puzzle is the number of cubes enclosed in the
 volume that the instructions dig out.
 
-[Solution in Lean](Advents/day18.lean)
+[Solution in Lean](Advents/AoC2023/day18.lean)
 
 ---
 
@@ -814,7 +814,7 @@ For the second part, ignore the actual parts, and only process the instructions.
 The question is how many parts are accepted by the workflow, assuming
 that all parts have each entry in the range `[1, 4000]`.
 
-[Solution in Lean](Advents/day19.lean)
+[Solution in Lean](Advents/AoC2023/day19.lean)
 
 ---
 
@@ -861,7 +861,7 @@ In particular, it uses the four
 </pre>sub-layouts" and works out separate periodicities in each one of them,
 before merging the information in the final answer.
 
-[Solution in Lean](Advents/day20.lean)
+[Solution in Lean](Advents/AoC2023/day20.lean)
 
 ---
 
@@ -901,7 +901,7 @@ Find in how many positions can the gardener be if they walk 64 steps.
 Assuming that the input data is periodic,
 find in how many positions can the gardener be if they walk 26501365 steps.
 
-[Solution in Lean](Advents/day21.lean)
+[Solution in Lean](Advents/AoC2023/day21.lean)
 
 ---
 
@@ -938,7 +938,7 @@ so that all the remaining bricks are still propped up in their respective positi
 Asks to determine how many bricks would fall with any single removal and add up their
 numbers.
 
-[Solution in Lean](Advents/day22.lean)
+[Solution in Lean](Advents/AoC2023/day22.lean)
 
 ---
 
@@ -992,7 +992,7 @@ in the maze.
 In part 2, the path is only required to not backtrack: the special locations should be
 ignored now.
 
-[Solution in Lean](Advents/day23.lean)
+[Solution in Lean](Advents/AoC2023/day23.lean)
 
 ---
 
@@ -1030,7 +1030,7 @@ calculus computation: finding the lines in space that meet 4 given general lines
 
 The solution uses a very ad-hoc implementation of row reduction and determinants!
 
-[Solution in Lean](Advents/day24.lean)
+[Solution in Lean](Advents/AoC2023/day24.lean)
 
 ---
 
@@ -1067,6 +1067,6 @@ I used Lean to print a `dot` file with the graph.
 Looked at the graph drawn by `dot` and visually determined bounds.
 Then used `awk` to extract the final answer.
 
-[Solution in Lean](Advents/day25.lean)
+[Solution in Lean](Advents/AoC2023/day25.lean)
 
 ---
