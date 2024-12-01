@@ -3,12 +3,6 @@ import Batteries
 section sums
 variable {α}
 
---/--  Sum the elements of a `List`. -/
---def List.sum [Add α] [OfNat α 0] : List α → α
---  | []    => 0
---  | [m]   => m
---  | m::ms => m + ms.sum
-
 /--  Sum the elements of an `Array`. -/
 def Array.sum [Add α] [OfNat α 0] (l : Array α) : α :=
   l.toList.sum
@@ -123,8 +117,24 @@ def Nat.binom (n : Nat) (k : Nat) : Nat :=
 
 end Nats_and_Ints
 
+/-- Transpose an array of arrays, possibly assumes that every
+row and column has the same number of entries. -/
+def Array.transpose [Inhabited α] (rows : Array (Array α)) : Array (Array α) :=
+  let cols := rows[0]!.size
+  Id.run do
+    let mut ans := #[]
+    for c in [:cols] do
+      let mut row := #[]
+      for r in [:rows.size] do
+        row := row.push (rows[r]!.getD c default)
+      ans := ans.push row
+    return ans
+
+#guard
+  #[#[0, 1], #[2, 3]].transpose == #[#[0, 2], #[1, 3]]
+
 /-- Transpose an array of strings. -/
-def Array.transpose (s : Array String) : Array String :=
+def Array.transposeString (s : Array String) : Array String :=
   let rows := s.map (List.toArray ∘ String.toList)
   let cols := rows[0]!.size
   Id.run do

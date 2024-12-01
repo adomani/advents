@@ -144,7 +144,7 @@ run_cmd Lean.Elab.Command.liftTermElabM do
 
 /-- returns the `HashMap` with the locations of the mirrors -/
 def init (dat : Array String) : Std.HashMap ray (Array ray) :=
-  let datt := dat.transpose
+  let datt := dat.transposeString
   Id.run do
   let mut new := .empty
   for r in [:dat.size] do
