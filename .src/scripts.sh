@@ -2,16 +2,17 @@
 
 currYear="$(date -d 'today - 10 month' +%Y)"
 rootDir='Advents/AoC'
-AoCyearFixed="${rootDir}${currYear}"
 
-##  `getDat <d?>` takes an optional input `<d?>`.
+##  `getDat <d?> <year?>` takes an optional input `<d?>` and `<year?>`.
 ##  If `<d?>` is provided, then it returns `<d?>`.
 ##  If `<d?>` is not provided, it returns one more than the number
 ##  in the last file named `Advents/AoC<year>/day[0]*<further_digits>.input`.
 getDay () {
 (
   if [ -z "${1}" ]; then
-    ind="$( ls "${AoCyearFixed}"/day*.input | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
+    yr="${2:-$currYear}"
+    AoCyear="${rootDir}${yr}"
+    ind="$( ls "${AoCyear}"/day*.input | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
     ind=$((ind+1))
   else ind="${1}"
   fi
@@ -19,24 +20,25 @@ getDay () {
 )
 }
 
-##  `newday <n>` downloads the `day/n/input` from `Advent of Code`
-##  and saves it to `Advents/AoC<year>/i<0n>.txt`, where `<0n>` is a 2-digit
+##  `newday <n> <year>` creates `Advents/AoC<year>/day<0n>.{lean, input}`, where `<0n>` is a 2-digit
 ##  representation of `<n>`, padded with zeros.
-##  `newday` with no input makes a guess as to what input to download
-##  choosing the smallest index larger than the largest file `Advents/AoC<year>/i<val>.txt`.
+##  `newday` with no input makes a guess as to what the day and year are,
+##  choosing the smallest index larger than the largest file `Advents/AoC<year>/day<val>.input`.
 newday () {
   (
+    yr="${2:-$currYear}"
+    AoCyear="${rootDir}${yr}"
     croot;
-    ind="$( getDay "${1}" )"
+    ind="$( getDay "${1}" "${yr}")"
     if [ ! "$(git rev-parse --abbrev-ref HEAD)" == "master" ];
     then git switch master; fi
     ind0="$( printf '%02d' "${ind}" )"
-    fname="${AoCyearFixed}/day${ind0}"
+    fname="${AoCyear}/day${ind0}"
     touch "${fname}.input"
-    sed "s=_newDay_=${ind0}=; s=YYYY=${currYear}=g" .src/template.lean >> "${fname}.lean"
+    sed "s=_newDay_=${ind0}=; s=YYYY=${yr}=g" .src/template.lean >> "${fname}.lean"
     printf 'import %s\n' "${fname//\//.}" >> Advents.lean
     brown 'Used day '; printf '%s\n' "${ind}"
-#    wget "https://adventofcode.com/${currYear}/day/${ind}/input" -O "${AoCyear}/day"$( printf '%02d' "${ind}")".input"
+#    wget "https://adventofcode.com/${yr}/day/${ind}/input" -O "${AoCyear}/day"$( printf '%02d' "${ind}")".input"
   )
 }
 
