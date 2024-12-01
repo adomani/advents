@@ -23,13 +23,29 @@ def test := "3   4
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+def inputToArrays (i : String) : Array Nat × Array Nat :=
+  let nats := i.getNats
+  Id.run do
+  let mut (left, right) : Array Nat × Array Nat := default
+  for i in [:nats.length / 2] do
+    left := left.push nats[2 * i]!
+    right := right.push nats[2 * i + 1]!
+  return (left, right)
+
+def dataToSol (dat : Array Nat × Array Nat) : Nat :=
+  let (left, right) := dat
+  let left := left.qsort (· < ·)
+  let right := right.qsort (· < ·)
+  let diffs := left.zipWith right fun l r => (l - r) + (r - l)
+  diffs.sum
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+--def part1 (dat : Array String) : Nat := sorry
+def part1 (dat : String) : Nat := dataToSol <| inputToArrays dat
 
---#assert part1 atest == ???
+#assert part1 test == 11
 
---solve 1
+solve 1 2742123 file
 
 /-!
 #  Question 2
