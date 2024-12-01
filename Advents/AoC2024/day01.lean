@@ -18,9 +18,6 @@ def test := "3   4
 3   9
 3   3"
 
-/-- `atest` is the test string for the problem, split into rows. -/
-def atest := (test.splitOn "\n").toArray
-
 /-- Given the input string, extract the arrays of left and right potential locations. -/
 def inputToArrays (i : String) : Array Nat × Array Nat :=
   let nats := i.getNats
