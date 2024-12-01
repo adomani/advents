@@ -40,7 +40,6 @@ def dataToSol (dat : Array Nat × Array Nat) : Nat :=
   diffs.sum
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
---def part1 (dat : Array String) : Nat := sorry
 def part1 (dat : String) : Nat := dataToSol <| inputToArrays dat
 
 #assert part1 test == 11
@@ -51,12 +50,17 @@ solve 1 2742123 file
 #  Question 2
 -/
 
+def similarityScore (rs : Array Nat) (l : Nat) : Nat :=
+  rs.toList.count l
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : String) : Nat :=
+  let (ls, rs) := inputToArrays dat
+  let tots := ls.map fun l => l * similarityScore rs l
+  tots.sum
 
---#assert part2 atest == ???
+#assert part2 test == 31
 
---solve 2
+solve 2 21328497 file
 
 end Day01
