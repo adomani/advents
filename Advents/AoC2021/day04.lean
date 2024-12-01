@@ -10,8 +10,6 @@ def input : System.FilePath := "Advents/AoC2021/day04.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the test string for the problem. -/
 def test := "7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
@@ -33,6 +31,7 @@ def test := "7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,2
 22 11 13  6  5
  2  0 12  3  7"
 
+/-- Convert the input string into the array of numbers called in the game, and the bingo cards. -/
 def inputToDat (i : String) : Array Nat × Array (Array (Array Nat)) :=
   if let nums :: cards := i.splitOn "\n\n" then
     let splitCards := cards.toArray.map fun d => (d.splitOn "\n").map (·.getNats.toArray)
@@ -40,13 +39,11 @@ def inputToDat (i : String) : Array Nat × Array (Array (Array Nat)) :=
   else
     default
 
-#eval do
-  let (nums, cards) := inputToDat test
-  IO.println nums
-  for c in cards do
-    IO.println ""
-    IO.println c
-
+/--
+Takes as input the array of numbers extracted in a game of bingo and a bingo card and returns
+how many extractions are needed for the card to form a bingo in one of its rows,
+or `none` if the card never wins.
+-/
 def findMinBingoRows (nums : Array Nat) (card : Array (Array Nat)) : Option Nat :=
   let ref := nums.size
   let arr := Array.range ref
@@ -59,29 +56,13 @@ def findMinBingoRows (nums : Array Nat) (card : Array (Array Nat)) : Option Nat 
     if newMin < min then min := newMin
   if min == ref then none else some min
 
+/--
+Takes as input the array of numbers extracted in a game of bingo and a bingo card and returns
+how many extractions are needed for the card to win, or `none` if the card never wins.
+-/
 def findMinBingo (nums : Array Nat) (card : Array (Array Nat)) : Option (Nat × Nat) :=
   let mins := #[findMinBingoRows nums card, findMinBingoRows nums card.transpose1]
   mins.reduceOption.min?.map fun d => (d, nums[d]!)
-
-#eval do
-  let (nums, cards) := inputToDat test
-  --IO.println nums
-  let mins := cards.filterMap fun c => (findMinBingo nums c).map (Prod.mk · c)
-  let mins := mins.qsort (·.1 < ·.1)
-  let ((rg, val), card) := mins[0]!
-  let called := nums.take (rg + 1)
-  IO.println (val * (card.flatten.filter (!called.contains ·) |>.sum))
-
-  --for c in cards do
-  --  IO.println ""
-  --  IO.println c
-  --  IO.println (findMinBingo nums c)
-
-
-
-
-/-- `atest` is the test string for the problem, split into rows. -/
-def atest := (test.splitOn "\n").toArray
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat :=
@@ -101,11 +82,16 @@ solve 1 14093 file
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : String) : Nat :=
+  let (nums, cards) := inputToDat dat
+  let mins := cards.filterMap fun c => (findMinBingo nums c).map (Prod.mk · c)
+  let mins := mins.qsort (·.1 > ·.1)
+  let ((rg, val), card) := mins[0]!
+  let called := nums.take (rg + 1)
+  (val * (card.flatten.filter (!called.contains ·) |>.sum))
 
---#assert part2 atest == ???
+#assert part2 test == 1924
 
---solve 2
+solve 2 17388 file
 
 end Day04
