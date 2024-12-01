@@ -39,8 +39,7 @@ def dataToSol (dat : Array Nat × Array Nat) : Nat :=
   let (left, right) := dat
   let left := left.qsort (· < ·)
   let right := right.qsort (· < ·)
-  let diffs := left.zipWith right fun l r => (l - r) + (r - l)
-  diffs.sum
+  (left.zip right).foldl (init := 0) fun s (l, r) => s + (l - r) + (r - l)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat := dataToSol <| inputToArrays dat
