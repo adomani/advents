@@ -177,7 +177,7 @@ open Lean Elab Command
 
 /-- `#assert x` takes a `Bool`ean `x` and fails if `x` is `false`.
 It runs `run_cmd Elab.Command.liftTermElabM do guard x`-/
-macro (name := cmdAssert) "#assert" cmd:term : command =>
+macro (name := cmdAssert) "#assert " cmd:term : command =>
   `(command| run_cmd Elab.Command.liftTermElabM do guard $cmd)
 
 /-- `solve pt answer` runs function `part1` if `pt = 1` and function `part2` if `pt = 2`
@@ -199,7 +199,7 @@ solve 1 15  file  -- parses the input as a string, errors if answer does not mat
 solve 2 file      -- parses the input as a string, no error
 ```
 -/
-elab "solve" part:num n:(num)? f:("file")?: command => do
+elab "solve " part:num n:(ppSpace num)? f:(&" file")?: command => do
   let nn ← match n with
     | some stx =>  `((some $stx))
     | none =>  `((none))
