@@ -1,0 +1,52 @@
+-- Day 1
+Short summary
+
+### Description
+
+#### Part 1
+
+Extended description for part 1
+
+#### Part 2
+
+Extended description for part 2
+-- Day 2
+Short summary
+
+### Description
+
+#### Part 1
+
+Extended description for part 1
+
+#### Part 2
+
+Extended description for part 2
+-- Day 3
+The input is a list of binary digits, all having the same length (and possibly starting with `0` digits).
+
+### Description
+
+#### Part 1
+
+For each position, find the most common and the least common digit in the given input.
+Multiply these numbers and convert to decimal
+
+#### Part 2
+
+For each position, find which digit is most common or least common and only keep those numbers that have that digit in that position.
+When only one number remains, keep it.
+As before, multiply the two numbers obtained by following the two strategies.
+-- Day 4
+Playing Bingo against the squid!
+
+### Description
+
+#### Part 1
+
+The input consists of the numbers called and bingo cards.
+First, we find the card that wins the earliest, and multiply the last value called (the one that made the card a winning card) by the sum of all the numbers of the card that were not called yet.
+
+#### Part 2
+
+For part 2, we apply the same procedure, but to the bingo card that wins last.
