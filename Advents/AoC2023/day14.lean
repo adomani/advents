@@ -56,7 +56,7 @@ def getLoad (dat : List (Nat × Nat)) : Nat :=
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
-  let infos := dat.transpose.map getInfo
+  let infos := dat.transposeString.map getInfo
   (infos.map getLoad).sum
 
 #assert part1 atest == 136

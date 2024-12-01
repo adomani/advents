@@ -56,7 +56,7 @@ def rsymm (s : Array String) : Array Nat :=
 
 /-- Find the array of positions for vertical symmetries. -/
 def csymm (s : Array String) : Array Nat :=
-  rsymm s.transpose
+  rsymm s.transposeString
 
 /-- `tally s` produces the pair whose elements are the arrays of
 horizontal/vertical positions of axes of symmetry for `s`. -/
@@ -121,7 +121,7 @@ def rssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
 The output contains all the locations that, when changed, make the grid
 acquire a vertical symmetry. -/
 def cssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
-  let tr := (Array.transpose <| dat.map (String.mk ∘ Array.toList)).map (List.toArray ∘ String.toList)
+  let tr := (Array.transposeString <| dat.map (String.mk ∘ Array.toList)).map (List.toArray ∘ String.toList)
   let sm := rssmudge tr
   sm.map fun x => (x.2, x.1)
 

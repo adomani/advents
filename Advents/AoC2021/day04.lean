@@ -61,7 +61,7 @@ Takes as input the array of numbers extracted in a game of bingo and a bingo car
 how many extractions are needed for the card to win, or `none` if the card never wins.
 -/
 def findMinBingo (nums : Array Nat) (card : Array (Array Nat)) : Option (Nat × Nat) :=
-  let mins := #[findMinBingoRows nums card, findMinBingoRows nums card.transpose1]
+  let mins := #[findMinBingoRows nums card, findMinBingoRows nums card.transpose]
   mins.reduceOption.min?.map fun d => (d, nums[d]!)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
