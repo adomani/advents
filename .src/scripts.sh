@@ -123,7 +123,7 @@ aoc () {
 ##  with an option of timing the individual runs.
 leanWith () {
 (
-  yr="${1:-$currYear}"
+  yr="${2:-$currYear}"
   AoCyear="${rootDir}${yr}"
   croot || exit 1
   for fil in "${AoCyear}"/day??.lean; do
@@ -140,5 +140,7 @@ leanWith () {
 ##  Processes all the `dayXX.lean` files.
 leanall () { leanWith; }
 
-##  Processes all the `dayXX.lean` files, returning timing information for each.
-leantime () { leanWith 'time'; }
+##  `leantime` processes all the `dayXX.lean` files of the current year,
+##  returning timing information for each.
+##  `leantime YYYY` processes all the `dayXX.lean` files of the given year.
+leantime () { leanWith 'time' "${1}"; }
