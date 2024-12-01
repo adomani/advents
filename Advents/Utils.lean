@@ -136,15 +136,7 @@ def Array.transpose [Inhabited α] (rows : Array (Array α)) : Array (Array α) 
 /-- Transpose an array of strings. -/
 def Array.transposeString (s : Array String) : Array String :=
   let rows := s.map (List.toArray ∘ String.toList)
-  let cols := rows[0]!.size
-  Id.run do
-    let mut ans := #[]
-    for c in [:cols] do
-      let mut row := ""
-      for r in [:rows.size] do
-        row := row.push (rows[r]!.getD c default)
-      ans := ans.push row
-    return ans
+  rows.transpose.map (String.mk ∘ Array.toList)
 
 /-- A `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int
