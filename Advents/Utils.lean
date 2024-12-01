@@ -123,6 +123,22 @@ def Nat.binom (n : Nat) (k : Nat) : Nat :=
 
 end Nats_and_Ints
 
+/-- Transpose an array of arrays, possibly assumes that every
+row and column has the same number of entries. -/
+def Array.transpose1 [Inhabited α] (rows : Array (Array α)) : Array (Array α) :=
+  let cols := rows[0]!.size
+  Id.run do
+    let mut ans := #[]
+    for c in [:cols] do
+      let mut row := #[]
+      for r in [:rows.size] do
+        row := row.push (rows[r]!.getD c default)
+      ans := ans.push row
+    return ans
+
+#eval
+  #[#[0, 1], #[2, 3]].transpose1
+
 /-- Transpose an array of strings. -/
 def Array.transpose (s : Array String) : Array String :=
   let rows := s.map (List.toArray ∘ String.toList)
