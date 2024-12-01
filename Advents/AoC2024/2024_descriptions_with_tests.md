@@ -26,6 +26,6 @@ For each entry `l` of the first list, find how many entries of the second list a
 `l` and multiply `l` by this number.
 Then, add everything up.
 
-[Solution in Lean](Advents/AoC2024/day01.lean)
+[Solution in Lean](day01.lean)
 
 ---

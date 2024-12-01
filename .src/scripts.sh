@@ -66,7 +66,7 @@ desc_tests () {
       END{ print acc }' "${d}"
     printf -- '\n%s\n\n[%s](%s)\n\n---\n\n' "$(
       printf "${desc}\n" | tail -n+2
-    )" "Solution in Lean" "${AoCyear}/${d/_traditional/}"
+    )" "Solution in Lean" "${d/_traditional/}"
   fi
   done | sed '
       s=def test\([0-9]*\)[^"]*["]*=\n####  Test \1\n\n<pre>\n=g
