@@ -211,9 +211,10 @@ elab "solve " part:num n:(ppSpace num)? f:(&" file")?: command => do
   let rf := mkIdent <| if f.isSome then `IO.FS.readFile else `IO.FS.lines
   elabCommand (← `(command|
     #eval show MetaM _ from do
-      let day := ((System.FilePath.toString $inp).getNats)[0]!
+      let year := ((System.FilePath.toString $inp).getNats)[0]!
+      let day := ((System.FilePath.toString $inp).getNats)[1]!
       let answer := $p1 <| ← $rf $inp
-      IO.println <| f!"Day {day}, part {$part}: {answer}"
+      IO.println <| f!"Day {day}, {year}, part {$part}: {answer}"
       let ans := ($nn).getD answer
       guard (answer == ans) <|> throwError "Computed {answer}\nExpected {ans}"))
 
