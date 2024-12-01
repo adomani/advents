@@ -1,15 +1,15 @@
 -- Day 1
-Short summary
+The input is a list of natural numbers, representing depths.
 
 ### Description
 
 #### Part 1
 
-Extended description for part 1
+We should determine how often is one of the depths strictly smaller than the following depth.
 
 #### Part 2
 
-Extended description for part 2
+We should determine how often is one of the depths strictly smaller than the depth that is 3 entries later than itself.
 -- Day 2
 Short summary
 
