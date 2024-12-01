@@ -85,7 +85,6 @@ successively filtering all lists whose `pos`th position is the most frequent or 
 -/
 partial
 def keepMost (as : Array (List Nat)) (pos : Nat) (many? : Bool) : List Nat :=
-  --dbg_trace "Round {pos}: {as}"
   if h : as.size = 1 then as.get ⟨0, lt_of_lt_of_eq Nat.zero_lt_one h.symm⟩ else
   let (zeros, ones) := as.partition (·.getD pos 0 == 0)
   if many? then
@@ -96,16 +95,6 @@ def keepMost (as : Array (List Nat)) (pos : Nat) (many? : Bool) : List Nat :=
     match (zeros.size ≤ ones.size : Bool) with
       | true => keepMost zeros (pos + 1) many?
       | false => keepMost ones (pos + 1) many?
-
-
-#eval do
-  let dat := inputToDat (← IO.FS.lines input)
-  let dat := inputToDat atest
-  --dbg_trace dat
-  --dat
-  let (oxygen, CO2) := (keepMost dat 0 true, keepMost dat 0 false)
-  IO.println <| toDecimal oxygen * toDecimal CO2
-  --IO.println (oxygen, CO2)
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
