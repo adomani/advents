@@ -295,3 +295,37 @@ Each basin is obtained from a low point by growing in a connected manner until t
 [Solution in Lean](day09.lean)
 
 ---
+
+#  [Day 10](https://adventofcode.com/2021/day/10)
+
+A list of sequences of open and closed parentheses, some malformed, others incomplete.
+
+####  Test
+
+<pre>
+[({(<(())[]>[[{[]{<()<>>
+[(()[<>])]({[<{<<[]>>(
+{([(<{}[<>[]}>{[]{[(<()>
+(((({<>}<{<{<>}{[]{[]{}
+[[<[([]))<([[{}[[()]]]
+[{[{({}]{}}([{[{{{}}([]
+{<[[]]>}<{[{[{[]{()[[[]
+[<(<(<(<{}))><([]([]()
+<{([([[(<>()){}]>(<<{{
+<{([{{}}[<[[[<>{}]]]>[]]
+</pre>
+
+### Description
+
+#### Part 1
+
+Identify the malformed sequences of parentheses and compute the total penalties for the first incorrectly matched
+parentheses.
+
+#### Part 2
+
+For the second part, compute the score of each incomplete set of parentheses and report the middle value of the scores.
+
+[Solution in Lean](day10.lean)
+
+---
