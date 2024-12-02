@@ -49,17 +49,15 @@ solve 1 2742123 file
 #  Question 2
 -/
 
-/--
-Given an array `rs` of natural numbers and a natural number `l`, return the product of `l`
-and the number of times that `l` appears in `rs`.
--/
-def similarityScore (rs : Array Nat) (l : Nat) : Nat :=
-  l * rs.toList.count l
-
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : String) : Nat :=
+def part2 (dat : String) : Nat := Id.run do
   let (ls, rs) := inputToArrays dat
-  let tots := ls.map <| similarityScore rs
+  -- merge the `rs` into a single `HashMap` collecting multiplicities
+  let mut hm : Std.HashMap Nat Nat := {}
+  for r in rs do
+    if let some val := hm.get? r then hm := hm.insert r (val + 1) else hm := hm.insert r 1
+  -- accumulate the similarity scores
+  let tots := ls.map fun l => l * hm.getD l 0
   tots.sum
 
 #assert part2 test == 31
