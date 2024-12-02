@@ -102,15 +102,7 @@ def resetState (st : OctoState) : OctoState := Id.run do
 
 /-- assumes that `preflashed` and `flashed` are both empty. -/
 def stepAndFlash (st : OctoState) : OctoState :=
-  resetState <| dealWithPreflashed (increaseByOne st)
-
-#eval do
-  let st : OctoState := {state := inputToData atest, preflashed := {}, flashed := {}, flashes := 0}
-  draw <| drawHash st.state 10 10
-  let st := stepAndFlash st
-  draw <| drawHash st.state 10 10
-  let st := stepAndFlash st
-  draw <| drawHash st.state 10 10
+  resetState <| dealWithPreflashed <| increaseByOne st
 
 def stepAndFlashMany (st : OctoState) : Nat → OctoState
   | 0 => st
@@ -122,57 +114,6 @@ def stepAndFlashMany (st : OctoState) : Nat → OctoState
   let newOcto := stepAndFlashMany st 100
   IO.println newOcto.flashes
   draw <| drawHash newOcto.state 10 10
-
-
-
-#eval do
-  let st : OctoState := {state := inputToData atest, preflashed := {(3,9), (5,9)}, flashed := {}, flashes := 0}
-  draw <| drawHash st.state 10 10
-  draw <| drawHash (dealWithPreflashed st).state 10 10
-
-
-def oneFlash (st : OctoState) : OctoState := Id.run do
-  if st.preflashed.isEmpty && !st.flashed.isEmpty then
-    let mut newState := st.state
-    for p in st.flashed do
-      newState := newState.insert p 0
-    return {state := newState, flashed := {}, preflashed := {}, flashes := 0}
-  else if st.preflashed.isEmpty && st.flashed.isEmpty then
-    let mut newState := st.state
-    let mut preflashed := {}
-    for (i, o) in st.state do
-      newState := newState.insert i (o + 1)
-      if o == 9 then preflashed := preflashed.insert i
-    return {state := newState, preflashed := preflashed, flashed := {}, flashes := 0}
-  else --if !st.preflashed.isEmpty then
-    let mut newState := st.state
-    let mut preflashed := st.preflashed
-    let mut flashed := st.flashed
-    for p in preflashed do
-      if flashed.contains p then continue
-      flashed := flashed.insert p
-      preflashed := preflashed.erase p
-      for n in nbs p do
-        if flashed.contains n then continue
-        if let some v := newState.get? n then
-          newState := newState.insert n (v + 1)
-          if 9 ≤ v then preflashed := preflashed.insert n
-        else continue
-    return {state := newState, flashed := flashed, preflashed := preflashed, flashes := 0}
-  --else
-  --  return default
-
-
-def step (st : Std.HashMap pos Nat) : Std.HashMap pos Nat := Id.run do
-  let mut new : Std.HashMap pos Nat := {}
-  let mut flashed : Std.HashSet pos := {}
-  let mut preflashed : Std.HashSet pos := {}
-  -- increase all values, update `preflashed`
-  for (i, o) in st do
-    new := new.insert i (o + 1)
-    if o == 9 then preflashed := preflashed.insert i
-
-  return {}
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
