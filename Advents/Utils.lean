@@ -1,4 +1,6 @@
-import Batteries
+import Lean.Elab.Command
+import Batteries.Data.Nat.Basic
+import Batteries.Lean.HashSet
 
 section sums
 variable {α}
