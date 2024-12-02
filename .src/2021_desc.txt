@@ -65,3 +65,15 @@ Considering only the line segments that are parallel to a coordinate axis, compu
 
 For part 2, the question is the same, except that we include all line segments, not just the ones that are parallel to the coordinate axes.
 There is the extra implicit assumption that all line segments are either parallel to the coordinate axes or form a 45⁰ degree angle with the axes.
+-- Day 6
+The input is a list of counters of lanternfish: they represent the days before they reproduce.
+
+### Description
+
+#### Part 1
+
+Using the reproduction rules for the lanternfish, figure out how many lanternfish there would be after 80 days.
+
+#### Part 2
+
+Using the same reproduction rules, figure out how many lanternfish there would be after 256 days.
