@@ -42,10 +42,10 @@ abbrev nbs (i : pos) : Array pos :=
   #[(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)].map (i + ·)
 
 structure OctoState where
-  state : Std.HashMap pos Nat
-  flashed : Std.HashSet pos
-  preflashed : Std.HashSet pos
-  flashes : Nat
+  state      : Std.HashMap pos Nat
+  flashed    : Std.HashSet pos := {}
+  preflashed : Std.HashSet pos := {}
+  flashes    : Nat := 0
   deriving Inhabited
 
 def dealWithPreflashedOnce (st : OctoState) : OctoState := Id.run do
@@ -174,14 +174,14 @@ def step (st : Std.HashMap pos Nat) : Std.HashMap pos Nat := Id.run do
 
   return {}
 
-
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : Array String) : Nat :=
+  let newOcto := stepAndFlashMany {state := inputToData dat} 100
+  newOcto.flashes
 
---#assert part1 atest == ???
+#assert part1 atest == 1656
 
---solve 1
+solve 1 1686
 
 /-!
 #  Question 2
