@@ -7,3 +7,4 @@
 | [5](2021_descriptions_with_tests.md#day-5) | The inputs are lists of pairs of integer positions in the plane, representing the endpoints of line segments |
 | [6](2021_descriptions_with_tests.md#day-6) | The input is a list of counters of lanternfish: they represent the days before they reproduce.               |
 | [7](2021_descriptions_with_tests.md#day-7) | The input is a list of positions of crab submarines.                                                         |
+| [8](2021_descriptions_with_tests.md#day-8) | The input contains 10 signal/wire permutations and 4 digits obtained from them.                              |

@@ -93,3 +93,16 @@ We need to determine the minimum cost.
 The goal is to move each crab, so that they occupy all the same position.
 The cost of moving a crab is $\\binom{d}{2}$, were $d$ is the distance to the final position.
 We need to determine the minimum cost.
+-- Day 8
+The input contains 10 signal/wire permutations and 4 digits obtained from them.
+
+### Description
+
+#### Part 1
+
+Some seven-segment displays are uniquely determined by the number of lit segments.
+Count how many such "easy" displays appear in the second halves of the lists .
+
+#### Part 2
+
+Now, fully decrypt the digits using all the information from the first half of each input and sum the 4-digit numbers thus determined on the second halves of the inputs.

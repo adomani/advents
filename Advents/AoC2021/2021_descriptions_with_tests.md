@@ -228,3 +228,38 @@ We need to determine the minimum cost.
 [Solution in Lean](day07.lean)
 
 ---
+
+#  [Day 8](https://adventofcode.com/2021/day/8)
+
+The input contains 10 signal/wire permutations and 4 digits obtained from them.
+
+####  Test
+
+<pre>
+be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
+edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
+fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg
+fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb
+aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea
+fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb
+dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe
+bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef
+egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb
+gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
+</pre>
+
+### Description
+
+#### Part 1
+
+Some seven-segment displays are uniquely determined by the number of lit segments.
+Count how many such
+</pre>easy" displays appear in the second halves of the lists .
+
+#### Part 2
+
+Now, fully decrypt the digits using all the information from the first half of each input and sum the 4-digit numbers thus determined on the second halves of the inputs.
+
+[Solution in Lean](day08.lean)
+
+---
