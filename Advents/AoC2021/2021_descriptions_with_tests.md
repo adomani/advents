@@ -222,7 +222,7 @@ We need to determine the minimum cost.
 #### Part 2
 
 The goal is to move each crab, so that they occupy all the same position.
-The cost of moving a crab is $\binom{d}{n}$, were $d$ is the distance to the final position.
+The cost of moving a crab is $\binom{d}{2}$, were $d$ is the distance to the final position.
 We need to determine the minimum cost.
 
 [Solution in Lean](day07.lean)
