@@ -52,3 +52,16 @@ First, we find the card that wins the earliest, and multiply the last value call
 #### Part 2
 
 For part 2, we apply the same procedure, but to the bingo card that wins last.
+-- Day 5
+The inputs are lists of pairs of integer positions in the plane, representing the endpoints of line segments
+
+### Description
+
+#### Part 1
+
+Considering only the line segments that are parallel to a coordinate axis, compute how many overlaps there are between the line segments, discounting multiplicities.
+
+#### Part 2
+
+For part 2, the question is the same, except that we include all line segments, not just the ones that are parallel to the coordinate axes.
+There is the extra implicit assumption that all line segments are either parallel to the coordinate axes or form a 45⁰ degree angle with the axes.
