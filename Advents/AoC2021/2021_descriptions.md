@@ -1,0 +1,9 @@
+| Day                                        | Description                                                                                                  |
+| :-:                                        | -                                                                                                            |
+| [1](2021_descriptions_with_tests.md#day-1) | The input is a list of natural numbers, representing depths.                                                 |
+| [2](2021_descriptions_with_tests.md#day-2) | A list of `forward`, `up` and `down`, each followed by a number.                                             |
+| [3](2021_descriptions_with_tests.md#day-3) | The input is a list of binary digits, all having the same length (and possibly starting with `0` digits).    |
+| [4](2021_descriptions_with_tests.md#day-4) | Playing Bingo against the squid!                                                                             |
+| [5](2021_descriptions_with_tests.md#day-5) | The inputs are lists of pairs of integer positions in the plane, representing the endpoints of line segments |
+| [6](2021_descriptions_with_tests.md#day-6) | The input is a list of counters of lanternfish: they represent the days before they reproduce.               |
+| [7](2021_descriptions_with_tests.md#day-7) | The input is a list of positions of crab submarines.                                                         |
