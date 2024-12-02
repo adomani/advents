@@ -117,8 +117,20 @@ We should determine the heights of the locations of the "low points":
 these are the points on the elevation grid that have height less than or equal to all of their neighbours *and* actually strictly smaller than some neighbour.
 The sum of the risk levels of these low points answers part 1.
 
-
 #### Part 2
 
 For the second part, we determine the product of the sizes of the three larges basins.
 Each basin is obtained from a low point by growing in a connected manner until the boundary consists only of vertices of height 9 (that are not part of the basin) and external walls of the grid.
+-- Day 10
+A list of sequences of open and closed parentheses, some malformed, others incomplete.
+
+### Description
+
+#### Part 1
+
+Identify the malformed sequences of parentheses and compute the total penalties for the first incorrectly matched
+parentheses.
+
+#### Part 2
+
+For the second part, compute the score of each incomplete set of parentheses and report the middle value of the scores.
