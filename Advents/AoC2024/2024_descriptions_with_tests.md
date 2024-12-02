@@ -29,3 +29,33 @@ Then, add everything up.
 [Solution in Lean](day01.lean)
 
 ---
+
+#  [Day 2](https://adventofcode.com/2024/day/2)
+
+The input is a list of lists of levels -- each level is a natural number.
+
+####  Test
+
+<pre>
+7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+</pre>
+
+### Description
+
+#### Part 1
+
+Find all the rows of the input whose entries are either strictly increasing or strictly decreasing and that never
+do they increase or decrease by more than 3.
+
+#### Part 2
+
+Same as part 1, except that you are allowed to drop one level from each entry before checking the condition.
+
+[Solution in Lean](day02.lean)
+
+---

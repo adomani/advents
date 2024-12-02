@@ -52,7 +52,7 @@ desc_tests () {
   cd ${AoCyear} || return 1
   descFile=.src/"${yr}"_desc.txt
   for d in day*.lean; do
-    if [ ! "${d}" == "day02.lean" ] && [ ! "${d}" == "day02_syntax.lean" ]; then
+    if [ ! "${yr}" == "2023" ] || ([ ! "${d}" == "day02.lean" ] && [ ! "${d}" == "day02_syntax.lean" ]); then
     dig=$( printf '%s' "${d}" | sed 's=day[0]*\([0-9]*\).*\.lean=\1=')
     desc="$(
       awk -v day="${dig}" 'BEGIN{ con=0 }

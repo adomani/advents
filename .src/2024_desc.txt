@@ -13,3 +13,17 @@ sorted lists
 For each entry `l` of the first list, find how many entries of the second list are equal to
 `l` and multiply `l` by this number.
 Then, add everything up.
+-- Day 1
+The input is a list of lists of levels -- each level is a natural number.
+
+### Description
+
+#### Part 1
+
+Find all the rows of the input whose entries are either strictly increasing or strictly decreasing and that never
+do they increase or decrease by more than 3.
+
+
+#### Part 2
+
+Same as part 1, except that you are allowed to drop one level from each entry before checking the condition.
