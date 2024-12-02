@@ -41,11 +41,26 @@ solve 1 380758 file
 #  Question 2
 -/
 
+def shift (as : Array Nat) : Array Nat :=
+  let first := as[0]!
+  let rest := (as.erase first).push first
+  rest.modify 6 (· + first)
+
+def shiftMany (as : Array Nat) : Nat → Array Nat
+  | 0 => as
+  | n + 1 => shift (shiftMany as n)
+
+#eval
+  let dat := (Array.range 9).map test.getNats.count
+  ((shiftMany dat 256).sum, (shiftMany dat 256))
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : String) : Nat := sorry
+def part2 (dat : String) : Nat :=
+  let dat := (Array.range 9).map dat.getNats.count
+  (shiftMany dat 256).sum
 
---#assert part2 atest == ???
+#assert part2 test == 26984457539
 
---solve 2
+solve 2 1710623015163 file
 
 end Day06
