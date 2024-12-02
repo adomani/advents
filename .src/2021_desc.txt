@@ -11,17 +11,19 @@ We should determine how often is one of the depths strictly smaller than the fol
 
 We should determine how often is one of the depths strictly smaller than the depth that is 3 entries later than itself.
 -- Day 2
-Short summary
+A list of `forward`, `up` and `down`, each followed by a number.
 
 ### Description
 
 #### Part 1
 
-Extended description for part 1
+Each one of `forward`, `up` and `down` represents a movement of a vector with two integer coordinates.
+The puzzle consists of finding where you end up, if you start at `(0, 0)`.
 
 #### Part 2
 
-Extended description for part 2
+Now, each one of `forward`, `up` and `down` represents a movement of a vector with *three* integer coordinates.
+The puzzle again consists of finding where you end up, if you start at `(0, 0, 0)`.
 -- Day 3
 The input is a list of binary digits, all having the same length (and possibly starting with `0` digits).
 
