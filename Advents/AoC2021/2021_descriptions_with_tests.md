@@ -263,3 +263,35 @@ Now, fully decrypt the digits using all the information from the first half of e
 [Solution in Lean](day08.lean)
 
 ---
+
+#  [Day 9](https://adventofcode.com/2021/day/9)
+
+The input is the elevation grid of the lava caves.
+
+####  Test
+
+<pre>
+2199943210
+3987894921
+9856789892
+8767896789
+9899965678
+</pre>
+
+### Description
+
+#### Part 1
+
+We should determine the heights of the locations of the
+</pre>low points":
+these are the points on the elevation grid that have height less than or equal to all of their neighbours *and* actually strictly smaller than some neighbour.
+The sum of the risk levels of these low points answers part 1.
+
+#### Part 2
+
+For the second part, we determine the product of the sizes of the three larges basins.
+Each basin is obtained from a low point by growing in a connected manner until the boundary consists only of vertices of height 9 (that are not part of the basin) and external walls of the grid.
+
+[Solution in Lean](day09.lean)
+
+---

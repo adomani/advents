@@ -8,3 +8,4 @@
 | [6](2021_descriptions_with_tests.md#day-6) | The input is a list of counters of lanternfish: they represent the days before they reproduce.               |
 | [7](2021_descriptions_with_tests.md#day-7) | The input is a list of positions of crab submarines.                                                         |
 | [8](2021_descriptions_with_tests.md#day-8) | The input contains 10 signal/wire permutations and 4 digits obtained from them.                              |
+| [9](2021_descriptions_with_tests.md#day-9) | The input is the elevation grid of the lava caves.                                                           |
