@@ -77,7 +77,7 @@ Using the reproduction rules for the lanternfish, figure out how many lanternfis
 #### Part 2
 
 Using the same reproduction rules, figure out how many lanternfish there would be after 256 days.
--- Day 6
+-- Day 7
 The input is a list of positions of crab submarines.
 
 ### Description
