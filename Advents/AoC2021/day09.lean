@@ -22,14 +22,6 @@ def test := "2199943210
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-#check Char.isDigit
-#eval
-  let c := '9'
-  --dbg_trace ('4' < '3' : Bool)
-  let s := ""
-  let d := s.get ⟨000⟩
-  (c, d, (c < d : Bool))
-
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
@@ -46,22 +38,29 @@ def atest := (test.splitOn "\n").toArray
       if (curr ≤ rownext && curr ≤ rowprev && curr ≤ prev.get ⟨c⟩ && curr ≤ next.get ⟨c⟩) &&
         ! (curr == rownext && curr == rowprev && curr == prev.get ⟨c⟩ && curr == next.get ⟨c⟩)
       then
-        --lows := lows + 1
         heights := heights + 1 + ("".push curr).toNat!
   IO.println heights
 
---  594 -- too low,  all `<`
---  633 -- incorrect
---  683 -- too high, all `≤`, but not all `==`
--- 1773 -- too high, all `≤`
-
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : Array String) : Nat := Id.run do
+  let mut heights := 0
+  for d in [0:dat.size] do
+    let prev := dat[d-1]!
+    let next := dat[d+1]?.getD dat[d]!
+    let row := dat[d]!
+    for c in [0:row.length] do
+      let curr := row.get ⟨c⟩
+      let rownext := if c == row.length - 1 then curr else row.get ⟨c+1⟩
+      let rowprev := if c == 0              then curr else row.get ⟨c-1⟩
+      if (curr ≤ rownext && curr ≤ rowprev && curr ≤ prev.get ⟨c⟩ && curr ≤ next.get ⟨c⟩) &&
+        ! (curr == rownext && curr == rowprev && curr == prev.get ⟨c⟩ && curr == next.get ⟨c⟩)
+      then
+        heights := heights + 1 + ("".push curr).toNat!
+  heights
 
---#assert part1 atest == ???
+#assert part1 atest == 15
 
---solve 1
+solve 1 603
 
 /-!
 #  Question 2
