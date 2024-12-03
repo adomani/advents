@@ -329,3 +329,36 @@ For the second part, compute the score of each incomplete set of parentheses and
 [Solution in Lean](day10.lean)
 
 ---
+
+#  [Day 11](https://adventofcode.com/2021/day/11)
+
+A list energy levels of bioluminescent dumbo octopuses.
+
+####  Test
+
+<pre>
+5483143223
+2745854711
+5264556173
+6141336146
+6357385478
+4167524645
+2176841721
+6882881134
+4846848554
+5283751526
+</pre>
+
+### Description
+
+#### Part 1
+
+Figure out how many flashes the octopuses emit in 100 steps.
+
+#### Part 2
+
+Figure out when the flashes of the octopuses synchronize for the first time.
+
+[Solution in Lean](day11.lean)
+
+---

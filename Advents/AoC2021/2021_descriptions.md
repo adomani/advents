@@ -10,3 +10,4 @@
 | [8](2021_descriptions_with_tests.md#day-8)   | The input contains 10 signal/wire permutations and 4 digits obtained from them.                              |
 | [9](2021_descriptions_with_tests.md#day-9)   | The input is the elevation grid of the lava caves.                                                           |
 | [10](2021_descriptions_with_tests.md#day-10) | A list of sequences of open and closed parentheses, some malformed, others incomplete.                       |
+| [11](2021_descriptions_with_tests.md#day-11) | A list energy levels of bioluminescent dumbo octopuses.                                                      |
