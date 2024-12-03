@@ -432,3 +432,58 @@ Count the number of paths from `start` to `end` that visit at most one
 [Solution in Lean](day12.lean)
 
 ---
+
+#  [Day 13](https://adventofcode.com/2021/day/13)
+
+Folding a grid with dots to create a code word.
+
+####  Test
+
+<pre>
+6,10
+0,14
+9,10
+0,3
+10,4
+4,11
+6,0
+6,12
+4,1
+0,13
+10,12
+3,4
+3,0
+8,4
+1,10
+2,14
+8,10
+9,0
+
+fold along y=7
+fold along x=5
+</pre>
+
+### Description
+
+#### Part 1
+
+The input consists of the coordinates of some points on a sheet of transparent paper.
+The instructions explain how to fold it.
+To answer part 1, we just have to fold once.
+
+#### Part 2
+
+To answer part 2, we follow all the folding instructions.
+Once that is done, the dots align to produce the code word below, that is the answer to the puzzle.
+```
+#### #### #    ####   ##  ##  ###  ####
+#    #    #    #       # #  # #  # #
+###  ###  #    ###     # #    #  # ###
+#    #    #    #       # # ## ###  #
+#    #    #    #    #  # #  # # #  #
+#### #    #### #     ##   ### #  # #
+```
+
+[Solution in Lean](day13.lean)
+
+---
