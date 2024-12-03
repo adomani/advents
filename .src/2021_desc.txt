@@ -134,3 +134,15 @@ parentheses.
 #### Part 2
 
 For the second part, compute the score of each incomplete set of parentheses and report the middle value of the scores.
+-- Day 11
+A list energy levels of bioluminescent dumbo octopuses.
+
+### Description
+
+#### Part 1
+
+Figure out how many flashes the octopuses emit in 100 steps.
+
+#### Part 2
+
+Figure out when the flashes of the octopuses synchronize for the first time.
