@@ -111,12 +111,17 @@ def mkMaze (dat : Array String) : Std.HashMap String (Array String) := Id.run do
   IO.println s!"\nIn {con} steps, I found {mz.completed.size} paths\n\n{mz.completed.toList}"
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : Array String) : Nat := Id.run do
+  let mut mz : MazeState := {maze := mkMaze dat, completed := {}}
+  while !mz.growing.isEmpty do
+    mz := addStep mz
+  mz.completed.size
 
---#assert part1 atest == ???
+#assert part1 atest  == 10
+#assert part1 atest2 == 19
+#assert part1 atest3 == 226
 
---solve 1
+solve 1 5457
 
 /-!
 #  Question 2
