@@ -146,3 +146,15 @@ Figure out how many flashes the octopuses emit in 100 steps.
 #### Part 2
 
 Figure out when the flashes of the octopuses synchronize for the first time.
+-- Day 12
+The passageways through the subterranean caves, both small and big.
+
+### Description
+
+#### Part 1
+
+Count the number of paths from `start` to `end` that visit each "small" cave at most once.
+
+#### Part 2
+
+Count the number of paths from `start` to `end` that visit at most one "small" cave, other than `start` or `end`, twice and all remaining "small" caves at most once.

@@ -11,3 +11,4 @@
 | [9](2021_descriptions_with_tests.md#day-9)   | The input is the elevation grid of the lava caves.                                                           |
 | [10](2021_descriptions_with_tests.md#day-10) | A list of sequences of open and closed parentheses, some malformed, others incomplete.                       |
 | [11](2021_descriptions_with_tests.md#day-11) | A list energy levels of bioluminescent dumbo octopuses.                                                      |
+| [12](2021_descriptions_with_tests.md#day-12) | The passageways through the subterranean caves, both small and big.                                          |
