@@ -37,7 +37,7 @@ newday () {
     touch "${fname}.input"
     sed "s=_newDay_=${ind0}=; s=YYYY=${yr}=g" .src/template.lean >> "${fname}.lean"
     printf 'import %s\n' "${fname//\//.}" >> Advents.lean
-    brown 'Used day '; printf '%s\n' "${ind}"
+    brown 'Used day '; printf '%s' "${ind}"; brown ' year '; printf '%s\n' "${yr}"
 #    wget "https://adventofcode.com/${yr}/day/${ind}/input" -O "${AoCyear}/day"$( printf '%02d' "${ind}")".input"
   )
 }
