@@ -33,11 +33,22 @@ CN -> C"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- `Polymer` records the state of the problem.
+* `rules` encodes the character that is inserted between two consecutive characters.
+* `poly` is the current molecule *decomposed into its constituent pairs*.
+* `ends` is the pair of the first and last character of the molecule -- these never change
+  and recording (at least one of) them helps with the tally.
+-/
 structure Polymer where
+  /-- `rules` encodes the character that is inserted between two consecutive characters. -/
   rules : Std.HashMap (Char × Char) Char
+  /-- `poly` is the current molecule *decomposed into its constituent pairs*. -/
   poly  : Std.HashMap (Char × Char) Nat
+  /-- `ends` is the pair of the first and last character of the molecule -- these never change
+  and recording (at least one of) them helps with the tally. -/
   ends  : Char × Char
 
+/-- Converts the input into a `Polymer`. -/
 def mkPolymer (dat : Array String) : Polymer where
   rules := Id.run do
     let mut h := {}
@@ -55,6 +66,7 @@ def mkPolymer (dat : Array String) : Polymer where
     return h
   ends := (dat[0]!.get 0, dat[0]!.back)
 
+/-- Performs one set of insertions. -/
 def insertOnce (p : Polymer) : Polymer where
   rules := p.rules
   poly := Id.run do
@@ -70,10 +82,15 @@ def insertOnce (p : Polymer) : Polymer where
     return new
   ends := p.ends
 
+/--
+`insert p n` performs `n` insertions on the polymer `p`.
+It is simply an iteration of `insert p`.
+-/
 def insert (p : Polymer) : Nat → Polymer
   | 0 => p
   | n + 1 => insert (insertOnce p) n
 
+/-- Retrieves the numbers of elements from a `Polymer` as a `HashMap Char Nat`. -/
 def countSplit (p : Polymer) : Std.HashMap Char Nat := Id.run do
   let mut h := {}
   for ((l, _r), val) in p.poly do
@@ -83,6 +100,10 @@ def countSplit (p : Polymer) : Std.HashMap Char Nat := Id.run do
   h := h.insert p.ends.2 (acc + 1)
   return h
 
+/--
+`parts dat n` is the function that solves both parts of the problem, with appropriate
+choices of `n`.
+-/
 def parts (dat : Array String) (n : Nat) : Nat :=
   let ps := mkPolymer dat
   let p' := insert ps n
