@@ -13,7 +13,7 @@ sorted lists
 For each entry `l` of the first list, find how many entries of the second list are equal to
 `l` and multiply `l` by this number.
 Then, add everything up.
--- Day 1
+-- Day 2
 The input is a list of lists of levels -- each level is a natural number.
 
 ### Description
@@ -27,3 +27,19 @@ do they increase or decrease by more than 3.
 #### Part 2
 
 Same as part 1, except that you are allowed to drop one level from each entry before checking the condition.
+-- Day 3
+Parsing a string with errors.
+
+### Description
+
+#### Part 1
+
+Scan the input string for substrings of the form `mul(d1,d2)`, where `d1` and `d2` are only allowed to be `1`, `2` or `3` digit numbers.
+Accumulate the products of such numbers, ignoring every malformed substring.
+
+
+#### Part 2
+
+Same as part 1, except that now we should be aware of the fact that interspered in the string there are also some `do()` and `don't()` substring.
+We should only count a multiplication if the closest `do()`/`don't()` substring is a `do()`, ignoring the other multiplications.
+If you parse the input by lines, remember to persist the `do()`/`don't()` information across lines!
