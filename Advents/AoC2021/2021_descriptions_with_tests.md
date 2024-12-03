@@ -487,3 +487,49 @@ Once that is done, the dots align to produce the code word below, that is the an
 [Solution in Lean](day13.lean)
 
 ---
+
+#  [Day 14](https://adventofcode.com/2021/day/14)
+
+Inserting elements to form long polymers.
+
+####  Test
+
+<pre>
+NNCB
+
+CH -> B
+HH -> N
+CB -> H
+NH -> C
+HB -> C
+HC -> B
+HN -> C
+NN -> C
+BH -> H
+NC -> B
+NB -> B
+BN -> B
+BB -> N
+BC -> B
+CC -> N
+CN -> C
+</pre>
+
+### Description
+
+#### Part 1
+
+The input consists of a starting polymer and the insertion rules for the polymer.
+The puzzle consists in iteratively applying the insertion rules and reporting a statistic of the final distribution of elements.
+
+#### Part 2
+
+Same as part 2, except performing a larger number of iterations.
+I initially coded part 1 following the most direct implementation of what was asked.
+However, the current implementation is the more efficient one that I used in order to get the result for part 2.
+The main observation is that the interleaved insertion hides the possibility of counting *multiplicities*.
+Separating out the string in all of its pairs of adjacent elements makes counting with multiplicities possible and extends the reach of the algorithm.
+
+[Solution in Lean](day14.lean)
+
+---
