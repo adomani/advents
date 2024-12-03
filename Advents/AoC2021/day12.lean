@@ -127,12 +127,39 @@ solve 1 5457
 #  Question 2
 -/
 
+def repeatsAtMostOnce (s : Array String) : Bool :=
+  let low := (s.filter fun d => isLower d).toList
+  if 2 ≤ low.count "start" then false else
+  let dups := low.eraseDups
+  low.length - dups.length ≤ 1
+
+def addStep1 (m : MazeState) : MazeState := Id.run do
+  let mut completed := m.completed
+  let mut growing : Std.HashSet (Array String) := {}
+  for g in m.growing do
+    let tail := g.back!
+    for n in m.maze.get! tail do
+      if n == "end"
+      then
+        completed := completed.insert (g.push n)
+      else if isLower n && ! repeatsAtMostOnce (g.push n)
+      then
+        continue
+      else
+        growing := growing.insert (g.push n)
+  return {m with completed := completed, growing := growing}
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat := Id.run do
+  let mut mz : MazeState := {maze := mkMaze dat, completed := {}}
+  while !mz.growing.isEmpty do
+    mz := addStep1 mz
+  mz.completed.size
 
---#assert part2 atest == ???
-
---solve 2
+#assert part2 atest  == 36
+#assert part2 atest2 == 103
+#assert part2 atest3 == 3509
+set_option trace.profiler true
+solve 2 128506
 
 end Day12
