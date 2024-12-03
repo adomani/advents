@@ -35,9 +35,14 @@ def atest := (test.splitOn "\n").toArray
 * `flashes` is the count of the total number of flashes, since this state started tracking the octopuses.
 -/
 structure OctoState where
+  /-- `state` represents current energy levels of the octopuses.-/
   state      : Std.HashMap pos Nat
+  /-- `flashed` are the octopuses that in this round have already emitted a flash.-/
   flashed    : Std.HashSet pos := {}
+  /-- `preflashed` are the octopushes that will emit a flash, but have not yet done so and hence have not yet updated
+  the energy level of their neighbours. -/
   preflashed : Std.HashSet pos := {}
+  /-- `flashes` is the count of the total number of flashes, since this state started tracking the octopuses. -/
   flashes    : Nat := 0
   deriving Inhabited
 
