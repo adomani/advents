@@ -27,6 +27,7 @@ def test := "5483143223
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- Converts the input array of strings into  -/
 def inputToData (o : Array String) : Std.HashMap pos Nat := Id.run do
   let mut h := {}
   let mut con := 0
@@ -128,12 +129,35 @@ solve 1 1686
 #  Question 2
 -/
 
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest
+  let mut fl := 0
+  let mut st : OctoState := {state := inputToData dat}
+  let mut cond := true
+  let mut i := 0
+  while cond do
+    i := i + 1
+    st := stepAndFlash st
+    cond := (st.flashes != fl + 100)
+    fl := st.flashes
+  IO.println s!"Synchronization at {i}"
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat := Id.run do
+  let mut fl := 0
+  let mut st : OctoState := {state := inputToData dat}
+  let mut cond := true
+  let mut i := 0
+  while cond do
+    i := i + 1
+    st := stepAndFlash st
+    cond := (st.flashes != fl + 100)
+    fl := st.flashes
+  return i
 
---#assert part2 atest == ???
+#assert part2 atest == 195
 
---solve 2
+solve 2 360
 
 end Day11
