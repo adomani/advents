@@ -362,3 +362,73 @@ Figure out when the flashes of the octopuses synchronize for the first time.
 [Solution in Lean](day11.lean)
 
 ---
+
+#  [Day 12](https://adventofcode.com/2021/day/12)
+
+The passageways through the subterranean caves, both small and big.
+
+####  Test
+
+<pre>
+start-A
+start-b
+A-c
+A-b
+b-d
+A-end
+b-end
+</pre>
+
+####  Test 2
+
+<pre>
+dc-end
+HN-start
+start-kj
+dc-start
+dc-HN
+LN-dc
+HN-end
+kj-sa
+kj-HN
+kj-dc
+</pre>
+
+####  Test 3
+
+<pre>
+fs-end
+he-DX
+fs-he
+start-DX
+pj-DX
+end-zg
+zg-sl
+zg-pj
+pj-he
+RW-he
+fs-DX
+pj-RW
+zg-RW
+start-pj
+he-WI
+zg-he
+pj-fs
+start-RW
+</pre>
+
+### Description
+
+#### Part 1
+
+Count the number of paths from `start` to `end` that visit each
+</pre>small" cave at most once.
+
+#### Part 2
+
+Count the number of paths from `start` to `end` that visit at most one
+</pre>small" cave, other than `start` or `end`, twice and all remaining "small" caves at most once.
+
+[Solution in Lean](day12.lean)
+
+---
