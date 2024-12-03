@@ -72,6 +72,21 @@ def tally {α : Sort _} [BEq α] [Hashable α] (as : Array α) : Std.HashMap α 
     h := h.insert a (val + 1)
   return h
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
+  let p := mkPolymer dat
+  let p := insert p 10
+  let vals := (tally p.poly).toArray.qsort (·.2 < ·.2)
+  vals.back!.2 - vals[0]!.2
+
+#assert part1 atest == 1588
+
+solve 1 2233
+
+/-!
+#  Question 2
+-/
+
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
@@ -79,24 +94,6 @@ def tally {α : Sort _} [BEq α] [Hashable α] (as : Array α) : Std.HashMap α 
   let p := insert p 10
   let vals := (tally p.poly).toArray.qsort (·.2 < ·.2)
   IO.println (vals.back!.2 - vals[0]!.2)
-
-  --IO.println <| ((List.range 4).map (insert p)).map fun q : Polymer => q.poly
-  --IO.println (insertOnce p).poly
-  --IO.println p.poly
-  --IO.println p.rules.toList
-
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
