@@ -27,8 +27,24 @@ def test := "5483143223
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- Converts the input array of strings into  -/
-def inputToData (o : Array String) : Std.HashMap pos Nat := Id.run do
+/--
+`OctoState` is the main structure keeping track of the state of the octopuses.
+
+* `state` represents current energy levels of the octopuses;
+* `flashed` are the octopuses that in this round have already emitted a flash;
+* `preflashed` are the octopushes that will emit a flash, but have not yet done so and hence have not yet updated
+  the energy level of their neighbours;
+* `flashes` is the count of the total number of flashes, since this state started tracking the octopuses.
+-/
+structure OctoState where
+  state      : Std.HashMap pos Nat
+  flashed    : Std.HashSet pos := {}
+  preflashed : Std.HashSet pos := {}
+  flashes    : Nat := 0
+  deriving Inhabited
+
+/-- Converts the input array of strings into an initial `OctoState`. -/
+def inputToOctoState (o : Array String) : OctoState := Id.run do
   let mut h := {}
   let mut con := 0
   for d in o do
@@ -37,18 +53,19 @@ def inputToData (o : Array String) : Std.HashMap pos Nat := Id.run do
       h := h.insert (con, rcon) ("".push c).toNat!
       rcon := rcon + 1
     con := con + 1
-  return h
+  return {state := h}
 
+/-- The neighbours of a given octopus.  Some of these neighbours may be outside of the grid. -/
 abbrev nbs (i : pos) : Array pos :=
   #[(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)].map (i + ·)
 
-structure OctoState where
-  state      : Std.HashMap pos Nat
-  flashed    : Std.HashSet pos := {}
-  preflashed : Std.HashSet pos := {}
-  flashes    : Nat := 0
-  deriving Inhabited
-
+/--
+`dealWithPreflashedOnce` changes the `OctoState` by increasing the energy level of all the octopuses that are
+neighbours of the current `preflashed` octopuses, clearing the old `preflashed` and updating `flashed` and `preflashed`
+accordingly.
+This may leave a non-empty `preflashed` state, since it only deals with the *current* preflashed.
+`dealWithPreflashed` performs the update recursively.
+-/
 def dealWithPreflashedOnce (st : OctoState) : OctoState := Id.run do
   if st.preflashed.isEmpty then return st
   else --if !st.preflashed.isEmpty then
@@ -67,12 +84,15 @@ def dealWithPreflashedOnce (st : OctoState) : OctoState := Id.run do
         else continue
     return {state := newState, flashed := flashed, preflashed := preflashed, flashes := st.flashes}
 
+
+/-- Given an `OctoState`, propagate the `preflashed` state recursively, until `preflashed` becomes empty. -/
 partial
 def dealWithPreflashed (st : OctoState) : OctoState :=
   if st.preflashed.isEmpty then st else
   let new := dealWithPreflashedOnce st
   dealWithPreflashed new
 
+/-- A function to draw the `state` of the `OctoState` -- just needed for pretty pictures, no actual content. -/
 def drawHash (h : Std.HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
   let mut fin := #[]
   for i in [0:Nx] do
@@ -84,16 +104,23 @@ def drawHash (h : Std.HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
     fin := fin.push str
   return fin
 
-/-- assumes that `preflashed` and `flashed` are both empty. -/
+/--
+Assumes that `preflashed` and `flashed` are both empty. Increases by `1` every energy level,
+updating the `preflashed` state as necessary.
+-/
 def increaseByOne (st : OctoState) : OctoState := Id.run do
   let mut newState := st.state
   let mut preflashed := {}
   for (i, o) in st.state do
     newState := newState.insert i (o + 1)
     if o == 9 then preflashed := preflashed.insert i
-  return {state := newState, preflashed := preflashed, flashed := {}, flashes := st.flashes}
+  return {state := newState, preflashed := preflashed, flashes := st.flashes}
 
-/-- assumes that `preflashed` and `flashed` are both empty. -/
+/--
+Assumes that `preflashed` and `flashed` are both empty.
+Scans the `state` for energy levels above `9`, resets them to `0` and increases the total `flashes` counter
+by the number of positions that it reset.
+-/
 def resetState (st : OctoState) : OctoState := Id.run do
   let mut new := st.state
   let mut fl := st.flashes
@@ -101,16 +128,21 @@ def resetState (st : OctoState) : OctoState := Id.run do
     if 10 ≤ o then new := new.insert p 0; fl := fl + 1
   return {st with state := new, flashes := fl}
 
-/-- assumes that `preflashed` and `flashed` are both empty. -/
+/--
+Assumes that `preflashed` and `flashed` are both empty.
+A single step: increase by `1` the energy levels, propagate `preflashed` and `flashed`, reset the energy levels,
+updating the count of `flashes`.
+-/
 def stepAndFlash (st : OctoState) : OctoState :=
   resetState <| dealWithPreflashed <| increaseByOne st
 
+/-- The iterated version of `stepAndFlash`, where we can specify the number of steps that we want to perform. -/
 def stepAndFlashMany (st : OctoState) : Nat → OctoState
   | 0 => st
   | n + 1 => stepAndFlashMany (stepAndFlash st) n
 
 #eval do
-  let st : OctoState := {state := inputToData (← IO.FS.lines input), preflashed := {}, flashed := {}, flashes := 0}
+  let st := inputToOctoState (← IO.FS.lines input)
   draw <| drawHash st.state 10 10
   let newOcto := stepAndFlashMany st 100
   IO.println newOcto.flashes
@@ -118,7 +150,7 @@ def stepAndFlashMany (st : OctoState) : Nat → OctoState
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
-  let newOcto := stepAndFlashMany {state := inputToData dat} 100
+  let newOcto := stepAndFlashMany (inputToOctoState dat) 100
   newOcto.flashes
 
 #assert part1 atest == 1656
@@ -133,7 +165,7 @@ solve 1 1686
   let dat ← IO.FS.lines input
   let dat := atest
   let mut fl := 0
-  let mut st : OctoState := {state := inputToData dat}
+  let mut st := inputToOctoState dat
   let mut cond := true
   let mut i := 0
   while cond do
@@ -146,7 +178,7 @@ solve 1 1686
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
   let mut fl := 0
-  let mut st : OctoState := {state := inputToData dat}
+  let mut st := inputToOctoState dat
   let mut cond := true
   let mut i := 0
   while cond do
