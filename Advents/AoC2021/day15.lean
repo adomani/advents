@@ -45,6 +45,49 @@ def drawHash (h : Std.HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
     fin := fin.push str
   return fin
 
+structure ChitonState where
+  grid   : Std.HashMap pos Nat
+  dists  : Std.HashMap pos Nat
+  crawls : Std.HashMap pos Nat
+
+def crawlOnce (c : ChitonState) : ChitonState := Id.run do
+  let mut ds := c.dists
+  let mut cs := {}
+  for (p, val) in c.crawls do
+    for v in #[(1, 0), (-1, 0), (0, 1), (0, - 1)] do
+      let q := p + v
+      match (c.grid.get? q) with
+        | none => continue -- positions outside the grid
+        | some wt => -- here we are inside the grid
+          let newCand := val + wt -- accumulated expected value for the new location
+          match ds.get? q with
+            | none => -- if there was no value at this location, add the computed one
+              cs :=cs.insert q newCand
+              ds := ds.insert q newCand
+            | some curr => -- otherwise, we compare the values and keep the new one only if it is smaller
+              if newCand < curr then
+                cs := cs.insert q newCand
+                ds := ds.insert q newCand
+              else
+                continue
+  return {grid := c.grid, dists := ds, crawls := cs}
+
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let mut c : ChitonState := {grid := loadMap dat, dists := {}, crawls := {((0, 0), 0)}}
+  --draws <| drawHash c.crawls 100 100
+  let mut i := 0
+  while !c.crawls.isEmpty do
+    i := i + 1
+    c := crawlOnce c
+    --if i % 10 == 0 then
+    --  IO.println s!"\n{i+1} -- dists:"
+    --  draws <| drawHash c.dists 100 100
+    --IO.println "crawls:"
+    --draws <| drawHash c.crawls 10 10
+  IO.println s!"{i} steps: {c.dists.get! (dat.size - 1, dat.size - 1)}"
+
 structure Path where
   past : Array pos
   val  : Nat
