@@ -92,3 +92,44 @@ If you parse the input by lines, remember to persist the `do()`/`don't()` inform
 [Solution in Lean](day03.lean)
 
 ---
+
+#  [Day 4](https://adventofcode.com/2024/day/4)
+
+Look for the word `XMAS` and `X-MAS` in a grid of letters.
+
+####  Test
+
+<pre>
+MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX
+</pre>
+
+### Description
+
+#### Part 1
+
+For part 1, we scan for the word `XMAS` starting anywhere on the grid and continuing in each of the 8 directions:
+horizontal, vertical or diagonal and left/right or up/down.
+
+#### Part 2
+
+For part 2, we should find instead an `X` of `MAS`.
+This means that we are looking for a rotation of the pattern
+```
+M M
+ A
+S S
+```
+anywhere on the grid.
+
+[Solution in Lean](day04.lean)
+
+---
