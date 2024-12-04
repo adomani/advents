@@ -107,6 +107,10 @@ def part1 (dat : Array String) : Nat := Id.run do
 
 solve 1 717
 
+/-!
+#  Question 2
+-/
+
 /-- For the second part of the puzzle, the grid is rescaled to be 5 times larger and the entries
 slightly modified: the necessary adjustments are performed by `newGrid`. -/
 def newGrid (g : Std.HashMap pos Nat) (sz : Nat) : Std.HashMap pos Nat := Id.run do
@@ -120,10 +124,6 @@ def newGrid (g : Std.HashMap pos Nat) (sz : Nat) : Std.HashMap pos Nat := Id.run
         let newP := p + ((sz * i, sz * j) : pos)
         newG := newG.insert newP ((v + (i + j - 1)) % 9 + 1)
   return newG
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
