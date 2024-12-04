@@ -1,3 +1,7 @@
+### 2021
+
+* Day 15, part 2 is slow (find quickest way through a maze)
+
 ### 2023
 
 * Day 12, part 2
