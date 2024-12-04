@@ -78,15 +78,29 @@ def part1 (dat : Array String) : Nat := Id.run do
   while !c.crawls.isEmpty do
     c := crawlOnce c
   c.dists.get! (dat.size - 1, dat.size - 1)
-
+set_option trace.profiler true
 #assert part1 atest == 40
 
 solve 1 717
 
+def newGrid (g : Std.HashMap pos Nat) (sz : Nat) : Std.HashMap pos Nat := Id.run do
+  let mut newG := g
+  let mut dist := 0
+  for i in [0:5] do
+    for j in [0:5] do
+      if (i, j) == (0, 0) then continue
+      dist := i + j
+      for (p, v) in g do
+        let newP := p + ((sz * i, sz * j) : pos)
+        newG := newG.insert newP ((v + (i + j - 1)) % 9 + 1)
+  return newG
+
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
-  let mut c : ChitonState := {grid := loadMap dat, dists := {}, crawls := {((0, 0), 0)}}
+  let grid := loadMap dat
+  let grid := newGrid grid 100
+  let mut c : ChitonState := {grid := grid, dists := {}, crawls := {((0, 0), 0)}}
   --draws <| drawHash c.crawls 100 100
   let mut i := 0
   while !c.crawls.isEmpty do
@@ -97,7 +111,7 @@ solve 1 717
     --  draws <| drawHash c.dists 100 100
     --IO.println "crawls:"
     --draws <| drawHash c.crawls 10 10
-  IO.println s!"{i} steps: {c.dists.get! (dat.size - 1, dat.size - 1)}"
+  IO.println s!"{i} steps: {c.dists.get! (5 * dat.size - 1, 5 * dat.size - 1)}"
 
 structure Path where
   past : Array pos
