@@ -18,6 +18,15 @@ def test := ""
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- `test1` is a further test string for the problem. -/
+def test1 := "8A004A801A8002F478"
+/-- `test2` is a further test string for the problem. -/
+def test2 := "620080001611562C8802118E34"
+/-- `test3` is a further test string for the problem. -/
+def test3 := "C0015000016115A2E0802F182340"
+/-- `test4` is a further test string for the problem. -/
+def test4 := "A0016C880162017C3686B18A3D4780"
+
 def _root_.Char.toBin : Char → String
   | '0' => "0000"
   | '1' => "0001"
@@ -158,12 +167,19 @@ instance : ToString Packet where
 --  match s.toList with
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : String) : Nat := Id.run do
+  let ds := decodeMany <| hexToString dat
+  let mut vers := 0
+  for d in ds do
+    vers := vers + d.version
+  vers
 
---#assert part1 atest == ???
+#assert part1 test1 == 16
+#assert part1 test2 == 12
+#assert part1 test3 == 23
+#assert part1 test4 == 31
 
---solve 1
+solve 1 891 file
 
 /-!
 #  Question 2
