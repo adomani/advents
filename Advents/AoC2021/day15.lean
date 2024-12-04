@@ -25,6 +25,7 @@ def test := "1163751742
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- Converts the input array of strings into a `HashMap` assigning a position to its risk value. -/
 def loadMap (dat : Array String) : Std.HashMap pos Nat := Id.run do
   let mut h := {}
   for d in [0:dat.size] do
@@ -45,11 +46,34 @@ def drawHash (h : Std.HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
     fin := fin.push str
   return fin
 
+/-- `ChitonState` is the state maintained while finding the minimum sum values of weighted distances
+along the grid.
+
+* `grid` is the data of the risk level at each position.
+* `dists` are the weighted distances between the top-left corner and any location of the map
+  *as currently computed by the process*.
+* `crawls` are the positions of the bots that are crawling through the `grid`,
+  accumulating their perceived distance from the start position.
+-/
 structure ChitonState where
+  /-- `grid` is the data of the risk level at each position. -/
   grid   : Std.HashMap pos Nat
+  /-- `dists` are the weighted distances between the top-left corner and any location of the map
+  *as currently computed by the process*. -/
   dists  : Std.HashMap pos Nat
+  /-- `crawls` are the positions of the bots that are crawling through the `grid`,
+  accumulating their perceived distance from the start position. -/
   crawls : Std.HashMap pos Nat
 
+/-- One step of the crawlers: each crawler moves in each available direction, compares its computed value
+with the value that could already be stored in `dists`.
+If there is no value in `dists`, then it adds its own value and adds itself to the list of crawlers for the
+next round.
+If there is a higher value in `dists`, then it replaces with its own value and again adds itself to the
+future crawlers.
+If there is a recorded value and it is not bigger than the value of the crawler, then the crawler does nothing,
+including *not* adding itself to the crawlers of the following round.
+-/
 def crawlOnce (c : ChitonState) : ChitonState := Id.run do
   let mut ds := c.dists
   let mut cs := {}
@@ -78,11 +102,13 @@ def part1 (dat : Array String) : Nat := Id.run do
   while !c.crawls.isEmpty do
     c := crawlOnce c
   c.dists.get! (dat.size - 1, dat.size - 1)
-set_option trace.profiler true
+
 #assert part1 atest == 40
 
 solve 1 717
 
+/-- For the second part of the puzzle, the grid is rescaled to be 5 times larger and the entries
+slightly modified: the necessary adjustments are performed by `newGrid`. -/
 def newGrid (g : Std.HashMap pos Nat) (sz : Nat) : Std.HashMap pos Nat := Id.run do
   let mut newG := g
   let mut dist := 0
@@ -95,85 +121,23 @@ def newGrid (g : Std.HashMap pos Nat) (sz : Nat) : Std.HashMap pos Nat := Id.run
         newG := newG.insert newP ((v + (i + j - 1)) % 9 + 1)
   return newG
 
-#eval do
-  let dat := atest
-  let dat ← IO.FS.lines input
-  let grid := loadMap dat
-  let grid := newGrid grid 100
-  let mut c : ChitonState := {grid := grid, dists := {}, crawls := {((0, 0), 0)}}
-  --draws <| drawHash c.crawls 100 100
-  let mut i := 0
-  while !c.crawls.isEmpty do
-    i := i + 1
-    c := crawlOnce c
-    --if i % 10 == 0 then
-    --  IO.println s!"\n{i+1} -- dists:"
-    --  draws <| drawHash c.dists 100 100
-    --IO.println "crawls:"
-    --draws <| drawHash c.crawls 10 10
-  IO.println s!"{i} steps: {c.dists.get! (5 * dat.size - 1, 5 * dat.size - 1)}"
-
-structure Path where
-  past : Array pos
-  val  : Nat
-  excl : Array pos
-  deriving BEq, Hashable, Inhabited
-
-def extendPath (mz : Std.HashMap pos Nat) (p : Path) : Std.HashSet Path := Id.run do
-  let mut h := {}
-  let mut cmin := 46
-  let nbs := #[(1, 0), (-1, 0), (0, 1), (0, -1)].map (· + p.past.back!) |>.filter fun d =>
-    (mz.contains d && (!p.excl.contains d))
-  for n in nbs do
-    let bef := (p.excl ++ nbs).size
-    let hs : Std.HashSet pos := .ofArray <| p.excl ++ nbs
-    if bef != hs.size then
-      dbg_trace bef - hs.size
-    let npth := {past := p.past.push n, val := p.val + mz.getD n 0, excl := hs.toArray}
-    if cmin ≤ npth.val + (9 - n.1) + (9 - n.2) then continue
-    if npth.val + (9 - n.1) + (9 - n.2) ≤ cmin then
-      h := h.insert npth
-      if n == (9, 9) then
-        cmin := min cmin npth.val
-        dbg_trace "found {npth.val} cmin={cmin} {npth.past}"
-      --h := h.insert npth
-  return h
-
-def extendPaths (mz : Std.HashMap pos Nat) (ps : Std.HashSet Path) : Std.HashSet Path :=
-  ps.fold (init := {}) fun acc p => acc.union (extendPath mz p)
-
-def extendMany (mz : Std.HashMap pos Nat) (ps : Std.HashSet Path) : Nat → Std.HashSet Path
-  | 0 => ps
-  | n + 1 => extendMany mz (extendPaths mz ps) n
-set_option trace.profiler true
-#eval do
-  let mz := loadMap atest
-  let p : Path := {past := #[(0,0)], val := 0, excl := #[(0,0)]}
-  let l3 := extendMany mz {p} 20
-  dbg_trace (l3.size, (l3.filter fun d : Path => d.val ≤ 41 && d.past.back! == (9, 9)).size)
-  --for d in l3 do
-  --  IO.println d.val
-#eval 1+1+6+3+7+5+1+7+4+2+2+8+9+1+7+1+9+1+1
-
-structure Maze where
-  maze : Std.HashMap pos Nat
-  min  : Option Nat
-  paths : Std.HashSet Path
-  --completed : Std.HashSet (Array pos)
-
-#eval do
-  draws <| drawHash (loadMap atest) 10 10
-
 /-!
 #  Question 2
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat := Id.run do
+  let grid := loadMap dat
+  let grid := newGrid grid dat.size
+  let mut c : ChitonState := {grid := grid, dists := {}, crawls := {((0, 0), 0)}}
+  let mut i := 0
+  while !c.crawls.isEmpty do
+    i := i + 1
+    c := crawlOnce c
+  c.dists.get! (5 * dat.size - 1, 5 * dat.size - 1)
 
---#assert part2 atest == ???
+#assert part2 atest == 315
 
---solve 2
+solve 2 2993
 
 end Day15
