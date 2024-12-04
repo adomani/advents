@@ -273,6 +273,18 @@ def toPic (gr : Array pos) (Nx Ny : Nat) : Array String :=
       rows := rows.push str
     return rows
 
+/-- A function to draw `HashMap`s. -/
+def drawHash {α} [ToString α] (h : Std.HashMap pos α) (Nx Ny : Nat) : Array String := Id.run do
+  let mut fin := #[]
+  for i in [0:Nx] do
+    let mut str := ""
+    for j in [0:Ny] do
+      match h.get? (i, j) with
+        | some d => str := str ++ s!"{d}"
+        | none => str := str.push ' '
+    fin := fin.push str
+  return fin
+
 section tests
 
 #assert "0 2 -3".getInts = [0, 2, -3]
