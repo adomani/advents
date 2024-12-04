@@ -72,6 +72,17 @@ def crawlOnce (c : ChitonState) : ChitonState := Id.run do
                 continue
   return {grid := c.grid, dists := ds, crawls := cs}
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := Id.run do
+  let mut c : ChitonState := {grid := loadMap dat, dists := {}, crawls := {((0, 0), 0)}}
+  while !c.crawls.isEmpty do
+    c := crawlOnce c
+  c.dists.get! (dat.size - 1, dat.size - 1)
+
+#assert part1 atest == 40
+
+solve 1 717
+
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
@@ -138,15 +149,6 @@ structure Maze where
 
 #eval do
   draws <| drawHash (loadMap atest) 10 10
-
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---solve 1
 
 /-!
 #  Question 2
