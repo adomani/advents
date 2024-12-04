@@ -198,3 +198,19 @@ I initially coded part 1 following the most direct implementation of what was as
 However, the current implementation is the more efficient one that I used in order to get the result for part 2.
 The main observation is that the interleaved insertion hides the possibility of counting *multiplicities*.
 Separating out the string in all of its pairs of adjacent elements makes counting with multiplicities possible and extends the reach of the algorithm.
+-- Day 15
+Navigating the ocean floor, minimizing the risk of hitting a chiton.
+
+### Description
+
+#### Part 1
+
+The input consists of $100 \times 100$ grid of digits.
+Find the smallest total sum of a path that starts from the top left corner and exists at the bottom right corner.
+
+#### Part 2
+
+Same as part 2, except that the grid is now 5 times larger in each direction.
+
+My main realization for this puzzle was that finding the minimum weighted distances to *all* the points of the grid was more effective that just figuring out the value for one path.
+Also, finding the minimum sum, but not also a minimizing path at the same time helped!

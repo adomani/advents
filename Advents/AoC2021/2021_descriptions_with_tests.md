@@ -533,3 +533,40 @@ Separating out the string in all of its pairs of adjacent elements makes countin
 [Solution in Lean](day14.lean)
 
 ---
+
+#  [Day 15](https://adventofcode.com/2021/day/15)
+
+Navigating the ocean floor, minimizing the risk of hitting a chiton.
+
+####  Test
+
+<pre>
+1163751742
+1381373672
+2136511328
+3694931569
+7463417111
+1319128137
+1359912421
+3125421639
+1293138521
+2311944581
+</pre>
+
+### Description
+
+#### Part 1
+
+The input consists of $100 	imes 100$ grid of digits.
+Find the smallest total sum of a path that starts from the top left corner and exists at the bottom right corner.
+
+#### Part 2
+
+Same as part 2, except that the grid is now 5 times larger in each direction.
+
+My main realization for this puzzle was that finding the minimum weighted distances to *all* the points of the grid was more effective that just figuring out the value for one path.
+Also, finding the minimum sum, but not also a minimizing path at the same time helped!
+
+[Solution in Lean](day15.lean)
+
+---
