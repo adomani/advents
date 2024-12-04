@@ -1,0 +1,97 @@
+import Advents.Utils
+open Lean
+
+namespace Day04
+
+/-- `input` is the location of the file with the data for the problem. -/
+def input : System.FilePath := "Advents/AoC2024/day04.input"
+
+/-!
+#  Question 1
+-/
+
+/-- `test` is the test string for the problem. -/
+def test := "MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX"
+
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
+
+/-- Converts the input strings into a `HashMap`. -/
+def loadGrid (dat : Array String) : Std.HashMap pos Char := Id.run do
+  let mut h := {}
+  for d in [0:dat.size] do
+    let row := dat[d]!
+    for c in [0:row.length] do
+      h := h.insert (d, c) (row.get ⟨c⟩)
+  return h
+
+/-- The scalar multiplication between an integer and pair of integers. -/
+instance : HMul Int pos pos where
+  hMul a p := (a * p.1, a * p.2)
+
+/-- Search the word `wd`, starting from the position `p` and continuing in all possible directions. -/
+def findWord (h : Std.HashMap pos Char) (p : pos) (wd : String := "XMAS") : Nat := Id.run do
+  let mut ct := 0
+  let mut cond := true
+  let mut k := 0
+  if some (wd.get 0) != h.get? p then return 0
+  for i in [0, 1, -1] do
+    for j in [0, 1, -1] do
+      if (i, j) == (0, 0) then continue
+      cond := true
+      k := 0
+      while cond && k < wd.length do
+        cond := some (wd.get ⟨k⟩) == h.get? (p + (k : Int) * ((i, j) : pos))
+        k := k + 1
+      if cond then ct := ct + 1
+  return ct
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
+  let grid := loadGrid dat
+  grid.fold (init := 0) fun s p _ => s + findWord grid p
+
+#assert part1 atest == 18
+
+solve 1 2397
+
+/-!
+#  Question 2
+-/
+
+/-- Rotate a position by 90⁰. -/
+def rot (p : pos) : pos := (p.2, - p.1)
+
+/-- Search the `X` of `MAS`, starting with an `A` in position `p` with each of the possible 4 orientations. -/
+def findX (h : Std.HashMap pos Char) (p : pos) : Nat := Id.run do
+  let mut ct := 0
+  if some 'A' != h.get? p then return 0
+  for i in [(1, 0), (-1, 0), (0, 1), (0, -1)] do
+    let j := (- 1) * i
+    if some 'M' == h.get? (p + (i +         rot i)) &&
+       some 'M' == h.get? (p + (i + (- 1) * rot i)) &&
+       some 'S' == h.get? (p + (j +         rot i)) &&
+       some 'S' == h.get? (p + (j + (- 1) * rot i))
+    then
+      ct := ct + 1
+  return ct
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat :=
+  let grid := loadGrid dat
+  grid.fold (init := 0) fun s p _ => s + findX grid p
+
+#assert part2 atest == 9
+
+solve 2 1824
+
+end Day04

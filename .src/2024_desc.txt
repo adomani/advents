@@ -43,3 +43,23 @@ Accumulate the products of such numbers, ignoring every malformed substring.
 Same as part 1, except that now we should be aware of the fact that interspered in the string there are also some `do()` and `don't()` substring.
 We should only count a multiplication if the closest `do()`/`don't()` substring is a `do()`, ignoring the other multiplications.
 If you parse the input by lines, remember to persist the `do()`/`don't()` information across lines!
+-- Day 4
+Look for the word `XMAS` and `X-MAS` in a grid of letters.
+
+### Description
+
+#### Part 1
+
+For part 1, we scan for the word `XMAS` starting anywhere on the grid and continuing in each of the 8 directions:
+horizontal, vertical or diagonal and left/right or up/down.
+
+#### Part 2
+
+For part 2, we should find instead an `X` of `MAS`.
+This means that we are looking for a rotation of the pattern
+```
+M M
+ A
+S S
+```
+anywhere on the grid.
