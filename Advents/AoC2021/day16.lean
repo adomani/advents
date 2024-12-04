@@ -92,11 +92,11 @@ def decodeOne (s : String) : Packet × String :=
   ({version := ver, ID := ID, lth := lth, lit := lit}, s)
 
 partial
-def decodeMany (s : String) : Array Packet :=
+def decodeAll (s : String) : Array Packet :=
   if s.all (· == '0') then #[]
   else
     let (p, s) := decodeOne s
-    #[p] ++ decodeMany s
+    #[p] ++ decodeAll s
 
 def typeID : Nat → String
   | 0 => "sum"
@@ -125,7 +125,7 @@ instance : ToString Packet where
   let inp := hexToString "C0015000016115A2E0802F182340"
   let inp := hexToString "A0016C880162017C3686B18A3D4780"
   let inp := hexToString (← IO.FS.readFile input)
-  let ds := decodeMany inp
+  let ds := decodeAll inp
   let mut vers := 0
   for d in ds do
     vers := vers + d.version
@@ -134,7 +134,7 @@ instance : ToString Packet where
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat := Id.run do
-  let ds := decodeMany <| hexToString dat
+  let ds := decodeAll <| hexToString dat
   let mut vers := 0
   for d in ds do
     vers := vers + d.version
