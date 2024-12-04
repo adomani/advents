@@ -65,6 +65,25 @@ structure Packet where
   --ps : Array Packet
   deriving Inhabited
 
+def typeID : Nat → String
+  | 0 => "sum"
+  | 1 => "product"
+  | 2 => "minimum"
+  | 3 => "maximum"
+  | 4 => "literal"
+  | 5 => "greater than"
+  | 6 => "less than"
+  | 7 => "equal to"
+  | _ => "not a valid ID"
+
+instance : ToString Packet where
+  toString p :=
+    let lID := match p.lth with
+      | none => s!"literal: '{p.lit.getD 0}'"
+      | some (0, lth) => s!"length ID: subpackets of total length {lth}"
+      | some (_, lth) => s!"length ID: {lth} subpackets"
+    s!"v:  {p.version}\nID: {p.ID} '{typeID p.ID}' \n{lID}" --\npackets: {p.ps.size}"
+
 def _root_.String.read (s : String) (n : Nat) : Nat × String :=
   (bitToNat <| s.take n, s.drop n)
 
@@ -97,25 +116,6 @@ def decodeAll (s : String) : Array Packet :=
   else
     let (p, s) := decodeOne s
     #[p] ++ decodeAll s
-
-def typeID : Nat → String
-  | 0 => "sum"
-  | 1 => "product"
-  | 2 => "minimum"
-  | 3 => "maximum"
-  | 4 => "literal"
-  | 5 => "greater than"
-  | 6 => "less than"
-  | 7 => "equal to"
-  | _ => "not a valid ID"
-
-instance : ToString Packet where
-  toString p :=
-    let lID := match p.lth with
-      | none => s!"literal: '{p.lit.getD 0}'"
-      | some (0, lth) => s!"length ID: subpackets of total length {lth}"
-      | some (_, lth) => s!"length ID: {lth} subpackets"
-    s!"v:  {p.version}\nID: {p.ID} '{typeID p.ID}' \n{lID}" --\npackets: {p.ps.size}"
 
 #eval do
   let inp := "00111000000000000110111101000101001010010001001000000000"
