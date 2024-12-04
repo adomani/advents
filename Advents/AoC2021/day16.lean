@@ -95,10 +95,30 @@ def decodeOne (s : String) : Packet × String :=
 
 partial
 def decodeMany (s : String) : Array Packet :=
-  if s == "" then #[] else
-  let (p, s) := decodeOne s
-  #[p] ++ decodeMany s
+  if s.all (· == '0') then #[]
+  else
+    let (p, s) := decodeOne s
+    #[p] ++ decodeMany s
 
+/-
+  | 0 => sum
+  | 1 => product
+  | 2 => minimum
+  | 3 => maximum
+  | 5 => greater than
+  | 6 => less than
+  | 7 => equal to
+-/
+def typeID : Nat → String
+  | 0 => "sum"
+  | 1 => "product"
+  | 2 => "minimum"
+  | 3 => "maximum"
+  | 4 => "literal"
+  | 5 => "greater than"
+  | 6 => "less than"
+  | 7 => "equal to"
+  | _ => "not a valid ID"
 
 instance : ToString Packet where
   toString p :=
@@ -106,7 +126,7 @@ instance : ToString Packet where
       | none => s!"literal: '{p.lit.getD 0}'"
       | some (0, lth) => s!"length ID: subpackets of total length {lth}"
       | some (_, lth) => s!"length ID: {lth} subpackets"
-    s!"v:  {p.version}\nID: {p.ID}\n{lID}" --\npackets: {p.ps.size}"
+    s!"v:  {p.version}\nID: {p.ID} '{typeID p.ID}' \n{lID}" --\npackets: {p.ps.size}"
 
 #eval do
   let ds := decodeMany "00111000000000000110111101000101001010010001001000000000"
