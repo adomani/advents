@@ -1,5 +1,7 @@
 ### 2021
 
+* Day 12, part 2 is a little slow (~10s, finding a path in a cave,
+  allowing the repetition of one small cave)
 * Day 15, part 2 is slow (find quickest way through a maze)
 
 ### 2023
