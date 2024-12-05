@@ -7,7 +7,9 @@ namespace Day05
 def input : System.FilePath := "Advents/AoC2024/day05.input"
 
 /-!
-#  Question 1
+#  Day 5
+
+-- ### Description
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -43,6 +45,12 @@ def test := "47|53
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-!
+# Part 1
+
+--
+-/
+
 /-- Converts the input array of strings into the solution to the problem.
 If a line contains a pair of natural numbers, then store the reversed pair in a `HashSet`.
 If a line contains a number of natural numbers that is not 2, then
@@ -74,7 +82,9 @@ def part1 (dat : Array String) : Nat := inputToDat dat false
 solve 1 6267
 
 /-!
-#  Question 2
+# Part 2
+
+--
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
