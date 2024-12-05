@@ -133,3 +133,57 @@ anywhere on the grid.
 [Solution in Lean](day04.lean)
 
 ---
+
+#  [Day 5](https://adventofcode.com/2024/day/5)
+
+Checking whether some pages are correctly sorted.
+
+####  Test
+
+<pre>
+47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47
+</pre>
+
+### Description
+
+The input begins with a list of pairs of natural numbers, in the form `n1|n2`, representing the correct ordering that the pages should have.
+It then continues with a list of actual orders of pages, in the form `p₁,p₂ₙ,...,pₙ`.
+
+#### Part 1
+
+Add the number of pages that appear in the middle of each *correctly ordered* list of pages.
+
+#### Part 2
+
+Add the number of pages that appear in the middle of each *incorrectly ordered* list of pages.
+
+[Solution in Lean](day05.lean)
+
+---
