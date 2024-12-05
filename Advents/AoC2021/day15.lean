@@ -25,15 +25,6 @@ def test := "1163751742
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- Converts the input array of strings into a `HashMap` assigning a position to its risk value. -/
-def loadMap (dat : Array String) : Std.HashMap pos Nat := Id.run do
-  let mut h := {}
-  for d in [0:dat.size] do
-    let row := dat[d]!
-    for c in [0:row.length] do
-      h := h.insert (d, c) <| String.toNat! ⟨[row.get ⟨c⟩]⟩
-  return h
-
 /-- A function to draw the answer to the second part of the puzzle. -/
 def drawHash (h : Std.HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
   let mut fin := #[]
@@ -98,7 +89,7 @@ def crawlOnce (c : ChitonState) : ChitonState := Id.run do
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
-  let mut c : ChitonState := {grid := loadMap dat, dists := {}, crawls := {((0, 0), 0)}}
+  let mut c : ChitonState := {grid := loadGridNats dat, dists := {}, crawls := {((0, 0), 0)}}
   while !c.crawls.isEmpty do
     c := crawlOnce c
   c.dists.get! (dat.size - 1, dat.size - 1)
@@ -127,7 +118,7 @@ def newGrid (g : Std.HashMap pos Nat) (sz : Nat) : Std.HashMap pos Nat := Id.run
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
-  let grid := loadMap dat
+  let grid := loadGridNats dat
   let grid := newGrid grid dat.size
   let mut c : ChitonState := {grid := grid, dists := {}, crawls := {((0, 0), 0)}}
   let mut i := 0

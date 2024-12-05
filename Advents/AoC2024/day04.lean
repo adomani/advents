@@ -25,15 +25,6 @@ MXMXAXMASX"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- Converts the input strings into a `HashMap`. -/
-def loadGrid (dat : Array String) : Std.HashMap pos Char := Id.run do
-  let mut h := {}
-  for d in [0:dat.size] do
-    let row := dat[d]!
-    for c in [0:row.length] do
-      h := h.insert (d, c) (row.get ⟨c⟩)
-  return h
-
 /-- The scalar multiplication between an integer and pair of integers. -/
 instance : HMul Int pos pos where
   hMul a p := (a * p.1, a * p.2)
@@ -57,7 +48,7 @@ def findWord (h : Std.HashMap pos Char) (p : pos) (wd : String := "XMAS") : Nat 
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
-  let grid := loadGrid dat
+  let grid := loadGrid dat id
   grid.fold (init := 0) fun s p _ => s + findWord grid p
 
 #assert part1 atest == 18
@@ -87,7 +78,7 @@ def findX (h : Std.HashMap pos Char) (p : pos) : Nat := Id.run do
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
-  let grid := loadGrid dat
+  let grid := loadGrid dat id
   grid.fold (init := 0) fun s p _ => s + findX grid p
 
 #assert part2 atest == 9
