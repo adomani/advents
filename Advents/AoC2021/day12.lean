@@ -60,18 +60,36 @@ start-RW"
 /-- `atest3` is the test string for the problem, split into rows. -/
 def atest3 := (test3.splitOn "\n").toArray
 
+/-- The state of the maze, as we are exploring it.
+* `maze` assigns to each cave the adjacent caves.
+* `completed` is a count of how many paths we already found from `start` to `end`.
+* `growing` is the collection of partial paths beginning from `start`,
+  together with a boolean that is `true` if and only if we already repeated a small cave
+  (this is only relevant for part 2).
+-/
 structure MazeState where
+  /-- `maze` assigns to each cave the adjacent caves. -/
   maze      : Std.HashMap String (Array String)
-  completed : Std.HashSet (Array String)
-  growing   : Std.HashSet (Array String) := {#["start"]}
+  /-- `completed` is a count of how many paths we already found from `start` to `end`. -/
+  completed : Nat
+  /-- `growing` is the collection of partial paths beginning from `start`,
+  together with a boolean that is `true` if and only if we already repeated a small cave
+  (this is only relevant for part 2). -/
+  growing   : Std.HashSet (Array String × Bool) := {(#["start"], false)}
 
+/-- Checks if a string consists entirely of lower-case characters. -/
 def isLower (s : String) : Bool :=
   s.toList.map (·.isLower) |>.all id
 
+/--
+`addStep` replaces the `MazeState` with the one that is obtained from the input
+by extending each partial path in `growing` by one step in all possible
+directions and updating everything else accordingly.
+-/
 def addStep (m : MazeState) : MazeState := Id.run do
   let mut completed := m.completed
-  let mut growing : Std.HashSet (Array String) := {}
-  for g in m.growing do
+  let mut growing : Std.HashSet (Array String × Bool) := {}
+  for (g, dup) in m.growing do
     let tail := g.back!
     for n in m.maze.get! tail do
       if isLower n && g.contains n
@@ -79,41 +97,26 @@ def addStep (m : MazeState) : MazeState := Id.run do
         continue
       if n == "end"
       then
-        completed := completed.insert (g.push n)
+        completed := completed + 1
       else
-        growing := growing.insert (g.push n)
+        growing := growing.insert (g.push n, dup)
   return {m with completed := completed, growing := growing}
 
-def mkMaze (dat : Array String) : Std.HashMap String (Array String) := Id.run do
-  let mut mz := {}
-  for d in dat do
+/-- Produces the "adjacency `HashMap`" for the cave from the puzzle input. -/
+def mkMaze (dat : Array String) : Std.HashMap String (Array String) :=
+  dat.foldl (init := {}) fun mz d =>
     if let [s, t] := d.splitOn "-" then
       let s1 := mz.getD s #[]
-      mz := mz.insert s (s1.push t)
       let t1 := mz.getD t #[]
-      mz := mz.insert t (t1.push s)
-  return mz
-
-#eval do
-  let dat := atest2
-  let dat := atest
-  let dat := atest3
-  let dat ← IO.FS.lines input
-  let mut mz : MazeState := {maze := mkMaze dat, completed := {}}
-  let mut con := 0
-  while !mz.growing.isEmpty do
-    mz := addStep mz
-    con := con + 1
-  --IO.println s!"{mz.maze.toList}"
-  --IO.println s!"{mz.growing.toList}"
-  IO.println s!"\nIn {con} steps, I found {mz.completed.size} paths\n\n{mz.completed.toList}"
+      mz.insert s (s1.push t) |>.insert t (t1.push s)
+    else mz
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
-  let mut mz : MazeState := {maze := mkMaze dat, completed := {}}
+  let mut mz : MazeState := {maze := mkMaze dat, completed := 0}
   while !mz.growing.isEmpty do
     mz := addStep mz
-  mz.completed.size
+  mz.completed
 
 #assert part1 atest  == 10
 #assert part1 atest2 == 19
@@ -125,39 +128,40 @@ solve 1 5457
 #  Question 2
 -/
 
-def repeatsAtMostOnce (s : Array String) : Bool :=
-  let low := (s.filter fun d => isLower d).toList
-  if 2 ≤ low.count "start" then false else
-  let dups := low.eraseDups
-  low.length - dups.length ≤ 1
-
-def addStep1 (m : MazeState) : MazeState := Id.run do
+/-- Similar to `addStep`: explore the input `MazeState` by extending the current paths one
+further step, this time allowing a small cave to be visited at most once. -/
+def addStepOneRep (m : MazeState) : MazeState := Id.run do
   let mut completed := m.completed
-  let mut growing : Std.HashSet (Array String) := {}
-  for g in m.growing do
+  let mut growing : Std.HashSet (Array String × Bool) := {}
+  for (g, dup) in m.growing do
     let tail := g.back!
     for n in m.maze.get! tail do
       if n == "end"
       then
-        completed := completed.insert (g.push n)
-      else if isLower n && ! repeatsAtMostOnce (g.push n)
+        completed := completed + 1
+      else if 2 ≤ g.size && n == "start"
       then
         continue
       else
-        growing := growing.insert (g.push n)
+        let preCond := isLower n && g.contains n
+        if preCond && dup
+        then
+          continue
+        else
+          growing := growing.insert (g.push n, preCond || dup)
   return {m with completed := completed, growing := growing}
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
-  let mut mz : MazeState := {maze := mkMaze dat, completed := {}}
+  let mut mz : MazeState := {maze := mkMaze dat, completed := 0}
   while !mz.growing.isEmpty do
-    mz := addStep1 mz
-  mz.completed.size
+    mz := addStepOneRep mz
+  mz.completed
 
 #assert part2 atest  == 36
 #assert part2 atest2 == 103
 #assert part2 atest3 == 3509
-set_option trace.profiler true
+
 solve 2 128506
 
 end Day12

@@ -18,11 +18,9 @@ Assume that moving entry `d` of `dat` by `i` "costs" `wt d i` abd that we only m
 range `[0..max dat]`.
 Then `weightedMove` finds the minimum cost for moving all entries of `dat` to the same position.
 -/
-def weightedMove (dat : List Nat) (wt : Nat → Nat → Nat) : Nat := Id.run do
-  let mut tots := #[]
-  for i in [0:dat.max?.getD 0] do
-    tots := tots.push (dat.map (wt · i)).sum
-  tots.min?.getD 0
+def weightedMove (dat : List Nat) (wt : Nat → Nat → Nat) : Nat :=
+  (List.range <| dat.max?.getD 0).foldl (fun tots i => tots.push (dat.map (wt · i)).sum) #[]
+    |>.min?.getD 0
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat := Id.run do

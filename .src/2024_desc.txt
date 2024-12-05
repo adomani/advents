@@ -63,3 +63,18 @@ M M
 S S
 ```
 anywhere on the grid.
+-- Day 5
+Checking whether some pages are correctly sorted.
+
+### Description
+
+The input begins with a list of pairs of natural numbers, in the form `n1|n2`, representing the correct ordering that the pages should have.
+It then continues with a list of actual orders of pages, in the form `p₁,p₂,...,pₙ`.
+
+#### Part 1
+
+Add the number of pages that appear in the middle of each *correctly ordered* list of pages.
+
+#### Part 2
+
+Add the number of pages that appear in the middle of each *incorrectly ordered* list of pages.

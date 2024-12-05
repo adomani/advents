@@ -50,36 +50,28 @@ structure Polymer where
 
 /-- Converts the input into a `Polymer`. -/
 def mkPolymer (dat : Array String) : Polymer where
-  rules := Id.run do
-    let mut h := {}
-    for d in dat do
+  rules := dat.foldl (init := ∅) fun h d =>
       if let [a, b] := d.splitOn " -> " then
-        h := h.insert (a.get 0, a.get ⟨1⟩) (b.get 0)
-    return h
-  poly  := Id.run do
-    let mut h := {}
+        h.insert (a.get 0, a.get ⟨1⟩) (b.get 0)
+      else h
+  poly :=
     let pol := dat[0]!
-    for i in [0:pol.length - 1] do
+    (Array.range (pol.length - 1)).foldl (init := ∅) fun h i =>
       let new := (pol.get ⟨i⟩, pol.get ⟨i + 1⟩)
       let fd := h.getD new 0
-      h := h.insert new (fd + 1)
-    return h
+      h.insert new (fd + 1)
   ends := (dat[0]!.get 0, dat[0]!.back)
 
 /-- Performs one set of insertions. -/
 def insertOnce (p : Polymer) : Polymer where
   rules := p.rules
-  poly := Id.run do
-    let mut new := {}
-    for (i@(l, r), val) in p.poly do
-      match p.rules.get? i with
-        | none => new := new.insert i val
-        | some mid =>
-          let lval := new.getD (l, mid) 0
-          new := new.insert (l, mid) (lval + val)
-          let rval := new.getD (mid, r) 0
-          new := new.insert (mid, r) (rval + val)
-    return new
+  poly := p.poly.fold (init := ∅) fun new i@(l, r) val =>
+    match p.rules.get? i with
+      | none => new.insert i val
+      | some mid =>
+        let lval := new.getD (l, mid) 0
+        let rval := new.getD (mid, r) 0
+        new.insert (l, mid) (lval + val) |>.insert (mid, r) (rval + val)
   ends := p.ends
 
 /--
@@ -91,14 +83,12 @@ def insert (p : Polymer) : Nat → Polymer
   | n + 1 => insert (insertOnce p) n
 
 /-- Retrieves the numbers of elements from a `Polymer` as a `HashMap Char Nat`. -/
-def countSplit (p : Polymer) : Std.HashMap Char Nat := Id.run do
-  let mut h := {}
-  for ((l, _r), val) in p.poly do
+def countSplit (p : Polymer) : Std.HashMap Char Nat :=
+  let h : Std.HashMap Char Nat := p.poly.fold (init := ∅) fun h (l, _r) val =>
     let acc := h.getD l 0
-    h := h.insert l (acc + val)
+    h.insert l (acc + val)
   let acc := h.getD p.ends.2 0
-  h := h.insert p.ends.2 (acc + 1)
-  return h
+  h.insert p.ends.2 (acc + 1)
 
 /--
 `parts dat n` is the function that solves both parts of the problem, with appropriate

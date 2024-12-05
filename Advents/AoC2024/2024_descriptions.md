@@ -4,3 +4,4 @@
 | [2](2024_descriptions_with_tests.md#day-2) | The input is a list of lists of levels -- each level is a natural number.                   |
 | [3](2024_descriptions_with_tests.md#day-3) | Parsing a string with errors.                                                               |
 | [4](2024_descriptions_with_tests.md#day-4) | Look for the word `XMAS` and `X-MAS` in a grid of letters.                                  |
+| [5](2024_descriptions_with_tests.md#day-5) | Checking whether some pages are correctly sorted.                                           |

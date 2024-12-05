@@ -55,7 +55,7 @@ sequence of digits in `l`, in their order. -/
 partial
 def String.getNats (l : String) : List Nat :=
   let l1 := l.dropWhile (!Char.isDigit ·)
-  if l1.length == 0 then [] else
+  if l1.isEmpty then [] else
     let d1 := String.toNat! ⟨l1.toList.takeWhile (Char.isDigit ·)⟩
     let fin := getNats (l1.dropWhile (Char.isDigit ·))
   d1 :: fin
@@ -66,7 +66,7 @@ partial
 def String.getInts (l : String) : List Int :=
   let cond : Char → Bool := fun c => (Char.isDigit c) || (c == '-')
   let l1 := l.dropWhile (!cond ·)
-  if l1.length == 0 then [] else
+  if l1.isEmpty then [] else
     let d1 := String.toInt! (l1.takeWhile cond)
     let fin := getInts (l1.dropWhile cond)
   d1 :: fin
@@ -173,6 +173,27 @@ def Char.toDir : Char → dir
   | '^' => .U
   | 'v' => .D
   | _ => .X
+
+-- More functional, but less performant implementation
+/-
+def loadString (s : String) (r : Nat) : Std.HashMap pos Char :=
+  .ofList <| (List.range s.length).map fun i : Nat => ((r, i), s.get ⟨i⟩)
+
+def loadGrid (dat : Array String) : Std.HashMap pos Char :=
+  (Array.range dat.size).foldl (fun i => ·.union (loadString dat[i]! i)) ∅
+-/
+
+/-- Converts the input strings into a `HashMap`. -/
+def loadGrid {α} (dat : Array String) (toEntry : Char → α) : Std.HashMap pos α := Id.run do
+  let mut h := {}
+  for d in [0:dat.size] do
+    let row := dat[d]!
+    for c in [0:row.length] do
+      h := h.insert (d, c) (toEntry (row.get ⟨c⟩))
+  return h
+
+/-- Converts the input strings into a `HashMap`, assuming that the entries are natural number value. -/
+def loadGridNats (dat : Array String) : Std.HashMap pos Nat := loadGrid dat (String.toNat! ⟨[·]⟩)
 
 section meta
 open Lean Elab Command
