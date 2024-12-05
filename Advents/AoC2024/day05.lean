@@ -9,7 +9,11 @@ def input : System.FilePath := "Advents/AoC2024/day05.input"
 /-!
 #  Day 5
 
--- ### Description
+-- ### Description of day 5
+which includes
+
+various lines
+* and formatting
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -48,7 +52,7 @@ def atest := (test.splitOn "\n").toArray
 /-!
 # Part 1
 
---
+Description of part 1
 -/
 
 /-- Converts the input array of strings into the solution to the problem.
@@ -84,7 +88,7 @@ solve 1 6267
 /-!
 # Part 2
 
---
+Description of part 2
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
