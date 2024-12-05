@@ -10,8 +10,6 @@ def input : System.FilePath := "Advents/AoC2024/day05.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the test string for the problem. -/
 def test := "47|53
 97|13
@@ -45,6 +43,15 @@ def test := "47|53
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- Converts the input array of strings into the solution to the problem.
+If a line contains a pair of natural numbers, then store the reversed pair in a `HashSet`.
+If a line contains a number of natural numbers that is not 2, then
+* sort the corresponding array and compare it to the original;
+* if the `reorder?` flag is `false`, then keep a tally of the middles pages only when the
+  list is already sorted;
+* if the `reorder?` flag is `true`, then keep a tally of the middles pages only when the
+  list is *not* already sorted.
+-/
 def inputToDat (s : Array String) (reorder? : Bool) : Nat := Id.run do
   let mut tot := 0
   let mut lookup : Std.HashSet (Nat × Nat) := {}
