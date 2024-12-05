@@ -63,6 +63,7 @@ structure Packet where
   lth : Option (Nat × Nat)
   lit : Option Nat := none
   ps : Array Packet
+  src : String
   deriving Inhabited, BEq
 
 def typeID : Nat → String
@@ -82,7 +83,7 @@ def toString (p : Packet) : String :=
       | none => s!"literal: '{p.lit.getD 0}'"
       | some (0, lth) => s!"length ID: subpackets of total length {lth}"
       | some (_, lth) => s!"length ID: {lth} subpackets"
-    s!"v:  {p.version}\nID: {p.ID} '{typeID p.ID}' \n{lID}\npackets: {p.ps.map toString}"
+    s!"v:  {p.version}\nID: {p.ID} '{typeID p.ID}' \n{lID}\npackets: {p.ps.map toString}\nsrc: {p.src.length} '{p.src}'"
 
 instance : ToString Packet where
   toString := toString
@@ -97,9 +98,13 @@ def decodeLiteral (s : String) : Nat × String := Id.run do
     digits := digits ++ (s.drop 1).take 4
     s := s.drop 5
   digits := digits ++ (s.drop 1).take 4
-  return (bitToNat digits, s.drop 5)
+  s := s.drop 5
+  --dbg_trace "lit left: '{s.drop 5}'"
+  return (bitToNat digits, s) --if s.all (· == '0') then "" else s)
 
 def decodeOne (s : String) : Packet × String :=
+  let s' := s
+
   let (ver, s) := s.read 3
   let (ID, s) := s.read 3
   let (lth, lit, s) :=
@@ -111,31 +116,102 @@ def decodeOne (s : String) : Packet × String :=
       let tk := if ltype == 0 then 15 else 11
       let (len, s) := s.read tk
       (some (ltype, len), none, s)
-  ({version := ver, ID := ID, lth := lth, lit := lit, ps := #[]}, s)
+  ({version := ver, ID := ID, lth := lth, lit := lit, ps := #[], src := s'.dropRight s.length}, s)
 
 partial
 def decodeNest (s : String) : Packet :=
-  if s.all (· == '0') then default
+  --dbg_trace "Out: '{s}' -->\n{decodeOne s}"
+  if s.all (· == '0') then
+    --dbg_trace "Dis: '{s}'"
+    default
   else
+  --dbg_trace "Pro: '{s}' -->\n{decodeOne s}\n"
   let (p, s) := decodeOne s
   match p.lth with
     | none =>
-      dbg_trace "nesting in literal: {s}"
+      --dbg_trace "nesting in literal: {s}"
       {p with ps := #[decodeNest s]}
     | some (0, l) =>
+      --Id.run do
+      --let tgt := s.length - l
+      --let mut sleft := s
+      --let mut acc : Array Packet := #[]
+      --while sleft.length != tgt do
+      --  let (newP, sl) := decodeNest sleft
+      --return default
+
       let nest := decodeNest (s.take l)
+      let (p1, s1) := decodeOne (s.take l)
+      dbg_trace "{s.take l}\n\n{decodeOne (s.take l)} "
+      dbg_trace "there {l}\n\n{nest.ps.size}\nnest[0]:\n{nest.ps[0]!}\n\nnest[1]:\n{nest.ps[1]!}\n\nnest[2]:\n{nest.ps[2]!}\n---"
       let cand := {p with ps := #[nest]}
+      dbg_trace "cand: {cand}\n\n"
       let next := decodeNest (s.drop l)
       if next == default then cand else {cand with ps := cand.ps.push next}
     | some (_, l) => Id.run do
+      dbg_trace "here {l}"
       let mut (q, t) := (#[], s)
       for _ in [0:l] do
-        let (np, ns) := decodeOne s
+        let (np, ns) := decodeOne t
         t := ns
         q := q.push np
       let cand := {p with ps := q}
       let next := decodeNest t
       if next == default then return cand else return {cand with ps := cand.ps.push next}
+
+
+
+partial
+def decodeNestArr (s : String) : Array Packet :=
+  --dbg_trace "Out: '{s}' -->\n{decodeOne s}"
+  if s.all (· == '0') then
+    --dbg_trace "Dis: '{s}'"
+    default
+  else
+  --dbg_trace "Pro: '{s}' -->\n{decodeOne s}\n"
+  let (p, s) := decodeOne s
+  match p.lth with
+    | none =>
+      --dbg_trace "nesting in literal: {s}"
+      #[p] -- with ps := #[decodeNestArr s]}]
+    | some (0, l) =>
+      --Id.run do
+      --let tgt := s.length - l
+      --let mut sleft := s
+      --let mut acc : Array Packet := #[]
+      --while sleft.length != tgt do
+      --  let (newP, sl) := decodeNest sleft
+      --return default
+
+      let nest := decodeNest (s.take l)
+      --let nestRight := decodeNest (s.drop l)
+      let next := decodeNest (s.drop l)
+      --let (p1, s1) := decodeOne (s.take l)
+      --dbg_trace "{s.take l}\n\n{decodeOne (s.take l)} "
+      --dbg_trace "there {l}\n\n{nest.ps.size}\nnest[0]:\n{nest.ps[0]!}\n\nnest[1]:\n{nest.ps[1]!}\n\nnest[2]:\n{nest.ps[2]!}\n---"
+      #[{p with ps := #[nest]}]--, next]
+      --let cand := {p with ps := nest}
+      --dbg_trace "cand: {cand}\n\n"
+      --if next == default then cand else #[{cand with ps := cand.ps.push next}]
+    | some (_, l) =>
+      let fin := decodeNestArr s
+      #[{p with ps := fin.take l}] ++ fin.toList.drop l
+      --default
+      --Id.run do
+      --dbg_trace "here {l}"
+      --let mut (q, t) := (#[], s)
+      --for _ in [0:l] do
+      --  let (np, ns) := decodeOne t
+      --  t := ns
+      --  q := q.push np
+      --let cand := {p with ps := q}
+      --let next := decodeNest t
+      --if next == default then return #[cand] else return #[{cand with ps := cand.ps.push next}]
+
+
+
+
+
 
 partial
 def decodeAll (s : String) : Array Packet :=
@@ -152,16 +228,69 @@ def printDecs (s : String) (nest? : Bool := true) : IO Unit := do
     IO.println s!"\n{d}"
   IO.println s!"\n---\n\nTotal version: {vers}"
 
+partial
+def toOps (p : Packet) (indent : String) : String :=
+  if p.ID == 4 then indent ++ s!"{p.lit.get!} ({p.ps.map (toOps · (indent ++ "  "))})"
+  else
+    indent ++ typeID p.ID ++ s!"({p.ps.map (toOps · (indent ++ "  "))})"
 
+partial
+def toNat (p : Packet) : Nat :=
+  if (p.ps.filter (· != default)).isEmpty then p.lit.getD 0 else
+  let rest := (p.ps.map toNat)
+  dbg_trace "rest: {rest}"
+  match p.ID with
+  | 0 =>
+    dbg_trace "+ {rest}"
+    rest.sum
+  | 1 =>
+    dbg_trace "* {rest}"
+    rest.prod
+  | 2 =>
+    dbg_trace "⊓ {rest}"
+    rest.foldl min rest[0]!
+  | 3 =>
+    dbg_trace "⊔ {rest}"
+    rest.foldl max rest[0]!
+  | 4 =>
+    dbg_trace "λ {rest}"
+    p.lit.get!
+  | 5 =>
+    dbg_trace "> {rest}"
+    if rest[0]! > rest[1]! then 1 else 0
+  | 6 =>
+    dbg_trace "< {rest}"
+    if rest.getD 0 1000 < rest.getD 1 1000 then 1 else 0
+  | 7 =>
+    dbg_trace "= {rest}"
+    if rest[0]! = rest.getD 1 10000 then 1 else 0
+  | _ =>
+    dbg_trace "∃ {rest}"
+    10 ^ 9
+
+-- 15843889 -- too low
 
 #eval do
-  let inp := "00111000000000000110111101000101001010010001001000000000"
-  let inp := "11101110000000001101010000001100100000100011000001100000"
-  let inp := hexToString "8A004A801A8002F478"
-  let inp := hexToString "620080001611562C8802118E34"
-  let inp := hexToString "A0016C880162017C3686B18A3D4780"
-  let inp := hexToString "C0015000016115A2E0802F182340"
+  let _inp := "00111000000000000110111101000101001010010001001000000000"
+  let _inp := "11101110000000001101010000001100100000100011000001100000"
+  let _inp := hexToString "8A004A801A8002F478"
+  let _inp := hexToString "620080001611562C8802118E34"
+  let _inp := hexToString "A0016C880162017C3686B18A3D4780"
+  let _inp := hexToString "C0015000016115A2E0802F182340"
+
   let inp := hexToString (← IO.FS.readFile input)
+
+  let inp := hexToString "C200B40A82"
+  let inp := hexToString "04005AC33890"
+  let inp := hexToString "880086C3E88112"
+  let inp := hexToString "CE00C43D881120"
+  let inp := hexToString "D8005AC2A8F0"
+  let inp := hexToString "9C0141080250320F1802104A08"
+  IO.println s!"MANY SUMS: {((decodeNestArr inp).map toNat)}"
+  IO.println (toNat (decodeNest inp))
+  IO.println (toOps (decodeNest inp) "\n")
+
+#exit
   --let dn := decodeNest inp
   --let dn := dn[1]!
   --IO.println s!"dn: {dn}"
@@ -169,12 +298,9 @@ def printDecs (s : String) (nest? : Bool := true) : IO Unit := do
   printDecs inp false
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : String) : Nat := Id.run do
+def part1 (dat : String) : Nat :=
   let ds := decodeAll <| hexToString dat
-  let mut vers := 0
-  for d in ds do
-    vers := vers + d.version
-  vers
+  ds.foldl (init := 0) (· + ·.version)
 
 #assert part1 test1 == 16
 #assert part1 test2 == 12
