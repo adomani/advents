@@ -38,17 +38,11 @@ def atest := (test.splitOn "\n").toArray
 
 /-- Performs the operation that in the instructions is denoted by `fold along x=n`. -/
 def foldX (n : Int) (g : Std.HashSet pos) : Std.HashSet pos := Id.run do
-  let mut h := {}
-  for p in g do
-    h := h.insert (if p.1 < n then p else (2 * n - p.1, p.2))
-  return h
+  g.fold (init := ({} : Std.HashSet pos)) fun h p => h.insert (if p.1 < n then p else (2 * n - p.1, p.2))
 
 /-- Performs the operation that in the instructions is denoted by `fold along y=n`. -/
 def foldY (n : Int) (g : Std.HashSet pos) : Std.HashSet pos := Id.run do
-  let mut h := {}
-  for p in g do
-    h := h.insert (if p.2 < n then p else (p.1, 2 * n - p.2))
-  return h
+  g.fold (init := ({} : Std.HashSet pos)) fun h p => h.insert (if p.2 < n then p else (p.1, 2 * n - p.2))
 
 /--
 Scans the input `inp`. First, it constructs the initial grid, then it performs the folds.
@@ -104,10 +98,7 @@ def drawHash (h : Std.HashSet pos) (Nx Ny : Nat) : Array String := Id.run do
 #eval show Elab.Term.TermElabM _ from do
   let dat ← IO.FS.lines input
   let grid := getGrid dat false
-  let mut (mx, my) := (0, 0)
-  for p in grid do
-    if mx < p.1 then mx := p.1
-    if my < p.2 then my := p.2
+  let (mx, my) := grid.fold (init := (0, 0)) fun (mx, my) (px, py) => (max mx px, max my py)
   let drawing := drawHash grid (mx.natAbs + 1) (my.natAbs + 1)
   guard (drawing == #[  "#### #### #    ####   ##  ##  ###  ####",
                         "#    #    #    #       # #  # #  # #   ",

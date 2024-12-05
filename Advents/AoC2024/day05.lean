@@ -52,19 +52,16 @@ If a line contains a number of natural numbers that is not 2, then
 * if the `reorder?` flag is `true`, then keep a tally of the middles pages only when the
   list is *not* already sorted.
 -/
-def inputToDat (s : Array String) (reorder? : Bool) : Nat := Id.run do
-  let mut tot := 0
-  let mut lookup : Std.HashSet (Nat × Nat) := {}
-  for d in s do
-    match d.getNats with
-      | [l, r] => lookup := lookup.insert (l, r)
-      | [] => continue
-      | ps =>
-        let as := ps.toArray
-        let sorted := as.qsort fun a b => ! lookup.contains (b, a)
-        let cond := if reorder? then as != sorted else as == sorted
-        if cond then tot := tot + sorted[as.size / 2]!
-  return tot
+def inputToDat (s : Array String) (reorder? : Bool) : Nat :=
+  let (lookup, rest) : Std.HashSet (Nat × Nat) × Std.HashSet (List Nat) :=
+    s.foldl (init := default) fun (lookup, rest) d => match d.getNats with
+      | [l, r] => (lookup.insert (l, r), rest)
+      | [] => (lookup, rest)
+      | ps => (lookup, rest.insert ps)
+  rest.fold (init := 0) fun tot as =>
+    let sorted := as.mergeSort fun a b => ! lookup.contains (b, a)
+    let cond := if reorder? then as != sorted else as == sorted
+    if cond then tot + sorted[as.length / 2]! else tot
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := inputToDat dat false

@@ -25,7 +25,7 @@ def atest := (test.splitOn "\n").toArray
 Check that the entries of the list are either strictly increasing or strictly decreasing and that never
 do they increase or decrease by more than 3.
 -/
-def isSafe (dat : List Nat) : Bool := Id.run do
+def isSafe (dat : List Nat) : Bool :=
   let (l, r) := ((List.range (dat.length - 1)).map fun i =>
     let di := dat[i]!
     let di' := dat[i+1]!
@@ -48,7 +48,7 @@ solve 1 534
 Check that the entries of the list are either strictly increasing or strictly decreasing and that never
 do they increase or decrease by more than 3, possibly after dropping one of their entries.
 -/
-def isSafeish (dat : List Nat) : Bool := Id.run do
+def isSafeish (dat : List Nat) : Bool :=
   isSafe dat || ((List.range dat.length).map (isSafe <| dat.eraseIdx ·)).any id
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
