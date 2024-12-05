@@ -58,25 +58,20 @@ In the former case, append the total penalty to the first output array.
 In the latter case, append the list of missing closed parentheses to complete a correct syntax.
 -/
 def errorsOrClosing (dat : Array String) : Array Nat × Array (List Char) :=
- Id.run do
-  let mut pts := #[]
-  let mut closeParens := #[]
-  for lin in dat do
-    let mut queue := #[]
-    let mut err := #[]
-    for c in lin.toList do
-      if openC c != 'A' then
-        queue := queue.push c
-      else if queue.back? == close c
-      then
-        queue := queue.pop
-      else
-        err := err.push [queue.back?.map openC, some c].reduceOption
-    if let some e := err[0]? then pts := pts.push <| points e[1]!
+  dat.foldl (init := default) fun (pts, closeParens) lin =>
+    let (queue, err) : Array Char × Array (List Char) :=
+      lin.toList.foldl (init := default) fun (queue, err) c =>
+        if openC c != 'A' then
+          (queue.push c, err)
+        else if queue.back? == close c
+        then
+          (queue.pop, err)
+        else
+          (queue, err.push [queue.back?.map openC, some c].reduceOption)
+    if let some e := err[0]? then (pts.push <| points e[1]!, closeParens)
     else
       let closes := queue.reverse.map openC
-      closeParens := closeParens.push closes.toList
-  return (pts, closeParens)
+      (pts, closeParens.push closes.toList)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := (errorsOrClosing dat).1.sum

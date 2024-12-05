@@ -37,12 +37,12 @@ fold along x=5"
 def atest := (test.splitOn "\n").toArray
 
 /-- Performs the operation that in the instructions is denoted by `fold along x=n`. -/
-def foldX (n : Int) (g : Std.HashSet pos) : Std.HashSet pos := Id.run do
-  g.fold (init := ({} : Std.HashSet pos)) fun h p => h.insert (if p.1 < n then p else (2 * n - p.1, p.2))
+def foldX (n : Int) (g : Std.HashSet pos) : Std.HashSet pos :=
+  g.fold (init := {}) fun h p => h.insert (if p.1 < n then p else (2 * n - p.1, p.2))
 
 /-- Performs the operation that in the instructions is denoted by `fold along y=n`. -/
-def foldY (n : Int) (g : Std.HashSet pos) : Std.HashSet pos := Id.run do
-  g.fold (init := ({} : Std.HashSet pos)) fun h p => h.insert (if p.2 < n then p else (p.1, 2 * n - p.2))
+def foldY (n : Int) (g : Std.HashSet pos) : Std.HashSet pos :=
+  g.fold (init := {}) fun h p => h.insert (if p.2 < n then p else (p.1, 2 * n - p.2))
 
 /--
 Scans the input `inp`. First, it constructs the initial grid, then it performs the folds.

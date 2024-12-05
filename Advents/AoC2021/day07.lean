@@ -27,7 +27,7 @@ def part1 (dat : String) : Nat := Id.run do
   weightedMove dat.getNats fun d i => (d - i) + (i - d)
 
 #assert part1 test == 37
-set_option trace.profiler true in
+
 solve 1 335330 file
 
 /-!
@@ -39,7 +39,7 @@ def part2 (dat : String) : Nat :=
   weightedMove dat.getNats fun d i => (i - d + 1) * (i - d) / 2 + (d - i + 1) * (d - i) / 2
 
 #assert part2 test == 168
-set_option trace.profiler true in
+
 solve 2 92439766 file
 
 end Day07

@@ -69,7 +69,7 @@ def part2 (dat : Array String) : Nat := Id.run do
   return pos.fold (init := 0) (fun tot _ tots => if 2 ≤ tots then tot + 1 else tot)
 
 #assert part2 atest == 12
-set_option trace.profiler true in
+
 solve 2 23864
 
 end Day05
