@@ -7,16 +7,22 @@ namespace Day_newDay_
 def input : System.FilePath := "Advents/AoCYYYY/day_newDay_.input"
 
 /-!
-#  Question 1
--/
+#  Day 5
 
---#eval do IO.println (← IO.FS.readFile input)
+-- ### Description
+-/
 
 /-- `test` is the test string for the problem. -/
 def test := ""
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
+
+/-!
+# Part 1
+
+--
+-/
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
@@ -27,7 +33,9 @@ def part1 (dat : Array String) : Nat := sorry
 --solve 1
 
 /-!
-#  Question 2
+# Part 2
+
+--
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
