@@ -69,7 +69,7 @@ Checking whether some pages are correctly sorted.
 ### Description
 
 The input begins with a list of pairs of natural numbers, in the form `n1|n2`, representing the correct ordering that the pages should have.
-It then continues with a list of actual orders of pages, in the form `p₁,p₂ₙ,...,pₙ`.
+It then continues with a list of actual orders of pages, in the form `p₁,p₂,...,pₙ`.
 
 #### Part 1
 
