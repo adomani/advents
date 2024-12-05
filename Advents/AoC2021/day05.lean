@@ -46,10 +46,7 @@ def part1 (dat : Array String) : Nat := Id.run do
         let curr := (p1 + j * dir.1, p2 + j * dir.2)
         let val := (pos.get? curr).getD 0
         pos := pos.insert curr (val + 1)
-  let mut tot := 0
-  for (_, tots) in pos do
-    if 2 ≤ tots then tot := tot + 1
-  return tot
+  return pos.fold (init := 0) (fun tot _ tots => if 2 ≤ tots then tot + 1 else tot)
 
 #assert part1 atest == 5
 
@@ -69,13 +66,10 @@ def part2 (dat : Array String) : Nat := Id.run do
         let curr := (p1 + j * dir.1, p2 + j * dir.2)
         let val := (pos.get? curr).getD 0
         pos := pos.insert curr (val + 1)
-  let mut tot := 0
-  for (_, tots) in pos do
-    if 2 ≤ tots then tot := tot + 1
-  return tot
+  return pos.fold (init := 0) (fun tot _ tots => if 2 ≤ tots then tot + 1 else tot)
 
 #assert part2 atest == 12
-
+set_option trace.profiler true in
 solve 2 23864
 
 end Day05

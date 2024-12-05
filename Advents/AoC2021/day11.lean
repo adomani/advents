@@ -108,25 +108,20 @@ def drawHash (h : Std.HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
 Assumes that `preflashed` and `flashed` are both empty. Increases by `1` every energy level,
 updating the `preflashed` state as necessary.
 -/
-def increaseByOne (st : OctoState) : OctoState := Id.run do
-  let mut newState := st.state
-  let mut preflashed := {}
-  for (i, o) in st.state do
-    newState := newState.insert i (o + 1)
-    if o == 9 then preflashed := preflashed.insert i
-  return {state := newState, preflashed := preflashed, flashes := st.flashes}
+def increaseByOne (st : OctoState) : OctoState :=
+  st.state.fold (init := st) fun st p o =>
+    let preft := if o == 9 then st.preflashed.insert p else st.preflashed
+    {state := st.state.insert p (o + 1), preflashed := preft, flashes := st.flashes}
 
 /--
 Assumes that `preflashed` and `flashed` are both empty.
 Scans the `state` for energy levels above `9`, resets them to `0` and increases the total `flashes` counter
 by the number of positions that it reset.
 -/
-def resetState (st : OctoState) : OctoState := Id.run do
-  let mut new := st.state
-  let mut fl := st.flashes
-  for (p, o) in new do
-    if 10 ≤ o then new := new.insert p 0; fl := fl + 1
-  return {st with state := new, flashes := fl}
+def resetState (st : OctoState) : OctoState :=
+  st.state.fold (init := st) fun st p o =>
+    if 10 ≤ o then {st with state := st.state.insert p 0, flashes := st.flashes + 1}
+    else st
 
 /--
 Assumes that `preflashed` and `flashed` are both empty.
@@ -141,12 +136,16 @@ def stepAndFlashMany (st : OctoState) : Nat → OctoState
   | 0 => st
   | n + 1 => stepAndFlashMany (stepAndFlash st) n
 
+-- The commented code shows diagrams of the energy levels of the octopuses.
+-- It is not needed for the solution.
+/-
 #eval do
   let st := inputToOctoState (← IO.FS.lines input)
   draw <| drawHash st.state 10 10
   let newOcto := stepAndFlashMany st 100
   IO.println newOcto.flashes
   draw <| drawHash newOcto.state 10 10
+-/
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=

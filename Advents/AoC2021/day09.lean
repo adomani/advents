@@ -94,19 +94,16 @@ def growOnce (domain : ExpandingDomain) (grid : Array String) : ExpandingDomain 
 /-- Expands an `ExpandingDomain` until it no longer grows. -/
 partial
 def grow (domain : ExpandingDomain) (grid : Array String) : ExpandingDomain :=
-  let vis := domain.visited
   let new := growOnce domain grid
-  if new.visited == vis then new else grow new grid
+  if new.visited == domain.visited then new else grow new grid
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := Id.run do
+def part2 (dat : Array String) : Nat :=
   let (roots, _) := lowPoints dat
-  let mut basins := #[]
-  for r in roots do
+  let basins : Array Nat := roots.fold (init := #[]) fun basins r =>
     let seed := {r}
     let gr := grow {visited := seed, front := seed} dat
-    let vis := gr.visited
-    basins := basins.push vis.size
+    basins.push gr.visited.size
   let sortedBasins := basins.qsort (· > ·)
   (sortedBasins.take 3).prod
 

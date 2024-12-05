@@ -77,14 +77,12 @@ infixl:25 " up "      => aup
 /-- The infix notation for `forward` when `aim` is present. -/
 infixl:25 " forward " => afw
 
-/-- The function that accumulates the the change to horizontal position, depth and aim. -/
-def inputToTotsAim (i : Array String) : Int × Int × Int := Id.run do
-  let mut tot := (0, 0, 0)
-  for p in i do
-    if p.startsWith "forward " then tot := tot forward p.getInts.sum
-    else if p.startsWith "up " then tot := tot up      p.getInts.sum
-    else                            tot := tot down    p.getInts.sum
-  return tot
+/-- The function that accumulates the change to horizontal position, depth and aim. -/
+def inputToTotsAim (i : Array String) : Int × Int × Int :=
+  i.foldl (init := (0, 0, 0)) fun tot p =>
+    if p.startsWith "forward " then tot forward p.getInts.sum
+    else if p.startsWith "up " then tot up      p.getInts.sum
+    else                            tot down    p.getInts.sum
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Int :=

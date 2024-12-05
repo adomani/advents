@@ -98,11 +98,7 @@ def pointsC : Char → Nat
   | _ => 0
 
 /-- The total score of a list of closing parentheses. -/
-def evalCompletion (l : List Char) : Nat := Id.run do
-  let mut score := 0
-  for c in l do
-    score := 5 * score + pointsC c
-  return score
+def evalCompletion (l : List Char) : Nat := l.foldl (5 * · + pointsC ·) 0
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
