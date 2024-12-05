@@ -44,7 +44,7 @@ def test := "47|53
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
-#check List.lookup
+
 def inputToDat (s : Array String) (reorder? : Bool) : Nat := Id.run do
   let mut tot := 0
   let mut lookup : Std.HashSet (Nat × Nat) := {}
@@ -55,37 +55,26 @@ def inputToDat (s : Array String) (reorder? : Bool) : Nat := Id.run do
       | ps =>
         let as := ps.toArray
         let sorted := as.qsort fun a b => ! lookup.contains (b, a)
-        if as != sorted then
-          dbg_trace "extract {as[as.size / 2]!}"
-          tot := tot + sorted[as.size / 2]!
-        --dbg_trace "{as == sorted}: {(as, sorted)}"
-  dbg_trace lookup.toArray
+        let cond := if reorder? then as != sorted else as == sorted
+        if cond then tot := tot + sorted[as.size / 2]!
   return tot
 
-#eval do
-  let dat := atest
-  let dat ← IO.FS.lines input
-  IO.println <| inputToDat dat true
-
-
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : Array String) : Nat := inputToDat dat false
 
---#assert part1 atest == ???
+#assert part1 atest == 143
 
---solve 1
+solve 1 6267
 
 /-!
 #  Question 2
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat := inputToDat dat true
 
---#assert part2 atest == ???
+#assert part2 atest == 123
 
---solve 2
+solve 2 5184
 
 end Day05
