@@ -55,7 +55,7 @@ sequence of digits in `l`, in their order. -/
 partial
 def String.getNats (l : String) : List Nat :=
   let l1 := l.dropWhile (!Char.isDigit ·)
-  if l1.length == 0 then [] else
+  if l1.isEmpty then [] else
     let d1 := String.toNat! ⟨l1.toList.takeWhile (Char.isDigit ·)⟩
     let fin := getNats (l1.dropWhile (Char.isDigit ·))
   d1 :: fin
@@ -66,7 +66,7 @@ partial
 def String.getInts (l : String) : List Int :=
   let cond : Char → Bool := fun c => (Char.isDigit c) || (c == '-')
   let l1 := l.dropWhile (!cond ·)
-  if l1.length == 0 then [] else
+  if l1.isEmpty then [] else
     let d1 := String.toInt! (l1.takeWhile cond)
     let fin := getInts (l1.dropWhile cond)
   d1 :: fin
