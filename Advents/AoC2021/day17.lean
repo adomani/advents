@@ -19,29 +19,28 @@ def inputToPos (s : String) : pos × pos :=
     | _ => panic! "Improperly parsed input!"
 
 def step (p v : pos) : pos × pos :=
-  let p := (p.1 + v.1, p.2)
-  let p := (p.1, p.2 + v.2)
-  let v := (v.1 - v.1.sign, v.2)
-  let v := (v.1, v.2 - 1)
+  let p := p + v
+  let v := (v.1 - v.1.sign, v.2 - 1)
   (p, v)
 
 def within (a : pos × pos) (p : pos) : Bool :=
   a.1.1 ≤ p.1 && p.1 ≤ a.1.2 &&
   a.2.1 ≤ p.2 && p.2 ≤ a.2.2
 
-def mkRange (a : pos × pos) : pos × pos :=
-  let ((mx, Mx), my, My) := a
-  ((mx.natAbs.sqrt - 1, Mx), (my, - (My + 2 * My/3)))
-
 def reaches (dat : pos × pos) (a : pos) : Bool := Id.run do
   let mut (s, v) : pos × pos := ((0, 0), a)
-  let mut con := 0
-  while dat.2.2 ≤ s.2 do
-    con := con + 1
+  --let mut con := 0
+  while dat.2.1 ≤ s.2 do
+    --con := con + 1
     (s, v) := step s v
+    --dbg_trace "{(s, v)}"
     if within dat s then
       return true
   return false
+
+def mkRange (a : pos × pos) : pos × pos :=
+  let ((mx, Mx), my, _My) := a
+  ((mx.natAbs.sqrt - 1, Mx), (my, - my))
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat := Id.run do
@@ -59,26 +58,54 @@ def part1 (dat : String) : Nat := Id.run do
 
 #assert part1 test == 45
 
-solve 1 11781 file
+--solve 1 11781 file
 
 /-!
 #  Question 2
 -/
 
-def possible (rg : pos) : Std.HashSet (Int × Int) := Id.run do
+def possibleX (rg : pos) : Std.HashSet (Int × Int) := Id.run do
   let mut h := {}
-  for i in [0:rg.2.natAbs] do
+  for i in [0:rg.2.natAbs+1] do
     let mut sum := 0
-    for k in [0:i] do
+    for k in [0:i+1] do
       sum := sum + (i - k)
       if rg.1 ≤ sum && sum ≤ rg.2 then h := h.insert (i, k)
   return h
 
+def possibleY (rg : pos) : Std.HashSet (Int) :=
+  Std.HashSet.ofArray ((Array.range (rg.1.natAbs + 1)).map Nat.cast)
+    |>.union <| .ofArray ((Array.range (rg.1.natAbs + 1)).map (- Nat.cast ·))
+
+
+#eval do IO.println <| ← IO.FS.readFile input
+
+def lex (a b : pos) : Bool := a.1 < b.1 || (a.1 == b.1 && a.2 < b.2)
+
 #eval do
-  let dat := inputToPos test
+  let inp := test
+  let inp ← IO.FS.readFile input
+  let dat := inputToPos inp
+  --IO.println s!"\ndata: {dat}\n\n{reaches dat (6, -1)}"
+--#exit
   IO.println s!"data: {dat}\n"
-  IO.println s!"xs: {(possible (dat.1.1, dat.1.2)).toArray.qsort (·.1 < ·.1)}"
-  IO.println s!"ys: {(possible (dat.2.1, dat.2.2)).toArray.qsort (·.1 < ·.1)}"
+  let posX := possibleX (dat.1.1, dat.1.2)
+  let posY := possibleY (dat.2.1, dat.2.2)
+  --IO.println s!"xs: {posX.toArray.qsort (·.1 < ·.1)}\n"
+  --IO.println s!"ys: {posY.toArray.qsort (· < ·)}\n"
+  let mut (incl, disc) : Std.HashSet pos × Std.HashSet pos := default
+  for (x, n) in posX do
+    for y in posY do
+      --let val := if 0 ≤ y then 2 * y * n - (((n - 2 * y) + 1) * (n - 2 * y)) / 2 else y - ((n + 1) * n) / 2
+      if reaches dat (x, y) then --dat.2.1 ≤ val && val ≤ dat.2.2 then
+        incl := incl.insert (x, y)
+      else
+        disc := disc.insert (x, y)
+  IO.println s!"Include: {incl.size}\n"
+  IO.println s!"Discard: {disc.size}\n"
+  --IO.println s!"Include: {incl.size}\n{incl.toArray.qsort lex}\n"
+  --IO.println s!"Discard: {disc.size}\n{disc.toArray.qsort lex}"
+
 
 def visits (p : pos) : Array pos :=
   default
