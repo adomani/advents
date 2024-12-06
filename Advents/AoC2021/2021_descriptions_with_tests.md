@@ -571,13 +571,75 @@ Also, finding the minimum sum, but not also a minimizing path at the same time h
 
 ---
 
+#  [Day 16](https://adventofcode.com/2021/day/16)
+
+A single hexadecimal number, providing instructions to construct a
+</pre>packet".
+
+####  Test
+
+<pre>
+
+####  Test 1
+
+<pre>
+8A004A801A8002F478
+</pre>
+
+####  Test 2
+
+<pre>
+620080001611562C8802118E34
+</pre>
+
+####  Test 3
+
+<pre>
+C0015000016115A2E0802F182340
+</pre>
+
+####  Test 4
+
+<pre>
+A0016C880162017C3686B18A3D4780
+</pre>
+
+### Description
+
+#### Part 1
+
+Decode the
+</pre>packet" and report the sum of the "versions" of the packet itself and
+all its sub-packets.
+
+#### Part 2
+
+Decode the
+</pre>packet" fully, interpret the operations that it encodes and report the result.
+
+[Solution in Lean](day16.lean)
+
+---
+
 #  [Day 17](https://adventofcode.com/2021/day/17)
+
+The input is a rectangular range: we should aim for it!
 
 ####  Test
 
 <pre>
 target area: x=20..30, y=-10..-5
 </pre>
+
+### Description
+
+#### Part 1
+
+Find the highest `y`-coordinate that a probe the passes through the given rectangular range can achieve.
+
+#### Part 2
+
+Now find all the possible initial velocities that allow a probe to reach the rectangular range.
 
 [Solution in Lean](day17.lean)
 
