@@ -59,12 +59,22 @@ def moveN (gm : GuardMoves) : Nat → Std.HashSet pos × Bool
   | 0 => (gm.visited.fold (init := {}) (·.insert ·.1), gm.loop)
   | n + 1 => moveN (move gm) n
 
+variable [Hashable α] [Hashable β] [BEq α] [BEq β] in
+def _root_.Std.HashSet.map (h : Std.HashSet α) (f : α → β) : Std.HashSet β :=
+  h.fold (·.insert <| f ·) {}
 
-def moveUntil (gm : GuardMoves) : Std.HashSet pos × Bool := Id.run do
+def project [Hashable α] [Hashable β] [BEq α] [BEq β] (h : Std.HashSet (α × β)) : Std.HashSet α :=
+  h.map Prod.fst
+
+def moveUntilWithDirs (gm : GuardMoves) : Std.HashSet (pos × pos) × Bool := Id.run do
   let mut gm := gm
   while gm.d != (0, 0) && !gm.loop do
     gm := move gm
-  return (gm.visited.fold (init := {}) (·.insert ·.1), gm.loop)
+  return (gm.visited, gm.loop)
+
+def moveUntil (gm : GuardMoves) : Std.HashSet pos × Bool :=
+  let (p, l) := (moveUntilWithDirs gm)
+  (project p, l)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
@@ -80,9 +90,6 @@ solve 1 5086
 #  Question 2
 -/
 
-def project [Hashable α] [Hashable β] [BEq α] [BEq β] (h : Std.HashSet (α × β)) : Std.HashSet α :=
-  h.fold (·.insert ·.1) {}
-
 def findFirstRepetition (gm : GuardMoves) : Std.HashSet pos := Id.run do
   let S := gm.S
   let mut gm := gm
@@ -96,11 +103,30 @@ def findFirstRepetition (gm : GuardMoves) : Std.HashSet pos := Id.run do
   return (project gm.visited).erase S
 
 set_option linter.unusedVariables false in
+set_option trace.profiler true in
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest
+  let dat ← IO.FS.lines input
   let gm := mkGuardMoves dat
-  let path : Std.HashSet pos := (moveUntil gm).1
+  let mut obsts : Std.HashSet pos := {}
+  let path : Std.HashSet (pos × pos) := (moveUntilWithDirs gm).1
+  IO.println "First path:"
+  draw <| drawSparse (project path) dat.size dat.size
+  for (currP, odir) in path do
+    let newObst := currP + odir
+    if newObst == gm.S then continue
+    if gm.mz.contains newObst then continue
+    --con := con + 1
+  --while ! obsts.isEmpty do
+    let gmo := {gm with mz := gm.mz.insert newObst, S := currP, d := odir}
+    let (fin, loop?) := moveUntil gmo
+    if loop? then
+      obsts := obsts.insert (newObst)
+    --if 1000 ≤ con then IO.println s!"Found {obsts.size} obstacles. I am done!"; return
+  IO.println <| s!"{obsts.size} positions form a loop."
+  draw <| drawSparse obsts dat.size dat.size
+
+#exit
   let path := findFirstRepetition gm
   dbg_trace "path size: {path.size}"
   draw <| drawSparse path dat.size dat.size
@@ -131,7 +157,7 @@ set_option linter.unusedVariables false in
   IO.println <| s!"{obsts.size} positions form a loop."
   draw <| drawSparse obsts dat.size dat.size
   --draw <| drawSparse fin dat.size dat.size
-/-
+--/-
 set_option linter.unusedVariables false in
 set_option trace.profiler true in
 #eval do
@@ -171,7 +197,7 @@ set_option trace.profiler true in
   draw <| drawSparse obsts dat.size dat.size
   --draw <| drawSparse fin dat.size dat.size
 #exit
--/
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
   let gm := mkGuardMoves dat
