@@ -195,6 +195,15 @@ def loadGrid {α} (dat : Array String) (toEntry : Char → α) : Std.HashMap pos
 /-- Converts the input strings into a `HashMap`, assuming that the entries are natural number value. -/
 def loadGridNats (dat : Array String) : Std.HashMap pos Nat := loadGrid dat (String.toNat! ⟨[·]⟩)
 
+def sparseGrid (dat : Array String) (toEntry : Char → Bool) : Std.HashSet pos := Id.run do
+  let mut h := {}
+  for d in [0:dat.size] do
+    let row := dat[d]!
+    for c in [0:row.length] do
+      if toEntry (row.get ⟨c⟩) then
+        h := h.insert (d, c)
+  return h
+
 section meta
 open Lean Elab Command
 
@@ -303,6 +312,18 @@ def drawHash {α} [ToString α] (h : Std.HashMap pos α) (Nx Ny : Nat) : Array S
       match h.get? (i, j) with
         | some d => str := str ++ s!"{d}"
         | none => str := str.push ' '
+    fin := fin.push str
+  return fin
+
+/-- A function to draw `HashMap`s. -/
+def drawSparse (h : Std.HashSet pos) (Nx Ny : Nat) (yes : String := "#") (no : String := "·") : Array String := Id.run do
+  let mut fin := #[]
+  for i in [0:Nx] do
+    let mut str := ""
+    for j in [0:Ny] do
+      match h.get? (i, j) with
+        | some d => str := str ++ yes
+        | none => str := str ++ no
     fin := fin.push str
   return fin
 
