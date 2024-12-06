@@ -29,11 +29,8 @@ def within (a : pos × pos) (p : pos) : Bool :=
 
 def reaches (dat : pos × pos) (a : pos) : Bool := Id.run do
   let mut (s, v) : pos × pos := ((0, 0), a)
-  --let mut con := 0
   while dat.2.1 ≤ s.2 do
-    --con := con + 1
     (s, v) := step s v
-    --dbg_trace "{(s, v)}"
     if within dat s then
       return true
   return false
@@ -58,93 +55,41 @@ def part1 (dat : String) : Nat := Id.run do
 
 #assert part1 test == 45
 
---solve 1 11781 file
+solve 1 11781 file
 
 /-!
 #  Question 2
 -/
 
-def possibleX (rg : pos) : Std.HashSet (Int × Int) := Id.run do
+def possibleX (rg : pos) : Std.HashSet Int := Id.run do
   let mut h := {}
   for i in [0:rg.2.natAbs+1] do
     let mut sum := 0
     for k in [0:i+1] do
       sum := sum + (i - k)
-      if rg.1 ≤ sum && sum ≤ rg.2 then h := h.insert (i, k)
+      if rg.1 ≤ sum && sum ≤ rg.2 then h := h.insert i
   return h
 
 def possibleY (rg : pos) : Std.HashSet (Int) :=
   Std.HashSet.ofArray ((Array.range (rg.1.natAbs + 1)).map Nat.cast)
     |>.union <| .ofArray ((Array.range (rg.1.natAbs + 1)).map (- Nat.cast ·))
 
-
-#eval do IO.println <| ← IO.FS.readFile input
-
-def lex (a b : pos) : Bool := a.1 < b.1 || (a.1 == b.1 && a.2 < b.2)
-
-#eval do
-  let inp := test
-  let inp ← IO.FS.readFile input
-  let dat := inputToPos inp
-  --IO.println s!"\ndata: {dat}\n\n{reaches dat (6, -1)}"
---#exit
-  IO.println s!"data: {dat}\n"
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : String) : Nat := Id.run do
+  let dat := inputToPos dat
   let posX := possibleX (dat.1.1, dat.1.2)
   let posY := possibleY (dat.2.1, dat.2.2)
-  --IO.println s!"xs: {posX.toArray.qsort (·.1 < ·.1)}\n"
-  --IO.println s!"ys: {posY.toArray.qsort (· < ·)}\n"
   let mut (incl, disc) : Std.HashSet pos × Std.HashSet pos := default
-  for (x, n) in posX do
+  for x in posX do
     for y in posY do
-      --let val := if 0 ≤ y then 2 * y * n - (((n - 2 * y) + 1) * (n - 2 * y)) / 2 else y - ((n + 1) * n) / 2
-      if reaches dat (x, y) then --dat.2.1 ≤ val && val ≤ dat.2.2 then
+      if reaches dat (x, y) then
         incl := incl.insert (x, y)
       else
         disc := disc.insert (x, y)
-  IO.println s!"Include: {incl.size}\n"
-  IO.println s!"Discard: {disc.size}\n"
-  --IO.println s!"Include: {incl.size}\n{incl.toArray.qsort lex}\n"
-  --IO.println s!"Discard: {disc.size}\n{disc.toArray.qsort lex}"
+  incl.size
 
+#assert part2 test == 112
 
-def visits (p : pos) : Array pos :=
-  default
-
-#eval do
-  let dat := test
-  let rg@(rx, ry) := inputToPos dat
-  let (s, v) : pos × pos := ((0, 0), (7, 2))
-  let tsts := #[(7, 2), (6, 3), (9, 0), (17, -4)]
-  for t in tsts do
-    if reaches rg t then
-      IO.println <| t
-
-#eval do
-  let dat := test
-  let dat ← IO.FS.readFile input
-  let rg@(rx, ry) := inputToPos dat
-  let ((mx, Mx), (my, My)) := mkRange rg
-  --let mut may := 0
-  for y1 in [0:(My - my).natAbs] do
-    let y := My - y1
-    for x1 in [0:(Mx - mx).natAbs] do
-      let x := x1 + mx
-      let t := (x, y)
-      if reaches rg t then
-        dbg_trace (y.natAbs + 1).binom 2
-        return
-        --IO.println <| t
-  --dbg_trace (may.natAbs + 1).binom 2
-
-
-
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---solve 2
+solve 2 4531 file
 
 end Day17
