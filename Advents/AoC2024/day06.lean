@@ -108,20 +108,26 @@ set_option trace.profiler true in
   let dat := atest
   let dat ← IO.FS.lines input
   let gm := mkGuardMoves dat
+  let mut tried : Std.HashSet pos := gm.mz.insert gm.S
+  let mut soFar := gm
   let mut obsts : Std.HashSet pos := {}
   let path : Std.HashSet (pos × pos) := (moveUntilWithDirs gm).1
   IO.println "First path:"
   draw <| drawSparse (project path) dat.size dat.size
-  for (currP, odir) in path do
+  while soFar.d != (0, 0) do
+    soFar := move soFar
+  --for (currP, odir) in path do
+    let (currP, odir) := (soFar.S, soFar.d)
     let newObst := currP + odir
-    if newObst == gm.S then continue
-    if gm.mz.contains newObst then continue
+    --if newObst == gm.S then continue
+    if tried.contains newObst then continue
     --con := con + 1
   --while ! obsts.isEmpty do
-    let gmo := {gm with mz := gm.mz.insert newObst, S := currP, d := odir}
+    let gmo := {soFar with mz := gm.mz.insert newObst}
     let (fin, loop?) := moveUntil gmo
     if loop? then
       obsts := obsts.insert (newObst)
+    else tried := tried.insert newObst
     --if 1000 ≤ con then IO.println s!"Found {obsts.size} obstacles. I am done!"; return
   IO.println <| s!"{obsts.size} positions form a loop."
   draw <| drawSparse obsts dat.size dat.size
