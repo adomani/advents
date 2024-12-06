@@ -13,20 +13,29 @@ def input : System.FilePath := "Advents/AoC2021/day17.input"
 /-- `test` is the test string for the problem. -/
 def test := "target area: x=20..30, y=-10..-5"
 
+/--
+Convert the input string into the `pos`, each representing an interval:
+* the first for the `x` coordinate,
+* the second for the `y` coordinate.
+-/
 def inputToPos (s : String) : pos × pos :=
   match s.getInts with
     | [x1, x2, y1, y2] => ((x1, x2), (y1, y2))
     | _ => panic! "Improperly parsed input!"
 
+/-- Converts a position and velocity to what they become after each step. -/
 def step (p v : pos) : pos × pos :=
-  let p := p + v
-  let v := (v.1 - v.1.sign, v.2 - 1)
-  (p, v)
+  (p + v, (v.1 - v.1.sign, v.2 - 1))
 
+/-- Checks that the input position `p` is inside the rectangular range specified by `a`. -/
 def within (a : pos × pos) (p : pos) : Bool :=
   a.1.1 ≤ p.1 && p.1 ≤ a.1.2 &&
   a.2.1 ≤ p.2 && p.2 ≤ a.2.2
 
+/--
+`reaches dat a` returns `true` if and only if starting from `(0, 0)` and aiming in
+direction `a`, the probe reaches the rectangular range `dat`.
+-/
 def reaches (dat : pos × pos) (a : pos) : Bool := Id.run do
   let mut (s, v) : pos × pos := ((0, 0), a)
   while dat.2.1 ≤ s.2 do
@@ -35,6 +44,7 @@ def reaches (dat : pos × pos) (a : pos) : Bool := Id.run do
       return true
   return false
 
+/-- Constructs the range of the possible velocities for part 1. -/
 def mkRange (a : pos × pos) : pos × pos :=
   let ((mx, Mx), my, _My) := a
   ((mx.natAbs.sqrt - 1, Mx), (my, - my))
@@ -61,6 +71,7 @@ solve 1 11781 file
 #  Question 2
 -/
 
+/-- The possible first components of a velocity that reaches the `x`-range `rg`. -/
 def possibleX (rg : pos) : Std.HashSet Int := Id.run do
   let mut h := {}
   for i in [0:rg.2.natAbs+1] do
@@ -70,6 +81,7 @@ def possibleX (rg : pos) : Std.HashSet Int := Id.run do
       if rg.1 ≤ sum && sum ≤ rg.2 then h := h.insert i
   return h
 
+/-- A crude bound on the second component of a velocity that reaches the `y`-range `rg`. -/
 def possibleY (rg : pos) : Std.HashSet (Int) :=
   Std.HashSet.ofArray ((Array.range (rg.1.natAbs + 1)).map Nat.cast)
     |>.union <| .ofArray ((Array.range (rg.1.natAbs + 1)).map (- Nat.cast ·))
