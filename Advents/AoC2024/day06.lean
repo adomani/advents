@@ -125,7 +125,7 @@ set_option trace.profiler true in
     let gmo := {gm with mz := gm.mz.insert newObst}
     let (fin, loop?) := moveUntil gmo
     if loop? then
-      obsts := obsts.insert (newObst)
+      obsts := obsts.insert newObst
     tried := tried.insert newObst
     --if 1000 ≤ con then IO.println s!"Found {obsts.size} obstacles. I am done!"; return
   IO.println <| s!"{obsts.size} positions form a loop."
