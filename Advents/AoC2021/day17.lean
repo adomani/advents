@@ -10,15 +10,8 @@ def input : System.FilePath := "Advents/AoC2021/day17.input"
 #  Question 1
 -/
 
-#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the test string for the problem. -/
 def test := "target area: x=20..30, y=-10..-5"
-
-/-- `atest` is the test string for the problem, split into rows. -/
-def atest := (test.splitOn "\n").toArray
-
-#eval test.getInts
 
 def inputToPos (s : String) : pos × pos :=
   match s.getInts with
@@ -47,13 +40,33 @@ def reaches (dat : pos × pos) (a : pos) : Bool := Id.run do
     con := con + 1
     (s, v) := step s v
     if within dat s then
-      --dbg_trace "{con}"
       return true
   return false
-  --let (s, v) := (List.range 8).foldl (init := (s, v)) fun (s, v) i =>
-  --  let st := if within rg s then "*" else ""
-  --  dbg_trace "{i}:{st} {s}, {v}"; step s v
-  --IO.println (s, v)
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : String) : Nat := Id.run do
+  let rg := inputToPos dat
+  let ((mx, Mx), (my, My)) := mkRange rg
+  for y1 in [0:(My - my).natAbs] do
+    let y := My - y1
+    for x1 in [0:(Mx - mx).natAbs] do
+      let x := x1 + mx
+      let t := (x, y)
+      if reaches rg t then
+        return (y.natAbs + 1).binom 2
+      else continue
+  return 0
+
+#assert part1 test == 45
+
+solve 1 11781 file
+
+/-!
+#  Question 2
+-/
+
+def visits (p : pos) : Array pos :=
+  default
 
 #eval do
   let dat := test
@@ -82,22 +95,7 @@ def reaches (dat : pos × pos) (a : pos) : Bool := Id.run do
   --dbg_trace (may.natAbs + 1).binom 2
 
 
-def visits (p : pos) : Array pos :=
-  default
 
-
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
