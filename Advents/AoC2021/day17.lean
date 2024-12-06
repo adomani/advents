@@ -65,6 +65,21 @@ solve 1 11781 file
 #  Question 2
 -/
 
+def possible (rg : pos) : Std.HashSet (Int × Int) := Id.run do
+  let mut h := {}
+  for i in [0:rg.2.natAbs] do
+    let mut sum := 0
+    for k in [0:i] do
+      sum := sum + (i - k)
+      if rg.1 ≤ sum && sum ≤ rg.2 then h := h.insert (i, k)
+  return h
+
+#eval do
+  let dat := inputToPos test
+  IO.println s!"data: {dat}\n"
+  IO.println s!"xs: {(possible (dat.1.1, dat.1.2)).toArray.qsort (·.1 < ·.1)}"
+  IO.println s!"ys: {(possible (dat.2.1, dat.2.2)).toArray.qsort (·.1 < ·.1)}"
+
 def visits (p : pos) : Array pos :=
   default
 
