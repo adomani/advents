@@ -570,3 +570,15 @@ Also, finding the minimum sum, but not also a minimizing path at the same time h
 [Solution in Lean](day15.lean)
 
 ---
+
+#  [Day 17](https://adventofcode.com/2021/day/17)
+
+####  Test
+
+<pre>
+target area: x=20..30, y=-10..-5
+</pre>
+
+[Solution in Lean](day17.lean)
+
+---
