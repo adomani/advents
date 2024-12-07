@@ -222,3 +222,41 @@ For the second part, we should find all positions on the grid such that placing 
 [Solution in Lean](day06.lean)
 
 ---
+
+#  [Day 7](https://adventofcode.com/2024/day/7)
+
+Lists of total and possible operands, but missing operations!
+
+####  Test
+
+<pre>
+190: 10 19
+3267: 81 40 27
+83: 17 5
+156: 15 6
+7290: 6 8 6 15
+161011: 16 10 13
+192: 17 8 14
+21037: 9 7 18 13
+292: 11 6 16 20
+</pre>
+
+### Description
+
+#### Part 1
+
+Each row starts with a
+</pre>target" value and a list of possible summands.
+Inserting `*` and `+` in all possible ways (and *always* associate to the left),
+sum the values of the rows that *can* represent a correct operation, with an appropriate
+choice of `*` and `+`.
+
+#### Part 2
+
+Similar to part 1, except that there is a third operation that is allowed:
+concatenation of natural numbers, written in decimal.
+This extra operation maps `12` and `345` to `12345`.
+
+[Solution in Lean](day07.lean)
+
+---

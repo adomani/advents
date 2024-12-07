@@ -92,3 +92,20 @@ The first question is to determine how many locations on the map the guard occup
 #### Part 2
 
 For the second part, we should find all positions on the grid such that placing one further an obstacle in that position, makes the guard enter into a loop.
+-- Day 7
+Lists of total and possible operands, but missing operations!
+
+### Description
+
+#### Part 1
+
+Each row starts with a "target" value and a list of possible summands.
+Inserting `*` and `+` in all possible ways (and *always* associate to the left),
+sum the values of the rows that *can* represent a correct operation, with an appropriate
+choice of `*` and `+`.
+
+#### Part 2
+
+Similar to part 1, except that there is a third operation that is allowed:
+concatenation of natural numbers, written in decimal.
+This extra operation maps `12` and `345` to `12345`.
