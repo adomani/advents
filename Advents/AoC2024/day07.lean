@@ -24,6 +24,12 @@ def test := "190: 10 19
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+Replaces the entries of the `HashSet` `h` by the result of applying each operation in `ops`
+to each element of `h` and the new element `n`.
+Since in our situation all operations are increasing, we only extend the `HashSet` if we obtain
+a value that does not exceed the maximum target `t`.
+-/
 def totalsWithOpsOne (t : Nat) (h : Std.HashSet Nat) (n : Nat) (ops : Array (Nat → Nat → Nat)) :
     Std.HashSet Nat := Id.run do
   let mut j := {}
@@ -33,11 +39,12 @@ def totalsWithOpsOne (t : Nat) (h : Std.HashSet Nat) (n : Nat) (ops : Array (Nat
       if oqn ≤ t then j := j.insert oqn
   return j
 
+/--
+Scan the entries of `ns`, accumulating the applications of the operations in `ops`,
+making sure that the result does not exceed `t`.
+-/
 def totalsWithOps (t : Nat) (ns : List Nat) (ops : Array (Nat → Nat → Nat)) : Std.HashSet Nat :=
   (ns.drop 1).foldl (totalsWithOpsOne t · · ops) {ns[0]!}
-
-def totalsWithOps? (t : Nat) (ns : List Nat) (ops : Array (Nat → Nat → Nat)) : Bool :=
-  (totalsWithOps t ns ops).contains t
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
@@ -46,7 +53,7 @@ def part1 (dat : Array String) : Nat :=
     let tot := ns[0]!
     let ns := ns.drop 1
     if ns.prod < tot then M else
-    if totalsWithOps? tot ns #[(· * ·), (· + ·)] then
+    if (totalsWithOps tot ns #[(· * ·), (· + ·)]).contains tot then
       M + tot
     else M
 
@@ -58,6 +65,11 @@ solve 1 5540634308362
 #  Question 2
 -/
 
+/--
+The concatenation operation on decimal digits of natural numbers.
+
+For instance, `cat 12 345 = 12345`.
+-/
 def cat (n m : Nat) : Nat := n * 10 ^ (Nat.toDigits 10 m).length + m
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
@@ -66,7 +78,7 @@ def part2 (dat : Array String) : Nat :=
   data.foldl (init := 0) fun M ns =>
     let tot := ns[0]!
     let ns := ns.drop 1
-    if totalsWithOps? tot ns #[cat, (· * ·), (· + ·)] then
+    if (totalsWithOps tot ns #[cat, (· * ·), (· + ·)]).contains tot then
       M + tot
     else M
 
@@ -74,6 +86,6 @@ set_option trace.profiler true
 
 #assert part2 atest == 11387
 
---solve 2 472290821152397
+solve 2 472290821152397
 
 end Day07
