@@ -61,23 +61,19 @@ solve 1 5540634308362
 def cat (n m : Nat) : Nat := n * 10 ^ (Nat.toDigits 10 m).length + m
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := Id.run do
-  let mut M := 0
-  for a in dat do
-    let ns := a.getNats
+def part2 (dat : Array String) : Nat :=
+  let data := dat.map (·.getNats)
+  data.foldl (init := 0) fun M ns =>
     let tot := ns[0]!
     let ns := ns.drop 1
-    if totalsWithOps? tot ns #[(· + ·), (· * ·)] then
-      M := M + tot
-    else
     if totalsWithOps? tot ns #[cat, (· * ·), (· + ·)] then
-        M := M + tot
-  M
-#exit
+      M + tot
+    else M
+
 set_option trace.profiler true
 
 #assert part2 atest == 11387
 
-solve 2 472290821152397
+--solve 2 472290821152397
 
 end Day07
