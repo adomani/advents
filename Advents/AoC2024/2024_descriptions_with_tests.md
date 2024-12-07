@@ -174,7 +174,7 @@ Checking whether some pages are correctly sorted.
 ### Description
 
 The input begins with a list of pairs of natural numbers, in the form `n1|n2`, representing the correct ordering that the pages should have.
-It then continues with a list of actual orders of pages, in the form `p₁,p₂ₙ,...,pₙ`.
+It then continues with a list of actual orders of pages, in the form `p₁,p₂,...,pₙ`.
 
 #### Part 1
 
@@ -185,5 +185,25 @@ Add the number of pages that appear in the middle of each *correctly ordered* li
 Add the number of pages that appear in the middle of each *incorrectly ordered* list of pages.
 
 [Solution in Lean](day05.lean)
+
+---
+
+#  [Day 7](https://adventofcode.com/2024/day/7)
+
+####  Test
+
+<pre>
+190: 10 19
+3267: 81 40 27
+83: 17 5
+156: 15 6
+7290: 6 8 6 15
+161011: 16 10 13
+192: 17 8 14
+21037: 9 7 18 13
+292: 11 6 16 20
+</pre>
+
+[Solution in Lean](day07.lean)
 
 ---
