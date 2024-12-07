@@ -188,7 +188,44 @@ Add the number of pages that appear in the middle of each *incorrectly ordered* 
 
 ---
 
+#  [Day 6](https://adventofcode.com/2024/day/6)
+
+The input is a map with locations of obstacles and the location of a guard.
+
+####  Test
+
+<pre>
+....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...
+</pre>
+
+### Description
+
+#### Part 1
+
+The guard moves in a fixed direction, until it reaches an obstacle.
+At that point, it rotates by 90⁰ clockwise and continues.
+The first question is to determine how many locations on the map the guard occupies, before exiting the map.
+
+#### Part 2
+
+For the second part, we should find all positions on the grid such that placing one further an obstacle in that position, makes the guard enter into a loop.
+
+[Solution in Lean](day06.lean)
+
+---
+
 #  [Day 7](https://adventofcode.com/2024/day/7)
+
+Lists of total and possible operands, but missing operations!
 
 ####  Test
 
@@ -203,6 +240,22 @@ Add the number of pages that appear in the middle of each *incorrectly ordered* 
 21037: 9 7 18 13
 292: 11 6 16 20
 </pre>
+
+### Description
+
+#### Part 1
+
+Each row starts with a
+</pre>target" value and a list of possible summands.
+Inserting `*` and `+` in all possible ways (and *always* associate to the left),
+sum the values of the rows that *can* represent a correct operation, with an appropriate
+choice of `*` and `+`.
+
+#### Part 2
+
+Similar to part 1, except that there is a third operation that is allowed:
+concatenation of natural numbers, written in decimal.
+This extra operation maps `12` and `345` to `12345`.
 
 [Solution in Lean](day07.lean)
 
