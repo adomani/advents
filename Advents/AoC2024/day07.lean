@@ -53,8 +53,8 @@ def part1 (dat : Array String) : Nat :=
     let tot := ns[0]!
     let ns := ns.drop 1
     if ns.prod < tot then M else
-    if (totalsWithOps tot ns #[(· * ·), (· + ·)]).contains tot then
-      M + tot
+    if (totalsWithOps tot ns #[(· * ·), (· + ·)]).contains tot
+    then M + tot
     else M
 
 #assert part1 atest == 3749
@@ -78,8 +78,12 @@ def part2 (dat : Array String) : Nat :=
   data.foldl (init := 0) fun M ns =>
     let tot := ns[0]!
     let ns := ns.drop 1
-    if (totalsWithOps tot ns #[cat, (· * ·), (· + ·)]).contains tot then
-      M + tot
+    -- the earlier test speeds up overall, even with the repeated computations
+    if (totalsWithOps tot ns #[(· * ·), (· + ·)]).contains tot
+    then M + tot
+    else
+    if (totalsWithOps tot ns #[cat, (· * ·), (· + ·)]).contains tot
+    then M + tot
     else M
 
 set_option trace.profiler true
