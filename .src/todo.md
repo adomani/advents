@@ -17,3 +17,7 @@
 * Day 23, part 2
 * Day 24, fix part 2 example?
 * Day 25, use Lean
+
+### 2024
+
+* Day 6, part 2 is slow
