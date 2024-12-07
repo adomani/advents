@@ -32,51 +32,103 @@ def applyList : List (Nat → Nat → Nat) → List Nat → Nat
   | [o], [a, b] => o a b
   | o::os, a::b::cs => applyList os (o a b :: cs)
   ---| [], [a] => a
-  | [], s@(_::_::_) => panic s!"Ran out of operations {s}"
+  | [], s@(_::_::_) => 0 --panic s!"Ran out of operations {s}"
   --| [_], [a] => a
   --| [], _ => 0
 --#check Perm
 
 #eval applyList [(·+·), (·*·), (·*·), (·*·)] [0, 2, 3]
 
-def toBin' : Nat → Nat → Array Nat
+def toBin : Nat → Nat → Array Nat
   | 0, _ => #[]
   | sz + 1, n =>
     if 2 ^ (sz + 1) ≤ n then #[] else
     if n ≤ 1 then (List.replicate (sz + 1) 0).toArray.push n else
-      if n < 2 ^ (sz) then #[0] ++ toBin' (sz) n
-      else  #[1] ++ toBin' (sz - 1) (n - 2 ^ (sz))
+      if n < 2 ^ (sz) then #[0] ++ toBin (sz) n
+      else  #[1] ++ toBin (sz - 1) (n - 2 ^ (sz))
 
 
+def toBin1 : Nat → Array (List (Nat → Nat → Nat))
+  | 0 => #[]
+  | sz + 1 =>
+    (toBin1 sz).foldl (fun os _ => (os.map ((· + ·)::·)) ++ (os.map ((· * ·)::·))) #[[]]
+
+--#exit
 partial
-def toBin (sz n : Nat) : Array Nat :=
+def toBin' (sz n : Nat) : Array Nat :=
   if 2^sz ≤ n then #[] else
   if n ≤ 1 then (List.replicate sz 0).toArray.push n else
-    if n < 2^(sz-1) then #[0] ++ toBin (sz - 1) n
-    else  #[1] ++ toBin (sz - 1) (n - 2^(sz-1))
+    if n < 2^(sz-1) then #[0] ++ toBin' (sz - 1) n
+    else  #[1] ++ toBin' (sz - 1) (n - 2^(sz-1))
+
+def tots1 (t : Nat) (h : Std.HashSet Nat) (n : Nat) : Std.HashSet Nat := Id.run do
+  let mut j := {}
+  for q in h do
+    let aqn := q + n
+    let mqn := q * n
+    if aqn ≤ t then j := j.insert aqn
+    if mqn ≤ t then j := j.insert mqn
+  return j
+
+def tots (t : Nat) (ns : List Nat) : Std.HashSet Nat := Id.run do
+  let mut j := {ns[0]!}
+  for n in ns.drop 1 do
+    j := tots1 t j n
+  return j
+
+def tots? (t : Nat) (ns : List Nat) : Bool := (tots t ns).contains t
+
+--def tots (t : Nat) (ns : List Nat) : Bool := Id.run do
+--  let mut tallies := #[ns[0]!]
+--  let not := Id.run do
+--    for n in ns.drop 1 do
+--      tallies.map fun q =>
+--        let aqn := q + n
+--        let mqn := q * n
+--        if qn ≤ t then mqn else none
+--      tallies := tallies.filterMap fun q => let qn := q * n; if qn ≤ t then some qn else none
+--  return tallies.any (· == t)
+
+#eval do
+  let mut M := 0
+  let dat := atest
+  let dat ← IO.FS.lines input
+  for a in dat do
+    let ns := a.getNats
+    let tot := ns[0]!
+    let ns := ns.drop 1
+    if tots? tot ns then
+      M := M + tot
+      --dbg_trace "{tot}: {(tots tot ns).toList}"
+  dbg_trace M
+
+
+#exit
+
+#eval (toBin1 3).map (·.length)
+#eval (toBin1 2)[0]![0]! 1 1
 
 #eval toBin' 5  1
 #eval toBin  5  1
 #eval toBin  5 10
 #eval toBin' 5 10
+-- 5482452214569 -- too low
 -- 5510497716043 wrong
-#check BitVec
+-- 5540634308362
+-- 5540634308465 -- too high
+--#exit
 #eval do
   let dat ← IO.FS.lines input
-  let dat := [atest[]!]
-  let ops : Array (Nat → Nat → Nat) := #[(· + ·), (· * ·)]
+  let dat := atest --[atest[]!]
+  --let ops : Array (Nat → Nat → Nat) := #[(· + ·), (· * ·)]
   --let mut hop : Std.HashSet (List Nat) := {}
-  let mut hops : Array (List (Nat → Nat → Nat)) := #[]
-  for i in [0:2^12] do
-    let mut con := []
-    for j in toBin 13 i do
-      con := ops[j]!::con
-    hops := hops.push con
+  let hops : Array (List (Nat → Nat → Nat)) := toBin1 4 --#[]
+  --for i in [0:2^12] do
+  --  let mut con := []
+  --  for j in toBin 13 i do
+  --    con := ops[j]!::con
+  --  hops := hops.push con
 
-  --for i in BitVec 1 do
-  --  IO.println i
-  --for x in Bool × Bool do
-  --  IO.println x
   let mut correct := 0
   let mut con := false
   for a in dat do
@@ -84,12 +136,12 @@ def toBin (sz n : Nat) : Array Nat :=
     let ns := a.getNats
     let tot := ns[0]!
     let ns := ns.drop 1
-    dbg_trace (tot, ns)
+    --dbg_trace (tot, ns)
 
     for o in hops do
-      dbg_trace o.length
+      --dbg_trace o.length
       if !con then
-        dbg_trace o.map fun op : Nat → Nat → Nat => (op 1 1 == 2)
+        --dbg_trace o.map fun op : Nat → Nat → Nat => (op 1 1 == 2)
         if applyList o ns == tot then
           correct := correct + tot
           con := true
