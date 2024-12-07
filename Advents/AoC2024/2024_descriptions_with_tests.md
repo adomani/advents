@@ -174,7 +174,7 @@ Checking whether some pages are correctly sorted.
 ### Description
 
 The input begins with a list of pairs of natural numbers, in the form `n1|n2`, representing the correct ordering that the pages should have.
-It then continues with a list of actual orders of pages, in the form `p₁,p₂ₙ,...,pₙ`.
+It then continues with a list of actual orders of pages, in the form `p₁,p₂,...,pₙ`.
 
 #### Part 1
 
@@ -185,5 +185,40 @@ Add the number of pages that appear in the middle of each *correctly ordered* li
 Add the number of pages that appear in the middle of each *incorrectly ordered* list of pages.
 
 [Solution in Lean](day05.lean)
+
+---
+
+#  [Day 6](https://adventofcode.com/2024/day/6)
+
+The input is a map with locations of obstacles and the location of a guard.
+
+####  Test
+
+<pre>
+....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...
+</pre>
+
+### Description
+
+#### Part 1
+
+The guard moves in a fixed direction, until it reaches an obstacle.
+At that point, it rotates by 90⁰ clockwise and continues.
+The first question is to determine how many locations on the map the guard occupies, before exiting the map.
+
+#### Part 2
+
+For the second part, we should find all positions on the grid such that placing one further an obstacle in that position, makes the guard enter into a loop.
+
+[Solution in Lean](day06.lean)
 
 ---
