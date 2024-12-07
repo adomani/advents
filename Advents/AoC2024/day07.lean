@@ -61,13 +61,17 @@ def toBin' (sz n : Nat) : Array Nat :=
     if n < 2^(sz-1) then #[0] ++ toBin' (sz - 1) n
     else  #[1] ++ toBin' (sz - 1) (n - 2^(sz-1))
 
+def cat (n m : Nat) : Nat := n * 10 ^ (Nat.toDigits 10 m).length + m
+
 def tots1 (t : Nat) (h : Std.HashSet Nat) (n : Nat) : Std.HashSet Nat := Id.run do
   let mut j := {}
   for q in h do
     let aqn := q + n
-    let mqn := q * n
     if aqn ≤ t then j := j.insert aqn
+    let mqn := q * n
     if mqn ≤ t then j := j.insert mqn
+    let cqn := cat q n
+    if cqn ≤ t then j := j.insert cqn
   return j
 
 def tots (t : Nat) (ns : List Nat) : Std.HashSet Nat := Id.run do
