@@ -35,16 +35,24 @@ The state for the grid.
 * `mz` is the location of the obstacles.
 * `S` is the current location of the guard.
 * `d` is the current direction of the guard.
+* `visited` is the record of all the pairs position-direction through which the guard passed.
 * `bd` is the "boundary": it is the location of every point in the grid and it is used to find
   out when the guard leaves it.
 * `loop` records whether the guard is known to be in a loop.
 -/
 structure GuardMoves where
+  /-- `mz` is the location of the obstacles. -/
   mz : Std.HashSet pos
+  /-- `S` is the current location of the guard. -/
   S  : pos
+  /-- `d` is the current direction of the guard. .-/
   d  : pos
+  /-- `visited` is the record of all the pairs position-direction through which the guard passed. -/
   visited : Std.HashSet (pos × pos)
+  /-- `bd` is the "boundary": it is the location of every point in the grid and
+  it is used to find out when the guard leaves it. -/
   bd : Std.HashSet pos
+  /-- `loop` records whether the guard is known to be in a loop.-/
   loop : Bool := false
   deriving Inhabited
 
@@ -96,98 +104,6 @@ solve 1 5086
 #  Question 2
 -/
 
-def project [Hashable α] [Hashable β] [BEq α] [BEq β] (h : Std.HashSet (α × β)) : Std.HashSet α :=
-  h.fold (·.insert ·.1) {}
-
-def findFirstRepetition (gm : GuardMoves) : Std.HashSet pos := Id.run do
-  let S := gm.S
-  let mut gm := gm
-  --let mut oldPos := project gm.visited
-  let mut cond := true
-  while cond do
-    let sz := (project gm.visited).size
-    let oldDir := gm.d
-    gm := move gm
-    cond := sz != (project gm.visited).size || oldDir != gm.d || gm.S == S
-  return (project gm.visited).erase S
-
-set_option linter.unusedVariables false in
-#eval do
-  let dat ← IO.FS.lines input
-  let dat := atest
-  let gm := mkGuardMoves dat
-  let path : Std.HashSet pos := (moveUntil gm).1
-  let path := findFirstRepetition gm
-  dbg_trace "path size: {path.size}"
-  draw <| drawSparse path dat.size dat.size
-  let mut obsts : Std.HashSet pos := {}
-  let mut con := 0
-  let pos := (121, 0)
-  let gmo := {gm with mz := gm.mz.insert pos}
-  let (fin, lp) := moveUntil gmo
-  let steps := 5683
-  draw <| drawSparse fin dat.size dat.size
-  --draw <| drawSparse (moveN gmo steps).1 dat.size dat.size
-  IO.println fin.size
-  --draw <| drawSparse fin dat.size dat.size
-  dbg_trace "{pos} is in maze: {gm.bd.contains pos}"
-  dbg_trace "{pos} is in path: {path.contains pos}"
-  --IO.println s!"{(path.filter (! (gm.mz).contains ·)).toArray.qsort (fun a b => a.1 < b.1 || a.1 == b.1 && a.2 < b.2) == path.toArray.qsort (fun a b => a.1 < b.1 || a.1 == b.1 && a.2 < b.2)}"
---#exit
-
-  for obst in path do
-    if obst == gm.S then continue
-    con := con + 1
-  --while ! obsts.isEmpty do
-    let gmo := {gm with mz := gm.mz.insert obst}
-    let (fin, loop?) := moveUntil gmo
-    if loop? then
-      obsts := obsts.insert obst
-    --if 1000 ≤ con then IO.println s!"Found {obsts.size} obstacles. I am done!"; return
-  IO.println <| s!"{obsts.size} positions form a loop."
-  draw <| drawSparse obsts dat.size dat.size
-  --draw <| drawSparse fin dat.size dat.size
-/-
-set_option linter.unusedVariables false in
-set_option trace.profiler true in
-#eval do
-  let dat := atest
-  let dat ← IO.FS.lines input
-  let gm := mkGuardMoves dat
-  let path : Std.HashSet pos := (moveUntil gm).1
-  let path := findFirstRepetition gm
-  dbg_trace "path size: {path.size}"
-#exit
-  draw <| drawSparse path dat.size dat.size
-  let mut obsts : Std.HashSet pos := {}
-  let mut con := 0
-  let pos := (121, 0)
-  let gmo := {gm with mz := gm.mz.insert pos}
-  let (fin, lp) := moveUntil gmo
-  let steps := 5683
-  draw <| drawSparse fin dat.size dat.size
-  --draw <| drawSparse (moveN gmo steps).1 dat.size dat.size
-  IO.println fin.size
-  --draw <| drawSparse fin dat.size dat.size
-  dbg_trace "{pos} is in maze: {gm.bd.contains pos}"
-  dbg_trace "{pos} is in path: {path.contains pos}"
-  --IO.println s!"{(path.filter (! (gm.mz).contains ·)).toArray.qsort (fun a b => a.1 < b.1 || a.1 == b.1 && a.2 < b.2) == path.toArray.qsort (fun a b => a.1 < b.1 || a.1 == b.1 && a.2 < b.2)}"
---#exit
-
-  for obst in path do
-    if obst == gm.S then continue
-    con := con + 1
-  --while ! obsts.isEmpty do
-    let gmo := {gm with mz := gm.mz.insert obst}
-    let (fin, loop?) := moveUntil gmo
-    if loop? then
-      obsts := obsts.insert obst
-    --if 1000 ≤ con then IO.println s!"Found {obsts.size} obstacles. I am done!"; return
-  IO.println <| s!"{obsts.size} positions form a loop."
-  draw <| drawSparse obsts dat.size dat.size
-  --draw <| drawSparse fin dat.size dat.size
-#exit
--/
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
   let gm := mkGuardMoves dat
