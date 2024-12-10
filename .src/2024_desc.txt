@@ -109,3 +109,20 @@ choice of `*` and `+`.
 Similar to part 1, except that there is a third operation that is allowed:
 concatenation of natural numbers, written in decimal.
 This extra operation maps `12` and `345` to `12345`.
+-- Day 8
+Find the resonant harmonics in a grid of antenna locations.
+
+### Description
+
+#### Part 1
+
+The input consists of a map with the positions of antennas.
+For each pair `(p, q)` of locations of distinct antennas of the same kind,
+we determine the location `p + (p - q)` of a resonant antinode.
+We count how many such resonant antinodes there are that are contained in the initial grid.
+
+#### Part 2
+
+Similar to part 1, except that instead of just the location `p + (p - q)`, we want to count all
+locations `p + n * (p - q)`, for all `n ≠ 0`, again only counting the positions that end up in the
+initial grid.
