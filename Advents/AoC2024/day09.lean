@@ -100,6 +100,22 @@ def tallyTot (tot : Array (Nat × Nat)) : Nat :=
     --let (id) := rtot[v]!
     arr + v * rtot[v]!
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : String) : Nat := Id.run do
+  let mut DM := mkDiskMap dat
+  let mut i := 0
+  while DM.s < DM.t do --for i in [0:3] do
+    i := i + 1
+    DM := collapse DM
+  tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot
+
+#assert part1 test == 1928
+
+solve 1 6435922584968 file
+
+/-!
+#  Question 2
+-/
 
 #eval do
   let dat := "12345"
@@ -115,22 +131,7 @@ def tallyTot (tot : Array (Nat × Nat)) : Nat :=
     --IO.println DM
   IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot
   IO.println DM
-/-!
--/
--- 12886040313
--- 6434168891852 -- too low
--- 6435922584968
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
 
---#assert part1 atest == ???
-
---solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
