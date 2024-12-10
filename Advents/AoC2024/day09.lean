@@ -40,8 +40,8 @@ structure DiskMap where
 
 def mkDiskMap (i : String) : DiskMap where
   posAndIDs :=
-    let (_, _, pids) : Nat × Nat × _ := i.trim.toList.foldl (init := (0, 0, {}))
-      fun (sz, free?, ps) c =>
+    let (_, _, _, pids) : Nat × Nat × Nat × _ := i.trim.toList.foldl (init := (0, 0, 0, {}))
+      fun (seq, sz, free?, ps) c =>
         let lth := ("".push c).toNat!
         let sz' := sz + lth
         let blocks : ff := {
@@ -49,7 +49,7 @@ def mkDiskMap (i : String) : DiskMap where
           id := if free? % 2 == 1 then none else some (free? / 2)
           length := lth
         }
-        (sz', free? + 1, ps.insertIfNew sz' blocks)
+        (seq + 1, sz', free? + 1, ps.insertIfNew seq blocks)
     pids
   s := 1
   t := i.trim.length - 1
@@ -58,8 +58,8 @@ def mkDiskMap (i : String) : DiskMap where
 instance : ToString DiskMap where
   toString dm := String.intercalate "\n" <|
     ((dm.posAndIDs.toArray.qsort (·.1 < ·.1)).toList.map
-      fun d => s!"start: {d.1}, length: {d.2.1}, ID: {d.2.2}") ++
-    ["", s!"(s, t) = {(dm.s, dm.t)}", s!"{dm.tot}"]
+      fun (d, ff) => s!"seq: {d}, start: {ff.pos}, length: {ff.length}, ID: {ff.id}") ++
+    ["", s!"(s, t) = {(dm.s, dm.t)}", s!"tot: {dm.tot}", "---"]
 
 def collapse (dm : DiskMap) : DiskMap := Id.run do
   let mut mp := dm.posAndIDs
@@ -68,37 +68,53 @@ def collapse (dm : DiskMap) : DiskMap := Id.run do
   let mut s := dm.s
   let mut t := dm.t
   match dm.posAndIDs.get? dm.s, dm.posAndIDs.get? dm.t with
-    | none, _ | _, none | some (_, some _), _ | _, some (_, none) =>
+    | none, _ | _, none | some ({id := some _, ..}), _ | _, some ({id := none, ..}) =>
       panic s!"{dm.s} and {dm.t} should be in range!"
-    | some (lFree, none), some (lFile, some id) =>
-      let diff := (lFree - lFile) + (lFile - lFree)
-      let min := min lFree lFile
-      tot := tot.push (id, min)
+    | some (fs@{length := lFree, id := none, ..}), some (ft@{length := lFile, id := some id, ..}) =>
       if lFree < lFile then
-        mp := (mp.erase s).insert t (diff, some id)
-        s := s + 2
-        if let some (p, some id) := mp.get? (s + 1) then
-          tot := tot.push (id, p)
+        mp := (mp.erase s).insert t {ft with length := lFile - lFree}
+        --dbg_trace "here {(lFree, id)}"
+        tot := tot.push (lFree, id)
         -- insert the possibly skipped "`t`"-entry `s + 1`
+        if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
+          tot := tot.push (p, id')
+        s := s + 2
       if lFile < lFree then
-        mp := (mp.insert s (diff, none)).erase t
+        mp := (mp.insert s {fs with length := lFree - lFile}).erase t
         t := t - 2
+        tot := tot.push (lFile, id)
       if lFile == lFree then
         mp := (mp.erase s).erase t
+        tot := tot.push (lFree, id)
+        -- insert the possibly skipped "`t`"-entry `s + 1`
+        if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
+          tot := tot.push (p, id')
         s := s + 2
         t := t - 2
-        if let some (p, some id) := mp.get? (s + 1) then
-          tot := tot.push (id, p)
   return {dm with posAndIDs := mp, s := s, t := t, tot := tot}
+
+def tallyTot (tot : Array (Nat × Option Nat)) : Nat :=
+  let rtot := (tot.map fun (m, id) => (List.replicate m id).reduceOption).foldl (· ++ ·) []
+  let lth := rtot.length
+  (Array.range lth).foldl (init := 0) fun arr v =>
+    --let (id) := rtot[v]!
+    arr + v * rtot[v]!
 
 
 #eval do
-  let dat ← IO.FS.readFile input
-  let dat := test
   let dat := "12345"
-  let DM := mkDiskMap dat
-  IO.println DM --.posAndIDs.toArray
-  IO.println (collapse DM) --.posAndIDs.toArray
+  let dat := test
+  let dat ← IO.FS.readFile input
+  let mut DM := mkDiskMap dat
+  --IO.println DM --.posAndIDs.toArray
+  let mut i := 0
+  while DM.s < DM.t do --for i in [0:3] do
+    i := i + 1
+    --IO.println s!"* {i + 1}"
+    DM := collapse DM
+    --IO.println DM
+  IO.println <| tallyTot <| #[(1, some 0), (1, some 0)] ++ DM.tot
+  --IO.println (collapse DM)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
