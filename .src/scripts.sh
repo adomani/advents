@@ -57,7 +57,7 @@ desc_tests () {
     desc="$(
       awk -v day="${dig}" 'BEGIN{ con=0 }
         !/^-- Day [0-9]*$/ && (con == day) { print $0 }
-        /^-- Day [0-9]*$/ { con++ }' "${baseDir}/${descFile}"
+        /^-- Day [0-9]*$/ { con=$0; gsub(/[^[0-9]]*/, "", con) }' "${baseDir}/${descFile}"
       )"
     printf '#  [Day %s](https://adventofcode.com/%s/day/%s)\n\n%s\n\n' "${dig}" "${yr}" "${dig}" "$(
       printf '%s' "${desc}" | head -1

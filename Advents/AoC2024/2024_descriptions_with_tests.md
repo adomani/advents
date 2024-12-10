@@ -333,6 +333,8 @@ initial grid.
 
 #  [Day 10](https://adventofcode.com/2024/day/10)
 
+The input is a height map.
+
 ####  Test
 
 <pre>
@@ -354,6 +356,23 @@ initial grid.
 01329801
 10456732
 </pre>
+
+### Description
+
+#### Part 1
+
+A valid path starts at any `0`, ends at any `9` and increases by exactly one at each step.
+Steps are only allowed in the four
+</pre>grid" directions: up, down, left, right.
+Determine the number of pairs `(start, end)`, where
+* `start` is the position of a `0`;
+* `end` is the position of a `9`;
+* there is a path paths from `start` to `end`.
+
+#### Part 2
+
+Similar to part 1, except that now we should determine the total number of valid paths,
+not just their existence.
 
 [Solution in Lean](day10.lean)
 
