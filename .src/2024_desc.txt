@@ -126,3 +126,21 @@ We count how many such resonant antinodes there are that are contained in the in
 Similar to part 1, except that instead of just the location `p + (p - q)`, we want to count all
 locations `p + n * (p - q)`, for all `n ≠ 0`, again only counting the positions that end up in the
 initial grid.
+-- Day 10
+The input is a height map.
+
+### Description
+
+#### Part 1
+
+A valid path starts at any `0`, ends at any `9` and increases by exactly one at each step.
+Steps are only allowed in the four "grid" directions: up, down, left, right.
+Determine the number of pairs `(start, end)`, where
+* `start` is the position of a `0`;
+* `end` is the position of a `9`;
+* there is a path paths from `start` to `end`.
+
+#### Part 2
+
+Similar to part 1, except that now we should determine the total number of valid paths,
+not just their existence.
