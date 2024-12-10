@@ -36,7 +36,7 @@ structure DiskMap where
   posAndIDs : Std.HashMap Nat ff
   s : Nat
   t : Nat
-  tot : Array (Nat × Option Nat)
+  tot : Array (Nat × Nat)
 
 def mkDiskMap (i : String) : DiskMap where
   posAndIDs :=
@@ -93,8 +93,8 @@ def collapse (dm : DiskMap) : DiskMap := Id.run do
         t := t - 2
   return {dm with posAndIDs := mp, s := s, t := t, tot := tot}
 
-def tallyTot (tot : Array (Nat × Option Nat)) : Nat :=
-  let rtot := (tot.map fun (m, id) => (List.replicate m id).reduceOption).foldl (· ++ ·) []
+def tallyTot (tot : Array (Nat × Nat)) : Nat :=
+  let rtot := (tot.map fun (m, id) => List.replicate m id).foldl (· ++ ·) []
   let lth := rtot.length
   (Array.range lth).foldl (init := 0) fun arr v =>
     --let (id) := rtot[v]!
@@ -113,9 +113,13 @@ def tallyTot (tot : Array (Nat × Option Nat)) : Nat :=
     --IO.println s!"* {i + 1}"
     DM := collapse DM
     --IO.println DM
-  IO.println <| tallyTot <| #[(1, some 0), (1, some 0)] ++ DM.tot
-  --IO.println (collapse DM)
-
+  IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot
+  IO.println DM
+/-!
+-/
+-- 12886040313
+-- 6434168891852 -- too low
+-- 6435922584968
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
