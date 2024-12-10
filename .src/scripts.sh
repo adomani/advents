@@ -94,18 +94,19 @@ desc () {
   AoCyear="${rootDir}${yr}"
   croot
   awk -v fil="${yr}_descriptions_with_tests.md" 'BEGIN {
-      con=1
+      day=1
       acc=""
       print "|Day|Description|\n|:-:|-|"
       link=sprintf("(%s#day-", fil)
     }
     2 <= NR && /^-- Day [0-9]*$/ {
-      printf("|[%s]%s%s)|%s|\n", con, link, con, acc)
-      con++
+      printf("|[%s]%s%s)|%s|\n", day, link, day, acc)
+      day=$0
+      gsub(/[^[0-9]]*/, "", day)
       acc=""
     }
     !/^-- Day [0-9]*$/ && (acc == "") { acc=$0 }
-    END { printf("|[%s]%s%s)|%s|\n", con, link, con, acc) }' .src/"${yr}"_desc.txt |
+    END { printf("|[%s]%s%s)|%s|\n", day, link, day, acc) }' .src/"${yr}"_desc.txt |
       column -s'|' -o'|' -t | sed 's=|= | =g; s=^ ==; s= $=='
 )
 }
