@@ -111,6 +111,25 @@ solve 1 6435922584968 file
 #  Question 2
 -/
 --#exit
+
+instance : ToString ff where
+  toString ff := s!"pos: {ff.pos}, length: {ff.length}, id: {ff.id}"
+
+def findS (dm : DiskMap) (lFile : Nat) : Option ff :=
+  let cands := dm.posAndIDs.filter fun _seq ff => ff.id.isNone && lFile ≤ ff.length
+  --dbg_trace "Found {cands.size} places"
+  let min := cands.fold (init := (none : Option ff)) fun c _seq ff =>
+    if let some oldMin := c
+    then
+      if ff.pos < oldMin.pos then --|| (ff.pos == oldMin.pos || ff.length < oldMin.length) then
+        some ff
+      else
+        c
+    else
+      some ff
+  min
+
+/-
 #eval do
   let dat := "12345"
   let dat ← IO.FS.readFile input
@@ -120,44 +139,65 @@ solve 1 6435922584968 file
   let mut i := 0
   while DM.s < DM.t do --for i in [0:3] do
     i := i + 1
+    IO.println s!"DM.t: {DM.t}, ID: {(DM.posAndIDs.get! DM.t).id}\nlth: {(DM.posAndIDs.get! DM.t).length}\nfindS: {findS DM (DM.posAndIDs.get! DM.t).length}\n"
     --IO.println s!"* {i + 1}"
     DM := collapse DM
-    --IO.println DM
+    IO.println DM
   IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot
   IO.println DM
+--/
 
 def collapse2 (dm : DiskMap) : DiskMap := Id.run do
   let mut mp := dm.posAndIDs
   let mut tot := dm.tot
   --let mut new := dm
-  let mut s := dm.s
   let mut t := dm.t
-  match dm.posAndIDs.get? dm.s, dm.posAndIDs.get? dm.t with
-    | none, _ | _, none | some ({id := some _, ..}), _ | _, some ({id := none, ..}) =>
-      panic s!"{dm.s} and {dm.t} should be in range!"
-    | some (fs@{length := lFree, id := none, ..}), some (ft@{length := lFile, id := some id, ..}) =>
+  match dm.posAndIDs.get? dm.t with
+    | none | some {id := none, ..} => return dm --panic s!"{dm.t} should be in range!"
+    | some f@{length := lFile, id := some id, ..} =>
+      let S? := findS dm lFile
+      dbg_trace "processing {f}"
+      if S?.isNone
+      then
+        dbg_trace "(lFile, id): {(lFile, id)}\nnot found"
+        t := t - 2
+      else
+        let S := S?.get!
+        dbg_trace "(lFile, id): {(lFile, id)}\nfound {S}"
+        let lFree := S.length
+        let s := mp.get! S --.pos
+        if lFile < lFree then
+          dbg_trace "replacing\n  {S}\nwith\n  {{S with length := lFree - lFile}}\nat {s}\n"
+          mp := (mp.insert s ({S with length := lFree - lFile})).erase t
+          dbg_trace mp.toArray
+          t := t - 2
+          tot := tot.push (lFile, id)
+        if lFile == lFree then
+          --dbg_trace "file id: {id}"
+          mp := (mp.erase s).erase t
+          tot := tot.push (lFree, id)
+          --if let some {length := p, id := some id', ..} := mp.get? (s + 1) then
+          --  tot := tot.push (p, id')
+          t := t - 2
+  return {dm with posAndIDs := mp, t := t, tot := tot}
 
-      dbg_trace "here {((lFree, lFile), id)}"
-      if lFree < lFile then
-        mp := (mp.insert s {ft with length := lFree}).insert t {ft with length := lFile - lFree}
-        tot := tot.push (lFree, id)
-        -- insert the possibly skipped "`t`"-entry `s + 1`
-        if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
-          tot := tot.push (p, id')
-        s := s + 2
-      if lFile < lFree then
-        mp := (mp.insert s {fs with length := lFree - lFile}).erase t
-        t := t - 2
-        tot := tot.push (lFile, id)
-      if lFile == lFree then
-        mp := (mp.insert s ft).erase t
-        tot := tot.push (lFree, id)
-        -- insert the possibly skipped "`t`"-entry `s + 1`
-        if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
-          tot := tot.push (p, id')
-        s := s + 2
-        t := t - 2
-  return {dm with posAndIDs := mp, s := s, t := t, tot := tot}
+#eval do
+  let _dat := "12345"
+  let _dat ← IO.FS.readFile input
+  let dat := test
+  let mut DM := mkDiskMap dat
+  --IO.println DM --.posAndIDs.toArray
+  let mut i := 0
+  let mut oldT := DM.t + 1
+  while DM.t < oldT do --for i in [0:3] do
+    i := i + 1
+    --IO.println s!"DM.t: {DM.t}, ID: {(DM.posAndIDs.get! DM.t).id}\nlth: {(DM.posAndIDs.get! DM.t).length}\nfindS: {findS DM (DM.posAndIDs.get! DM.t).length}\n"
+    oldT := DM.t
+    DM := collapse2 DM
+    --IO.println s!"* {i + 1}"
+    --IO.println DM
+  IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot
+  IO.println DM
 
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
