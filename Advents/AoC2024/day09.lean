@@ -36,7 +36,7 @@ structure DiskMap where
   posAndIDs : Std.HashMap Nat ff
   s : Nat
   t : Nat
-  tot : Array (Nat × Nat)
+  tot : Array (Nat × Nat × Nat)
 
 def mkDiskMap (i : String) : DiskMap where
   posAndIDs :=
@@ -73,20 +73,20 @@ def collapse (dm : DiskMap) : DiskMap := Id.run do
     | some (fs@{length := lFree, id := none, ..}), some (ft@{length := lFile, id := some id, ..}) =>
       if lFree < lFile then
         mp := mp.insert t {ft with length := lFile - lFree}
-        tot := tot.push (lFree, id)
+        tot := tot.push (t, lFree, id)
         -- insert the possibly skipped "`t`"-entry `s + 1`
         if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
-          tot := tot.push (p, id')
+          tot := tot.push (s + 1, p, id')
         s := s + 2
       if lFile < lFree then
         mp := mp.insert s {fs with length := lFree - lFile}
         t := t - 2
-        tot := tot.push (lFile, id)
+        tot := tot.push (t, lFile, id)
       if lFile == lFree then
-        tot := tot.push (lFree, id)
+        tot := tot.push (t, lFree, id)
         -- insert the possibly skipped "`t`"-entry `s + 1`
         if let some {length := p, id := some id', ..} := mp.get? (s + 1) then
-          tot := tot.push (p, id')
+          tot := tot.push (t, p, id')
         s := s + 2
         t := t - 2
   return {dm with posAndIDs := mp, s := s, t := t, tot := tot}
@@ -101,7 +101,7 @@ def part1 (dat : String) : Nat := Id.run do
   let mut DM := mkDiskMap dat
   while DM.s < DM.t do
     DM := collapse DM
-  tallyTot <| #[(("".push <| dat.get ⟨0⟩).toNat!, 0)] ++ DM.tot
+  tallyTot <| #[(("".push <| dat.get ⟨0⟩).toNat!, 0)] ++ DM.tot.map Prod.snd
 
 #assert part1 test == 1928
 
@@ -115,19 +115,18 @@ solve 1 6435922584968 file
 instance : ToString ff where
   toString ff := s!"pos: {ff.pos}, length: {ff.length}, id: {ff.id}"
 
-def findS (dm : DiskMap) (lFile : Nat) : Option ff :=
+def findS (dm : DiskMap) (lFile : Nat) : Option (Nat × ff) :=
   let cands := dm.posAndIDs.filter fun _seq ff => ff.id.isNone && lFile ≤ ff.length
   --dbg_trace "Found {cands.size} places"
-  let min := cands.fold (init := (none : Option ff)) fun c _seq ff =>
-    if let some oldMin := c
+  cands.fold (init := (none : Option (Nat × ff))) fun c seq ff =>
+    if let some (oldSeq, _oldMin) := c
     then
-      if ff.pos < oldMin.pos then --|| (ff.pos == oldMin.pos || ff.length < oldMin.length) then
-        some ff
+      if seq < oldSeq then --|| (ff.pos == oldMin.pos || ff.length < oldMin.length) then
+        some (seq, ff)
       else
         c
     else
-      some ff
-  min
+      some (seq, ff)
 
 /-
 #eval do
@@ -156,34 +155,38 @@ def collapse2 (dm : DiskMap) : DiskMap := Id.run do
     | none | some {id := none, ..} => return dm --panic s!"{dm.t} should be in range!"
     | some f@{length := lFile, id := some id, ..} =>
       let S? := findS dm lFile
-      dbg_trace "processing {f}"
+      --dbg_trace "processing {f}"
       if S?.isNone
       then
-        dbg_trace "(lFile, id): {(lFile, id)}\nnot found"
+        --dbg_trace "(lFile, id): {(lFile, id)}\nnot found"
         t := t - 2
       else
-        let S := S?.get!
-        dbg_trace "(lFile, id): {(lFile, id)}\nfound {S}"
+        let (s, S) := S?.get!
+        --dbg_trace "(lFile, id): {(lFile, id)}\nfound {S}"
         let lFree := S.length
-        let s := mp.get! S --.pos
+        --let s := mp.get! seq
         if lFile < lFree then
-          dbg_trace "replacing\n  {S}\nwith\n  {{S with length := lFree - lFile}}\nat {s}\n"
-          mp := (mp.insert s ({S with length := lFree - lFile})).erase t
-          dbg_trace mp.toArray
+          --dbg_trace "replacing\n  {S}\nwith\n  {{S with length := lFree - lFile}}\nat {s}\n"
+          mp := (mp.insert s ({S with length := lFree - lFile, pos := S.pos + lFile})).erase t
+          --dbg_trace mp.toArray
           t := t - 2
-          tot := tot.push (lFile, id)
+          tot := tot.push (S.pos, lFile, id)
         if lFile == lFree then
           --dbg_trace "file id: {id}"
           mp := (mp.erase s).erase t
-          tot := tot.push (lFree, id)
+          tot := tot.push (S.pos, lFree, id)
           --if let some {length := p, id := some id', ..} := mp.get? (s + 1) then
           --  tot := tot.push (p, id')
           t := t - 2
   return {dm with posAndIDs := mp, t := t, tot := tot}
 
+def tallyMerged (tot : Array (Nat × Nat × Nat)) : Nat :=
+  tot.foldl (init := 0) fun tot (pos, length, id) =>
+    tot + id * (length * (pos - 1) + (length * (length + 1)) / 2)
+
 #eval do
   let _dat := "12345"
-  let _dat ← IO.FS.readFile input
+  let dat ← IO.FS.readFile input
   let dat := test
   let mut DM := mkDiskMap dat
   --IO.println DM --.posAndIDs.toArray
@@ -196,9 +199,13 @@ def collapse2 (dm : DiskMap) : DiskMap := Id.run do
     DM := collapse2 DM
     --IO.println s!"* {i + 1}"
     --IO.println DM
-  IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot
-  IO.println DM
-
+  --IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot.map Prod.snd
+  let fixed := DM.posAndIDs.filterMap (fun _ (fil : ff) => fil.id.map (fil.pos, fil.length, ·))
+  let merged := fixed.toArray.map Prod.snd ++ DM.tot
+  --IO.println {DM with posAndIDs := DM.posAndIDs.filter fun _ i => i.id.isSome, tot := DM.tot.qsort (·.1 < ·.1)}--.qsort (·.1 < ·.1)}
+  --IO.println s!"\nmerged:\n{merged.qsort (·.1 < ·.1)}"
+  --IO.println s!"\nmerged:\n{merged.qsort (·.1 < ·.1) |>.map Prod.snd}"
+  IO.println s!"tallyMerged merged: {tallyMerged merged}"
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
@@ -209,3 +216,4 @@ def part2 (dat : Array String) : Nat := sorry
 --solve 2
 
 end Day09
+-- 8654184283366 -- too high
