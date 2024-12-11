@@ -9,3 +9,4 @@
 | [7](2024_descriptions_with_tests.md#day-7)   | Lists of total and possible operands, but missing operations!                               |
 | [8](2024_descriptions_with_tests.md#day-8)   | Find the resonant harmonics in a grid of antenna locations.                                 |
 | [10](2024_descriptions_with_tests.md#day-10) | The input is a height map.                                                                  |
+| [11](2024_descriptions_with_tests.md#day-11) | The input is a sequence of numbers written on stones.                                       |
