@@ -16,7 +16,7 @@ def test := "2333133121414131402"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- `F`ree or `F`ile -/
+/-- `F`ree or `F`ile: the main structure for encoding information about the blocks of a file. -/
 structure ff where
   /-- The location where the entry starts. -/
   pos    : Nat
@@ -26,21 +26,28 @@ structure ff where
   length : Nat
   deriving Inhabited
 
+/-- Useful for printing, while working with the solution. -/
 instance : ToString ff where
   toString ff := s!"pos: {ff.pos}, length: {ff.length}, id: {ff.id}"
 
 /--
-For each disk location, we provide the number of consecutive blocks that it spans and
-the corresponding ID.
-At each location, the ID is `none` for free space and `some n` for files.
+For each disk location, we provide
+* the data of a `ff` -- `F`ile or `F`ree,
+* the currently left-most free block,
+* the currently right-most file block,
+* the currently accumulated array of files in their final positions.
 -/
 structure DiskMap where
-  /-- At each location, the ID is `none` for free space and `some n` for files. -/
+  /-- The data of a `ff` -- `F`ile or `F`ree. -/
   posAndIDs : Std.HashMap Nat ff
+  /-- The currently left-most free block. -/
   s : Nat
+  /-- The currently right-most file block. -/
   t : Nat
+  /-- The currently accumulated array of files in their final positions. -/
   tot : Array ff
 
+/-- Converts the input into a valid `DiskMap`, to start (de-)fragmenting. -/
 def mkDiskMap (i : String) : DiskMap where
   posAndIDs :=
     let (_, _, _, pids) : Nat × Nat × Nat × _ := i.trim.toList.foldl (init := (0, 0, 0, {}))
@@ -58,16 +65,20 @@ def mkDiskMap (i : String) : DiskMap where
   t := i.trim.length - 1
   tot := #[]
 
+/-- Useful for printing, while working with the solution. -/
 instance : ToString DiskMap where
   toString dm := String.intercalate "\n" <|
     ((dm.posAndIDs.toArray.qsort (·.1 < ·.1)).toList.map
       fun (d, ff) => s!"seq: {d}, start: {ff.pos}, length: {ff.length}, ID: {ff.id}") ++
     ["", s!"(s, t) = {(dm.s, dm.t)}", "", s!"tot: {dm.tot}", "---"]
 
+/--
+Performs one move of a consecutive sequence of blocks in a file to a consecutive block of
+available free space.
+-/
 def collapse (dm : DiskMap) : DiskMap := Id.run do
   let mut mp := dm.posAndIDs
   let mut tot := dm.tot
-  --let mut new := dm
   let mut s := dm.s
   let mut t := dm.t
   match dm.posAndIDs.get? dm.s, dm.posAndIDs.get? dm.t with
@@ -94,6 +105,11 @@ def collapse (dm : DiskMap) : DiskMap := Id.run do
         t := t - 2
   return {dm with posAndIDs := mp, s := s, t := t, tot := tot}
 
+/--
+The checksum for the first part.
+While it should be the same as `tallyMerged` (the one for the second part),
+it assumes a different encoding of the files, so it is actually a different program.
+-/
 def tallyTot (tot : Array ff) : Nat :=
   let mid := tot.foldl (init := (0, 0)) fun (pos, tot) ({length := mult, id := id..}) =>
     (pos + mult, tot + id.get! * (mult * (pos - 1) + (mult * (mult + 1)) / 2))
@@ -113,82 +129,20 @@ solve 1 6435922584968 file
 /-!
 #  Question 2
 -/
---#exit
 
-def findS (dm : DiskMap) (lFile : Nat) : Option (Nat × ff) :=
-  --let cands := ((dm.posAndIDs.toArray.map Prod.snd).qsort (·.pos < ·.pos))
-  --let idx := cands.findIdx? fun ff => ff.id.isNone && lFile ≤ ff.length
-  --  --qsort filter fun _seq ff => ff.id.isNone && lFile ≤ ff.length
-  --idx.map fun c => (c, cands.get! c)
-  --/-
-  let cands := dm.posAndIDs.filter fun _seq ff => ff.id.isNone && lFile ≤ ff.length
-  --dbg_trace "Found {cands.size} places"
-  cands.fold (init := (none : Option (Nat × ff))) fun c seq ff =>
-    if let some (oldSeq, _oldMin) := c
-    then
-      if seq < oldSeq then --|| (ff.pos == oldMin.pos || ff.length < oldMin.length) then
-        some (seq, ff)
-      else
-        c
-    else
-      some (seq, ff)
-  --/
-
-/-
-#eval do
-  let dat := "12345"
-  let dat ← IO.FS.readFile input
-  let dat := test
-  let mut DM := mkDiskMap dat
-  --IO.println DM --.posAndIDs.toArray
-  let mut i := 0
-  while DM.s < DM.t do --for i in [0:3] do
-    i := i + 1
-    IO.println s!"DM.t: {DM.t}, ID: {(DM.posAndIDs.get! DM.t).id}\nlth: {(DM.posAndIDs.get! DM.t).length}\nfindS: {findS DM (DM.posAndIDs.get! DM.t).length}\n"
-    --IO.println s!"* {i + 1}"
-    DM := collapse DM
-    IO.println DM
-  IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot
-  IO.println DM
---/
-
-def collapse2 (dm : DiskMap) : DiskMap := Id.run do
-  let mut mp := dm.posAndIDs
-  let mut tot := dm.tot
-  let mut t := dm.t
-  match dm.posAndIDs.get? dm.t with
-    | none | some {id := none, ..} => return dm
-    | some {length := lFile, id := some id, ..} =>
-      let S? := findS dm lFile
-      --dbg_trace "processing {f}"
-      if S?.isNone
-      then
-        --dbg_trace "(lFile, id): {(lFile, id)}\nnot found"
-        t := t - 2
-      else
-        let (s, S) := S?.get!
-        --dbg_trace "(lFile, id): {(lFile, id)}\nfound {S}"
-        let lFree := S.length
-        --let s := mp.get! seq
-        if lFile < lFree then
-          --dbg_trace "replacing\n  {S}\nwith\n  {{S with length := lFree - lFile}}\nat {s}\n"
-          mp := (mp.insert s ({S with length := lFree - lFile, pos := S.pos + lFile})).erase t
-          --dbg_trace mp.toArray
-          t := t - 2
-          tot := tot.push {pos := S.pos, length := lFile, id := id}
-        if lFile == lFree then
-          --dbg_trace "file id: {id}"
-          mp := (mp.erase s).erase t
-          tot := tot.push {pos := S.pos, length := lFree, id := id}
-          --if let some {length := p, id := some id', ..} := mp.get? (s + 1) then
-          --  tot := tot.push (p, id')
-          t := t - 2
-  return {dm with posAndIDs := mp, t := t, tot := tot}
-
+/--
+The checksum for the second part.
+While it should be the same as `tallyTot` (the one for the first part),
+it assumes a different encoding of the files, so it is actually a different program.
+-/
 def tallyMerged (tot : Array ff) : Nat :=
   tot.foldl (init := 0) fun tot ({pos := pos, length := length, id := id}) =>
     tot + id.get! * (length * (pos - 1) + (length * (length + 1)) / 2)
 
+/--
+Produces the merging obtained by scanning the files from the right and inserting in the
+left-most possible free space that is not later than their current position.
+-/
 def interleave (a : Array ff) : Array ff := Id.run do
   let mut fin := #[]
   let mut (frees, files) := a.partition (·.id == none)
@@ -203,55 +157,14 @@ def interleave (a : Array ff) : Array ff := Id.run do
           {s with length := s.length - last.length, pos := s.pos + last.length}
   return fin
 
-set_option trace.profiler true in
-#eval do
-  let _dat := "12345"
-  let dat := test
-  let dat ← IO.FS.readFile input
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : String) : Nat := Id.run do
   let mut DM := mkDiskMap dat
   let il := (interleave (DM.posAndIDs.toArray.map Prod.snd)).qsort (·.pos < ·.pos)
-  IO.println <| tallyMerged il
-  --IO.println <| "\n".intercalate <| (il.map (s!"{·}")).toList
+  tallyMerged il
 
+#assert part2 test == 2858
 
-/--
-info: tallyMerged merged: 2858
----
-warning: unused variable `dat`
-note: this linter can be disabled with `set_option linter.unusedVariables false`
--/
-#guard_msgs in
-#eval do
-  let _dat := "12345"
-  let dat ← IO.FS.readFile input
-  let dat := test
-  let mut DM := mkDiskMap dat
-  --IO.println DM --.posAndIDs.toArray
-  let mut i := 0
-  let mut oldT := DM.t + 1
-  while DM.t < oldT do --for i in [0:3] do
-    i := i + 1
-    --IO.println s!"DM.t: {DM.t}, ID: {(DM.posAndIDs.get! DM.t).id}\nlth: {(DM.posAndIDs.get! DM.t).length}\nfindS: {findS DM (DM.posAndIDs.get! DM.t).length}\n"
-    oldT := DM.t
-    DM := collapse2 DM
-    --IO.println s!"* {i + 1}"
-    --IO.println DM
-  --IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot.map Prod.snd
-  let fixed := DM.posAndIDs.filterMap (fun _ (fil : ff) => fil.id.map fun _ => fil)
-  let merged := fixed.toArray.map Prod.snd ++ DM.tot
-  --IO.println {DM with posAndIDs := DM.posAndIDs.filter fun _ i => i.id.isSome, tot := DM.tot.qsort (·.1 < ·.1)}--.qsort (·.1 < ·.1)}
-  --IO.println s!"\nmerged:\n{merged.qsort (·.1 < ·.1)}"
-  --IO.println s!"\nmerged:\n{merged.qsort (·.1 < ·.1) |>.map Prod.snd}"
-  IO.println s!"tallyMerged merged: {tallyMerged merged}"
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---solve 2
+solve 2 6469636832766 file
 
 end Day09
--- 8654184283366 -- too high
--- 6469636832766
