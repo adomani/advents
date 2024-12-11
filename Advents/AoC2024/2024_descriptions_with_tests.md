@@ -377,3 +377,34 @@ not just their existence.
 [Solution in Lean](day10.lean)
 
 ---
+
+#  [Day 11](https://adventofcode.com/2024/day/11)
+
+The input is a sequence of numbers written on stones.
+
+####  Test
+
+<pre>
+0 1 10 99 999
+</pre>
+
+####  Test 2
+
+<pre>
+125 17
+</pre>
+
+### Description
+
+#### Part 1
+
+Each time you blink, each stones changes, by either modifying its value or splitting into two stones.
+Determine the total sum of the values of the configuration of the stone after you blink 25 times.
+
+#### Part 2
+
+Similar to part 1, except that now you blink 75 times.
+
+[Solution in Lean](day11.lean)
+
+---

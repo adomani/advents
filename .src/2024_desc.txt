@@ -144,3 +144,16 @@ Determine the number of pairs `(start, end)`, where
 
 Similar to part 1, except that now we should determine the total number of valid paths,
 not just their existence.
+-- Day 11
+The input is a sequence of numbers written on stones.
+
+### Description
+
+#### Part 1
+
+Each time you blink, each stones changes, by either modifying its value or splitting into two stones.
+Determine the total sum of the values of the configuration of the stone after you blink 25 times.
+
+#### Part 2
+
+Similar to part 1, except that now you blink 75 times.
