@@ -59,7 +59,7 @@ instance : ToString DiskMap where
   toString dm := String.intercalate "\n" <|
     ((dm.posAndIDs.toArray.qsort (·.1 < ·.1)).toList.map
       fun (d, ff) => s!"seq: {d}, start: {ff.pos}, length: {ff.length}, ID: {ff.id}") ++
-    ["", s!"(s, t) = {(dm.s, dm.t)}", s!"tot: {dm.tot}", "---"]
+    ["", s!"(s, t) = {(dm.s, dm.t)}", "", s!"tot: {dm.tot}", "---"]
 
 def collapse (dm : DiskMap) : DiskMap := Id.run do
   let mut mp := dm.posAndIDs
@@ -72,22 +72,20 @@ def collapse (dm : DiskMap) : DiskMap := Id.run do
       panic s!"{dm.s} and {dm.t} should be in range!"
     | some (fs@{length := lFree, id := none, ..}), some (ft@{length := lFile, id := some id, ..}) =>
       if lFree < lFile then
-        mp := (mp.insert s {ft with length := lFree}).insert t {ft with length := lFile - lFree}
-        --dbg_trace "here {(lFree, id)}"
+        mp := mp.insert t {ft with length := lFile - lFree}
         tot := tot.push (lFree, id)
         -- insert the possibly skipped "`t`"-entry `s + 1`
         if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
           tot := tot.push (p, id')
         s := s + 2
       if lFile < lFree then
-        mp := (mp.insert s {fs with length := lFree - lFile}).erase t
+        mp := mp.insert s {fs with length := lFree - lFile}
         t := t - 2
         tot := tot.push (lFile, id)
       if lFile == lFree then
-        mp := (mp.insert s ft).erase t
         tot := tot.push (lFree, id)
         -- insert the possibly skipped "`t`"-entry `s + 1`
-        if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
+        if let some {length := p, id := some id', ..} := mp.get? (s + 1) then
           tot := tot.push (p, id')
         s := s + 2
         t := t - 2
@@ -101,16 +99,11 @@ def tallyTot (tot : Array (Nat × Nat)) : Nat :=
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat := Id.run do
   let mut DM := mkDiskMap dat
-  let mut i := 0
-  while DM.s < DM.t do --for i in [0:3] do
-    i := i + 1
+  while DM.s < DM.t do
     DM := collapse DM
-  dbg_trace DM
   tallyTot <| #[(("".push <| dat.get ⟨0⟩).toNat!, 0)] ++ DM.tot
 
 #assert part1 test == 1928
-
-#exit
 
 solve 1 6435922584968 file
 
@@ -132,6 +125,39 @@ solve 1 6435922584968 file
     --IO.println DM
   IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot
   IO.println DM
+
+def collapse2 (dm : DiskMap) : DiskMap := Id.run do
+  let mut mp := dm.posAndIDs
+  let mut tot := dm.tot
+  --let mut new := dm
+  let mut s := dm.s
+  let mut t := dm.t
+  match dm.posAndIDs.get? dm.s, dm.posAndIDs.get? dm.t with
+    | none, _ | _, none | some ({id := some _, ..}), _ | _, some ({id := none, ..}) =>
+      panic s!"{dm.s} and {dm.t} should be in range!"
+    | some (fs@{length := lFree, id := none, ..}), some (ft@{length := lFile, id := some id, ..}) =>
+
+      dbg_trace "here {((lFree, lFile), id)}"
+      if lFree < lFile then
+        mp := (mp.insert s {ft with length := lFree}).insert t {ft with length := lFile - lFree}
+        tot := tot.push (lFree, id)
+        -- insert the possibly skipped "`t`"-entry `s + 1`
+        if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
+          tot := tot.push (p, id')
+        s := s + 2
+      if lFile < lFree then
+        mp := (mp.insert s {fs with length := lFree - lFile}).erase t
+        t := t - 2
+        tot := tot.push (lFile, id)
+      if lFile == lFree then
+        mp := (mp.insert s ft).erase t
+        tot := tot.push (lFree, id)
+        -- insert the possibly skipped "`t`"-entry `s + 1`
+        if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
+          tot := tot.push (p, id')
+        s := s + 2
+        t := t - 2
+  return {dm with posAndIDs := mp, s := s, t := t, tot := tot}
 
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
