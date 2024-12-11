@@ -10,3 +10,4 @@ import Advents.AoC2024.day08
 import Advents.AoC2024.day09
 import Advents.AoC2024.day10
 import Advents.AoC2024.day11
+import Advents.AoC2024.day12
