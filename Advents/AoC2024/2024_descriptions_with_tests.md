@@ -331,6 +331,35 @@ initial grid.
 
 ---
 
+#  [Day 9](https://adventofcode.com/2024/day/9)
+
+Fragment and defragment a disk, based on blocks that are free or occupied by files.
+
+####  Test
+
+<pre>
+2333133121414131402
+</pre>
+
+### Description
+
+#### Part 1
+
+The input is a long number in decimal notation.
+The digit encode the location of consecutive free blocks and file blocks of a file-system.
+The goal of the first part is to compress as much as possible the files,
+by moving individual occupied blocks from the right to the left-most available free space.
+
+#### Part 2
+
+Similar to part 1, except that now we move all the blocks of a file together, rather than fragmenting.
+If there is no consecutive sequence of free blocks at least as long as the current file to the left of the file,
+then we skip the file and move to the next one to its left.
+
+[Solution in Lean](day09.lean)
+
+---
+
 #  [Day 10](https://adventofcode.com/2024/day/10)
 
 The input is a height map.
