@@ -26,6 +26,9 @@ structure ff where
   length : Nat
   deriving Inhabited
 
+instance : ToString ff where
+  toString ff := s!"pos: {ff.pos}, length: {ff.length}, id: {ff.id}"
+
 /--
 For each disk location, we provide the number of consecutive blocks that it spans and
 the corresponding ID.
@@ -36,7 +39,7 @@ structure DiskMap where
   posAndIDs : Std.HashMap Nat ff
   s : Nat
   t : Nat
-  tot : Array (Nat × Nat × Nat)
+  tot : Array ff
 
 def mkDiskMap (i : String) : DiskMap where
   posAndIDs :=
@@ -70,30 +73,30 @@ def collapse (dm : DiskMap) : DiskMap := Id.run do
   match dm.posAndIDs.get? dm.s, dm.posAndIDs.get? dm.t with
     | none, _ | _, none | some ({id := some _, ..}), _ | _, some ({id := none, ..}) =>
       panic s!"{dm.s} and {dm.t} should be in range!"
-    | some (fs@{length := lFree, id := none, ..}), some (ft@{length := lFile, id := some id, ..}) =>
+    | some (fs@{length := lFree, id := none, ..}), some (ft@{length := lFile, id := some _, ..}) =>
       if lFree < lFile then
         mp := mp.insert t {ft with length := lFile - lFree}
-        tot := tot.push (t, lFree, id)
+        tot := tot.push {ft with length := lFree}
         -- insert the possibly skipped "`t`"-entry `s + 1`
-        if let some ({length := p, id := some id', ..}) := mp.get? (s + 1) then
-          tot := tot.push (s + 1, p, id')
+        if let some fil := mp.get? (s + 1) then
+          tot := tot.push fil
         s := s + 2
       if lFile < lFree then
         mp := mp.insert s {fs with length := lFree - lFile}
         t := t - 2
-        tot := tot.push (t, lFile, id)
+        tot := tot.push ft
       if lFile == lFree then
-        tot := tot.push (t, lFree, id)
+        tot := tot.push ft
         -- insert the possibly skipped "`t`"-entry `s + 1`
-        if let some {length := p, id := some id', ..} := mp.get? (s + 1) then
-          tot := tot.push (t, p, id')
+        if let some fil := mp.get? (s + 1) then
+          tot := tot.push fil
         s := s + 2
         t := t - 2
   return {dm with posAndIDs := mp, s := s, t := t, tot := tot}
 
-def tallyTot (tot : Array (Nat × Nat)) : Nat :=
-  let mid := tot.foldl (init := (0, 0)) fun (pos, tot) (mult, id) =>
-    (pos + mult, tot + id * (mult * (pos - 1) + (mult * (mult + 1)) / 2))
+def tallyTot (tot : Array ff) : Nat :=
+  let mid := tot.foldl (init := (0, 0)) fun (pos, tot) ({length := mult, id := id..}) =>
+    (pos + mult, tot + id.get! * (mult * (pos - 1) + (mult * (mult + 1)) / 2))
   mid.2
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
@@ -101,7 +104,7 @@ def part1 (dat : String) : Nat := Id.run do
   let mut DM := mkDiskMap dat
   while DM.s < DM.t do
     DM := collapse DM
-  tallyTot <| #[(("".push <| dat.get ⟨0⟩).toNat!, 0)] ++ DM.tot.map Prod.snd
+  tallyTot <| #[DM.posAndIDs.get! 0] ++ DM.tot
 
 #assert part1 test == 1928
 
@@ -111,11 +114,13 @@ solve 1 6435922584968 file
 #  Question 2
 -/
 --#exit
-
-instance : ToString ff where
-  toString ff := s!"pos: {ff.pos}, length: {ff.length}, id: {ff.id}"
-
+#check Array.findIdx?
 def findS (dm : DiskMap) (lFile : Nat) : Option (Nat × ff) :=
+  --let cands := ((dm.posAndIDs.toArray.map Prod.snd).qsort (·.pos < ·.pos))
+  --let idx := cands.findIdx? fun ff => ff.id.isNone && lFile ≤ ff.length
+  --  --qsort filter fun _seq ff => ff.id.isNone && lFile ≤ ff.length
+  --idx.map fun c => (c, cands.get! c)
+  --/-
   let cands := dm.posAndIDs.filter fun _seq ff => ff.id.isNone && lFile ≤ ff.length
   --dbg_trace "Found {cands.size} places"
   cands.fold (init := (none : Option (Nat × ff))) fun c seq ff =>
@@ -127,6 +132,7 @@ def findS (dm : DiskMap) (lFile : Nat) : Option (Nat × ff) :=
         c
     else
       some (seq, ff)
+  --/
 
 /-
 #eval do
@@ -153,7 +159,7 @@ def collapse2 (dm : DiskMap) : DiskMap := Id.run do
   let mut t := dm.t
   match dm.posAndIDs.get? dm.t with
     | none | some {id := none, ..} => return dm --panic s!"{dm.t} should be in range!"
-    | some f@{length := lFile, id := some id, ..} =>
+    | some {length := lFile, id := some id, ..} =>
       let S? := findS dm lFile
       --dbg_trace "processing {f}"
       if S?.isNone
@@ -170,20 +176,27 @@ def collapse2 (dm : DiskMap) : DiskMap := Id.run do
           mp := (mp.insert s ({S with length := lFree - lFile, pos := S.pos + lFile})).erase t
           --dbg_trace mp.toArray
           t := t - 2
-          tot := tot.push (S.pos, lFile, id)
+          tot := tot.push {pos := S.pos, length := lFile, id := id}
         if lFile == lFree then
           --dbg_trace "file id: {id}"
           mp := (mp.erase s).erase t
-          tot := tot.push (S.pos, lFree, id)
+          tot := tot.push {pos := S.pos, length := lFree, id := id}
           --if let some {length := p, id := some id', ..} := mp.get? (s + 1) then
           --  tot := tot.push (p, id')
           t := t - 2
   return {dm with posAndIDs := mp, t := t, tot := tot}
 
-def tallyMerged (tot : Array (Nat × Nat × Nat)) : Nat :=
-  tot.foldl (init := 0) fun tot (pos, length, id) =>
-    tot + id * (length * (pos - 1) + (length * (length + 1)) / 2)
+def tallyMerged (tot : Array ff) : Nat :=
+  tot.foldl (init := 0) fun tot ({pos := pos, length := length, id := id}) =>
+    tot + id.get! * (length * (pos - 1) + (length * (length + 1)) / 2)
 
+/--
+info: tallyMerged merged: 2858
+---
+warning: unused variable `dat`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
+-/
+#guard_msgs in
 #eval do
   let _dat := "12345"
   let dat ← IO.FS.readFile input
@@ -200,7 +213,7 @@ def tallyMerged (tot : Array (Nat × Nat × Nat)) : Nat :=
     --IO.println s!"* {i + 1}"
     --IO.println DM
   --IO.println <| tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot.map Prod.snd
-  let fixed := DM.posAndIDs.filterMap (fun _ (fil : ff) => fil.id.map (fil.pos, fil.length, ·))
+  let fixed := DM.posAndIDs.filterMap (fun _ (fil : ff) => fil.id.map fun _ => fil)
   let merged := fixed.toArray.map Prod.snd ++ DM.tot
   --IO.println {DM with posAndIDs := DM.posAndIDs.filter fun _ i => i.id.isSome, tot := DM.tot.qsort (·.1 < ·.1)}--.qsort (·.1 < ·.1)}
   --IO.println s!"\nmerged:\n{merged.qsort (·.1 < ·.1)}"
