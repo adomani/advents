@@ -114,7 +114,7 @@ solve 1 6435922584968 file
 #  Question 2
 -/
 --#exit
-#check Array.findIdx?
+
 def findS (dm : DiskMap) (lFile : Nat) : Option (Nat × ff) :=
   --let cands := ((dm.posAndIDs.toArray.map Prod.snd).qsort (·.pos < ·.pos))
   --let idx := cands.findIdx? fun ff => ff.id.isNone && lFile ≤ ff.length
@@ -155,10 +155,9 @@ def findS (dm : DiskMap) (lFile : Nat) : Option (Nat × ff) :=
 def collapse2 (dm : DiskMap) : DiskMap := Id.run do
   let mut mp := dm.posAndIDs
   let mut tot := dm.tot
-  --let mut new := dm
   let mut t := dm.t
   match dm.posAndIDs.get? dm.t with
-    | none | some {id := none, ..} => return dm --panic s!"{dm.t} should be in range!"
+    | none | some {id := none, ..} => return dm
     | some {length := lFile, id := some id, ..} =>
       let S? := findS dm lFile
       --dbg_trace "processing {f}"
@@ -189,6 +188,31 @@ def collapse2 (dm : DiskMap) : DiskMap := Id.run do
 def tallyMerged (tot : Array ff) : Nat :=
   tot.foldl (init := 0) fun tot ({pos := pos, length := length, id := id}) =>
     tot + id.get! * (length * (pos - 1) + (length * (length + 1)) / 2)
+
+def interleave (a : Array ff) : Array ff := Id.run do
+  let mut fin := #[]
+  let mut (frees, files) := a.partition (·.id == none)
+  while files.back?.isSome do
+    let last := files.back!
+    files := files.pop
+    match frees.findIdx? fun r => (last.length ≤ r.length && r.pos < last.pos) with
+      | none => fin := fin.push last
+      | some idx =>
+        fin := fin.push {last with pos := frees[idx]!.pos}
+        frees := frees.modify idx fun s =>
+          {s with length := s.length - last.length, pos := s.pos + last.length}
+  return fin
+
+set_option trace.profiler true in
+#eval do
+  let _dat := "12345"
+  let dat := test
+  let dat ← IO.FS.readFile input
+  let mut DM := mkDiskMap dat
+  let il := (interleave (DM.posAndIDs.toArray.map Prod.snd)).qsort (·.pos < ·.pos)
+  IO.println <| tallyMerged il
+  --IO.println <| "\n".intercalate <| (il.map (s!"{·}")).toList
+
 
 /--
 info: tallyMerged merged: 2858
@@ -230,3 +254,4 @@ def part2 (dat : Array String) : Nat := sorry
 
 end Day09
 -- 8654184283366 -- too high
+-- 6469636832766
