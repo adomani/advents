@@ -94,11 +94,9 @@ def collapse (dm : DiskMap) : DiskMap := Id.run do
   return {dm with posAndIDs := mp, s := s, t := t, tot := tot}
 
 def tallyTot (tot : Array (Nat × Nat)) : Nat :=
-  let rtot := (tot.map fun (m, id) => List.replicate m id).foldl (· ++ ·) []
-  let lth := rtot.length
-  (Array.range lth).foldl (init := 0) fun arr v =>
-    --let (id) := rtot[v]!
-    arr + v * rtot[v]!
+  let mid := tot.foldl (init := (0, 0)) fun (pos, tot) (mult, id) =>
+    (pos + mult, tot + id * (mult * (pos - 1) + (mult * (mult + 1)) / 2))
+  mid.2
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat := Id.run do
@@ -107,17 +105,14 @@ def part1 (dat : String) : Nat := Id.run do
   while DM.s < DM.t do --for i in [0:3] do
     i := i + 1
     DM := collapse DM
-  let tot := DM.posAndIDs.toArray.qsort (·.1 < ·.1)
-  let retot := tot.filterMap fun (_p, {length := l, id := id..}) => id.map (l, ·)
-
   dbg_trace DM
-  dbg_trace retot
-  dbg_trace tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ retot
-  tallyTot <| (List.replicate ("".push <| dat.get ⟨0⟩).toNat! (1, 0)).toArray ++ DM.tot
+  tallyTot <| #[(("".push <| dat.get ⟨0⟩).toNat!, 0)] ++ DM.tot
 
 #assert part1 test == 1928
 
---solve 1 6435922584968 file
+#exit
+
+solve 1 6435922584968 file
 
 /-!
 #  Question 2
