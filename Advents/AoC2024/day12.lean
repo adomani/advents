@@ -186,10 +186,36 @@ def tallyAll (tot : Std.HashMap pos Char) : Nat :=
 
 set_option trace.profiler true in
 #eval do
-  let dat := atest3
   let dat ← IO.FS.lines input
-  let mut tot := loadGrid dat id
+  let dat := atest3
+  let tot := loadGrid dat id
   IO.println <| tallyAll tot
+
+/-!
+-/
+
+def rot (p : pos) : pos := (p.2, - p.1)
+
+def breaks (h : OneComp) : Nat := Id.run do
+  let mut tot := 0
+  for e in h.edges do
+    for n in h.nbs do
+      if (!h.growing.contains (e + n)) && (!h.growing.contains (rot (e + n))) then
+        tot := tot + 1
+  return tot
+
+def breakAll (tot : Std.HashMap pos Char) : Nat :=
+  let init := getComponents tot
+  init.foldl (fun t (_, h) => t + (h.growing.size * breaks h)) 0 --· + ·.2.size)
+
+set_option trace.profiler true in
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest3
+  let tot := loadGrid dat id
+  let init := getComponents tot
+  for (c, h) in init do
+    IO.println <| s!"'{c}': breaks {breaks h}"
 
 /-!
 -/
