@@ -23,3 +23,4 @@
 * Day 6, part 2 is slow (moving guard in a maze, finding locations of obstacles to create loops)
 * Day 7, part 2 is slow (filling in binary operations, trying to achieve a fixed total)
 * Day 9, part 2 is slow (defragmenting a file-system)
+* Day 12, part 1 and 2 are slow (connected components, perimeters and corners)
