@@ -13,7 +13,10 @@ def input : System.FilePath := "Advents/AoC2024/day12.input"
 --#eval do IO.println (← IO.FS.readFile input)
 
 /-- `test` is the test string for the problem. -/
-def test := ""
+def test := "AAAA
+BBCD
+BBCC
+EEEC"
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
