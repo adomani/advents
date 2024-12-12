@@ -249,6 +249,13 @@ Value: C, area : 1
   for (p, comp) in getComponents tot do
     IO.println s!"Value: {p}, area : {area comp}"
 
+def corner (g : OneComp) (p : pos) : Nat :=
+  let ld := #[(1, 0), (0, - 1)].map (g.growing.contains <| p + ·)
+  let ru := #[(- 1, 0), (0, 1)].map (g.edges.contains <| p + ·)
+  let cond := ld.all id && ru.all (!·)
+  dbg_trace "{p}\nld: {ld}\nru: {ru}\ncond: {cond}\n"
+  default
+
 #eval do
   let dat := atest3
   let dat ← IO.FS.lines input
@@ -257,8 +264,11 @@ Value: C, area : 1
   let p := tot[st]!
   let comp := mkOneComp tot p st
   let comp := growComp comp
+  let f := #[(0, 7), (1, 8), (5, 12)].map (corner comp)
+  dbg_trace f
   IO.println s!"Value: {p}, area : {area comp}"
   draw <| drawSparse comp.edges 20 20
+  draw <| drawSparse comp.growing 20 20
 
 #eval do
   let dat := atest2
