@@ -272,17 +272,89 @@ def mkPath (front : Std.HashSet pos) : Array pos := Id.run do
     left := left.erase curr
   return fd
 
+instance : HMul Nat pos pos where hMul a p := (a * p.1, a * p.2)
+
+/-- Doubles and takes the Minkowski sum with the square of edge-length 2. -/
+def mmk' (h : Std.HashSet pos) : Std.HashSet pos :=
+  h.fold (fun new p => #[(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)].foldl (·.insert <| 3 * p + ·) new) h
+
+/-- Doubles and takes the Minkowski sum with the square of edge-length 2. -/
+def mmk (h : Std.HashSet pos) : Std.HashSet pos :=
+  h.fold (fun new p => #[(0, 0), (0, 1), (1, 0), (1, 1)].foldl (·.insert <| 2 * p + ·) new) h
+
+def magnify (h : OneComp) : OneComp :=
+  {h with
+    gr := mmk h.gr
+    growing := mmk h.growing
+    front := mmk h.front
+    edges := mmk h.edges
+  }
+#check List.splitBy
+--def lrBds (h : OneComp) (i : Int) : Std.HashMap pos Bool :=
+def lrBds (h : OneComp) (i : Int) : Std.HashSet Int × Std.HashSet Int :=
+  h.edges.fold (fun new@(newl, newr) p =>
+    if p.1 == i
+    then
+      match !h.gr.contains (p + (0, - 1)), !h.gr.contains (p + (0, 1)) with
+        | true, true => (newl.insert p.2, newr.insert p.2)
+        | true, false => (newl.insert p.2, newr)
+        | false, true => (newl, newr.insert p.2)
+        | false, false => new
+    else
+      new
+    ) default
+
+def corners (h : OneComp) (m M : Nat) : Nat := Id.run do
+  let mut diffs := 0
+  let mut (cl, cr) : Std.HashSet Int × Std.HashSet Int := default
+  for i in [m:M] do
+    let st1@(l, r) := lrBds h i
+    diffs := diffs + (cl.filter (!l.contains ·)).size + (l.filter (!cl.contains ·)).size
+    diffs := diffs + (cr.filter (!r.contains ·)).size + (r.filter (!cr.contains ·)).size
+    (cl, cr) := st1
+  return diffs
+set_option trace.profiler true in
 #eval do
-  let dat := atest3
   let dat ← IO.FS.lines input
+  let _dat := atest3
   let mut tot := loadGrid dat id
-  let st : pos := (0, 0)
-  let p := tot[st]!
-  let comp := mkOneComp tot p st
-  let comp := growComp comp
+  --let st : pos := (0, 0)
+  --let p := tot[st]!
+  let mut ult := 0
+  for (_p, comp) in getComponents tot do
+    ult := ult + area comp * corners comp 0 (dat.size + 1)
+    --IO.println s!"Value: {p}, area-corners: {area comp} * {corners comp 0 11} = {area comp * corners comp 0 11}"
+  IO.println s!"Final answer: {ult}"
+  --let comp := mkOneComp tot p st
+  --let comp := growComp comp
+  --IO.println <| corners comp 0 11
+  --let mut diffs := 0
+  --let mut (cl, cr) : Std.HashSet Int × Std.HashSet Int := default
+  --for i in [0:7] do
+  --  let st1@(l, r) := lrBds comp i
+  --  IO.println <| s!"{i}: {(l.toArray, r.toArray)}"
+  --  diffs := diffs + (cl.filter (!l.contains ·)).size + (l.filter (!cl.contains ·)).size
+  --  diffs := diffs + (cr.filter (!r.contains ·)).size + (r.filter (!cr.contains ·)).size
+  --  (cl, cr) := st1
+  --  IO.println diffs
+  --draw <| drawSparse comp.growing 15 20
+  --draw <| drawSparse comp.edges 15 20
+#exit
+  let mag' := magnify comp
+  let mag := growComp {mag' with front := mag'.edges, edges := {}}
+  let mag' := magnify mag
+  let mag := growComp {mag' with front := mag'.edges, edges := {}}
+  draw <| drawSparse mag.growing 50 80
+  draw <| drawSparse mag.edges 50 80
+  let mag' := magnify <| magnify comp
+  let mag := growComp {mag' with front := mag'.edges, edges := {}}
+  draw <| drawSparse mag.growing 80 80
+  draw <| drawSparse mag.edges 80 80
+  let path := mkPath mag.edges
+  draw <| drawSparse (.ofArray path) 80 80
+/-
   let f := #[(0, 7), (1, 8), (5, 12), (8, 12)].map (corner comp)
   dbg_trace f
-  dbg_trace mkPath comp.edges
   let mut mk := comp.growing
   for m in comp.growing do
     for n in #[(1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)] do
@@ -292,6 +364,7 @@ def mkPath (front : Std.HashSet pos) : Array pos := Id.run do
   IO.println s!"Value: {p}, area : {area comp}"
   draw <| drawSparse comp.edges 20 20
   draw <| drawSparse comp.growing 20 20
+-/
 
 #eval do
   let dat := atest2
