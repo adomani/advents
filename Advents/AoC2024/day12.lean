@@ -54,7 +54,6 @@ structure OneComp where
   nbs : Std.HashSet pos := {(1, 0), (- 1, 0), (0, 1), (0, - 1)}
   deriving Inhabited
 
-
 /-
 instance : ToString OneComp where
   toString g :=
@@ -199,7 +198,6 @@ def part1 (dat : Array String) : Nat := tallyAll <| loadGrid dat id
 #  Question 2
 -/
 
-
 def rot (p : pos) : pos := (p.2, - p.1)
 
 def breaks (h : OneComp) : Nat := Id.run do
@@ -250,11 +248,29 @@ Value: C, area : 1
     IO.println s!"Value: {p}, area : {area comp}"
 
 def corner (g : OneComp) (p : pos) : Nat :=
-  let ld := #[(1, 0), (0, - 1)].map (g.growing.contains <| p + ·)
-  let ru := #[(- 1, 0), (0, 1)].map (g.edges.contains <| p + ·)
-  let cond := ld.all id && ru.all (!·)
-  dbg_trace "{p}\nld: {ld}\nru: {ru}\ncond: {cond}\n"
+  --let ld := #[(1, 0), (0, - 1)].map (g.growing.contains <| p + ·)
+  let angles := #[id, rot, rot ∘ rot, rot ∘ rot ∘ rot].map (#[(- 1, 0), (0, 1)].map ·)
+  let ru := (#[(- 1, 0), (0, 1)].map fun d => !g.growing.contains (p + d)).all id
+  let cond := angles.map fun dirs => (dirs.map fun d => !g.growing.contains (p + d)).all id
+  dbg_trace "{p}\nru: {ru}\ncond: {cond}\n"
   default
+
+def dist (p q : pos) : Nat :=
+  let pq := p - q
+  (pq.1 ^ 2 + pq.2 ^ 2).natAbs
+
+def mkPath (front : Std.HashSet pos) : Array pos := Id.run do
+  let mut fd := #[]
+  let mut curr := front.toArray[0]!
+  let mut left := front.erase curr
+  while ! left.isEmpty do
+    let close := left.filter (dist · curr ≤ 2)
+    if close.isEmpty then return fd
+    let closer := close.filter (dist · curr ≤ 1)
+    curr := if closer.isEmpty then close.toArray[0]! else closer.toArray[0]!
+    fd := fd.push curr
+    left := left.erase curr
+  return fd
 
 #eval do
   let dat := atest3
@@ -264,8 +280,15 @@ def corner (g : OneComp) (p : pos) : Nat :=
   let p := tot[st]!
   let comp := mkOneComp tot p st
   let comp := growComp comp
-  let f := #[(0, 7), (1, 8), (5, 12)].map (corner comp)
+  let f := #[(0, 7), (1, 8), (5, 12), (8, 12)].map (corner comp)
   dbg_trace f
+  dbg_trace mkPath comp.edges
+  let mut mk := comp.growing
+  for m in comp.growing do
+    for n in #[(1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)] do
+      mk := mk.insert (n + m)
+  draw <| drawSparse mk 20 20
+
   IO.println s!"Value: {p}, area : {area comp}"
   draw <| drawSparse comp.edges 20 20
   draw <| drawSparse comp.growing 20 20
