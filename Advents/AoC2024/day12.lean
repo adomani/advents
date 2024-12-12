@@ -94,6 +94,9 @@ def growComp (h : OneComp) : OneComp := Id.run do
 def connectedComponent (h : OneComp) : Std.HashSet pos :=
   growComp h |>.growing
 
+def area (h : OneComp) : Nat :=
+  h.growing.size
+
 def perimeter (h : OneComp) : Nat := Id.run do
   let mut tot := 0
   for e in h.edges do
@@ -153,7 +156,7 @@ Start (9, 4), value: S, area : 3
     let compInfo := growComp gr
     let comp := compInfo.growing
     let perim := perimeter compInfo
-    let area := comp.size
+    let area := area compInfo
     IO.println s!"Start {st}, value: {p}, area * perimeter: {area} * {perim} = {area * perim}"
 
 /-
@@ -200,7 +203,7 @@ def breaks (h : OneComp) : Nat := Id.run do
   let mut tot := 0
   for e in h.edges do
     for n in h.nbs do
-      if (!h.growing.contains (e + n)) && (!h.growing.contains (rot (e + n))) then
+      if (!h.growing.contains (e + n)) && ((!h.growing.contains ((e + n + rot n))) || (!h.growing.contains ((e + n - rot n)))) then
         tot := tot + 1
   return tot
 
@@ -208,14 +211,15 @@ def breakAll (tot : Std.HashMap pos Char) : Nat :=
   let init := getComponents tot
   init.foldl (fun t (_, h) => t + (h.growing.size * breaks h)) 0 --· + ·.2.size)
 
-set_option trace.profiler true in
+--set_option trace.profiler true in
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest3
   let tot := loadGrid dat id
   let init := getComponents tot
   for (c, h) in init do
-    IO.println <| s!"'{c}': breaks {breaks h}"
+    if c == 'R' then
+      IO.println <| s!"'{c}': area {area h}, breaks {breaks h}"
 
 /-!
 -/
@@ -240,7 +244,7 @@ Value: C, area : 1
   let dat := atest3
   let mut tot := loadGrid dat id
   for (p, comp) in getComponents tot do
-    IO.println s!"Value: {p}, area : {comp.growing.size}"
+    IO.println s!"Value: {p}, area : {area comp}"
 
 #eval do
   let dat := atest3
@@ -250,7 +254,7 @@ Value: C, area : 1
   let p := tot[st]!
   let comp := mkOneComp tot p st
   let comp := growComp comp
-  IO.println s!"Value: {p}, area : {comp.growing.size}"
+  IO.println s!"Value: {p}, area : {area comp}"
   draw <| drawSparse comp.edges 20 20
 
 #eval do
