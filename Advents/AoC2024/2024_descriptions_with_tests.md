@@ -437,3 +437,78 @@ Similar to part 1, except that now you blink 75 times.
 [Solution in Lean](day11.lean)
 
 ---
+
+#  [Day 12](https://adventofcode.com/2024/day/12)
+
+The input is a grid with locations of where different kinds of plants have been planted.
+
+####  Test 1
+
+<pre>
+AAAA
+BBCD
+BBCC
+EEEC
+</pre>
+
+####  Test 2
+
+<pre>
+OOOOO
+OXOXO
+OOOOO
+OXOXO
+OOOOO
+</pre>
+
+####  Test 3
+
+<pre>
+RRRRIICCFF
+RRRRIICCCF
+VVRRRCCFFF
+VVRCCCJFFF
+VVVVCJJCFE
+VVIVCCJJEE
+VVIIICJJEE
+MIIIIIJJEE
+MIIISIJEEE
+MMMISSJEEE
+</pre>
+
+####  Test
+
+<pre>
+EEEEE
+EXXXX
+EEEEE
+EXXXX
+EEEEE
+</pre>
+
+####  Test
+
+<pre>
+AAAAAA
+AAABBA
+AAABBA
+ABBAAA
+ABBAAA
+AAAAAA
+</pre>
+
+### Description
+
+#### Part 1
+
+We should find the sum of `area * perimeter` for each connected component of the garden containing
+plants of a single variety.
+
+#### Part 2
+
+Similar to part one, except that we should find the sum of `area * corners` for each connected
+component of the garden containing plants of a single variety.
+
+[Solution in Lean](day12.lean)
+
+---
