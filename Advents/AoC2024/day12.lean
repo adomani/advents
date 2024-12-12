@@ -154,7 +154,6 @@ Start (9, 4), value: S, area : 3
     let st := gr.toArray.back!
     let gr := mkOneComp tot p st
     let compInfo := growComp gr
-    let comp := compInfo.growing
     let perim := perimeter compInfo
     let area := area compInfo
     IO.println s!"Start {st}, value: {p}, area * perimeter: {area} * {perim} = {area * perim}"
@@ -187,15 +186,19 @@ def tallyAll (tot : Std.HashMap pos Char) : Nat :=
   let init := getComponents tot
   init.foldl (fun t (_, h) => t + (h.growing.size * perimeter h)) 0 --· + ·.2.size)
 
-set_option trace.profiler true in
-#eval do
-  let dat ← IO.FS.lines input
-  let dat := atest3
-  let tot := loadGrid dat id
-  IO.println <| tallyAll tot
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := tallyAll <| loadGrid dat id
+
+#assert part1 atest1 == 140
+#assert part1 atest2 == 772
+#assert part1 atest3 == 1930
+
+--solve 1 1483212  -- slow, takes approx 80s
 
 /-!
+#  Question 2
 -/
+
 
 def rot (p : pos) : pos := (p.2, - p.1)
 
@@ -275,18 +278,6 @@ Value: C, area : 1
     IO.println s!"Start {st}, value: {p}, area : {comp.size}"
     draw <| drawSparse (connectedComponent gr) dat.size dat.size
 
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
