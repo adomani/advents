@@ -174,3 +174,17 @@ Determine the total sum of the values of the configuration of the stone after yo
 #### Part 2
 
 Similar to part 1, except that now you blink 75 times.
+-- Day 12
+The input is a grid with locations of where different kinds of plants have been planted.
+
+### Description
+
+#### Part 1
+
+We should find the sum of `area * perimeter` for each connected component of the garden containing
+plants of a single variety.
+
+#### Part 2
+
+Similar to part one, except that we should find the sum of `area * corners` for each connected
+component of the garden containing plants of a single variety.
