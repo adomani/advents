@@ -512,3 +512,46 @@ component of the garden containing plants of a single variety.
 [Solution in Lean](day12.lean)
 
 ---
+
+#  [Day 13](https://adventofcode.com/2024/day/13)
+
+The input is a description of various games with the claw.
+
+####  Test
+
+<pre>
+Button A: X+94, Y+34
+Button B: X+22, Y+67
+Prize: X=8400, Y=5400
+
+Button A: X+26, Y+66
+Button B: X+67, Y+21
+Prize: X=12748, Y=12176
+
+Button A: X+17, Y+86
+Button B: X+84, Y+37
+Prize: X=7870, Y=6450
+
+Button A: X+69, Y+23
+Button B: X+27, Y+71
+Prize: X=18641, Y=10279
+</pre>
+
+### Description
+
+#### Part 1
+
+We should determine the intersection points between two lines.
+All the lines are non-parallel, the intersection points are required to be integers and
+non-negative.
+
+Once we found these intersection points, we tally them using `3` and `1` as weights
+for their coordinates.
+
+#### Part 2
+
+Similar to part one, except that the target positions are now increased by `10000000000000`.
+
+[Solution in Lean](day13.lean)
+
+---

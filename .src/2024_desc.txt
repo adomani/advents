@@ -188,3 +188,20 @@ plants of a single variety.
 
 Similar to part one, except that we should find the sum of `area * corners` for each connected
 component of the garden containing plants of a single variety.
+-- Day 13
+The input is a description of various games with the claw.
+
+### Description
+
+#### Part 1
+
+We should determine the intersection points between two lines.
+All the lines are non-parallel, the intersection points are required to be integers and
+non-negative.
+
+Once we found these intersection points, we tally them using `3` and `1` as weights
+for their coordinates.
+
+#### Part 2
+
+Similar to part one, except that the target positions are now increased by `10000000000000`.

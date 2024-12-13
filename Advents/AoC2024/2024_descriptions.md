@@ -12,3 +12,4 @@
 | [10](2024_descriptions_with_tests.md#day-10) | The input is a height map.                                                                  |
 | [11](2024_descriptions_with_tests.md#day-11) | The input is a sequence of numbers written on stones.                                       |
 | [12](2024_descriptions_with_tests.md#day-12) | The input is a grid with locations of where different kinds of plants have been planted.    |
+| [13](2024_descriptions_with_tests.md#day-13) | The input is a description of various games with the claw.                                  |
