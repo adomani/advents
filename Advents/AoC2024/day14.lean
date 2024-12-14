@@ -29,6 +29,9 @@ p=9,5 v=-3,-3"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+def size : Nat × Nat := (101, 103)
+def tsize : Nat × Nat := (11, 7)
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
