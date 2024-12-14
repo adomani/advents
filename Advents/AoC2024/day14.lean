@@ -124,34 +124,71 @@ solve 1 220971520
   let (dat, sz) := (← IO.FS.lines input, size)
   let rs := inputToGrid dat sz
   --draw <| drawSparse (rs.ps.fold (fun h ((p, v) : pos × pos) => h.insert p) {}) (sz.2) (sz.1)
-  let mut ccs : Std.HashMap _ Nat := {}
-  let bd := 100 --0 * sz.1 * sz.2
-  for i' in [0: size.1] do
+  --let mut ccs : Std.HashMap _ Nat := {}
+  let bd := max sz.1 sz.2
+  let numRobs := rs.ps.size
+  let exp := (numRobs / 4) ^ 2 / 4
+  let mut results := #[]
+  for i' in [0:bd] do
     let i := i'
     let ri := move rs (i)
-    let cs@(c1, c2, c3, c4) := counts ri
-    ccs := ccs.alter cs fun v => some <| v.getD 0 + 1
-    IO.println i
+    let (c1, c2, c3, c4) := counts ri
+    if c1 * c2 ≤ exp then results := results.push ((i, sz.1), 3, 4)
+    if c1 * c3 ≤ exp then results := results.push ((i, sz.2), 2, 4)
+    --if c1 * c4 ≤ exp then results := results.push ((i), 2, 3)
+    --if c2 * c3 ≤ exp then results := results.push ((i), 1, 4)
+    if c2 * c4 ≤ exp then results := results.push ((i, sz.2), 1, 3)
+    if c3 * c4 ≤ exp then results := results.push ((i, sz.1), 1, 2)
+    --ccs := ccs.alter cs fun v => some <| v.getD 0 + 1
+    --IO.println s!"{i}, {(numRobs / 4 ) ^ 4} {c1 * c2 * c3 * c4} -- {cs}"
     --draw <| drawSparse (ri.ps.fold (fun h ((p, v) : pos × pos) => h.insert p) {}) (sz.2) (sz.1)
-    if (c1 == c3 && c2 == c4) || (c1 == c2 && c3 == c4) then
+    --if (c1 == c3 && c2 == c4) || (c1 == c2 && c3 == c4) then
       --IO.println (i, cs)
-  let reps := ccs.filter fun ((c1, c2, c3, c4) : Nat × Nat × Nat × Nat) c => (c1 == c3 && c2 == c4) || (c1 == c2 && c3 == c4)
-  IO.println reps.size
-  IO.println reps.toArray
+  match results with
+    | #[((val1, mod1), r1, r2), ((val2, mod2), s1, _s2)] =>
+      let corner := if r1 == s1 then r1 else r2
+      let ind := (Array.range mod2).filterMap fun i =>
+        if (val1 + i * mod1) % mod2 == val2 then some (val1 + i * mod1) else none
+      let xmas := drawSparse
+        ((move rs ind[0]!).ps.fold (fun h ((p, _) : pos × pos) => h.insert p) {}) sz.2 sz.1
+      dbg_trace String.intercalate "\n" <| s!"Look in quadrant number {corner}" :: xmas.toList
+      IO.println s!"{results}, corner: {corner}, index: {ind}"
+    | _ => IO.println "Modify the expected values!"
+  --let reps := ccs.filter fun ((c1, c2, c3, c4) : Nat × Nat × Nat × Nat) c => (c1 == c3 && c2 == c4) || (c1 == c2 && c3 == c4)
+  --IO.println reps.size
+  --IO.println reps.toArray
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat :=
+  let sz := if dat.size == atest.size then tsize else size
+  let rs := inputToGrid dat sz
+  let bd := max sz.1 sz.2
+  let numRobs := rs.ps.size
+  -- The expectation is that each quadrant contains approximately `numRobs / 4` robots.
+  -- We track the configurations that contain roughly half of this number in two adjacent quadrants.
+  let exp := (numRobs / 4) ^ 2 / 4
+  let results := (List.range bd).foldl (init := #[]) fun h (i : Nat) =>
+    let ri := move rs i
+    let (c1, c2, c3, c4) := counts ri
+    if c1 * c2 ≤ exp then h.push ((i, sz.1), 3, 4) else
+    if c1 * c3 ≤ exp then h.push ((i, sz.2), 2, 4) else
+    if c2 * c4 ≤ exp then h.push ((i, sz.2), 1, 3) else
+    if c3 * c4 ≤ exp then h.push ((i, sz.1), 1, 2) else
+    h
+  match results with
+    | #[((val1, mod1), r1, r2), ((val2, mod2), s1, _s2)] =>
+      let corner := if r1 == s1 then r1 else r2
+      let ind := (Array.range mod2).filterMap fun i =>
+        if (val1 + i * mod1) % mod2 == val2 then some (val1 + i * mod1) else none
+      let xmas := drawSparse
+        ((move rs ind[0]!).ps.fold (fun h ((p, _) : pos × pos) => h.insert p) {}) sz.2 sz.1
+      dbg_trace String.intercalate "\n" <| s!"Look in quadrant number {corner}" :: xmas.toList
+      match ind with
+        | #[ind] => ind
+        | _ => dbg_trace "Modify the expected values!"; 0
+    | _ => dbg_trace "Modify the expected values!"; 0
 
---#assert part2 atest == ???
-
---solve 2
+-- The test does not have a picture.
+solve 2 6355
 
 end Day14
-/-
-72
-93
-
-175
-194
--/
