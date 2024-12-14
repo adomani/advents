@@ -222,7 +222,9 @@ def inputToData (dat : Array String) : Array (Std.HashSet vol) := Id.run do
   let mut curr : Std.HashSet vol := {}
   for d in dat do
     if d.startsWith "--- scanner" then
-      if ! curr.isEmpty then scanners := scanners.push curr
+      if ! curr.isEmpty then
+        scanners := scanners.push curr
+        curr := ∅
     else
       match d.getInts with
         | [a, b, c] => curr := curr.insert (a, b, c)
@@ -268,7 +270,7 @@ def align (g : Std.HashSet vol) (v0 : vol) : Std.HashMap (vol × vol) vol := Id.
       let diff := v - w
       let lth := sc diff diff
       if lth == vlth then
-        return lths.insert (v, w) v0
+        lths := lths.insert (v, w) v0
       --lths := lths.alter (sc diff diff) (some <| ·.getD 0 + 1)
   return lths
   --dbg_trace "d1: {d1.size}\nd2: {d2.size}\n12: {(d1.union d2).size}"
@@ -278,6 +280,7 @@ def translate (ref g : Std.HashSet vol) (v1 v : vol) : Std.HashSet vol :=
   let v' := v - v1
   let g' := g.fold (·.insert <| · + v') {}
   if 12 ≤ (g'.filter ref.contains).size then
+    dbg_trace "overlap\n{(g'.filter ref.contains).toArray.qsort (·.1 < ·.1)}\n"
     g'
   else
     dbg_trace "Common: {(ref.filter g'.contains).size} {(g'.filter ref.contains).size}"
@@ -288,6 +291,7 @@ def translate (ref g : Std.HashSet vol) (v1 v : vol) : Std.HashSet vol :=
   let dat ← IO.FS.lines input
   let dat := atest3
   let h := inputToData dat
+  IO.println s!"{h.map (Std.HashSet.size)}"
   let g1 := h[0]!
   --let g2 := h[3]!
   let v0 := g1.toArray[0]!
@@ -303,6 +307,7 @@ def translate (ref g : Std.HashSet vol) (v1 v : vol) : Std.HashSet vol :=
     --  let gs := g.size
     --  if gs != (g.union g1).size then IO.println s!"{gi}"
     let new := align g2 v01
+    dbg_trace "new.size: {new.size}"
     if ! new.isEmpty then
       let ((f1, f2), f3) := new.toArray[0]!
       dbg_trace "translating by {f1 + v01}, {f2 + v01}, {f3}, {f3 + v01}, {new.size}"
