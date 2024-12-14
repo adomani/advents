@@ -101,14 +101,17 @@ solve 1 220971520
   let rs := inputToGrid dat sz
   --draw <| drawSparse (rs.ps.fold (fun h ((p, v) : pos × pos) => h.insert p) {}) (sz.2) (sz.1)
   let mut ccs : Std.HashMap _ Nat := {}
-  for i in [10: 20] do
-    let ri := move rs (- i)
+  let bd := 100 --0 * sz.1 * sz.2
+  for i' in [0 * bd: bd] do
+    let i := 103 * i' + 72
+    let ri := move rs (i)
     let cs@(c1, c2, c3, c4) := counts ri
     ccs := ccs.alter cs fun v => some <| v.getD 0 + 1
-    --if (c1 == c3 && c2 == c4) || (c1 == c2 && c3 == c4) then
-      --IO.println (i, cs)
+    IO.println i
     draw <| drawSparse (ri.ps.fold (fun h ((p, v) : pos × pos) => h.insert p) {}) (sz.2) (sz.1)
-  let reps := ccs.filter fun _ c => (c != 1)
+    if (c1 == c3 && c2 == c4) || (c1 == c2 && c3 == c4) then
+      --IO.println (i, cs)
+  let reps := ccs.filter fun ((c1, c2, c3, c4) : Nat × Nat × Nat × Nat) c => (c1 == c3 && c2 == c4) || (c1 == c2 && c3 == c4)
   IO.println reps.size
   IO.println reps.toArray
 
@@ -124,3 +127,10 @@ def part2 (dat : Array String) : Nat := sorry
 --solve 2
 
 end Day14
+/-
+72
+93
+
+175
+194
+-/
