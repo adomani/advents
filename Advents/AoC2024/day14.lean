@@ -124,13 +124,14 @@ def part2 (dat : Array String) : Nat :=
       let corner := if r1 == s1 then r1 else r2
       let ind := (Array.range mod2).filterMap fun i =>
         if (val1 + i * mod1) % mod2 == val2 then some (val1 + i * mod1) else none
-      let xmas := drawSparse
-        ((move rs ind[0]!).ps.fold (fun h ((p, _) : pos × pos) => h.insert p) {}) sz.2 sz.1
-      dbg_trace String.intercalate "\n" <| s!"Look in quadrant number {corner}" :: xmas.toList
       match ind with
-        | #[ind] => ind
-        | _ => dbg_trace "Modify the expected values!"; 0
-    | _ => dbg_trace "Modify the expected values!"; 0
+        | #[ind] =>
+          let xmas := drawSparse
+            ((move rs ind).ps.fold (fun h ((p, _) : pos × pos) => h.insert p) {}) sz.2 sz.1
+          dbg_trace String.intercalate "\n" <| s!"Look in quadrant number {corner}" :: xmas.toList
+          ind
+        | e => dbg_trace "{e} should contain exactly one element!"; 0
+    | _ => dbg_trace "Expecting 2 results, but found {results.size}!"; 0
 
 -- The test does not have a picture.
 solve 2 6355
