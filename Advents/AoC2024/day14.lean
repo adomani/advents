@@ -116,7 +116,28 @@ solve 1 220971520
   IO.println reps.toArray
 
 #eval 101 * 103
+#eval 6355 % size.1
 
+
+#eval do
+  let (dat, sz) := (atest, tsize)
+  let (dat, sz) := (← IO.FS.lines input, size)
+  let rs := inputToGrid dat sz
+  --draw <| drawSparse (rs.ps.fold (fun h ((p, v) : pos × pos) => h.insert p) {}) (sz.2) (sz.1)
+  let mut ccs : Std.HashMap _ Nat := {}
+  let bd := 100 --0 * sz.1 * sz.2
+  for i' in [0: size.1] do
+    let i := i'
+    let ri := move rs (i)
+    let cs@(c1, c2, c3, c4) := counts ri
+    ccs := ccs.alter cs fun v => some <| v.getD 0 + 1
+    IO.println i
+    --draw <| drawSparse (ri.ps.fold (fun h ((p, v) : pos × pos) => h.insert p) {}) (sz.2) (sz.1)
+    if (c1 == c3 && c2 == c4) || (c1 == c2 && c3 == c4) then
+      --IO.println (i, cs)
+  let reps := ccs.filter fun ((c1, c2, c3, c4) : Nat × Nat × Nat × Nat) c => (c1 == c3 && c2 == c4) || (c1 == c2 && c3 == c4)
+  IO.println reps.size
+  IO.println reps.toArray
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
