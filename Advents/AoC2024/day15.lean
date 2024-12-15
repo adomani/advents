@@ -171,6 +171,7 @@ def nbs (b : box) : Array pos := #[b.l, b.l + (0, 1)]
 
 --instance : HMul Nat pos pos where hMul a p := (p.1, a * p.2)
 def double (p : pos) : pos := (p.1, 2 * p.2)
+
 structure Boxes2 where
   w : Std.HashSet pos
   b : Std.HashSet box
@@ -196,39 +197,39 @@ def toBoxes (b : Boxes2) : Boxes where
   old := b.old
 
 structure ContBoxes where
-  /-- `w` is the set of `w`alls. -/
-  w : Std.HashSet pos
-  /-- `b` is the set of `b`oxes. -/
-  b : Std.HashSet box
-  /-- `f` is the set of `f`ronts of the expansion. -/
-  f : Std.HashSet pos
+  /-- `walls` is the set of walls. -/
+  walls : Std.HashSet pos
+  /-- `boxes` is the set of boxes. -/
+  boxes : Std.HashSet box
+  /-- `front` is the set of fronts of the expansion: the positions that were just added. -/
+  front : Std.HashSet pos
   /-- `growing` is the set of boxes accumulated so far. -/
   growing : Std.HashSet box
   deriving Inhabited
 
 def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
-  let shift : Std.HashSet pos := b.f.fold (fun h p => h.insert (p + toDir s)) b.f
+  let shift : Std.HashSet pos := b.front.fold (fun h p => h.insert (p + toDir s)) b.front
   --dbg_trace "first shift: {shift.toArray}"
   let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
   --dbg_trace "shift: {shift.toArray}"
-  if ! (shift.filter b.w.contains).isEmpty
+  if ! (shift.filter b.walls.contains).isEmpty
   then
     --dbg_trace "found a wall {(shift.filter b.w.contains).toArray}"
     (default, false)
   else
-  let metBoxes := b.b.filter (fun b => ((nbs b).map shift.contains).any id)
+  let metBoxes := b.boxes.filter (fun b => ((nbs b).map shift.contains).any id)
   let shift := metBoxes.fold (fun h b => h.insertMany (nbs b)) shift
   --dbg_trace "intermediate shift: {shift.toArray}"
   let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
   --dbg_trace "no wall -- metBoxes: {metBoxes.toArray}\nagain shift: {shift.toArray}\n"
-  ({b with growing := b.growing.union metBoxes, f := if metBoxes.isEmpty then {} else shift}, true)
+  ({b with growing := b.growing.union metBoxes, front := if metBoxes.isEmpty then {} else shift}, true)
 
 def adjacentBoxes (b : Boxes2) (s : String) : Std.HashSet box × Bool := Id.run do
   let mut (temp, continue?) : ContBoxes × Bool :=
-    ({w := b.w, b := b.b, f := {b.S}, growing := {}}, true)
-  let mut old : Std.HashSet pos := {}
-  while ! temp.f.isEmpty do
-    old := temp.f
+    ({walls := b.w, boxes := b.b, front := {b.S}, growing := {}}, true)
+  --let mut old : Std.HashSet pos := {}
+  while ! temp.front.isEmpty do
+    --old := temp.f
     (temp, continue?) := growBoxes temp s
   return (temp.growing, continue?)
 
@@ -240,11 +241,62 @@ def moveBoxes (b : Boxes2) (s : String) : Boxes2 :=
     b
   else
     --dbg_trace "move {adj.size} boxes"
-    let erasedBoxes := adj.fold (fun h q => h.erase q) b.b
-    let insertBoxes := adj.fold (fun h q => h.insert {q with l := q.l + toDir s}) erasedBoxes
+    let erasedBoxes := adj.fold (·.erase ·) b.b
+    let insertBoxes := adj.fold (fun h q => h.insert (toB (q.l + toDir s))) erasedBoxes
     {b with b := insertBoxes, S := b.S + toDir s }
 
+#eval
+  let adj   : Std.HashSet pos := {}
+  let ff : Std.HashSet pos := {default}
+  let new := adj.fold (fun h q => h.erase q) ff
+  new
+
+
+
 #eval (4, 6) + toDir "^"
+
+/--
+info: #[(3, 4-5), (4, 5-6), (3, 6-7)]
+--01234567890123456789-
+0|####################|
+1|##    OO    OO  OO##|
+2|##            OO  ##|
+3|##  OOOO    OO  OO##|
+4|##   OO       OO  ##|
+5|##OO##@   OO      ##|
+6|##OO    OO    OO  ##|
+7|##  OOOO  OO  OOOO##|
+8|##        OO      ##|
+9|####################|
+--01234567890123456789-
+
+--01234567890123456789-
+0|####################|
+1|##    OO    OO  OO##|
+2|##  OOOO      OO  ##|
+3|##   OO     OO  OO##|
+4|##    @       OO  ##|
+5|##OO##    OO      ##|
+6|##OO    OO    OO  ##|
+7|##  OOOO  OO  OOOO##|
+8|##        OO      ##|
+9|####################|
+--01234567890123456789-
+
+--01234567890123456789-
+0|####################|
+1|##    OO    OO  OO##|
+2|##  OOOO      OO  ##|
+3|##   OO     OO  OO##|
+4|##    @       OO  ##|
+5|##OO##    OO      ##|
+6|##OO    OO    OO  ##|
+7|##  OOOO  OO  OOOO##|
+8|##        OO      ##|
+9|####################|
+--01234567890123456789-
+-/
+#guard_msgs in
 #eval do
   let dat := test
   let sz := ((dat.splitOn "\n\n")[0]!.splitOn "\n").length
@@ -270,10 +322,100 @@ def moveBoxes (b : Boxes2) (s : String) : Boxes2 :=
 def autoMove (b : Boxes2) : Boxes2 :=
   {moveBoxes b (b.m.take 1) with m := b.m.drop 1, old := b.old ++ b.m.take 1}
 
-def checkValid (B : Boxes2) : Bool :=
+def checkWalls (B : Boxes2) : Bool :=
   B.b.fold (fun h b => h && !(B.w.insert B.S).contains b.l && !(B.w.insert B.S).contains (b.l + (0, 1))) (!B.w.contains B.S)
 
+def checkBoxOverlap (B : Boxes2) : Bool := Id.run do
+  let mut cond := true
+  let mut visited := B.b
+  for b in B.b do
+    visited := visited.erase b
+    for c in visited do
+      --if b == c then continue
+      cond := cond && (!(nbs b).contains (nbs c)[0]!) && (!(nbs b).contains (nbs c)[1]!)
+  return cond
 
+def checkValid (B : Boxes2) : Bool := checkWalls B && checkBoxOverlap B
+
+/--
+info: --01234567890123-
+0|##############|
+1|##......##..##|
+2|##..........##|
+3|##....OOOO@.##|
+4|##....OO....##|
+5|##..........##|
+6|##############|
+--01234567890123-
+
+1 Move <: ⏎
+END: 12
+--01234567890123-
+0|##############|
+1|##...OO.##..##|
+2|##...@.OO...##|
+3|##....OO....##|
+4|##..........##|
+5|##..........##|
+6|##############|
+--01234567890123-
+-/
+#guard_msgs in
+#eval do
+  let dat := test3
+  let sz := ((dat.splitOn "\n\n")[0]!.splitOn "\n").length
+  let mut B2 := resize <| mkBoxes dat
+  if ! checkValid B2 then IO.println "ERROR!!!!"
+  let mut B := toBoxes <| B2
+  draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+  IO.print s!"{1} Move {B2.m.take 1}: "
+  let mut i := 0
+  while !B2.m.isEmpty do
+
+    i := i + 1
+    B2 := autoMove B2
+    if ! checkValid B2 then IO.println "ERROR!!!!"
+  B := toBoxes <| B2
+  IO.println s!"\nEND: {(i + 1)}"
+  draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+
+/--
+info: --01234567890123456789-
+0|####################|
+1|##....OO....OO..OO##|
+2|##............OO..##|
+3|##..OOOO....OO..OO##|
+4|##....OO@.....OO..##|
+5|##OO##....OO......##|
+6|##OO....OO....OO..##|
+7|##..OOOO..OO..OOOO##|
+8|##........OO......##|
+9|####################|
+--01234567890123456789-
+
+1 Move <: ⏎
+END: 701
+--01234567890123456789-
+0|####################|
+1|##OOOO........OOOO##|
+2|##OO...........OO.##|
+3|##............OOOO##|
+4|##.............OO.##|
+5|##..##......OOOO..##|
+6|##.OO@....OOOOOO..##|
+7|##..OO.....OO.OOOO##|
+8|##.....OO.OO......##|
+9|####################|
+--01234567890123456789-
+
+---
+warning: unused variable `dat`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
+---
+warning: unused variable `dat`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
+-/
+#guard_msgs in
 #eval do
   let dat ← IO.FS.readFile input
   let dat := test3
@@ -303,9 +445,11 @@ def checkValid (B : Boxes2) : Bool :=
   B := toBoxes <| B2
   IO.println s!"\nEND: {(i + 1)}"
   draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
-  IO.println s!"next: '{B2.m.take 1}' performed: '{B2.old}'\n"
+  --IO.println s!"next: '{B2.m.take 1}' performed: '{B2.old}'\n"
 
-
+/-!
+-/
+#exit
 def touchingBoxes (b : Boxes2) (s : String) (bs : Std.HashSet box) : Std.HashSet box :=
   let f : Std.HashSet pos :=
     bs.fold (·.insertMany <| Std.HashSet.ofArray <| nbs ·) {}
