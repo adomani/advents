@@ -144,19 +144,67 @@ solve 1 1426855 file
 #  Question 2
 -/
 
+structure box where
+  l : pos
+  deriving BEq, Hashable
+
+def nbs (b : box) : Array pos := #[b.l, b.l + (0, 1)]
+
+instance : HMul Nat pos pos where hMul a p := (p.1, a * p.2)
+
+structure Boxes2 where
+  w : Std.HashSet pos
+  b : Std.HashSet box
+  S : pos
+  m : String
+  old : String
+  deriving Inhabited
+
+def resize (b : Boxes) : Boxes2 where
+  w := b.w.fold (fun h p => (h.insert (2 * p)).insert (2 * p + (0, 1))) {}
+  b := b.b.fold (fun h p => h.insert ⟨2 * p⟩) {}
+  S := 2 * b.S
+  m := b.m
+  old := b.old
+
+def toBoxes (b : Boxes2) : Boxes where
+  w := b.w
+  b := b.b.fold (fun h ⟨p⟩ => (h.insert p).insert (p + (0, 1))) {}
+  S := b.S
+  m := b.m
+  old := b.old
+
+def shiftFront (b : Boxes2) (s : String) (f : Std.HashSet pos) : Std.HashSet pos :=
+  let shift := f.fold (fun h p => h.insert (addOne s p)) {}
+  if (shift.filter b.w.contains).isEmpty then shift
+  else
+  let metBoxes := b.b.filter (fun b => ((nbs b).map shift.contains).any id)
+  shift.union (metBoxes.fold (·.insertMany <| Std.HashSet.ofArray <| nbs ·) {})
+
+def checkWall (b : Boxes2) (s : String) (f : Std.HashSet pos) : Bool :=
+  f.fold (fun h p => _) false
+
+def nbs (b : Boxes2) (s : String) : Std.HashSet box := Id.run do
+  let mut h := b.b
+  let mut front : Std.HashSet pos := {b.S}
+
+
+  return h
+
 #eval do
+  let dat ← IO.FS.readFile input
   let dat := test2
   let dat := test
-  let dat ← IO.FS.readFile input
   let sz := ((dat.splitOn "\n\n")[0]!.splitOn "\n").length
-  let mut B := mkBoxes dat
-  draw <| drawHash (rev B) sz sz
-  IO.println B.m
+
+  let mut B := toBoxes <| resize <| mkBoxes dat
+  draw <| drawHash (rev B) sz (2 * sz)
+  --IO.println B.m
   while !B.m.isEmpty do
       --IO.println s!"\nMove: {B.m.take 1}, Current: {B.S}, found pos: {add B (B.m.take 1) B.S}"
       B := move B
   draw <| drawHash (rev B) sz sz
-  IO.println s!"'{B.m}' '{B.old}'"
+  --IO.println s!"'{B.m}' '{B.old}'"
   IO.println <| GPS B
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
