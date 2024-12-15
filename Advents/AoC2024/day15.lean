@@ -53,6 +53,20 @@ def test2 := "########
 /-- `atest2` is the test string for the problem, split into rows. -/
 def atest2 := (test2.splitOn "\n").toArray
 
+/-- `test3` is the test string for the problem. -/
+def test3 := "#######
+#...#.#
+#.....#
+#..OO@#
+#..O..#
+#.....#
+#######
+
+<vv<<^^<<^^"
+
+/-- `atest3` is the test string for the problem, split into rows. -/
+def atest3 := (test3.splitOn "\n").toArray
+
 structure Boxes where
   w : Std.HashSet pos
   b : Std.HashSet pos
@@ -155,8 +169,8 @@ instance : ToString box where toString := fun {l := p} => s!"({p.1}, {p.2}-{p.2 
 
 def nbs (b : box) : Array pos := #[b.l, b.l + (0, 1)]
 
-instance : HMul Nat pos pos where hMul a p := (p.1, a * p.2)
-
+--instance : HMul Nat pos pos where hMul a p := (p.1, a * p.2)
+def double (p : pos) : pos := (p.1, 2 * p.2)
 structure Boxes2 where
   w : Std.HashSet pos
   b : Std.HashSet box
@@ -168,9 +182,9 @@ structure Boxes2 where
 def toB (p : pos) : box := ⟨p⟩
 
 def resize (b : Boxes) : Boxes2 where
-  w := b.w.fold (fun h p => (h.insert (2 * p)).insert (2 * p + (0, 1))) {}
-  b := b.b.fold (fun h p => h.insert ⟨2 * p⟩) {}
-  S := 2 * b.S
+  w := b.w.fold (fun h p => (h.insert (double p)).insert (double p + (0, 1))) {}
+  b := b.b.fold (fun h p => h.insert ⟨double p⟩) {}
+  S := double b.S
   m := b.m
   old := b.old
 
@@ -193,7 +207,7 @@ structure ContBoxes where
   deriving Inhabited
 
 def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
-  let shift : Std.HashSet pos := b.f.fold (fun h p => h.insert (addOne s p)) b.f
+  let shift : Std.HashSet pos := b.f.fold (fun h p => h.insert (p + toDir s)) b.f
   --dbg_trace "first shift: {shift.toArray}"
   let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
   --dbg_trace "shift: {shift.toArray}"
@@ -220,11 +234,12 @@ def adjacentBoxes (b : Boxes2) (s : String) : Std.HashSet box × Bool := Id.run 
 
 def moveBoxes (b : Boxes2) (s : String) : Boxes2 :=
   let (adj, move?) := adjacentBoxes b s
-  dbg_trace "adjacent: {adj.toArray}"
+  --dbg_trace "adjacent: {adj.toArray}"
   if ! move? then
-    dbg_trace "do not move"
+    --dbg_trace "do not move"
     b
   else
+    --dbg_trace "move {adj.size} boxes"
     let erasedBoxes := adj.fold (fun h q => h.erase q) b.b
     let insertBoxes := adj.fold (fun h q => h.insert {q with l := q.l + toDir s}) erasedBoxes
     {b with b := insertBoxes, S := b.S + toDir s }
@@ -251,6 +266,45 @@ def moveBoxes (b : Boxes2) (s : String) : Boxes2 :=
   B2 := moveBoxes B2 "^"
   let B := toBoxes <| B2
   draw <| drawHash (rev B) sz (2 * sz)
+
+def autoMove (b : Boxes2) : Boxes2 :=
+  {moveBoxes b (b.m.take 1) with m := b.m.drop 1, old := b.old ++ b.m.take 1}
+
+def checkValid (B : Boxes2) : Bool :=
+  B.b.fold (fun h b => h && !(B.w.insert B.S).contains b.l && !(B.w.insert B.S).contains (b.l + (0, 1))) (!B.w.contains B.S)
+
+
+#eval do
+  let dat ← IO.FS.readFile input
+  let dat := test3
+  let dat := test
+  let sz := ((dat.splitOn "\n\n")[0]!.splitOn "\n").length
+  let mut B2 := resize <| mkBoxes dat
+  --dbg_trace B2.m
+  if ! checkValid B2 then IO.println "ERROR!!!!"
+  let mut B := toBoxes <| B2
+  draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+  IO.print s!"{1} Move {B2.m.take 1}: " -- performed: '{B2.old}'"
+  let mut i := 0
+  --for i in [0:60] do
+  while !B2.m.isEmpty do
+
+    i := i + 1
+    B2 := autoMove B2
+    if ! checkValid B2 then IO.println "ERROR!!!!"
+--    if B2.b.contains {l := (1, 14)} then
+    --if i ≤ 290 then
+    --if i < 0 then
+      --IO.println (i + 1)
+      --B := toBoxes <| B2
+      --draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+      --IO.print s!"{i+1} Move {B2.m.take 1}: " --" performed: '{B2.old}'\n"
+
+  B := toBoxes <| B2
+  IO.println s!"\nEND: {(i + 1)}"
+  draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+  IO.println s!"next: '{B2.m.take 1}' performed: '{B2.old}'\n"
+
 
 def touchingBoxes (b : Boxes2) (s : String) (bs : Std.HashSet box) : Std.HashSet box :=
   let f : Std.HashSet pos :=
