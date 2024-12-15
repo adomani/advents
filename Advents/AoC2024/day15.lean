@@ -87,12 +87,15 @@ def mkBoxes (s : String) : Boxes :=
   let B := mkBoxes dat
   draw <| drawHash (rev B) sz sz
 
-def addOne : String → pos → pos
-  | "^", p => p + (- 1,   0)
-  | ">", p => p + (  0,   1)
-  | "<", p => p + (  0, - 1)
-  | "v", p => p + (  1,   0)
-  | _, p => p
+def toDir : String → pos
+  | "^" => (- 1,   0)
+  | ">" => (  0,   1)
+  | "<" => (  0, - 1)
+  | "v" => (  1,   0)
+  | _ => (0, 0)
+
+def addOne (s : String) (p : pos) : pos :=
+  p + toDir s
 
 partial
 def add (B : Boxes) (s : String) (init : pos) : pos :=
@@ -162,6 +165,8 @@ structure Boxes2 where
   old : String
   deriving Inhabited
 
+def toB (p : pos) : box := ⟨p⟩
+
 def resize (b : Boxes) : Boxes2 where
   w := b.w.fold (fun h p => (h.insert (2 * p)).insert (2 * p + (0, 1))) {}
   b := b.b.fold (fun h p => h.insert ⟨2 * p⟩) {}
@@ -175,6 +180,77 @@ def toBoxes (b : Boxes2) : Boxes where
   S := b.S
   m := b.m
   old := b.old
+
+structure ContBoxes where
+  /-- `w` is the set of `w`alls. -/
+  w : Std.HashSet pos
+  /-- `b` is the set of `b`oxes. -/
+  b : Std.HashSet box
+  /-- `f` is the set of `f`ronts of the expansion. -/
+  f : Std.HashSet pos
+  /-- `growing` is the set of boxes accumulated so far. -/
+  growing : Std.HashSet box
+  deriving Inhabited
+
+def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
+  let shift : Std.HashSet pos := b.f.fold (fun h p => h.insert (addOne s p)) b.f
+  --dbg_trace "first shift: {shift.toArray}"
+  let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
+  --dbg_trace "shift: {shift.toArray}"
+  if ! (shift.filter b.w.contains).isEmpty
+  then
+    --dbg_trace "found a wall {(shift.filter b.w.contains).toArray}"
+    (default, false)
+  else
+  let metBoxes := b.b.filter (fun b => ((nbs b).map shift.contains).any id)
+  let shift := metBoxes.fold (fun h b => h.insertMany (nbs b)) shift
+  --dbg_trace "intermediate shift: {shift.toArray}"
+  let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
+  --dbg_trace "no wall -- metBoxes: {metBoxes.toArray}\nagain shift: {shift.toArray}\n"
+  ({b with growing := b.growing.union metBoxes, f := if metBoxes.isEmpty then {} else shift}, true)
+
+def adjacentBoxes (b : Boxes2) (s : String) : Std.HashSet box × Bool := Id.run do
+  let mut (temp, continue?) : ContBoxes × Bool :=
+    ({w := b.w, b := b.b, f := {b.S}, growing := {}}, true)
+  let mut old : Std.HashSet pos := {}
+  while ! temp.f.isEmpty do
+    old := temp.f
+    (temp, continue?) := growBoxes temp s
+  return (temp.growing, continue?)
+
+def moveBoxes (b : Boxes2) (s : String) : Boxes2 :=
+  let (adj, move?) := adjacentBoxes b s
+  dbg_trace "adjacent: {adj.toArray}"
+  if ! move? then
+    dbg_trace "do not move"
+    b
+  else
+    let erasedBoxes := adj.fold (fun h q => h.erase q) b.b
+    let insertBoxes := adj.fold (fun h q => h.insert {q with l := q.l + toDir s}) erasedBoxes
+    {b with b := insertBoxes, S := b.S + toDir s }
+
+#eval (4, 6) + toDir "^"
+#eval do
+  let dat := test
+  let sz := ((dat.splitOn "\n\n")[0]!.splitOn "\n").length
+
+  let mut B2 := resize <| mkBoxes dat
+  B2 := {B2 with S := B2.S + (1, -2), b := (B2.b.erase ⟨(4, 6)⟩).insert ⟨(4, 5)⟩}
+
+  let (tb, _) := adjacentBoxes B2 "^"
+  --let tb := touchingBoxes B2 "^" tb
+  IO.println tb.toArray
+
+  let B := toBoxes <| B2
+  draw <| drawHash (rev B) sz (2 * sz)
+
+  B2 := moveBoxes B2 "^"
+  let B := toBoxes <| B2
+  draw <| drawHash (rev B) sz (2 * sz)
+
+  B2 := moveBoxes B2 "^"
+  let B := toBoxes <| B2
+  draw <| drawHash (rev B) sz (2 * sz)
 
 def touchingBoxes (b : Boxes2) (s : String) (bs : Std.HashSet box) : Std.HashSet box :=
   let f : Std.HashSet pos :=
@@ -193,7 +269,7 @@ def touchingBoxes (b : Boxes2) (s : String) (bs : Std.HashSet box) : Std.HashSet
   let dat := test
   let B2 := resize <| mkBoxes dat
   let B2 := {B2 with S := B2.S + (1, -2), b := (B2.b.erase ⟨(4, 6)⟩).insert ⟨(4, 5)⟩}
-  let tb := touchingBoxes B2 "^" {({l := (4, 5)} : box)}
+  let tb := touchingBoxes B2 "^" {toB (4, 5)}
   let tb := touchingBoxes B2 "^" tb
   IO.println (touchingBoxes B2 "^" tb).toArray
 
