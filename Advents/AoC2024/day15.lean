@@ -222,7 +222,10 @@ def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
   --dbg_trace "intermediate shift: {shift.toArray}"
   let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
   --dbg_trace "no wall -- metBoxes: {metBoxes.toArray}\nagain shift: {shift.toArray}\n"
-  ({b with growing := b.growing.union metBoxes, front := if metBoxes.isEmpty then {} else shift}, true)
+  ({b with
+      growing := b.growing.union metBoxes
+      front := if metBoxes.isEmpty then {} else shift
+   }, true)
 
 def adjacentBoxes (b : Boxes2) (s : String) : Std.HashSet box × Bool := Id.run do
   let mut (temp, continue?) : ContBoxes × Bool :=
