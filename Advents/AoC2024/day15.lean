@@ -225,10 +225,17 @@ def resize (b : Boxes) : Boxes2 where
   m := b.m
   old := b.old
 
+/--
+`ContBoxes` is the structure to find `cont`iguous configurations of boxes.
+* `walls` is the set of walls `#`.
+* `boxes` is the set of boxes `O`.
+* `front` is the set of fronts of the expansion: the positions that were just added.
+* `growing` is the set of boxes accumulated so far.
+-/
 structure ContBoxes where
-  /-- `walls` is the set of walls. -/
+  /-- `walls` is the set of walls `#`. -/
   walls : Std.HashSet pos
-  /-- `boxes` is the set of boxes. -/
+  /-- `boxes` is the set of boxes `O`. -/
   boxes : Std.HashSet box
   /-- `front` is the set of fronts of the expansion: the positions that were just added. -/
   front : Std.HashSet pos
@@ -236,6 +243,10 @@ structure ContBoxes where
   growing : Std.HashSet box
   deriving Inhabited
 
+/--
+Increases the contiguous boxes to the input `b` by one layer in the direction specified by
+the string input `s`.
+-/
 def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
   let shift : Std.HashSet pos := b.front.fold (fun h p => h.insert (p + toDir s)) b.front
   --dbg_trace "first shift: {shift.toArray}"
@@ -256,6 +267,10 @@ def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
       front := if metBoxes.isEmpty then {} else shift
    }, true)
 
+/--
+Iteratively applies `growBoxes` until either no more boxes can be added or a wall is reached.
+The `Bool`ean output tracks whether the move should be made or not.
+-/
 def adjacentBoxes (b : Boxes2) (s : String) : Std.HashSet box × Bool := Id.run do
   let mut (temp, continue?) : ContBoxes × Bool :=
     ({walls := b.w, boxes := b.b, front := {b.S}, growing := {}}, true)
@@ -263,6 +278,7 @@ def adjacentBoxes (b : Boxes2) (s : String) : Std.HashSet box × Bool := Id.run 
     (temp, continue?) := growBoxes temp s
   return (temp.growing, continue?)
 
+/-- Puts together `adjacentBoxes` and a string direction and updates the box configuration. -/
 def moveBoxes (b : Boxes2) (s : String) : Boxes2 :=
   let (adj, move?) := adjacentBoxes b s
   --dbg_trace "adjacent: {adj.toArray}"
@@ -275,9 +291,11 @@ def moveBoxes (b : Boxes2) (s : String) : Boxes2 :=
     let insertBoxes := adj.fold (fun h q => h.insert (toBox (q.l + toDir s))) erasedBoxes
     {b with b := insertBoxes, S := b.S + toDir s }
 
+/-- Automates the string input to `moveBoxes`, by reading it off `b.m`. -/
 def autoMove (b : Boxes2) : Boxes2 :=
   {moveBoxes b (b.m.take 1) with m := b.m.drop 1, old := b.old ++ b.m.take 1}
 
+/-- The tally for the second part of the problem. -/
 def GPS2 (B : Boxes2) : Int :=
   B.b.fold (fun tot {l := (x, y)} => tot + 100 * x + y) 0
 
