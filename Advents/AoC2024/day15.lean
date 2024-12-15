@@ -154,6 +154,7 @@ def part1 (dat : String) : Nat := Id.run do
   return (GPS B).natAbs
 
 #assert part1 test == 10092
+#assert part1 test2 == 2028
 
 solve 1 1426855 file
 
@@ -209,19 +210,19 @@ structure ContBoxes where
 
 def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
   let shift : Std.HashSet pos := b.front.fold (fun h p => h.insert (p + toDir s)) b.front
-  --dbg_trace "first shift: {shift.toArray}"
+  dbg_trace "first shift: {shift.toArray}"
   let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
-  --dbg_trace "shift: {shift.toArray}"
+  dbg_trace "shift: {shift.toArray}"
   if ! (shift.filter b.walls.contains).isEmpty
   then
-    --dbg_trace "found a wall {(shift.filter b.w.contains).toArray}"
+    dbg_trace "found a wall {(shift.filter b.walls.contains).toArray}"
     (default, false)
   else
   let metBoxes := b.boxes.filter (fun b => ((nbs b).map shift.contains).any id)
-  let shift := metBoxes.fold (fun h b => h.insertMany (nbs b)) shift
-  --dbg_trace "intermediate shift: {shift.toArray}"
+  let shift := metBoxes.fold (fun h b => h.insertMany (nbs b)) ({} : Std.HashSet pos) --shift
+  dbg_trace "intermediate shift: {shift.toArray}"
   let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
-  --dbg_trace "no wall -- metBoxes: {metBoxes.toArray}\nagain shift: {shift.toArray}\n"
+  dbg_trace "no wall -- metBoxes: {metBoxes.toArray}\nagain shift: {shift.toArray}\n"
   ({b with
       growing := b.growing.union metBoxes
       front := if metBoxes.isEmpty then {} else shift
@@ -240,10 +241,10 @@ def moveBoxes (b : Boxes2) (s : String) : Boxes2 :=
   let (adj, move?) := adjacentBoxes b s
   --dbg_trace "adjacent: {adj.toArray}"
   if ! move? then
-    --dbg_trace "do not move"
+    dbg_trace "do not move"
     b
   else
-    --dbg_trace "move {adj.size} boxes"
+    dbg_trace "move {adj.size} boxes"
     let erasedBoxes := adj.fold (·.erase ·) b.b
     let insertBoxes := adj.fold (fun h q => h.insert (toB (q.l + toDir s))) erasedBoxes
     {b with b := insertBoxes, S := b.S + toDir s }
@@ -326,7 +327,11 @@ def autoMove (b : Boxes2) : Boxes2 :=
   {moveBoxes b (b.m.take 1) with m := b.m.drop 1, old := b.old ++ b.m.take 1}
 
 def checkWalls (B : Boxes2) : Bool :=
-  B.b.fold (fun h b => h && !(B.w.insert B.S).contains b.l && !(B.w.insert B.S).contains (b.l + (0, 1))) (!B.w.contains B.S)
+  B.b.fold (init := !B.w.contains B.S) (fun h b =>
+    h &&
+      !(B.w.insert B.S).contains b.l &&
+      !(B.w.insert B.S).contains (b.l + (0, 1)))
+
 
 def checkBoxOverlap (B : Boxes2) : Bool := Id.run do
   let mut cond := true
@@ -340,6 +345,38 @@ def checkBoxOverlap (B : Boxes2) : Bool := Id.run do
 
 def checkValid (B : Boxes2) : Bool := checkWalls B && checkBoxOverlap B
 
+--  around move 313 `v`
+#eval do
+  --let dat ← IO.FS.readFile input
+  let dat := test3
+  let dat := test
+  let n := "fffffffffffffffffffffff".length + 2090
+  let sz := ((dat.splitOn "\n\n")[0]!.splitOn "\n").length
+  let mut B2 := resize <| mkBoxes dat
+  B2 := {B2 with m := B2.m.take n}
+  if ! checkValid B2 then IO.println "ERROR!!!!"
+  let mut B := toBoxes <| B2
+  draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+  IO.print s!"{1} Move {B2.m.take 1}: "
+  let mut i := 0
+  --for i in [0:60] do
+  while B2.m.length != 0 do
+
+    i := i + 1
+    B2 := autoMove B2
+    if ! checkValid B2 then IO.println "ERROR!!!!"
+--    if B2.b.contains {l := (1, 14)} then
+    if B2.m.length ≤ 3 then
+    ----if i < 0 then
+    --  IO.println (i + 1)
+    B := toBoxes <| B2
+    draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+    IO.print s!"{i+1} Move {B2.m.take 1}: " --" performed: '{B2.old}'\n"
+
+  --IO.println s!"\nEND: {(i + 1)} '{B2.old.takeRight 1}'"
+  --B := toBoxes <| B2
+  --draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+#exit
 /--
 info: --01234567890123-
 0|##############|
@@ -374,7 +411,6 @@ END: 12
   IO.print s!"{1} Move {B2.m.take 1}: "
   let mut i := 0
   while !B2.m.isEmpty do
-
     i := i + 1
     B2 := autoMove B2
     if ! checkValid B2 then IO.println "ERROR!!!!"
@@ -444,6 +480,41 @@ note: this linter can be disabled with `set_option linter.unusedVariables false`
       --B := toBoxes <| B2
       --draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
       --IO.print s!"{i+1} Move {B2.m.take 1}: " --" performed: '{B2.old}'\n"
+
+  B := toBoxes <| B2
+  IO.println s!"\nEND: {(i + 1)}"
+  draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+  --IO.println s!"next: '{B2.m.take 1}' performed: '{B2.old}'\n"
+
+
+/-!
+-/
+
+#exit
+#eval do
+  let dat ← IO.FS.readFile input
+  let dat := test3
+  let dat := test
+  let sz := ((dat.splitOn "\n\n")[0]!.splitOn "\n").length
+  let mut B2 := resize <| mkBoxes dat
+  if ! checkValid B2 then IO.println "ERROR!!!!"
+  let mut B := toBoxes <| B2
+  draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+  IO.print s!"{1} Move {B2.m.take 1}: "
+  let mut i := 0
+  --for i in [0:60] do
+  while !B2.m.isEmpty do
+
+    i := i + 1
+    B2 := autoMove B2
+    if ! checkValid B2 then IO.println "ERROR!!!!"
+--    if B2.b.contains {l := (1, 14)} then
+    if i ≤ 290 then
+    --if i < 0 then
+      IO.println (i + 1)
+      B := toBoxes <| B2
+      draw <| (drawHash (rev B) sz (2 * sz)).map (·.replace " " "." : String → String)
+      IO.print s!"{i+1} Move {B2.m.take 1}: " --" performed: '{B2.old}'\n"
 
   B := toBoxes <| B2
   IO.println s!"\nEND: {(i + 1)}"
