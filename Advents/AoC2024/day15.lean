@@ -88,15 +88,13 @@ structure Boxes where
   old : String
   deriving Inhabited
 
+/-- Converts a state of `Boxes` into a `HashMap` that is easier to print. -/
 def rev (b : Boxes) : Std.HashMap pos Char :=
   let t : Std.HashMap pos Char := (b.w.fold (fun h p => h.insert p '#') ∅)
   let t := (b.b.fold (fun h p => h.insert p 'O') t)
   t.insert b.S '@'
 
-instance : ToString Boxes where
-  toString b :=
-    "\n".intercalate <| (drawHash (rev b) 20 20).toList ++ ["", b.m, b.old, ""]
-
+/-- Converts the input to a state of `Boxes`. -/
 def mkBoxes (s : String) : Boxes :=
   if let [p, ms] := s.splitOn "\n\n"
   then
@@ -108,11 +106,6 @@ def mkBoxes (s : String) : Boxes :=
       old := "" }
   else
     panic "There should be two parts to the input!"
-
-#eval do
-  let dat := test2; let sz := 8
-  let B := mkBoxes dat
-  draw <| drawHash (rev B) sz sz
 
 def toDir : String → pos
   | "^" => (- 1,   0)
@@ -134,13 +127,6 @@ def add (B : Boxes) (s : String) (init : pos) : pos :=
   else
     c
 
-#eval do
-  let dat := test2; let sz := 8
-  let B := mkBoxes dat
-  draw <| drawHash (rev B) sz sz
-  IO.println B.m
-  IO.println <| add B (B.m.take 1) B.S
-
 def move (B : Boxes) : Boxes :=
   let mv := B.m.take 1
   let newPos := add B mv B.S
@@ -156,6 +142,7 @@ def move (B : Boxes) : Boxes :=
     old := B.old ++ mv
     }
 
+/-- The tally for the first part of the problem. -/
 def GPS (B : Boxes) : Int :=
   B.b.fold (fun tot (x, y) => tot + 100 * x + y) 0
 
