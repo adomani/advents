@@ -148,6 +148,8 @@ structure box where
   l : pos
   deriving BEq, Hashable
 
+instance : ToString box where toString := fun {l := p} => s!"({p.1}, {p.2}-{p.2 + 1})"
+
 def nbs (b : box) : Array pos := #[b.l, b.l + (0, 1)]
 
 instance : HMul Nat pos pos where hMul a p := (p.1, a * p.2)
@@ -173,6 +175,41 @@ def toBoxes (b : Boxes2) : Boxes where
   S := b.S
   m := b.m
   old := b.old
+
+def touchingBoxes (b : Boxes2) (s : String) (bs : Std.HashSet box) : Std.HashSet box :=
+  let f : Std.HashSet pos :=
+    bs.fold (·.insertMany <| Std.HashSet.ofArray <| nbs ·) {}
+
+  let shift : Std.HashSet pos := f.fold (fun h p => h.insert (addOne s p)) {}
+  if ! (shift.filter b.w.contains).isEmpty then bs --shift
+  else
+  let metBoxes := b.b.filter (fun b => ((nbs b).map shift.contains).any id)
+  bs.union metBoxes
+  --shift.union (metBoxes.fold (·.insertMany <| Std.HashSet.ofArray <| nbs ·) {})
+
+/-- info: #[(3, 4-5), (4, 5-6), (3, 6-7)] -/
+#guard_msgs in
+#eval do
+  let dat := test
+  let B2 := resize <| mkBoxes dat
+  let B2 := {B2 with S := B2.S + (1, -2), b := (B2.b.erase ⟨(4, 6)⟩).insert ⟨(4, 5)⟩}
+  let tb := touchingBoxes B2 "^" {({l := (4, 5)} : box)}
+  let tb := touchingBoxes B2 "^" tb
+  IO.println (touchingBoxes B2 "^" tb).toArray
+
+#eval do
+  let dat ← IO.FS.readFile input
+  let dat := test2
+  let dat := test
+  let sz := ((dat.splitOn "\n\n")[0]!.splitOn "\n").length
+
+  let B2 := resize <| mkBoxes dat
+  let B2 := {B2 with S := B2.S + (1, -2), b := (B2.b.erase ⟨(4, 6)⟩).insert ⟨(4, 5)⟩}
+  let mut B := toBoxes <| B2
+  --B := {B with b := B.b.erase (4, 6) }
+  draw <| drawHash (rev B) sz (2 * sz)
+  let tb := touchingBoxes B2 "^" {({l := (4, 5)} : box)}
+  IO.println (touchingBoxes B2 "^" tb).toArray
 
 def shiftFront (b : Boxes2) (s : String) (f : Std.HashSet pos) : Std.HashSet pos :=
   let shift := f.fold (fun h p => h.insert (addOne s p)) {}
