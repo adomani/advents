@@ -126,21 +126,23 @@ def move (B : Boxes) : Boxes :=
     old := B.old ++ mv
     }
 
-#eval do
-  let dat := test2
-  let sz := ((dat.splitOn "\n\n")[0]!.splitOn "\n").length
-  let mut B := mkBoxes dat
-  draw <| drawHash (rev B) sz sz
-  IO.println B.m
-  for i in [0:100] do
-    if !B.m.isEmpty then
-      IO.println s!"\nMove: {B.m.take 1}, Current: {B.S}, found pos: {add B (B.m.take 1) B.S}"
-      B := move B
-      draw <| drawHash (rev B) sz sz
-      IO.println s!"'{B.m}' '{B.old}'"
-
 def GPS (B : Boxes) : Int :=
   B.b.fold (fun tot (x, y) => tot + 100 * x + y) 0
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : String) : Nat := Id.run do
+  let mut B := mkBoxes dat
+  while !B.m.isEmpty do
+      B := move B
+  return (GPS B).natAbs
+
+#assert part1 test == 10092
+
+solve 1 1426855 file
+
+/-!
+#  Question 2
+-/
 
 #eval do
   let dat := test2
@@ -156,40 +158,6 @@ def GPS (B : Boxes) : Int :=
   draw <| drawHash (rev B) sz sz
   IO.println s!"'{B.m}' '{B.old}'"
   IO.println <| GPS B
-#exit
-  IO.println s!"\nMove: {B.m.take 1}, Current: {B.S}, found pos: {add B (B.m.take 1)}"
-  let B := move B
-  draw <| drawHash (rev B) sz sz
-  IO.println s!"'{B.m}' '{B.old}'"
-
-  IO.println s!"\nMove: {B.m.take 1}, Current: {B.S}, found pos: {add B (B.m.take 1)}"
-  let B := move B
-  draw <| drawHash (rev B) sz sz
-  IO.println s!"'{B.m}' '{B.old}'"
-
-  IO.println s!"\nMove: {B.m.take 1}, Current: {B.S}, found pos: {add B (B.m.take 1)}"
-  let B := move B
-  draw <| drawHash (rev B) sz sz
-  IO.println s!"'{B.m}' '{B.old}'"
-
-  IO.println s!"\nMove: {B.m.take 1}, Current: {B.S}, found pos: {add B (B.m.take 1)}"
-  let B := move B
-  draw <| drawHash (rev B) sz sz
-  IO.println s!"'{B.m}' '{B.old}'"
-
-
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
