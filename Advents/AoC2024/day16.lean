@@ -79,7 +79,14 @@ def inputToRM (s : Array String) : RM :=
 
 abbrev nbs : Array pos := #[(0, 1), (0, - 1), (1, 0), (- 1, 0)]
 
-def dirsAt (rm : RM) (p : pos) : Array pos := nbs.filter fun d => ! (rm.gr.contains (p + d))
+def dirsAt1 (gr : Std.HashSet pos) (p : pos) : Array pos :=
+  nbs.filter fun d => (gr.contains (p + d))
+
+def dirsAt0 (gr : Std.HashSet pos) (p : pos) : Array pos :=
+  nbs.filter fun d => ! (gr.contains (p + d))
+
+def dirsAt (rm : RM) (p : pos) : Array pos :=
+  dirsAt0 rm.gr p
 
 def dirsAtp (rm : Std.HashSet pos) (p : pos) : Array pos := nbs.filter fun d => (rm.contains (p + d))
 
@@ -91,15 +98,25 @@ def inputToRMp (s : Array String) : RMp :=
     vs := init.fold (·.insert (·, (0, 1))) {}
     sz := s.size }
 
+def consumeDE (gr : Std.HashSet pos) : Std.HashSet pos :=
+  gr.fold (fun h p => if (dirsAt1 gr p).size ≤ 1 then h.erase p else h) gr
+
 #eval do
   let dat := atest1
+  let dat ← IO.FS.lines input
   let dat := atest2
-  --let dat ← IO.FS.lines input
-  let rm := inputToRMp dat
-  draw <| drawSparseWith (rm.gr.fold (·.insert <| Prod.fst ·) {}) rm.sz rm.sz (yes := fun p =>
-        s!"{(rm.gr.filter (Prod.fst · == p)).size}")
+  --let rm := inputToRMp dat
+  --draw <| drawSparseWith (rm.gr.fold (fun h (p) _ => h.insert p) {}) rm.sz rm.sz (yes := fun p =>
+  --      s!"{(rm.gr.getD p #[]).size}")
+  let gr := sparseGrid dat (".SE".toList.contains)
+  draw <| drawSparseWith gr dat.size dat.size (yes := fun p => s!"{(dirsAt1 gr p).size}")
+  --draw <| drawSparseWith gr dat.size dat.size --(yes := fun p => "*") --s!"{(rm.gr.getD p #[]).size}")
+  let consume := consumeDE gr
+  IO.println (consume.size, gr.size)
+  draw <| drawSparseWith consume dat.size dat.size (yes := fun p => s!"{(dirsAt1 consume p).size}")
+  --draw <| drawSparseWith consume dat.size dat.size --(yes := fun p => "*") --s!"{(rm.gr.getD p #[]).size}")
 
-def shrink (rm : RMp) :
+--def shrink (rm : RMp) :
 
 #eval do
   let dat := atest2
