@@ -107,6 +107,7 @@ def mkBoxes (s : String) : Boxes :=
   else
     panic "There should be two parts to the input!"
 
+/-- Convert the symbol of a movement into the corresponding direction. -/
 def toDir : String → pos
   | "^" => (- 1,   0)
   | ">" => (  0,   1)
@@ -114,12 +115,9 @@ def toDir : String → pos
   | "v" => (  1,   0)
   | _ => (0, 0)
 
-def addOne (s : String) (p : pos) : pos :=
-  p + toDir s
-
 partial
 def add (B : Boxes) (s : String) (init : pos) : pos :=
-  let c := addOne s B.S
+  let c := B.S + toDir s
   if B.w.contains c then init
   else
   if B.b.contains c then
@@ -130,7 +128,7 @@ def add (B : Boxes) (s : String) (init : pos) : pos :=
 def move (B : Boxes) : Boxes :=
   let mv := B.m.take 1
   let newPos := add B mv B.S
-  let one := addOne mv B.S
+  let one := B.S + toDir mv
   let box? := B.b.contains one
   if newPos == B.S then {B with m := B.m.drop 1, old := B.old ++ mv} else
   {B with
