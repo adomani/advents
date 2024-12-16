@@ -10,8 +10,6 @@ def input : System.FilePath := "Advents/AoC2024/day12.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test1` is the test string for the problem. -/
 def test1 := "AAAA
 BBCD
@@ -173,7 +171,7 @@ def part1 (dat : Array String) : Nat := tallyAll <| loadGrid dat id
 #assert part1 atest2 == 772
 #assert part1 atest3 == 1930
 
---solve 1 1483212  -- slow, takes approx 80s
+--set_option trace.profiler true in solve 1 1483212  -- slow, takes approx 80s
 
 /-!
 #  Question 2
@@ -223,6 +221,6 @@ def part2 (dat : Array String) : Nat :=
 #assert part2 atestAB == 368
 #assert part2 atest3 == 1206
 
---solve 2 897062
+--set_option trace.profiler true in solve 2 897062
 
 end Day12
