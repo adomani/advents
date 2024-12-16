@@ -58,6 +58,12 @@ structure RM where
   vs : Std.HashSet (pos × pos)
   sz : Nat
 
+structure RMp where
+  gr : Std.HashMap pos (Array pos)
+  S : pos × pos
+  vs : Std.HashSet (pos × pos)
+  sz : Nat
+
 def drawRM0 (rm : RM) : IO Unit := do
   let vis : Std.HashSet pos := rm.vs.fold (·.insert <| Prod.fst ·) {}
   draw <| drawSparseWith (rm.gr.union vis) rm.sz rm.sz (yes := fun p =>
@@ -74,6 +80,36 @@ def inputToRM (s : Array String) : RM :=
 abbrev nbs : Array pos := #[(0, 1), (0, - 1), (1, 0), (- 1, 0)]
 
 def dirsAt (rm : RM) (p : pos) : Array pos := nbs.filter fun d => ! (rm.gr.contains (p + d))
+
+def dirsAtp (rm : Std.HashSet pos) (p : pos) : Array pos := nbs.filter fun d => (rm.contains (p + d))
+
+def inputToRMp (s : Array String) : RMp :=
+  let init := sparseGrid s (· == 'S')
+  let empties := (sparseGrid s (· == '.')).insert init.toArray[0]!
+  { gr := empties.fold (fun h p => h.insert p (dirsAtp empties p)) {}
+    S  := (init.toArray[0]!, (0, 1))
+    vs := init.fold (·.insert (·, (0, 1))) {}
+    sz := s.size }
+
+#eval do
+  let dat := atest1
+  let dat := atest2
+  --let dat ← IO.FS.lines input
+  let rm := inputToRMp dat
+  draw <| drawSparseWith (rm.gr.fold (·.insert <| Prod.fst ·) {}) rm.sz rm.sz (yes := fun p =>
+        s!"{(rm.gr.filter (Prod.fst · == p)).size}")
+
+def shrink (rm : RMp) :
+
+#eval do
+  let dat := atest2
+  let dat := atest1
+  let dat ← IO.FS.lines input
+  let rm := inputToRM dat
+  drawRM0 rm
+  IO.println rm.gr.size
+  --draw <| drawSparseWith (rm.gr.fold (·.insert <| Prod.fst ·) {}) rm.sz rm.sz (yes := fun p =>
+  --      s!"{(rm.gr.filter (Prod.fst · == p)).size}")
 
 /--
 info:
@@ -102,15 +138,17 @@ def drawRM (rm : RM) : IO Unit := do
   let rm := inputToRM dat
   drawRM rm
 
-def moveCost (rm : RM) : Option (Nat × pos) := Id.run do
-  let mut (p, d) := rm.S
-  let mut tot := 0
+def moveCost (rm : RM) (d : pos) : Option (Nat × pos) := Id.run do
+  let mut (p, d) := (rm.S.1, d)
+  let mut tot := 1
   let ds := dirs rm
   let mut con := 0
   while ds.size ≤ 2 && con ≤ 5 do
-    con := con + 1
+    con := con
+    let ds := dirsAt rm p
     if ds.size == 1 then return none
     let dnew := (ds.filter fun new => new != (0, 0) - d)[0]!
+    dbg_trace "dnew: {dnew}"
     tot := tot + if dnew == d then 1 else 1000
     d := dnew
     p := p + d
@@ -121,7 +159,9 @@ def moveCost (rm : RM) : Option (Nat × pos) := Id.run do
   let dat := atest1
   let rm := inputToRM dat
   drawRM rm
-  IO.println <| moveCost rm
+  IO.println <| moveCost rm (0, 1)
+  IO.println ""
+  IO.println <| moveCost rm (- 1, 0)
 
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
