@@ -59,7 +59,7 @@ structure RM where
   sz : Nat
 
 structure RMp where
-  gr : Std.HashMap pos (Array pos)
+  gr : Std.HashSet pos --(Array pos)
   S : pos × pos
   growing : Std.HashMap (pos × pos) Nat
   vs : Std.HashMap (pos × pos) Nat
@@ -93,8 +93,7 @@ def dirsAtp (rm : Std.HashSet pos) (p : pos) : Array pos := nbs.filter fun d => 
 
 def inputToRMp (s : Array String) : RMp :=
   let init := sparseGrid s (· == 'S')
-  let empties := (sparseGrid s (".SE".contains ·)).insert init.toArray[0]!
-  { gr := empties.fold (fun h p => h.insert p (dirsAtp empties p)) {}
+  { gr := (sparseGrid s (".SE".contains ·)).insert init.toArray[0]!
     S  := (init.toArray[0]!, (0, 1))
     growing := init.fold (·.insert (·, (0, 1)) 0) {}
     vs := init.fold (·.insert (·, (0, 1)) 0) {}
@@ -153,39 +152,61 @@ def part1 (dat : Array String) : Nat := Id.run do
 #assert part1 atest1 == 7036
 #assert part1 atest2 == 11048
 
---solve 1 99460 -- takes approximately 50s
+--set_option trace.profiler true in solve 1 99460 -- takes approximately 50s
 
 /-!
 #  Question 2
 -/
 
---set_option trace.profiler true in
-#eval do
-  let dat := atest1 -- 7036
-  let dat ← IO.FS.lines input
-  let dat := atest2 -- 11048
-  let E := sparseGrid dat (· == 'E') |>.toArray[0]!
-  let mut rm := inputToRMp dat
-  dbg_trace "source: {rm.S}, target: {E}"
-  --draw <| drawSparseWith (rm.gr.fold (fun h (p) _ => h.insert p) {}) rm.sz rm.sz (yes := fun p =>
-  --      s!"{(rm.gr.getD p #[]).size}")
-  let mut con := 0
+def getMinDists (rm : RMp) : Std.HashMap (pos × pos) Nat := Id.run do
+  let mut rm := rm
   let mut oldGrow : Std.HashMap _ _ := {}
   while (oldGrow.toArray != rm.growing.toArray) do
     oldGrow := rm.growing
-    con := con + 1
     rm := increase rm
     --IO.println s!"{con}, rm.vs.size: {rm.vs.size}, rm.growing.size: {rm.growing.size}"
-  let vals := rm.vs.filter fun ((p, _) : pos × pos) _ => p == E
+  return rm.vs
+
+set_option trace.profiler true in
+#eval do
+  let dat := atest2 -- 11048
+  let dat := atest1 -- 7036
+  let dat ← IO.FS.lines input
+  let E := sparseGrid dat (· == 'E') |>.toArray[0]!
+  let rm' := inputToRMp dat
+  let rmToE := getMinDists rm'
+  let initS := rm'.S
+  dbg_trace "source: {rm'.S}, target: {E}"
+  draw <| drawSparseWith (rm'.gr) rm'.sz rm'.sz --(yes := fun p => s!"{(rm.gr.getD p #[]).size}")
+  let vals := rmToE.filter fun ((p, _) : pos × pos) _ => p == E --rm.S.1
+  let oldMin := vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
+  for v in vals do dbg_trace v
+  let es : Std.HashMap (pos × pos) Nat :=
+    vals.fold (fun h (p, d) v => if v == oldMin then h.insert (p, - d) 0 else h) ∅
+  for e in es do IO.println e
+  let rmToS := {inputToRMp dat with S := es.toArray[0]!.1, growing := es, vs := es}
+  let rmToS := getMinDists rmToS
+  let vals := rmToS.filter fun ((p, _) : pos × pos) _ => p == initS.1 --rm.S.1
+  let newMin := vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
   IO.println s!"Shortest path: {vals.fold (fun m _ v => min m v) vals.toArray[0]!.2}"
-  IO.println s!"Number of steps: {con}"
-  draw <| drawHash (rm.vs.fold (fun h p n => h.insert (Prod.fst p) s!"{n % 10}") ({} : Std.HashMap pos String)) dat.size dat.size
+
+  draw <| drawHash (rmToS.fold (fun h p n => h.insert (Prod.fst p) s!"{n % 10}") ({} : Std.HashMap pos String)) dat.size dat.size
+  let target := (newMin + oldMin) / 2 --+ 1004
+  let mids : Std.HashSet pos := rmToS.fold (fun h (p : pos × pos) v =>
+    let sec := rmToE.getD (p.1, - p.2) 0
+    if v + sec ≤ target + 500 then --target then
+      --dbg_trace "{(v, sec)} = {v + sec} vs {target}  -- pos {p}"
+      h.insert p.1
+    else h) ∅
+  IO.println s!"{mids.size}"
+  draw <| drawSparse mids dat.size dat.size
 
 /-!
 -/
 
 -- 109432 too high
--- 99460
+-- Shortest path: 99460
+-- Number of steps: 630
 def tallyRot (d e : pos) : Nat :=
   if d == e then 0
   else if d == - e then 2000
