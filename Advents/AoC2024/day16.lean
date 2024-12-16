@@ -131,28 +131,6 @@ def increase (rm : ReindeerMap) : ReindeerMap := Id.run do
     visited := vis
     }
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := Id.run do
-  let E := sparseGrid dat (· == 'E') |>.toArray[0]!
-  let mut rm := inputToRMp dat
-  let mut con := 0
-  let mut oldGrow : Std.HashMap _ _ := {}
-  while (oldGrow.toArray != rm.growing.toArray) do
-    oldGrow := rm.growing
-    con := con + 1
-    rm := increase rm
-  let vals := rm.visited.filter fun ((p, _) : pos × pos) _ => p == E
-  return vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
-
-#assert part1 atest1 == 7036
-#assert part1 atest2 == 11048
-
---set_option trace.profiler true in solve 1 99460 -- takes approximately 50s
-
-/-!
-#  Question 2
--/
-
 /--
 `getMinDists rm tgt` does most of the computations.
 The input is a grid and a "target" position (`E` in the case of the puzzle).
@@ -167,7 +145,7 @@ It returns
 def getMinDists (rm : ReindeerMap) (tgt : pos) :
     Std.HashMap (pos × pos) Nat × Std.HashMap (pos × pos) Nat × Nat := Id.run do
   let mut rm := rm
-  let mut oldGrow : Std.HashMap _ _ := {}
+  let mut oldGrow : Std.HashMap (pos × pos) Nat := ∅
   while (oldGrow.toArray != rm.growing.toArray) do
     oldGrow := rm.growing
     rm := increase rm
@@ -177,56 +155,53 @@ def getMinDists (rm : ReindeerMap) (tgt : pos) :
     fun h p v => if v == minValue then h.insert (p.1, -p.2) 0 else h
   return (rm.visited, reverseStart, minValue)
 
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := Id.run do
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
   let E := sparseGrid dat (· == 'E') |>.toArray[0]!
-  let rm' := inputToRMp dat
-  let (rmToE, es, oldMin) := getMinDists rm' E
-  let (rmToS, _, newMin) := getMinDists {rm' with growing := es, visited := es} rm'.S.1
-  let target := (newMin + oldMin) / 2 + 500
+  let (_, _, val) := getMinDists (inputToRMp dat) E
+  val
+
+#assert part1 atest1 == 7036
+#assert part1 atest2 == 11048
+
+--set_option trace.profiler true in solve 1 99460 -- takes approximately 40s
+
+/-!
+#  Question 2
+-/
+
+/-- Returns all the tiles through which there is a paths of minimum score. -/
+def getMinPaths (rm : ReindeerMap) (tgt : pos) : Std.HashSet pos := Id.run do
+  let (rmToE, es, oldMin) := getMinDists rm tgt
+  let (rmToS, _, newMin) := getMinDists {rm with growing := es, visited := es} rm.S.1
+  let target := (newMin + oldMin) / 2 + 500 -- add 500 to average the extra rotation, I think!
   let mids : Std.HashSet pos := rmToS.fold (fun h p v =>
     let sec := rmToE.getD (p.1, - p.2) 0
     if v + sec ≤ target then h.insert p.1 else h) ∅
-  return mids.size
+  return mids
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat :=
+  let E := sparseGrid dat (· == 'E') |>.toArray[0]!
+  (getMinPaths (inputToRMp dat) E).size
 
 #assert part2 atest1 == 45
 #assert part2 atest2 == 64
 
---solve 2 500 -- takes approximately 1 minute
+--set_option trace.profiler true in solve 2 500 -- takes approximately 1 minute
 
-end Day16
-#exit
---open Day16 in
-set_option trace.profiler true in
+/-- Produces a picture of the tiles on some path of minimum score. -/
+def drawMinPaths (dat : Array String) : IO Unit := do
+  let E := sparseGrid dat (· == 'E') |>.toArray[0]!
+  let mids := getMinPaths (inputToRMp dat) E
+  draw <| drawSparse mids dat.size dat.size
+
+/-
 #eval do
+  let dat ← IO.FS.lines input
   let dat := atest2 -- 11048
   let dat := atest1 -- 7036
-  let dat ← IO.FS.lines input
-  let E := sparseGrid dat (· == 'E') |>.toArray[0]!
-  let rm' := inputToRMp dat
-  let rmToE := getMinDists rm'
-  let initS := rm'.S
-  dbg_trace "source: {rm'.S}, target: {E}"
-  draw <| drawSparseWith (rm'.gr) rm'.sz rm'.sz --(yes := fun p => s!"{(rm.gr.getD p #[]).size}")
-  let vals := rmToE.filter fun ((p, _) : pos × pos) _ => p == E --rm.S.1
-  let oldMin := vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
-  for v in vals do dbg_trace v
-  let es : Std.HashMap (pos × pos) Nat :=
-    vals.fold (fun h (p, d) v => if v == oldMin then h.insert (p, - d) 0 else h) ∅
-  for e in es do IO.println e
-  let rmToS := {inputToRMp dat with S := es.toArray[0]!.1, growing := es, vs := es}
-  let rmToS := getMinDists rmToS
-  let vals := rmToS.filter fun ((p, _) : pos × pos) _ => p == initS.1 --rm.S.1
-  let newMin := vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
-  IO.println s!"Shortest path: {vals.fold (fun m _ v => min m v) vals.toArray[0]!.2}"
+  drawMinPaths dat
+-/
 
-  draw <| drawHash (rmToS.fold (fun h p n => h.insert (Prod.fst p) s!"{n % 10}") ({} : Std.HashMap pos String)) dat.size dat.size
-  let target := (newMin + oldMin) / 2 --+ 1004
-  let mids : Std.HashSet pos := rmToS.fold (fun h (p : pos × pos) v =>
-    let sec := rmToE.getD (p.1, - p.2) 0
-    if v + sec ≤ target + 500 then --target then
-      --dbg_trace "{(v, sec)} = {v + sec} vs {target}  -- pos {p}"
-      h.insert p.1
-    else h) ∅
-  IO.println s!"{mids.size}"
-  draw <| drawSparse mids dat.size dat.size
+end Day16
