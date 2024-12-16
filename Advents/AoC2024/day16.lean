@@ -136,13 +136,37 @@ def increase (rm : RMp) : RMp := Id.run do
     vs := vis
     }
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := Id.run do
+  let E := sparseGrid dat (· == 'E') |>.toArray[0]!
+  let mut rm := inputToRMp dat
+  let mut con := 0
+  let mut oldGrow : Std.HashMap _ _ := {}
+  while (oldGrow.toArray != rm.growing.toArray) do
+    oldGrow := rm.growing
+    con := con + 1
+    rm := increase rm
+  let vals := rm.vs.filter fun ((p, _) : pos × pos) _ => p == E
+  return vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
+
+
+#assert part1 atest1 == 7036
+#assert part1 atest2 == 11048
+
+--solve 1 99460 -- takes approximately 50s
+
+/-!
+#  Question 2
+-/
+
+--set_option trace.profiler true in
 #eval do
-  let dat := atest2 -- 11048
   let dat := atest1 -- 7036
   let dat ← IO.FS.lines input
+  let dat := atest2 -- 11048
   let E := sparseGrid dat (· == 'E') |>.toArray[0]!
-  dbg_trace E
   let mut rm := inputToRMp dat
+  dbg_trace "source: {rm.S}, target: {E}"
   --draw <| drawSparseWith (rm.gr.fold (fun h (p) _ => h.insert p) {}) rm.sz rm.sz (yes := fun p =>
   --      s!"{(rm.gr.getD p #[]).size}")
   let mut con := 0
@@ -153,23 +177,9 @@ def increase (rm : RMp) : RMp := Id.run do
     rm := increase rm
     --IO.println s!"{con}, rm.vs.size: {rm.vs.size}, rm.growing.size: {rm.growing.size}"
   let vals := rm.vs.filter fun ((p, _) : pos × pos) _ => p == E
-  IO.println <| vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
-  IO.println s!"steps: {con}"
---#exit
-  con := 0
-  while con ≤ 10 do
-    oldGrow := rm.growing
-    con := con + 1
-    rm := increase rm
-    --IO.println s!"{con}, rm.vs.size: {rm.vs.size}, rm.growing.size: {rm.growing.size}"
-  let vals := rm.vs.filter fun ((p, _) : pos × pos) _ => p == E
-  IO.println <| vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
-  --let rm := increase rm
-  --IO.println rm.vs.toArray
-  --draw <| drawSparseWith (rm.vs.fold (fun h (p) _ => h.insert p) {}) rm.sz rm.sz (yes := fun p =>
-  --      s!"{(rm.gr.getD p #[]).size}")
-  --IO.println <| travel rm.gr trivs S
-  --IO.println <| travel rm.gr trivs ((7, 3), (0, 1))
+  IO.println s!"Shortest path: {vals.fold (fun m _ v => min m v) vals.toArray[0]!.2}"
+  IO.println s!"Number of steps: {con}"
+  draw <| drawHash (rm.vs.fold (fun h p n => h.insert (Prod.fst p) s!"{n % 10}") ({} : Std.HashMap pos String)) dat.size dat.size
 
 /-!
 -/
@@ -305,19 +315,6 @@ def moveCost (rm : RM) (d : pos) : Option (Nat × pos) := Id.run do
   IO.println <| moveCost rm (0, 1)
   IO.println ""
   IO.println <| moveCost rm (- 1, 0)
-
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
