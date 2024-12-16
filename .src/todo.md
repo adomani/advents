@@ -24,4 +24,5 @@
 * Day 7, part 2 is slow (filling in binary operations, trying to achieve a fixed total)
 * Day 9, part 2 is slow (defragmenting a file-system)
 * Day 12, part 1 and 2 are slow (connected components, perimeters and corners)
+* Day 15, part 2 is slow (moving boxes around, approximately 3 minutes to get each answer)
 * Day 16, part 1 and 2 are slow (Reindeer maze, approximately 1 minute to get each answer)
