@@ -103,22 +103,25 @@ def rot (p : pos) : pos := (p.2, - p.1)
 
 /--
 Produces the updated `ReindeerMap`, by moving each entry in `growing` either one step in the
-direction in which it is currently facing, or by rotating 90⁰ clockwise or counterclockwise.
-Each movement is then used to update `ReindeerMap.visited`, as appropriate.
+direction in which it is currently facing, or by rotating it 90⁰ clockwise or counterclockwise.
+Each movement is then used to update `ReindeerMap.visited` and `ReindeerMap.growing`,
+as appropriate.
 -/
 def increase (rm : ReindeerMap) : ReindeerMap := Id.run do
   let mut (grow, vis) := (rm.growing, rm.visited)
   for ((p, d), val) in rm.growing do
-    match update vis p (rot d) (val + 1000) with
-      | none => grow := grow
-      | some v =>
-        vis := v
-        grow := grow.insert (p, rot d) (val + 1000)
-    match update vis p (- rot d) (val + 1000) with
-      | none => grow := grow
-      | some v =>
-        vis := v
-        grow := grow.insert (p, - rot d) (val + 1000)
+    if rm.tiles.contains (p + rot d) then
+      match update vis p (rot d) (val + 1000) with
+        | none => grow := grow
+        | some v =>
+          vis := v
+          grow := grow.insert (p, rot d) (val + 1000)
+    if rm.tiles.contains (p - rot d) then
+      match update vis p (- rot d) (val + 1000) with
+        | none => grow := grow
+        | some v =>
+          vis := v
+          grow := grow.insert (p, - rot d) (val + 1000)
     let newP := p + d
     if rm.tiles.contains newP then
       match update vis newP d (val + 1) with
@@ -164,7 +167,7 @@ def part1 (dat : Array String) : Nat :=
 #assert part1 atest1 == 7036
 #assert part1 atest2 == 11048
 
---set_option trace.profiler true in solve 1 99460 -- takes approximately 40s
+--set_option trace.profiler true in solve 1 99460 -- takes approximately 20s
 
 /-!
 #  Question 2
@@ -176,7 +179,7 @@ def getMinPaths (rm : ReindeerMap) (tgt : pos) : Std.HashSet pos := Id.run do
   let (rmToS, _, newMin) := getMinDists {rm with growing := es, visited := es} rm.S.1
   let target := (newMin + oldMin) / 2 + 500 -- add 500 to average the extra rotation, I think!
   let mids : Std.HashSet pos := rmToS.fold (fun h p v =>
-    let sec := rmToE.getD (p.1, - p.2) 0
+    let sec := rmToE.getD (p.1, - p.2) oldMin
     if v + sec ≤ target then h.insert p.1 else h) ∅
   return mids
 
@@ -188,7 +191,7 @@ def part2 (dat : Array String) : Nat :=
 #assert part2 atest1 == 45
 #assert part2 atest2 == 64
 
---set_option trace.profiler true in solve 2 500 -- takes approximately 1 minute
+--set_option trace.profiler true in solve 2 500 -- takes approximately 25s
 
 /-- Produces a picture of the tiles on some path of minimum score. -/
 def drawMinPaths (dat : Array String) : IO Unit := do
