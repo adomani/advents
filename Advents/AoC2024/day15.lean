@@ -115,6 +115,12 @@ def toDir : String → pos
   | "v" => (  1,   0)
   | _ => (0, 0)
 
+/-- With the given `Boxes`, using the string `s` as direction and `init` as robot position,
+scan the grid in the `s` direction.
+* If there is a box `O`, continue scanning.
+* If you encounter an empty space `.`, return the location of the empty space.
+* If you encounter a wall `.`, return the initial position `init`.
+-/
 partial
 def add (B : Boxes) (s : String) (init : pos) : pos :=
   let c := B.S + toDir s
@@ -125,6 +131,13 @@ def add (B : Boxes) (s : String) (init : pos) : pos :=
   else
     c
 
+/--
+Perform one move: retrieve the next instruction and determine which boxes would need to move.
+
+If no wall stops the movement, perform the move, by placing the robot in the position of the
+first box and the first box after the last box in the pile.
+If there is a wall, do nothing.
+-/
 def move (B : Boxes) : Boxes :=
   let mv := B.m.take 1
   let newPos := add B mv B.S
@@ -160,21 +173,22 @@ solve 1 1426855 file
 #  Question 2
 -/
 
-/-- A `box` is just the position `l` of its left-most block. -/
+/-- A `box` is just the position `box.pos` of its left-most block. -/
 structure box where
-  l : pos
+  /-- The position of the left-most block of the `box`. -/
+  pos : pos
   deriving BEq, Hashable
 
 /--
 A utility to print `box`es: technically it is not needed, but it has been very useful for debugging.
 -/
-instance : ToString box where toString := fun {l := p} => s!"({p.1}, {p.2}-{p.2 + 1})"
+instance : ToString box where toString := fun {pos := p} => s!"({p.1}, {p.2}-{p.2 + 1})"
 
 /--
 The positions contained in a `box`: the actual position mentioned in `box` and the square
 to its right.
 -/
-abbrev nbs (b : box) : Array pos := #[b.l, b.l + (0, 1)]
+abbrev nbs (b : box) : Array pos := #[b.pos, b.pos + (0, 1)]
 
 /-- Doubles the width coordinate. -/
 def doubleWidth (p : pos) : pos := (p.1, 2 * p.2)
@@ -201,8 +215,7 @@ structure Boxes2 where
   old : String
   deriving Inhabited
 
-def toBox (p : pos) : box := ⟨p⟩
-
+/-- Stretches the input state by a factor of 2 in the horizontal direction. -/
 def resize (b : Boxes) : Boxes2 where
   w := b.w.fold (fun h p => (h.insert (doubleWidth p)).insert (doubleWidth p + (0, 1))) {}
   b := b.b.fold (fun h p => h.insert ⟨doubleWidth p⟩) {}
@@ -273,7 +286,7 @@ def moveBoxes (b : Boxes2) (s : String) : Boxes2 :=
   else
     --dbg_trace "move {adj.size} boxes"
     let erasedBoxes := adj.fold (·.erase ·) b.b
-    let insertBoxes := adj.fold (fun h q => h.insert (toBox (q.l + toDir s))) erasedBoxes
+    let insertBoxes := adj.fold (·.insert ⟨·.pos + toDir s⟩) erasedBoxes
     {b with b := insertBoxes, S := b.S + toDir s }
 
 /-- Automates the string input to `moveBoxes`, by reading it off `b.m`. -/
@@ -282,7 +295,7 @@ def autoMove (b : Boxes2) : Boxes2 :=
 
 /-- The tally for the second part of the problem. -/
 def GPS2 (B : Boxes2) : Int :=
-  B.b.fold (fun tot {l := (x, y)} => tot + 100 * x + y) 0
+  B.b.fold (fun tot {pos := (x, y)} => tot + 100 * x + y) 0
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : String) : Nat := Id.run do
@@ -293,6 +306,6 @@ def part2 (dat : String) : Nat := Id.run do
 
 #assert part2 test == 9021
 
---solve 2 1404917 file  -- takes approximately 3 minutes
+--set_option trace.profiler true in solve 2 1404917 file  -- takes approximately 3 minutes
 
 end Day15
