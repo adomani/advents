@@ -52,87 +52,83 @@ def test2 := "#################
 /-- `atest2` is the test string for the problem, split into rows. -/
 def atest2 := (test2.splitOn "\n").toArray
 
-structure RM where
-  gr : Std.HashSet pos
+/--
+`ReindeerMap` is the main state for the puzzle.
+* `tiles` is the `HashSet` of tiles that the Reindeer can take -- the entries labeled with
+  `.`, `S` or `E`.
+* `S` is the pair consisting of the starting position and direction of the Reindeer.
+* `growing` is `HashMap` recording which tiles have already been visited and what is their
+  relative distance along the chosen path.
+  This information is used to update `visited`, which tracks the minima of these values.
+* `visited` is the current minimum score to go from `S` to the given tile:
+  this value is updated dynamically, as `growing` grows.
+-/
+structure ReindeerMap where
+  /-- `tiles` is the `HashSet` of tiles that the Reindeer can take -- the entries labeled with
+  `.`, `S` or `E`. -/
+  tiles : Std.HashSet pos
+  /-- `S` is the pair consisting of the starting position and direction of the Reindeer. -/
   S : pos × pos
-  vs : Std.HashSet (pos × pos)
-  sz : Nat
+  /-- `growing` is `HashMap` recording which tiles have already been visited and what is their
+  relative distance along the chosen path.
+  This information is used to update `visited`, which tracks the minima of these values. -/
+  growing : Std.HashMap (pos × pos) Nat := {(S, 0)}
+  /-- `visited` is the current minimum score to go from `S` to the given tile:
+  this value is updated dynamically, as `growing` grows. -/
+  visited : Std.HashMap (pos × pos) Nat := {(S, 0)}
 
-structure RMp where
-  gr : Std.HashSet pos --(Array pos)
-  S : pos × pos
-  growing : Std.HashMap (pos × pos) Nat
-  vs : Std.HashMap (pos × pos) Nat
-  sz : Nat
-
-def drawRM0 (rm : RM) : IO Unit := do
-  let vis : Std.HashSet pos := rm.vs.fold (·.insert <| Prod.fst ·) {}
-  draw <| drawSparseWith (rm.gr.union vis) rm.sz rm.sz (yes := fun p =>
-         if vis.contains p then "*"
-    else if rm.gr.contains p then "#" else "·")
-
-def inputToRM (s : Array String) : RM :=
+/-- Converts the input data into the corresponding `ReindeerMap`. -/
+def inputToRMp (s : Array String) : ReindeerMap :=
   let init := sparseGrid s (· == 'S')
-  { gr := sparseGrid s (· == '#')
-    S  := (init.toArray[0]!, (0, 1))
-    vs := init.fold (·.insert (·, (0, 1))) {}
-    sz := s.size }
+  let S := (init.toArray[0]!, (0, 1))
+  { tiles := (sparseGrid s (".SE".contains ·)).insert init.toArray[0]!
+    S := S }
 
-abbrev nbs : Array pos := #[(0, 1), (0, - 1), (1, 0), (- 1, 0)]
-
-def dirsAt1 (gr : Std.HashSet pos) (p : pos) : Array pos :=
-  nbs.filter fun d => gr.contains (p + d)
-
-def dirsAt0 (gr : Std.HashSet pos) (p : pos) : Array pos :=
-  nbs.filter fun d => ! (gr.contains (p + d))
-
-def dirsAt (rm : RM) (p : pos) : Array pos :=
-  dirsAt0 rm.gr p
-
-def dirsAtp (rm : Std.HashSet pos) (p : pos) : Array pos := nbs.filter fun d => (rm.contains (p + d))
-
-def inputToRMp (s : Array String) : RMp :=
-  let init := sparseGrid s (· == 'S')
-  { gr := (sparseGrid s (".SE".contains ·)).insert init.toArray[0]!
-    S  := (init.toArray[0]!, (0, 1))
-    growing := init.fold (·.insert (·, (0, 1)) 0) {}
-    vs := init.fold (·.insert (·, (0, 1)) 0) {}
-    sz := s.size }
-
+/-- We use this instance to reverse directions. -/
 instance : Neg pos where neg p := (- p.1, - p.2)
 
+/--
+The main function to update `ReindeerMap.visiting`: checks whether the new value is strictly
+smaller than what is already stored and, if so, returns `some updatedHashMap`.
+Otherwise, it returns `none`.
+-/
 def update (v : Std.HashMap (pos × pos) Nat) (p d : pos) (val : Nat) :
     Option (Std.HashMap (pos × pos) Nat) :=
   match v.get? (p, d) with
     | none => some (v.insert (p, d) val)
     | some oldVal => if oldVal ≤ val then none else some (v.insert (p, d) val)
 
+/-- A 90⁰ rotation: useful for moving around the maze. -/
 def rot (p : pos) : pos := (p.2, - p.1)
 
-def increase (rm : RMp) : RMp := Id.run do
-  let mut (grow, vis) := (rm.growing, rm.vs)
+/--
+Produces the updated `ReindeerMap`, by moving each entry in `growing` either one step in the
+direction in which it is currently facing, or by rotating 90⁰ clockwise or counterclockwise.
+Each movement is then used to update `ReindeerMap.visited`, as appropriate.
+-/
+def increase (rm : ReindeerMap) : ReindeerMap := Id.run do
+  let mut (grow, vis) := (rm.growing, rm.visited)
   for ((p, d), val) in rm.growing do
-    --if p == final then dbg_trace "found {(p, d)}, {val}"
     match update vis p (rot d) (val + 1000) with
-      | none => grow := grow --.erase (p, rot d)
+      | none => grow := grow
       | some v =>
         vis := v
         grow := grow.insert (p, rot d) (val + 1000)
     match update vis p (- rot d) (val + 1000) with
-      | none => grow := grow --.erase (p, - rot d)
+      | none => grow := grow
       | some v =>
         vis := v
         grow := grow.insert (p, - rot d) (val + 1000)
     let newP := p + d
-    if rm.gr.contains newP then
+    if rm.tiles.contains newP then
       match update vis newP d (val + 1) with
-        | none => grow := grow --.erase (newP, d)
+        | none => grow := grow
         | some v =>
           vis := v
           grow := grow.insert (newP, d) (val + 1)
   return { rm with
     growing := grow.filter fun p _v => (! rm.growing.contains p)
-    vs := vis
+    visited := vis
     }
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
@@ -145,7 +141,7 @@ def part1 (dat : Array String) : Nat := Id.run do
     oldGrow := rm.growing
     con := con + 1
     rm := increase rm
-  let vals := rm.vs.filter fun ((p, _) : pos × pos) _ => p == E
+  let vals := rm.visited.filter fun ((p, _) : pos × pos) _ => p == E
   return vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
 
 #assert part1 atest1 == 7036
@@ -168,25 +164,25 @@ It returns
 * the actual minimum score of a path from `S` to any location with underlying position `E`
   (i.e. allowing any direction at `E`, unlike what happens at `S`).
 -/
-def getMinDists (rm : RMp) (tgt : pos) :
+def getMinDists (rm : ReindeerMap) (tgt : pos) :
     Std.HashMap (pos × pos) Nat × Std.HashMap (pos × pos) Nat × Nat := Id.run do
   let mut rm := rm
   let mut oldGrow : Std.HashMap _ _ := {}
   while (oldGrow.toArray != rm.growing.toArray) do
     oldGrow := rm.growing
     rm := increase rm
-  let vals := rm.vs.filter fun (p, _) _ => p == tgt
+  let vals := rm.visited.filter fun (p, _) _ => p == tgt
   let minValue := vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
   let reverseStart := vals.fold (init := ∅)
     fun h p v => if v == minValue then h.insert (p.1, -p.2) 0 else h
-  return (rm.vs, reverseStart, minValue)
+  return (rm.visited, reverseStart, minValue)
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
   let E := sparseGrid dat (· == 'E') |>.toArray[0]!
   let rm' := inputToRMp dat
   let (rmToE, es, oldMin) := getMinDists rm' E
-  let (rmToS, _, newMin) := getMinDists {rm' with growing := es, vs := es} rm'.S.1
+  let (rmToS, _, newMin) := getMinDists {rm' with growing := es, visited := es} rm'.S.1
   let target := (newMin + oldMin) / 2 + 500
   let mids : Std.HashSet pos := rmToS.fold (fun h p v =>
     let sec := rmToE.getD (p.1, - p.2) 0
@@ -199,7 +195,7 @@ def part2 (dat : Array String) : Nat := Id.run do
 --solve 2 500 -- takes approximately 1 minute
 
 end Day16
-
+#exit
 --open Day16 in
 set_option trace.profiler true in
 #eval do
