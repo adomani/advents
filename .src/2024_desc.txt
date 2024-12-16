@@ -261,3 +261,17 @@ We should determine the first time that this happens.
 ··················································#
 ·····················#···#·························
 ```
+-- Day 16
+The Reindeer maze: most steps are forced, sometimes you have to rotate.
+
+### Description
+
+#### Part 1
+
+We should determine the smallest score to go from `S` to `E`:
+continuing in the current direction costs 1 point, rotating costs 1000.
+
+#### Part 2
+
+Now we should determine the number of the tiles that are contained in some path of minimum score
+between `S` and `E`.
