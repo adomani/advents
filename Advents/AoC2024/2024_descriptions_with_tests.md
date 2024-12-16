@@ -635,6 +635,83 @@ We should determine the first time that this happens.
 
 ---
 
+#  [Day 15](https://adventofcode.com/2024/day/15)
+
+The lanternfish maze: a robot pushing boxes around.
+
+####  Test
+
+<pre>
+##########
+#..O..O.O#
+#......O.#
+#.OO..O.O#
+#..O@..O.#
+#O#..O...#
+#O..O..O.#
+#.OO.O.OO#
+#....O...#
+##########
+
+<vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
+vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
+><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
+<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
+^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
+^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
+>^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
+<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
+^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
+v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
+</pre>
+
+####  Test 2
+
+<pre>
+########
+#..O.O.#
+##@.O..#
+#...O..#
+#.#.O..#
+#...O..#
+#......#
+########
+
+<^^>>>vv<v>>v<<
+</pre>
+
+####  Test 3
+
+<pre>
+#######
+#...#.#
+#.....#
+#..OO@#
+#..O..#
+#.....#
+#######
+
+<vv<<^^<<^^
+</pre>
+
+### Description
+
+#### Part 1
+
+As the robot moves around the grid, it pushes the boxes around.
+We should determine the GPS value of the final configuration,
+adding the appropriately weighted `x` and `y` coordinates.
+
+#### Part 2
+
+It turns out that the grid and everything inside except for the bot should be stretched in the
+horizontal direction by a factor of 2.
+The boxes, in particular, can now be stacked and pushed also when they overlap in a single position.
+
+[Solution in Lean](day15.lean)
+
+---
+
 #  [Day 16](https://adventofcode.com/2024/day/16)
 
 The Reindeer maze: most steps are forced, sometimes you have to rotate.

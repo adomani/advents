@@ -261,6 +261,22 @@ We should determine the first time that this happens.
 ··················································#
 ·····················#···#·························
 ```
+-- Day 15
+The lanternfish maze: a robot pushing boxes around.
+
+### Description
+
+#### Part 1
+
+As the robot moves around the grid, it pushes the boxes around.
+We should determine the GPS value of the final configuration,
+adding the appropriately weighted `x` and `y` coordinates.
+
+#### Part 2
+
+It turns out that the grid and everything inside except for the bot should be stretched in the
+horizontal direction by a factor of 2.
+The boxes, in particular, can now be stacked and pushed also when they overlap in a single position.
 -- Day 16
 The Reindeer maze: most steps are forced, sometimes you have to rotate.
 
