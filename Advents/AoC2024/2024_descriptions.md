@@ -14,4 +14,5 @@
 | [12](2024_descriptions_with_tests.md#day-12) | The input is a grid with locations of where different kinds of plants have been planted.    |
 | [13](2024_descriptions_with_tests.md#day-13) | The input is a description of various games with the claw.                                  |
 | [14](2024_descriptions_with_tests.md#day-14) | The input is a list of positions and velocities of robots in a periodic grid.               |
+| [15](2024_descriptions_with_tests.md#day-15) | The lanternfish maze: a robot pushing boxes around.                                         |
 | [16](2024_descriptions_with_tests.md#day-16) | The Reindeer maze: most steps are forced, sometimes you have to rotate.                     |
