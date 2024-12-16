@@ -148,7 +148,6 @@ def part1 (dat : Array String) : Nat := Id.run do
   let vals := rm.vs.filter fun ((p, _) : pos × pos) _ => p == E
   return vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
 
-
 #assert part1 atest1 == 7036
 #assert part1 atest2 == 11048
 
@@ -158,15 +157,50 @@ def part1 (dat : Array String) : Nat := Id.run do
 #  Question 2
 -/
 
-def getMinDists (rm : RMp) : Std.HashMap (pos × pos) Nat := Id.run do
+/--
+`getMinDists rm tgt` does most of the computations.
+The input is a grid and a "target" position (`E` in the case of the puzzle).
+It returns
+* the `HashMap` assigning to each pair `p = (position, direction)` the minimum score of a path
+  from the starting position `S` to `p`;
+* the `HashMap` assigning value `0` to each pair `p = (position, direction)` where `position`
+  is the position of `E` -- this is used to repeat the operation for the reverse path;
+* the actual minimum score of a path from `S` to any location with underlying position `E`
+  (i.e. allowing any direction at `E`, unlike what happens at `S`).
+-/
+def getMinDists (rm : RMp) (tgt : pos) :
+    Std.HashMap (pos × pos) Nat × Std.HashMap (pos × pos) Nat × Nat := Id.run do
   let mut rm := rm
   let mut oldGrow : Std.HashMap _ _ := {}
   while (oldGrow.toArray != rm.growing.toArray) do
     oldGrow := rm.growing
     rm := increase rm
-    --IO.println s!"{con}, rm.vs.size: {rm.vs.size}, rm.growing.size: {rm.growing.size}"
-  return rm.vs
+  let vals := rm.vs.filter fun (p, _) _ => p == tgt
+  let minValue := vals.fold (fun m _ v => min m v) vals.toArray[0]!.2
+  let reverseStart := vals.fold (init := ∅)
+    fun h p v => if v == minValue then h.insert (p.1, -p.2) 0 else h
+  return (rm.vs, reverseStart, minValue)
 
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat := Id.run do
+  let E := sparseGrid dat (· == 'E') |>.toArray[0]!
+  let rm' := inputToRMp dat
+  let (rmToE, es, oldMin) := getMinDists rm' E
+  let (rmToS, _, newMin) := getMinDists {rm' with growing := es, vs := es} rm'.S.1
+  let target := (newMin + oldMin) / 2 + 500
+  let mids : Std.HashSet pos := rmToS.fold (fun h p v =>
+    let sec := rmToE.getD (p.1, - p.2) 0
+    if v + sec ≤ target then h.insert p.1 else h) ∅
+  return mids.size
+
+#assert part2 atest1 == 45
+#assert part2 atest2 == 64
+
+--solve 2 500 -- takes approximately 1 minute
+
+end Day16
+
+--open Day16 in
 set_option trace.profiler true in
 #eval do
   let dat := atest2 -- 11048
@@ -200,149 +234,3 @@ set_option trace.profiler true in
     else h) ∅
   IO.println s!"{mids.size}"
   draw <| drawSparse mids dat.size dat.size
-
-/-!
--/
-
--- 109432 too high
--- Shortest path: 99460
--- Number of steps: 630
-def tallyRot (d e : pos) : Nat :=
-  if d == e then 0
-  else if d == - e then 2000
-  else 1000
-
-def travel (gr trivs : Std.HashMap pos (Array pos)) (p : pos × pos) : (Nat × pos × pos) := Id.run do
-  let mut (currPos, currDir) := p
-  let mut tot := 0
-  -- we scan until we find a new vertex of valence at least 3, but we allow "rotating in place"
-  while (! trivs.contains currPos) || currPos == p.1 do
-    let newPos := currPos + currDir
-    if gr.contains newPos then
-      currPos := newPos
-      tot := tot + 1
-    else
-      dbg_trace "turning at {currPos}"
-      let newDir := (gr[currPos]!.erase (- currDir))[0]!
-      tot := tot + tallyRot currDir newDir
-      currDir := newDir
-  return (tot, (currPos, currDir))
-
-#eval do
-  let dat := atest1
-  let dat ← IO.FS.lines input
-  let dat := atest2
-  let rm := inputToRMp dat
-  draw <| drawSparseWith (rm.gr.fold (fun h (p) _ => h.insert p) {}) rm.sz rm.sz (yes := fun p =>
-        s!"{(rm.gr.getD p #[]).size}")
-  let S := rm.S
-  let trivs := rm.gr.filter (fun _ arr => 3 ≤ Array.size arr)
-  IO.println <| travel rm.gr trivs S
-  IO.println <| travel rm.gr trivs ((7, 3), (0, 1))
-  --let mut gr := sparseGrid dat (".SE".toList.contains)
-  --let mut consume := consumeDE gr S
-  --while consume.size < gr.size do
-  --  --draw <| drawSparseWith gr dat.size dat.size (yes := fun p => s!"{(dirsAt1 gr p).size}")
-  ----draw <| drawSparseWith gr dat.size dat.size --(yes := fun p => "*") --s!"{(rm.gr.getD p #[]).size}")
-  --  gr := consume
-  --  consume := consumeDE consume S
-  --  IO.println (consume.size, gr.size)
-  --draw <| drawSparseWith consume dat.size dat.size (yes := fun p => s!"{(dirsAt1 consume p).size}")
-  --draw <| drawSparseWith consume dat.size dat.size --(yes := fun p => "*") --s!"{(rm.gr.getD p #[]).size}")
-
-
-def consumeDE (gr : Std.HashSet pos) (keep : pos := (- 1, - 1)) : Std.HashSet pos :=
-  gr.fold (fun h p => if (dirsAt1 gr p).size ≤ 1 then h.erase p else h) gr |>.insert keep
-
-#eval do
-  let dat := atest1
-  let dat ← IO.FS.lines input
-  let dat := atest2
-  --let rm := inputToRMp dat
-  --draw <| drawSparseWith (rm.gr.fold (fun h (p) _ => h.insert p) {}) rm.sz rm.sz (yes := fun p =>
-  --      s!"{(rm.gr.getD p #[]).size}")
-  let S := sparseGrid dat ("S".toList.contains) |>.toArray[0]!
-  let mut gr := sparseGrid dat (".SE".toList.contains)
-  let mut consume := consumeDE gr S
-  while consume.size < gr.size do
-    --draw <| drawSparseWith gr dat.size dat.size (yes := fun p => s!"{(dirsAt1 gr p).size}")
-  --draw <| drawSparseWith gr dat.size dat.size --(yes := fun p => "*") --s!"{(rm.gr.getD p #[]).size}")
-    gr := consume
-    consume := consumeDE consume S
-    IO.println (consume.size, gr.size)
-  draw <| drawSparseWith consume dat.size dat.size (yes := fun p => s!"{(dirsAt1 consume p).size}")
-  --draw <| drawSparseWith consume dat.size dat.size --(yes := fun p => "*") --s!"{(rm.gr.getD p #[]).size}")
-
---def shrink (rm : RMp) :
-
-#eval do
-  let dat := atest2
-  let dat := atest1
-  let dat ← IO.FS.lines input
-  let rm := inputToRM dat
-  drawRM0 rm
-  IO.println rm.gr.size
-  --draw <| drawSparseWith (rm.gr.fold (·.insert <| Prod.fst ·) {}) rm.sz rm.sz (yes := fun p =>
-  --      s!"{(rm.gr.filter (Prod.fst · == p)).size}")
-
-/--
-info:
-Directions at (13, 1): #[(0, 1), (-1, 0)]
-Directions at (13, 2): #[(0, 1), (0, -1)]
-Directions at (13, 3): #[(0, -1)]
-Directions at (12, 1): #[(1, 0), (-1, 0)]
--/
-#guard_msgs in
-#eval do
-  let dat := atest1
-  let rm := inputToRM dat
-  --drawRM0 rm
-  let ds := #[rm.S.1, rm.S.1 + (0, 1), rm.S.1 + (0, 2), rm.S.1 + (- 1, 0)]
-  for d in ds do
-    IO.println s!"Directions at {d}: {dirsAt rm d}"
-
-def dirs (rm : RM) : Array pos := dirsAt rm rm.S.1
-
-def drawRM (rm : RM) : IO Unit := do
-  drawRM0 rm
-  IO.println s!"Available dirs at {rm.S}: {dirs rm}"
-
-#eval do
-  let dat := atest1
-  let rm := inputToRM dat
-  drawRM rm
-
-def moveCost (rm : RM) (d : pos) : Option (Nat × pos) := Id.run do
-  let mut (p, d) := (rm.S.1, d)
-  let mut tot := 1
-  let ds := dirs rm
-  let mut con := 0
-  while ds.size ≤ 2 && con ≤ 5 do
-    con := con
-    let ds := dirsAt rm p
-    if ds.size == 1 then return none
-    let dnew := (ds.filter fun new => new != (0, 0) - d)[0]!
-    dbg_trace "dnew: {dnew}"
-    tot := tot + if dnew == d then 1 else 1000
-    d := dnew
-    p := p + d
-    dbg_trace "{(p, d)}"
-  return some (tot, p)
-
-#eval do
-  let dat := atest1
-  let rm := inputToRM dat
-  drawRM rm
-  IO.println <| moveCost rm (0, 1)
-  IO.println ""
-  IO.println <| moveCost rm (- 1, 0)
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---solve 2
-
-end Day16
