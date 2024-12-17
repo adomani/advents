@@ -20,6 +20,16 @@ Program: 0,1,5,4,3,0"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- `test2` is the test string for the problem. -/
+def test2 := "Register A: 2024
+Register B: 0
+Register C: 0
+
+Program: 0,3,5,4,3,0"
+
+/-- `atest2` is the test2 string for the problem, split into rows. -/
+def atest2 := (test2.splitOn "\n").toArray
+
 structure State where
   A : Nat
   B : Nat
@@ -29,8 +39,14 @@ structure State where
   out : Array Nat := ∅
   deriving Inhabited
 
+--    pos: {(s.pos, [s.program[s.pos]?, s.program[s.pos+1]?].reduceOption)}\n\
 instance : ToString State where
-  toString s := s!"A: {s.A}\nB: {s.B}\nC: {s.C}\npos: {s.pos}\nprogram: {s.program}\nout: {s.out}\n"
+  toString s := s!"\
+    (A, B, C): ({s.A}, {s.B}, {s.C}) % 8 = ({s.A % 8}, {s.B % 8}, {s.C % 8})\n\
+    program: {s.program.toList.take s.pos} \
+             {[s.pos, s.pos+1].map (s.program[·]?) |>.reduceOption} \
+             {s.program.toList.drop (s.pos + 2)}\n\
+    out: {s.out}, pos: {s.pos}\n"
 
 def inputToState (a : Array String) : State :=
   let (abc, program) := a.map (·.getNats) |>.partition (·.length == 1)
@@ -66,7 +82,7 @@ def oneOp (s : State) : State :=
     | some opcode =>
       let lit := s.program[pos + 1]!
       let s := {s with pos := pos + 2}
-      dbg_trace "opcode {opcode}, literal {lit}"
+      --dbg_trace "opcode {opcode}, literal {lit}"
       match opcode with
         | 0 => -- adv
           {s with A := s.A / (2 ^ (combo s lit))}
@@ -77,6 +93,7 @@ def oneOp (s : State) : State :=
         | 3 => -- jnz
           if s.A == 0
           then
+            --dbg_trace "no jump"
             s
           else
             --dbg_trace "jumping from {pos} to {lit}"
@@ -124,7 +141,7 @@ def part1 (dat : Array String) : Nat := Id.run do
 
 #assert part1 atest == 4635635210
 
-set_option trace.profiler true in solve 1 350151510
+solve 1 350151510
 
 
 #eval show Elab.Term.TermElabM _ from do
@@ -132,18 +149,32 @@ set_option trace.profiler true in solve 1 350151510
   let dat ← IO.FS.lines input
   let mut s := inputToState dat
   let mut con := 0
-  IO.println <| s!"Steps: {con}\n\n{s}"
+  IO.println <| s!"{s}" --s!"Steps: {con}\n\n{s}"
   while (s.program[s.pos]?).isSome do
     con := con + 1
     s := oneOp s
-    IO.println <| s!"Steps: {con}\n\n{s}"
+    IO.println <| s!"{s}" --s!"Steps: {con}\n\n{s}"
   guard <| s.out == #[3, 5, 0, 1, 5, 1, 5, 1, 0]
 
 -- 350151510
-
+#eval (60589763 - 2 ^ 6 * (60589763 / (2 ^ 6)))
+#eval ((60589763 / (2 ^ 3)))
 /-!
 #  Question 2
 -/
+
+#eval show Elab.Term.TermElabM _ from do
+  let dat ← IO.FS.lines input
+  let dat := atest2
+  let mut s := inputToState dat
+  s := {s with A := 117440}
+  let mut con := 0
+  IO.println <| s!"{s}" --s!"Steps: {con}\n\n{s}"
+  while (s.program[s.pos]?).isSome do
+    con := con + 1
+    s := oneOp s
+    IO.println <| s!"{s}" --s!"Steps: {con}\n\n{s}"
+
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
