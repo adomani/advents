@@ -50,9 +50,13 @@ def combo (s : State) : Nat → Nat
   | n + 7 => panic s!"instructions are never 7, while this one was {n + 7}!" + 7
   | n => n
 
+/-- info: (A, B, C): (10, (20, 30)): (0 → 0) (1 → 1) (2 → 2) (3 → 3) (4 → 10) (5 → 20) (6 → 30) -/
+#guard_msgs in
 #eval do
+  let s := {(default : State) with A := 10, B := 20, C := 30}
+  IO.print s!"(A, B, C): {(s.A, s.B, s.C)}:"
   for i in [0:7] do
-    IO.println <| combo ⟨10, 20, 30, 0, #[], #[]⟩ i
+    IO.print <| s!" ({i} → {combo s i})"
 
 
 def oneOp (s : State) : State :=
@@ -62,7 +66,7 @@ def oneOp (s : State) : State :=
     | some opcode =>
       let lit := s.program[pos + 1]!
       let s := {s with pos := pos + 2}
-      --dbg_trace "opcode {opcode}"
+      dbg_trace "opcode {opcode}, literal {lit}"
       match opcode with
         | 0 => -- adv
           {s with A := s.A / (2 ^ (combo s lit))}
@@ -71,7 +75,12 @@ def oneOp (s : State) : State :=
         | 2 => -- bst
           {s with B := (combo s lit) % 8}
         | 3 => -- jnz
-          if s.A == 0 then s else dbg_trace "jumping from {pos} to {lit}"; {s with pos := lit}
+          if s.A == 0
+          then
+            s
+          else
+            --dbg_trace "jumping from {pos} to {lit}"
+            {s with pos := lit}
         | 4 => -- bxc
           {s with B := s.B.xor s.C}
         | 5 => -- out
@@ -89,6 +98,7 @@ def oneOp (s : State) : State :=
     ("10\n7880\n9233\n5,0,5,1,5,4", (·.out == #[0,1,2])),
     ("2024\n7880\n9233\n0,1,5,4,3,0", fun s => s.out == #[4,2,5,6,7,7,7,7,3,1,0] && s.A == 0),
     ("2024\n29\n9233\n1,7", (·.B == 26)),
+    ("2024\n2024\n43690\n4,0", (·.B == 44354)),
     (test, (·.out == #[4,6,3,5,6,3,5,2,1,0]))
   ]
   for (inp, check) in inps do
@@ -108,9 +118,7 @@ def oneOp (s : State) : State :=
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
   let mut s := inputToState dat
-  let mut con := 0
   while (s.program[s.pos]?).isSome do
-    con := con + 1
     s := oneOp s
   return (s.out.foldl (· ++ s!"{·}") "").toNat!
 
@@ -128,7 +136,7 @@ set_option trace.profiler true in solve 1 350151510
   while (s.program[s.pos]?).isSome do
     con := con + 1
     s := oneOp s
-  IO.println <| s!"Steps: {con}\n\n{s}"
+    IO.println <| s!"Steps: {con}\n\n{s}"
   guard <| s.out == #[3, 5, 0, 1, 5, 1, 5, 1, 0]
 
 -- 350151510
