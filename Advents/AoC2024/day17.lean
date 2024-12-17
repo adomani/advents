@@ -57,32 +57,41 @@ def combo (s : State) : Nat → Nat
 
 def oneOp (s : State) : State :=
   let pos := s.pos
-  match s.program[pos]?, s.program[pos + 1]? with
-    | none, _ => s
-    | _, none => panic "I really do not want to be here"
-    | some opcode, some lit =>
-      let combo := combo s lit
+  match s.program[pos]? with
+    | none => dbg_trace "oh no!"; s
+    | some opcode =>
+      let lit := s.program[pos + 1]!
       let s := {s with pos := pos + 2}
+      dbg_trace "opcode {opcode}"
       match opcode with
-        | 0 => let adv := s.A / 2 ^ combo; {s with A := adv}
-        | 1 => let bxl := s.B.xor lit; {s with B := bxl}
-        | 2 => let bst := combo % 8; {s with B := bst}
-        | 3 => if s.A == 0 then s else {s with pos := lit}
-        | 4 => let bxc := s.B.xor s.C; {s with B := bxc}
-        | 5 => let out := combo % 8; {s with out := s.out.push out}
-        | 6 => let bdv := s.A / 2 ^ combo; {s with B := bdv}
-        | 7 => let cdv := s.A / 2 ^ combo; {s with C := cdv}
-        | o => panic s!"opcode was {o}, but should be at most 7"
+        | 0 => -- adv
+          {s with A := s.A / 2 ^ (combo s lit)}
+        | 1 => -- bxl
+          {s with B := s.B.xor lit}
+        | 2 => -- bst
+          {s with B := (combo s lit) % 8}
+        | 3 => -- jnz
+          if s.A == 0 then s else {s with pos := lit}
+        | 4 => -- bxc
+          {s with B := s.B.xor s.C}
+        | 5 => -- out
+          {s with out := s.out.push ((combo s lit) % 8)}
+        | 6 => -- bdv
+          {s with B := s.A / 2 ^ (combo s lit)}
+        | 7 => -- cdv
+          {s with C := s.A / 2 ^ (combo s lit)}
+        | o =>
+          panic s!"opcode was {o}, but should be at most 7"
 
-#eval do
-  let inps : Array (String × (State → Array Nat)) := #[
-    ("0\n0\n9\n2,6", (#[·.B])),
-    ("10\n7880\n9233\n5,0,5,1,5,4", (·.out)),
-    ("2024\n7880\n9233\n0,1,5,4,3,0", fun s => s.out.push s.A),
-    ("2024\n29\n9233\n1,7", (#[·.B])),
-    (test, (·.out))
+#eval show Elab.Term.TermElabM _ from do
+  let inps : Array (String × (State → Bool)) := #[
+    ("0\n0\n9\n2,6", (·.B == 1)),
+    ("10\n7880\n9233\n5,0,5,1,5,4", (·.out == #[0,1,2])),
+    ("2024\n7880\n9233\n0,1,5,4,3,0", fun s => s.out == #[4,2,5,6,7,7,7,7,3,1,0] && s.A == 0),
+    ("2024\n29\n9233\n1,7", (·.B == 26)),
+    (test, (·.out == #[4,6,3,5,6,3,5,2,1,0]))
   ]
-  for (inp, _) in inps do
+  for (inp, check) in inps do
     let dat := (inp.splitOn "\n").toArray
     let mut s := inputToState dat
     let mut con := 0
@@ -90,17 +99,16 @@ def oneOp (s : State) : State :=
     while (s.program[s.pos]?).isSome do
       con := con + 1
       s := oneOp s
-    IO.println <| s!"Steps: {con}\n\n{s}"
+    guard (check s)
+    --if check s then
+    --  IO.println s!"Test passed"
+    --else IO.println s!"Fail! {inp}"
+    --IO.println <| s!"Steps: {con}\n\n{s}"
 
 
 #eval do
-  let dat ← IO.FS.lines input
-  let inp := "0\n0\n9\n2,6"
-  let inp := "10\n7880\n9233\n5,0,5,1,5,4"
-  let inp := "2024\n7880\n9233\n0,1,5,4,3,0"
   let dat := atest
-  let inp := "2024\n29\n9233\n1,7"
-  let dat := (inp.splitOn "\n").toArray
+  let dat ← IO.FS.lines input
   let mut s := inputToState dat
   let mut con := 0
   IO.println <| s!"Steps: {con}\n\n{s}"
