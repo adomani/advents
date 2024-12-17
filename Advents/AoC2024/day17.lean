@@ -30,15 +30,41 @@ Program: 0,3,5,4,3,0"
 /-- `atest2` is the test2 string for the problem, split into rows. -/
 def atest2 := (test2.splitOn "\n").toArray
 
+/--
+The state of the program.
+* The `A`-register, containing a natural number.
+* The `B`-register, containing a natural number.
+* The `C`-register, containing a natural number.
+* `pos` is the pointer to the position in the program where we are currently, starting from `0`.
+* `program` list of instructions encoding the program: these alternate between being
+  `opcode`s (each assigned to an operation) and
+  `literal`s (numbers used as inputs to the operations).
+* `out` is the current output of the program.
+
+The `program` does not change during execution, while everything else does.
+-/
 structure State where
+  /-- The `A`-register, containing a natural number. -/
   A : Nat
+  /-- The `B`-register, containing a natural number. -/
   B : Nat
+  /-- The `C`-register, containing a natural number. -/
   C : Nat
+  /-- `pos` is the pointer to the position in the program where we are currently,
+  starting from `0`. -/
   pos : Nat := 0
+  /-- `program` list of instructions encoding the program: these alternate between being
+  `opcode`s (each assigned to an operation) and
+  `literal`s (numbers used as inputs to the operations). -/
   program : Array Nat
+  /-- `out` is the current output of the program. -/
   out : Array Nat := ∅
   deriving Inhabited
 
+/--
+A utility instance to print the state, recording as much as the information as possible.
+This is not needed for the final solution, but was useful in working out the problem.
+-/
 instance : ToString State where
   toString s := s!"\
     (A, B, C): ({s.A}, {s.B}, {s.C}) % 8 = ({s.A % 8}, {s.B % 8}, {s.C % 8})\n\
@@ -47,12 +73,14 @@ instance : ToString State where
              {s.program.toList.drop (s.pos + 2)}\n\
     out: {s.out}, pos: {s.pos}\n"
 
+/-- Converts the input to the program state. -/
 def inputToState (a : Array String) : State :=
   let (abc, program) := a.map (·.getNats) |>.partition (·.length == 1)
   match abc.foldl (· ++ ·) [] with
     | [a, b, c] => {A := a, B := b, C := c, program := (program.foldl (· ++ ·) ∅).toArray}
     | _ => panic "Unparsed input!"
 
+/-- The `combo` operand as a function of the state and the `literal` operand. -/
 def combo (s : State) : Nat → Nat
   | 4 => s.A
   | 5 => s.B
@@ -68,6 +96,7 @@ def combo (s : State) : Nat → Nat
   for i in [0:7] do
     IO.print <| s!" ({i} → {combo s i})"
 
+/-- Perform one operation of the program, updating all the state as necessary. -/
 def oneOp (s : State) : State :=
   let pos := s.pos
   match s.program[pos]? with
@@ -95,6 +124,7 @@ def oneOp (s : State) : State :=
         | o =>
           panic s!"opcode was {o}, but should be at most 7"
 
+-- Tests to make sure that the program works as intended.
 #eval show Elab.Term.TermElabM _ from do
   let inps : Array (String × (State → Bool)) := #[
     ("0\n0\n9\n2,6", (·.B == 1)),
