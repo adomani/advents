@@ -773,3 +773,43 @@ between `S` and `E`.
 [Solution in Lean](day16.lean)
 
 ---
+
+#  [Day 17](https://adventofcode.com/2024/day/17)
+
+The state machine and its list of instructions.
+
+####  Test
+
+<pre>
+Register A: 729
+Register B: 0
+Register C: 0
+
+Program: 0,1,5,4,3,0
+</pre>
+
+####  Test 2
+
+<pre>
+Register A: 2024
+Register B: 0
+Register C: 0
+
+Program: 0,3,5,4,3,0
+</pre>
+
+### Description
+
+#### Part 1
+
+Run the machine until it halts and report the answer.
+Note that the answer is a *comma-separated* list of digits, not necessarily a single number!
+
+#### Part 2
+
+For the second part we should determine the smallest initial state of the machine that reproduces
+a copy of its own program.
+
+[Solution in Lean](day17.lean)
+
+---
