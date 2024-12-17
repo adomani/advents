@@ -58,28 +58,28 @@ def combo (s : State) : Nat → Nat
 def oneOp (s : State) : State :=
   let pos := s.pos
   match s.program[pos]? with
-    | none => dbg_trace "oh no!"; s
+    | none => panic s!"Reading position {pos} is out of bounds: {s.program.size}!"
     | some opcode =>
       let lit := s.program[pos + 1]!
       let s := {s with pos := pos + 2}
-      dbg_trace "opcode {opcode}"
+      --dbg_trace "opcode {opcode}"
       match opcode with
         | 0 => -- adv
-          {s with A := s.A / 2 ^ (combo s lit)}
+          {s with A := s.A / (2 ^ (combo s lit))}
         | 1 => -- bxl
           {s with B := s.B.xor lit}
         | 2 => -- bst
           {s with B := (combo s lit) % 8}
         | 3 => -- jnz
-          if s.A == 0 then s else {s with pos := lit}
+          if s.A == 0 then s else dbg_trace "jumping from {pos} to {lit}"; {s with pos := lit}
         | 4 => -- bxc
           {s with B := s.B.xor s.C}
         | 5 => -- out
           {s with out := s.out.push ((combo s lit) % 8)}
         | 6 => -- bdv
-          {s with B := s.A / 2 ^ (combo s lit)}
+          {s with B := s.A / (2 ^ (combo s lit))}
         | 7 => -- cdv
-          {s with C := s.A / 2 ^ (combo s lit)}
+          {s with C := s.A / (2 ^ (combo s lit))}
         | o =>
           panic s!"opcode was {o}, but should be at most 7"
 
@@ -105,8 +105,21 @@ def oneOp (s : State) : State :=
     --else IO.println s!"Fail! {inp}"
     --IO.println <| s!"Steps: {con}\n\n{s}"
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := Id.run do
+  let mut s := inputToState dat
+  let mut con := 0
+  while (s.program[s.pos]?).isSome do
+    con := con + 1
+    s := oneOp s
+  return (s.out.foldl (· ++ s!"{·}") "").toNat!
 
-#eval do
+#assert part1 atest == 4635635210
+
+set_option trace.profiler true in solve 1 350151510
+
+
+#eval show Elab.Term.TermElabM _ from do
   let dat := atest
   let dat ← IO.FS.lines input
   let mut s := inputToState dat
@@ -116,16 +129,9 @@ def oneOp (s : State) : State :=
     con := con + 1
     s := oneOp s
   IO.println <| s!"Steps: {con}\n\n{s}"
+  guard <| s.out == #[3, 5, 0, 1, 5, 1, 5, 1, 0]
 
 -- 350151510
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
 
 /-!
 #  Question 2
