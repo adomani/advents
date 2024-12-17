@@ -127,16 +127,35 @@ solve 1 350151510
 #  Question 2
 -/
 
+/--
+Convert an array of binary digits into the corresponding natural number.
+The most significant digits appear *first*.
+-/
 partial
 def binToNat (a : Array Nat) : Nat :=
   if a.isEmpty then 0 else
     2 * binToNat a.pop + a.back!
 
+/--
+An auxilliary function: it returns the result of splitting the input into an array of size
+`n - 3` and one of size `3`.
+-/
 def get3 (a : Array Nat) : Array Nat × Array Nat :=
   let a3 := (a.reverse.take 3).reverse
   let aleft := a.pop.pop.pop
   (aleft, a3)
 
+/--
+The hand-rolled program, exploiting the actual steps that it takes.
+It turns out that the program goes through a series of 7 steps before looping back at the beginning.
+
+Only the value of `A` is significant in each loop and determines `B`, `C` and each digit of the
+output.
+When the program loops back, it drops 3 binary digits from `A` and starts over.
+
+The slight complication is that more than just the last 3 binary digits of `A` matter: as much as
+10 binary digits of `A` are necessary to know what the output is.
+-/
 def reprogramOne (a : Array Nat) : Array Nat × Nat :=
   let (aleft, a3) := get3 a
   match a3 with
@@ -148,6 +167,10 @@ def reprogramOne (a : Array Nat) : Array Nat × Nat :=
       let (_, seed2) := get3 c
       (aleft, (seed1.xor 3).xor (binToNat seed2))
 
+/--
+Returns all the 10-digit binary numbers that yield first digit `i` when used in the program.
+The output is stored in *reverse* order, so that the most significant digits are last.
+-/
 def inits (i : Nat) : Std.HashSet (Array Nat) :=
   --  we use 10, since these should be the relevant digits for guaranteeing the first digit
   (Array.range (2 ^ 10)).foldl (fun h A =>
@@ -156,29 +179,36 @@ def inits (i : Nat) : Std.HashSet (Array Nat) :=
       -- we only store `9` digits, since empirically this is enough and speeds up the computation
       h.insert (a.reverse.take 9) else h) ∅
 
-def merge2 (sts1 sts2 : Std.HashSet (Array Nat)) : Std.HashSet (Array Nat) := Id.run do
-  let mut next : Std.HashSet _ := ∅
-  for a4 in sts2 do
+/--
+The inputs are arrays of natural numbers, each one containing arrays of a fixed size
+(though the common size for `sts1` could be different from the size for `sts2`).
+
+The output is the result of merging the arrays of `sts1` with the arrays of `sts2`, as follows:
+* if `#[a, b, c] ++ common` is in `sts1` and
+* `common ++ rest` is in `sts2`
+
+then we store `#[a, b, c] ++ common ++ rest`.
+-/
+def merge2 (sts1 sts2 : Std.HashSet (Array Nat)) : Std.HashSet (Array Nat) :=
+  sts2.fold (init := ∅) fun next a4 =>
     let a4d := a4.pop.pop.pop
     let cands := sts1.filter fun a2 : Array _ =>
                     (a2.toList.drop (a2.size - a4d.size)).toArray == a4d
-    next := next.union <| cands.fold (·.insert <| · ++ (a4.toList.drop (a4.size - 3)).toArray) ∅
-  return next
+    next.union <| cands.fold (·.insert <| · ++ (a4.toList.drop (a4.size - 3)).toArray) ∅
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := Id.run do
+def part2 (dat : Array String) : Nat :=
   let s := inputToState dat
   let pr := s.program
   let sts := pr.foldl (·.push <| inits ·) #[]
-  let mut merges := #[]
-  for pi in [0:sts.size - 1] do
+  let merges := (Array.range (sts.size - 1)).foldl (init := #[]) fun merges pi =>
     let p1 := sts[pi]!
     let p2 := sts[pi + 1]!
     let a24 := merge2 p1 p2
-    merges := merges.push a24
+    merges.push a24
   let fins := ((merges.erase merges[0]!).foldl merge2 merges[0]!).toArray
   let ns := fins.map (binToNat ·.reverse)
-  return (ns.qsort (· < ·))[0]!
+  (ns.qsort (· < ·))[0]!
 
 --#assert part2 atest2 == 117440  -- does not work...
 
