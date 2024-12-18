@@ -17,3 +17,4 @@
 | [15](2024_descriptions_with_tests.md#day-15) | The lanternfish maze: a robot pushing boxes around.                                         |
 | [16](2024_descriptions_with_tests.md#day-16) | The Reindeer maze: most steps are forced, sometimes you have to rotate.                     |
 | [17](2024_descriptions_with_tests.md#day-17) | The state machine and its list of instructions.                                             |
+| [18](2024_descriptions_with_tests.md#day-18) | Historians making their way in memory, avoiding corrupted bytes.                            |

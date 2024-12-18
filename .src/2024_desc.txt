@@ -305,3 +305,23 @@ Note that the answer is a *comma-separated* list of digits, not necessarily a si
 
 For the second part we should determine the smallest initial state of the machine that reproduces
 a copy of its own program.
+-- Day 18
+Historians making their way in memory, avoiding corrupted bytes.
+
+### Description
+
+#### Part 1
+
+Find the smallest number of steps in the memory space going between start and finish.
+
+#### Part 2
+
+For the second part, we should determine the position of the first corrupted byte that prevents
+a path for the historians.
+Effectively, I started two processes:
+* one looking for a path for the historians and
+* one looking for a blocking path for the corrupted memory blocks.
+
+The first one to finish decides who wins.
+Bisecting on the line at which each corrupted byte appears, we find the location of the first byte
+that seals off the start from the finish.

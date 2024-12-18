@@ -813,3 +813,59 @@ a copy of its own program.
 [Solution in Lean](day17.lean)
 
 ---
+
+#  [Day 18](https://adventofcode.com/2024/day/18)
+
+Historians making their way in memory, avoiding corrupted bytes.
+
+####  Test
+
+<pre>
+5,4
+4,2
+4,5
+3,0
+2,1
+6,3
+2,4
+1,5
+0,6
+3,3
+2,6
+5,1
+1,2
+5,5
+2,5
+6,5
+1,4
+0,4
+6,4
+1,1
+6,1
+1,0
+0,5
+1,6
+2,0
+</pre>
+
+### Description
+
+#### Part 1
+
+Find the smallest number of steps in the memory space going between start and finish.
+
+#### Part 2
+
+For the second part, we should determine the position of the first corrupted byte that prevents
+a path for the historians.
+Effectively, I started two processes:
+* one looking for a path for the historians and
+* one looking for a blocking path for the corrupted memory blocks.
+
+The first one to finish decides who wins.
+Bisecting on the line at which each corrupted byte appears, we find the location of the first byte
+that seals off the start from the finish.
+
+[Solution in Lean](day18.lean)
+
+---

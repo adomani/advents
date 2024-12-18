@@ -27,3 +27,4 @@
 * Day 15, part 2 is slow (moving boxes around, approximately 3 minutes to get each answer)
 * Day 16, part 1 and 2 are slow (Reindeer maze, 20/25 seconds to get each answer)
 * Day 16, part 2 the test does not work (state machine that should reproduce itself)
+* Day 18, part 2 is a little slow (historians and corrupted bytes -- hex-like maze, approximately 30s)
