@@ -86,10 +86,8 @@ def part2 (dat : Array String) : Nat :=
     then M + tot
     else M
 
-set_option trace.profiler true
-
 #assert part2 atest == 11387
 
-solve 2 472290821152397
+--set_option trace.profiler true in solve 2 472290821152397 -- takes approximately 1m30s
 
 end Day07
