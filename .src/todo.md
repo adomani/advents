@@ -23,7 +23,7 @@
 * Day 6, part 2 is slow (moving guard in a maze, finding locations of obstacles to create loops, almost 10 minutes)
 * Day 7, part 2 is slow (filling in binary operations, trying to achieve a fixed total)
 * Day 9, part 2 is slow (defragmenting a file-system, takes approximately 1 minute)
-* Day 12, part 1 and 2 are slow (connected components, perimeters and corners, 80s each answer)
+* Day 12, part 1 and 2 are slow (connected components, perimeters and corners, approx 1m each answer)
 * Day 15, part 2 is slow (moving boxes around, approximately 3 minutes to get each answer)
 * Day 16, part 1 and 2 are slow (Reindeer maze, 20/25 seconds to get each answer)
 * Day 17, part 2 the test does not work (state machine that should reproduce itself)

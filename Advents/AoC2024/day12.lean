@@ -93,8 +93,7 @@ Creates a "live" `OneComp`: this is not yet a connected components, just somethi
 `growComp` to be one.
 -/
 def mkOneComp {α} [BEq α] (g : Std.HashMap pos α) (c : α) (st : pos) : OneComp :=
-  let oneVar := g.filter (fun _pos val => val == c)
-  let gr : Std.HashSet pos := oneVar.fold (init := {}) fun h p _ => h.insert p
+  let gr : Std.HashSet pos := g.fold (init := {}) fun h p val => if val == c then h.insert p else h
   if gr.contains st then
     {grid := gr, growing := {st}, front := {st}}
   else
@@ -170,7 +169,7 @@ def part1 (dat : Array String) : Nat := tallyAll <| loadGrid dat id
 #assert part1 atest2 == 772
 #assert part1 atest3 == 1930
 
---set_option trace.profiler true in solve 1 1483212  -- slow, takes approx 80s
+--set_option trace.profiler true in solve 1 1483212  -- slow, takes approx 55s
 
 /-!
 #  Question 2
@@ -196,7 +195,7 @@ def leftRightBounds (h : OneComp) (i : Int) : Std.HashSet Int × Std.HashSet Int
 /--
 Computes the corners in the component encoded in `h`, withing the bounds `m` and `M`.
 
-TODO: find the values of `m` and `M` and generally make this more efficients.
+TODO: find the values of `m` and `M` and generally make this more efficient.
 -/
 def corners (h : OneComp) (m M : Nat) : Nat := Id.run do
   let mut diffs := 0
@@ -220,6 +219,6 @@ def part2 (dat : Array String) : Nat :=
 #assert part2 atestAB == 368
 #assert part2 atest3 == 1206
 
---set_option trace.profiler true in solve 2 897062  -- slow, takes approx 90s
+--set_option trace.profiler true in solve 2 897062  -- slow, takes approx 60s
 
 end Day12
