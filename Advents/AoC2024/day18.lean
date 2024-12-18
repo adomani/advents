@@ -164,11 +164,11 @@ def blocker (ms : MS) : MS :=
   --IO.println ms.visited.toArray
 
 def HorC (dat : Array String) (one : Nat) : Bool := Id.run do
-    let ex := exit
+    let ex := if dat.size ≤ 1000 then texit else exit
     let mut ms := inputToMS dat one ex.1
     --let last : pos := let cs := dat[one - 1]!.getNats; (cs[0]!, cs[1]!)
     let newTarget : Std.HashSet pos :=
-      ms.f.filter fun (p, q) => q == 0 || p == exit.1
+      ms.f.filter fun (p, q) => q == 0 || p == ex.1
       --(Std.HashSet.ofArray <| (Array.range (exit.1 - 1)).map (·.cast + 1, 0)).union
       --  (.ofArray <| (Array.range exit.1).map (exit.1, ·.cast)) --== 0 || p == exit.1
 
@@ -179,11 +179,11 @@ def HorC (dat : Array String) (one : Nat) : Bool := Id.run do
     --dbg_trace ((newTarget.filter ms.visitedCorrupted.contains).isEmpty,
     --      (ms.visitedHistorians.contains ((exit.1, exit.2) : pos)))
     while ((newTarget.filter ms.visitedCorrupted.contains).isEmpty &&
-          !(ms.visitedHistorians.contains ((exit.1, exit.2) : pos))) do
+          !(ms.visitedHistorians.contains ((ex.1, ex.2) : pos))) do
       --vs := ms.visitedCorrupted.size
       ms := moveBoth ms
     --guard <| ms.visited.contains ((ex.1, ex.2) : pos)
-    return ms.visitedHistorians.contains (exit.1, exit.2)
+    return ms.visitedHistorians.contains (ex.1, ex.2)
     -- then IO.println "Historians" else IO.println "Corrupted"
 
 #check Array.binSearch
@@ -197,14 +197,13 @@ def search (fin : Nat) (cond : Nat → Bool) (st : Nat := 0) : Option Nat :=
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : pos :=
-  let low := (search dat.size (HorC dat ·)).get!
+  let low := (search (dat.size + 1) (HorC dat ·)).get!
   let cs := dat[low - 1]!.getNats
   (cs[0]!, cs[1]!)
 
-#eval part2 atest --== ???
---#assert part2 atest == ???
+#assert part2 atest == (6, 1)
 
---set_option trace.profiler true in solve 2 --(26, 50)  -- takes approximately 30s
+set_option trace.profiler true in solve 2 --(26, 50)  -- takes approximately 30s
 
 
 
