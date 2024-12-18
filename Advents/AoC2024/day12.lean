@@ -67,27 +67,26 @@ def atestAB := (testAB.splitOn "\n").toArray
 
 /--
 The main structure to create connected components.
-* `gr` is the underlying grid.
+* `grid` is the underlying grid.
 * `growing` is the set of vertices that we have so far added to our "connected component".
-* `front` is the front of the expansion: at the next step, we add the newighbours of `front` to
+* `front` is the front of the expansion: at the next step, we add the neighbours of `front` to
   `growing`.
-* `edges` is the set of entries of `growing` that have a neighbour not in `gr`.
-* `nbs` is the set of neighbours. By default, it is the 4 coordinate directions.
-
+* `edges` is the set of entries of `growing` that have a neighbour not in `grid`.
 -/
 structure OneComp where
-  /-- `gr` is the underlying grid. -/
-  gr : Std.HashSet pos
+  /-- `grid` is the underlying grid. -/
+  grid : Std.HashSet pos
   /-- `growing` is the set of vertices that we have so far added to our "connected component". -/
   growing : Std.HashSet pos
   /-- `front` is the front of the expansion: at the next step, we add the newighbours of `front` to
   `growing`. -/
   front : Std.HashSet pos
-  /-- `edges` is the set of entries of `growing` that have a neighbour not in `gr`. -/
+  /-- `edges` is the set of entries of `growing` that have a neighbour not in `grid`. -/
   edges : Std.HashSet pos := {}
-  /-- `nbs` is the set of neighbours. By default, it is the 4 coordinate directions. -/
-  nbs : Std.HashSet pos := {(1, 0), (- 1, 0), (0, 1), (0, - 1)}
   deriving Inhabited
+
+/-- `nbs` is the set of neighbours, namely, the 4 coordinate directions. -/
+abbrev nbs : Std.HashSet pos := {(1, 0), (- 1, 0), (0, 1), (0, - 1)}
 
 /--
 Creates a "live" `OneComp`: this is not yet a connected components, just something that can
@@ -97,10 +96,10 @@ def mkOneComp {α} [BEq α] (g : Std.HashMap pos α) (c : α) (st : pos) : OneCo
   let oneVar := g.filter (fun _pos val => val == c)
   let gr : Std.HashSet pos := oneVar.fold (init := {}) fun h p _ => h.insert p
   if gr.contains st then
-    {gr := gr, growing := {st}, front := {st}}
+    {grid := gr, growing := {st}, front := {st}}
   else
     dbg_trace "'{st}' does not belong to the grid!"
-    {gr := gr, growing := {st}, front := {st}}
+    {grid := gr, growing := {st}, front := {st}}
 
 /-- Expands `growing` by each possible neighbour of `front`, updating also `edges` as necessary. -/
 def grow (c : OneComp) : OneComp := Id.run do
@@ -108,9 +107,9 @@ def grow (c : OneComp) : OneComp := Id.run do
   let mut edges := c.edges
   let mut newF : Std.HashSet pos := {}
   for f in c.front do
-    for p in c.nbs do
+    for p in nbs do
       let newpos := f + p
-      if ! c.gr.contains newpos then
+      if ! c.grid.contains newpos then
         edges := edges.insert f
       else
       if !newR.contains newpos then
@@ -138,7 +137,7 @@ leave the component.
 def perimeter (h : OneComp) : Nat := Id.run do
   let mut tot := 0
   for e in h.edges do
-    for n in h.nbs do
+    for n in nbs do
       if !h.growing.contains (e + n) then
         tot := tot + 1
   return tot
@@ -185,7 +184,7 @@ def leftRightBounds (h : OneComp) (i : Int) : Std.HashSet Int × Std.HashSet Int
   h.edges.fold (fun new@(newl, newr) p =>
     if p.1 == i
     then
-      match !h.gr.contains (p + (0, - 1)), !h.gr.contains (p + (0, 1)) with
+      match !h.grid.contains (p + (0, - 1)), !h.grid.contains (p + (0, 1)) with
         | true, true => (newl.insert p.2, newr.insert p.2)
         | true, false => (newl.insert p.2, newr)
         | false, true => (newl, newr.insert p.2)
@@ -221,6 +220,6 @@ def part2 (dat : Array String) : Nat :=
 #assert part2 atestAB == 368
 #assert part2 atest3 == 1206
 
---set_option trace.profiler true in solve 2 897062
+--set_option trace.profiler true in solve 2 897062  -- slow, takes approx 90s
 
 end Day12

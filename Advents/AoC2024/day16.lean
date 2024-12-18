@@ -174,14 +174,13 @@ def part1 (dat : Array String) : Nat :=
 -/
 
 /-- Returns all the tiles through which there is a paths of minimum score. -/
-def getMinPaths (rm : ReindeerMap) (tgt : pos) : Std.HashSet pos := Id.run do
+def getMinPaths (rm : ReindeerMap) (tgt : pos) : Std.HashSet pos :=
   let (rmToE, es, oldMin) := getMinDists rm tgt
   let (rmToS, _, newMin) := getMinDists {rm with growing := es, visited := es} rm.S.1
   let target := (newMin + oldMin) / 2 + 500 -- add 500 to average the extra rotation, I think!
-  let mids : Std.HashSet pos := rmToS.fold (fun h p v =>
+  rmToS.fold (fun h p v =>
     let sec := rmToE.getD (p.1, - p.2) oldMin
     if v + sec ≤ target then h.insert p.1 else h) ∅
-  return mids
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
