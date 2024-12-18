@@ -87,30 +87,59 @@ def move (ms : MS) : MS :=
     visited := newVisited
     tot := ms.tot + 1 }
 
-#eval do
-  let dat := atest
-  let (sz, ex) := (tone, texit)
-  let dat ← IO.FS.lines input
-  let (sz, ex) := (one, exit)
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := Id.run do
+  let (sz, ex) := if dat.size ≤ 1000 then (tone, texit) else (one, exit)
   let mut ms := inputToMS dat sz ex.1
-  drawMS ms
   while (! ms.visited.contains ((ex.1, ex.2) : pos)) do
     ms := move ms
-  drawMS ms
-  --IO.println ms.visited.toArray
+  ms.tot
 
+#assert part1 atest == 22
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
+solve 1 380
 
 /-!
 #  Question 2
 -/
+
+#eval one / (2 ^ 10)
+
+#eval show Elab.Term.TermElabM _ from do
+  let dat := atest
+  let (sz, ex) := (tone, texit)
+  let dat ← IO.FS.lines input
+  let one := 2 * one + one / 2 + one / (2 ^ 2) + one / (2 ^ 3) + one / (2 ^ 7) + one / (2 ^ 8) + 1
+  IO.println <| dat[one]!
+  let (sz, ex) := (one, exit)
+  let mut ms := inputToMS dat sz ex.1
+  --drawMS ms
+  let mut vs := 0
+  while (! ms.visited.contains ((ex.1, ex.2) : pos)) || vs == ms.visited.size do
+    vs := ms.visited.size
+    ms := move ms
+  guard <| ms.visited.contains ((ex.1, ex.2) : pos)
+
+  drawMS ms
+  --IO.println ms.visited.toArray
+
+
+#eval show Elab.Term.TermElabM _ from do
+  let dat := atest
+  let (sz, ex) := (tone, texit)
+  let dat ← IO.FS.lines input
+  let one := 2 * one + one / 2 + one / (2 ^ 2) + one / (2 ^ 3) + one / (2 ^ 7) + one / (2 ^ 8) + 2
+  IO.println <| dat[one]!
+  let (sz, ex) := (one, exit)
+  let mut ms := inputToMS dat sz ex.1
+  --drawMS ms
+  let mut vs := 0
+  --while (! ms.visited.contains ((ex.1, ex.2) : pos)) || vs == ms.visited.size do
+  --  vs := ms.visited.size
+  --  ms := move ms
+  --guard <| ms.visited.contains ((ex.1, ex.2) : pos)
+
+  drawMS ms
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
@@ -121,3 +150,7 @@ def part2 (dat : Array String) : Nat := sorry
 --set_option trace.profiler true in solve 2
 
 end Day18
+
+-- 26,50 -- path found
+-- 52,45 wrong
+-- 26,66 wrong
