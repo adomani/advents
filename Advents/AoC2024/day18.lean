@@ -72,19 +72,21 @@ def inputToMS (s : Array String) (init sz : Nat) : MS :=
 
 def drawMS (ms : MS) : IO Unit := do
   IO.println s!"Steps: {ms.steps}"
-  draw <| drawSparseWith (ms.visitedHistorians.union ms.fallen) (ms.size + 1) (ms.size + 1) (fun p =>
-    if ms.fallen.contains p && ms.visitedCorrupted.contains p then "*" else
-    if ms.fallen.contains p then "#" else if ms.visitedHistorians.contains p then "O" else "·")
+  draw <| drawSparseWith (ms.visitedHistorians.union ms.fallen) (ms.size + 1) (ms.size + 1)
+    fun p =>
+      if ms.fallen.contains p && ms.visitedCorrupted.contains p then "*" else
+      if ms.fallen.contains p then "#" else if ms.visitedHistorians.contains p then "O" else "·"
 
 abbrev nbs : Array pos := #[(0, 1), (0, - 1), (1, 0), (- 1, 0)]
 
 def move (ms : MS) : MS :=
-  let (newFront, newVisited) := ms.frontHistorians.fold (init := (∅, ms.visitedHistorians)) fun (hf, hv) p =>
-    let new := nbs.filterMap fun n =>
-      let pNew := p + n
-      if ms.fallen.contains pNew || ! ms.available pNew then none else
-      if !hv.contains pNew then some pNew else none
-    (hf.insertMany new, hv.insertMany new)
+  let (newFront, newVisited) :=
+    ms.frontHistorians.fold (init := (∅, ms.visitedHistorians)) fun (hf, hv) p =>
+      let new := nbs.filterMap fun n =>
+        let pNew := p + n
+        if ms.fallen.contains pNew || ! ms.available pNew then none else
+        if !hv.contains pNew then some pNew else none
+      (hf.insertMany new, hv.insertMany new)
   {ms with
     frontHistorians := newFront
     visitedHistorians := newVisited
