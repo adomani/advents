@@ -49,12 +49,12 @@ structure MS where
   f : Std.HashSet pos
   S : pos := (0, 0)
   tot : Nat := 0
+  sz : Nat
   frontHistorians : Std.HashSet pos := {(0, 0)}
   visitedHistorians : Std.HashSet pos := {(0, 0)}
-  frontCorrupted : Std.HashSet pos := f.filter fun (p, q) => p == 0 || q == exit.1
-  visitedCorrupted : Std.HashSet pos := f.filter fun (p, q) => p == 0 || q == exit.1
+  frontCorrupted : Std.HashSet pos := f.filter fun (p, q) => p == 0 || q == sz
+  visitedCorrupted : Std.HashSet pos := f.filter fun (p, q) => p == 0 || q == sz
 
-  sz : Nat
 
 def MS.available (ms : MS) (p : pos) : Bool :=
   (! ms.f.contains p) && 0 ≤ min p.1 p.2 && max p.1 p.2 ≤ ms.sz
@@ -163,10 +163,10 @@ def blocker (ms : MS) : MS :=
   drawMS ms
   --IO.println ms.visited.toArray
 
-def HorC (dat : Array String) (one : Nat) : Bool × pos := Id.run do
+def HorC (dat : Array String) (one : Nat) : Bool := Id.run do
     let ex := exit
     let mut ms := inputToMS dat one ex.1
-    let last : pos := let cs := dat[one - 1]!.getNats; (cs[0]!, cs[1]!)
+    --let last : pos := let cs := dat[one - 1]!.getNats; (cs[0]!, cs[1]!)
     let newTarget : Std.HashSet pos :=
       ms.f.filter fun (p, q) => q == 0 || p == exit.1
       --(Std.HashSet.ofArray <| (Array.range (exit.1 - 1)).map (·.cast + 1, 0)).union
@@ -183,21 +183,43 @@ def HorC (dat : Array String) (one : Nat) : Bool × pos := Id.run do
       --vs := ms.visitedCorrupted.size
       ms := moveBoth ms
     --guard <| ms.visited.contains ((ex.1, ex.2) : pos)
-    return (ms.visitedHistorians.contains (exit.1, exit.2), last)
+    return ms.visitedHistorians.contains (exit.1, exit.2)
     -- then IO.println "Historians" else IO.println "Corrupted"
 
+#check Array.binSearch
+
+partial
+def search (fin : Nat) (cond : Nat → Bool) (st : Nat := 0) : Option Nat :=
+  if st == fin then (if cond st then none else some st) else
+  let mid := (st + fin) / 2
+  dbg_trace mid
+  if cond mid then search fin cond (mid + 1) else search mid cond st
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : pos :=
+  let low := (search dat.size (HorC dat ·)).get!
+  let cs := dat[low - 1]!.getNats
+  (cs[0]!, cs[1]!)
+
+#eval part2 atest --== ???
+--#assert part2 atest == ???
+
+--set_option trace.profiler true in solve 2 --(26, 50)  -- takes approximately 30s
+
+
+
 #exit
-#eval show Elab.Term.TermElabM _ from do
+eval show Elab.Term.TermElabM _ from do
   --let dat := atest
   --let (sz, ex) := (tone, texit)
   let dat ← IO.FS.lines input
   --let one := (dat.size - 1) / 2 + (dat.size - 1) / 3 + (dat.size - 1) / 40 - 1
   --let pathExists := one - 1
   --let pathDoesNotExist := one
-  let ex := exit
+  --let ex := exit
   --IO.println <| HorC dat 2958
   --let (sz, ex) := (0, exit)
-  let mut ms : MS := {f := {}, sz := 0}
+  --let mut ms : MS := {f := {}, sz := 0}
     --(Std.HashSet.ofArray <| (Array.range (exit.1 - 1)).map (·.cast + 1, 0)).union
     --  (.ofArray <| (Array.range exit.1).map (exit.1, ·.cast)) --== 0 || p == exit.1
   --draw <| drawSparse newTarget (ex.1 + 1) (ex.1 + 1)
@@ -205,10 +227,14 @@ def HorC (dat : Array String) (one : Nat) : Bool × pos := Id.run do
   --ms := moveBoth ms
   --drawMS ms
   --if true then
-  let low := 2956
-  for one in [low:low + 3] do
-  --for one in [2955:2970] do
-    IO.println <| HorC dat one
+  --let low := 1 --2956
+  --let low := Array.binSearch (Array.range dat.size) 0 fun one _ => (HorC dat one).1
+  let low := (search dat.size (HorC dat ·)).get!
+  let cs := dat[low - 1]!.getNats
+  IO.println (cs[0]!, cs[1]!)
+  --for one in [low:low + 3] do
+  ----for one in [2955:2970] do
+  --  IO.println <| HorC dat one
 #exit
     let mut con := 0
     --ms := inputToMS dat one ex.1
@@ -241,14 +267,6 @@ def HorC (dat : Array String) (one : Nat) : Bool × pos := Id.run do
     --drawMS ms
 
 #exit
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
 
 end Day18
 
