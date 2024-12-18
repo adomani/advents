@@ -121,7 +121,7 @@ abbrev corruptedNeighbours := historianNeighbours ++ #[(1, 1), (1, - 1), (- 1, 1
 Expands both the positions reachable by the historians and the positions reachable by the
 corrupted memory spaces from `ms` by one step.
 
-For part 1, only the movements of the historians are needed, but both will be useful for part 2.
+For part 1, only the movements of the historians are needed, but both are useful for part 2.
 -/
 def move (ms : MemorySpace) : MemorySpace :=
   -- expanding the accessible locations
@@ -151,7 +151,7 @@ def move (ms : MemorySpace) : MemorySpace :=
 def part1 (dat : Array String) : Nat := Id.run do
   let (sz, ex) := if dat.size ≤ 1000 then (firstKb_test, exit_test) else (firstKb, exit)
   let mut ms := inputToMemorySpace dat sz ex.1
-  while (! ms.visitedHistorians.contains ((ex.1, ex.2) : pos)) do
+  while ! ms.visitedHistorians.contains ((ex.1, ex.2) : pos) do
     ms := move ms
   ms.steps
 
@@ -171,12 +171,12 @@ It returns
 * `true` if the historians can escape;
 * `false` if the historian cannot escape.
 -/
-def HorC (dat : Array String) (l : Nat) : Bool := Id.run do
+def historiansEscape? (dat : Array String) (l : Nat) : Bool := Id.run do
     let ex := if dat.size ≤ 1000 then exit_test else exit
     let mut ms := inputToMemorySpace dat l ex.1
     let newTarget := ms.fallen.filter fun (p, q) => q == 0 || p == ex.1
-    while ((newTarget.filter ms.visitedCorrupted.contains).isEmpty &&
-          !(ms.visitedHistorians.contains (ex.1, ex.2))) do
+    while (newTarget.filter ms.visitedCorrupted.contains).isEmpty &&
+          ! ms.visitedHistorians.contains (ex.1, ex.2) do
       ms := move ms
     return ms.visitedHistorians.contains (ex.1, ex.2)
 
@@ -199,7 +199,7 @@ def firstFalse? (fin : Nat) (cond : Nat → Bool) (st : Nat := 0) : Option Nat :
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : pos :=
-  let low := (firstFalse? (dat.size + 1) (HorC dat ·)).get!
+  let low := (firstFalse? (dat.size + 1) (historiansEscape? dat ·)).get!
   let cs := dat[low - 1]!.getNats
   (cs[0]!, cs[1]!)
 
