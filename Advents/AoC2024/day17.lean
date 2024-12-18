@@ -143,15 +143,15 @@ def oneOp (s : State) : State :=
     guard (check s)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := Id.run do
+def part1 (dat : Array String) : Array Nat := Id.run do
   let mut s := inputToState dat
   while (s.program[s.pos]?).isSome do
     s := oneOp s
-  return (s.out.foldl (· ++ s!"{·}") "").toNat!
+  return s.out
 
-#assert part1 atest == 4635635210
+#assert part1 atest == #[4, 6, 3, 5, 6, 3, 5, 2, 1, 0]
 
-solve 1 350151510
+solve 1 #[3, 5, 0, 1, 5, 1, 5, 1, 0]
 
 /-!
 #  Question 2

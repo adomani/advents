@@ -231,8 +231,8 @@ solve 1 15  file  -- parses the input as a string, errors if answer does not mat
 solve 2 file      -- parses the input as a string, no error
 ```
 -/
-elab "solve " part:num n:(ppSpace num)? f:(&" file")?: command => do
-  let nn ← match n with
+elab "solve " part:num nn:(ppSpace term:max)? f:(&" file")?: command => do
+  let nn ← match nn with
     | some stx =>  `((some $stx))
     | none =>  `((none))
   let p1 := mkIdent <| match part with
@@ -323,7 +323,7 @@ def drawSparse (h : Std.HashSet pos) (Nx Ny : Nat) (yes : String := "#") (no : S
     let mut str := ""
     for j in [0:Ny] do
       match h.get? (i, j) with
-        | some d => str := str ++ yes
+        | some _d => str := str ++ yes
         | none => str := str ++ no
     fin := fin.push str
   return fin
