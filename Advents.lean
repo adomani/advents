@@ -17,3 +17,4 @@ import Advents.AoC2024.day15
 import Advents.AoC2024.day16
 import Advents.AoC2024.day17
 import Advents.AoC2024.day18
+import Advents.AoC2024.day19
