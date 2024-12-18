@@ -88,7 +88,7 @@ def move (ms : MS) : MS :=
     tot := ms.tot + 1 }
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := Id.run do
+def part1 (dat : Array String) (one : Nat := one) : Nat := Id.run do
   let (sz, ex) := if dat.size ≤ 1000 then (tone, texit) else (one, exit)
   let mut ms := inputToMS dat sz ex.1
   while (! ms.visited.contains ((ex.1, ex.2) : pos)) do
@@ -103,7 +103,7 @@ solve 1 380
 #  Question 2
 -/
 
-#eval one / (2 ^ 10)
+#eval one / (2 ^ 9)
 
 #eval show Elab.Term.TermElabM _ from do
   let dat := atest
@@ -123,23 +123,46 @@ solve 1 380
   drawMS ms
   --IO.println ms.visited.toArray
 
+abbrev blockNbs : Array pos := nbs ++ #[(1, 1), (1, - 1), (- 1, 1), (- 1, 1)]
+
+def blocker (ms : MS) : MS :=
+  let (newFront, newVisited) := ms.front.fold (init := (∅, ms.visited)) fun (hf, hv) p =>
+    let new := blockNbs.filterMap fun n =>
+      let pNew := p + n
+      if (! ms.f.contains pNew) || hv.contains pNew then none else
+      some pNew
+    (hf.insertMany new, hv.insertMany new)
+  {ms with
+    front := newFront
+    visited := newVisited
+    tot := ms.tot + 1 }
+
 
 #eval show Elab.Term.TermElabM _ from do
-  let dat := atest
-  let (sz, ex) := (tone, texit)
+  --let dat := atest
+  --let (sz, ex) := (tone, texit)
   let dat ← IO.FS.lines input
-  let one := 2 * one + one / 2 + one / (2 ^ 2) + one / (2 ^ 3) + one / (2 ^ 7) + one / (2 ^ 8) + 2
-  IO.println <| dat[one]!
+  let one := (dat.size - 1) / 2 + (dat.size - 1) / 3 + (dat.size - 1) / 40 - 1
+  let pathExists := one - 1
+  let pathDoesNotExist := one
   let (sz, ex) := (one, exit)
+  IO.println <| part1 dat pathExists
   let mut ms := inputToMS dat sz ex.1
-  --drawMS ms
+  let last : pos := let cs := dat[one - 1]!.getNats; (cs[0]!, cs[1]!)
+  let next : pos := let cs := dat[one]!.getNats; (cs[0]!, cs[1]!)
+  IO.println <| s!"position: {one - 1}, last: {dat[one - 1]!}, {ms.f.contains last}, next: {dat[one]!}, {ms.f.contains next}"
+  let newFront := ms.f.filter fun (p, q) => p == 0 || q == exit.1
+  let newTarget := ms.f.filter fun (p, q) => q == 0 || p == exit.1
+  ms := {ms with front := newFront, visited := newFront}
+  drawMS ms
   let mut vs := 0
-  --while (! ms.visited.contains ((ex.1, ex.2) : pos)) || vs == ms.visited.size do
-  --  vs := ms.visited.size
-  --  ms := move ms
+  while (newTarget.filter ms.visited.contains).isEmpty || vs == ms.visited.size do
+    vs := ms.visited.size
+    ms := blocker ms
   --guard <| ms.visited.contains ((ex.1, ex.2) : pos)
 
   drawMS ms
+#exit
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
