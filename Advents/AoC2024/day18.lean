@@ -151,7 +151,7 @@ def move (ms : MemorySpace) : MemorySpace :=
 def part1 (dat : Array String) : Nat := Id.run do
   let (sz, ex) := if dat.size ≤ 1000 then (firstKb_test, exit_test) else (firstKb, exit)
   let mut ms := inputToMemorySpace dat sz ex.1
-  while ! ms.visitedHistorians.contains ((ex.1, ex.2) : pos) do
+  while ! ms.visitedHistorians.contains (ms.size, ms.size) do
     ms := move ms
   ms.steps
 
@@ -174,11 +174,11 @@ It returns
 def historiansEscape? (dat : Array String) (l : Nat) : Bool := Id.run do
     let ex := if dat.size ≤ 1000 then exit_test else exit
     let mut ms := inputToMemorySpace dat l ex.1
-    let newTarget := ms.fallen.filter fun (p, q) => q == 0 || p == ex.1
+    let newTarget := ms.fallen.filter fun (p, q) => q == 0 || p == ms.size
     while (newTarget.filter ms.visitedCorrupted.contains).isEmpty &&
-          ! ms.visitedHistorians.contains (ex.1, ex.2) do
+          ! ms.visitedHistorians.contains (ms.size, ms.size) do
       ms := move ms
-    return ms.visitedHistorians.contains (ex.1, ex.2)
+    return ms.visitedHistorians.contains (ms.size, ms.size)
 
 /--
 Performs a binary search on the predicate `cond` in the range `[st, fin]`.
