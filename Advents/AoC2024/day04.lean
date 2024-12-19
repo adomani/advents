@@ -29,7 +29,9 @@ def atest := (test.splitOn "\n").toArray
 instance : HMul Int pos pos where
   hMul a p := (a * p.1, a * p.2)
 
-/-- Search the word `wd`, starting from the position `p` and continuing in all possible directions. -/
+/--
+Search the word `wd`, starting from the position `p` and continuing in all possible directions.
+-/
 def findWord (h : Std.HashMap pos Char) (p : pos) (wd : String := "XMAS") : Nat := Id.run do
   let mut ct := 0
   let mut cond := true
@@ -62,19 +64,22 @@ solve 1 2397
 /-- Rotate a position by 90⁰. -/
 def rot (p : pos) : pos := (p.2, - p.1)
 
-/-- Search the `X` of `MAS`, starting with an `A` in position `p` with each of the possible 4 orientations. -/
-def findX (h : Std.HashMap pos Char) (p : pos) : Nat := Id.run do
-  let mut ct := 0
-  if some 'A' != h.get? p then return 0
-  for i in [(1, 0), (-1, 0), (0, 1), (0, -1)] do
+/--
+Search the `X` of `MAS`, starting with an `A` in position `p` with each of the possible
+4 orientations.
+-/
+def findX (h : Std.HashMap pos Char) (p : pos) : Nat :=
+  if some 'A' != h.get? p then 0 else
+  [(1, 0), (-1, 0), (0, 1), (0, -1)].foldl (init := 0) fun ct i =>
     let j := (- 1) * i
     if some 'M' == h.get? (p + (i +         rot i)) &&
        some 'M' == h.get? (p + (i + (- 1) * rot i)) &&
        some 'S' == h.get? (p + (j +         rot i)) &&
        some 'S' == h.get? (p + (j + (- 1) * rot i))
     then
-      ct := ct + 1
-  return ct
+      ct + 1
+    else
+      ct
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
