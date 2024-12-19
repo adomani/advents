@@ -36,6 +36,10 @@ structure OneTowel where
   ways : Nat := 0
   deriving Inhabited
 
+def drawTowel (t : OneTowel) (pat? : Bool := false) : IO Unit := do
+  IO.println <| "Towel: " ++
+    s!"partials: {t.partials.toArray}" ++ if pat? then s!"patterns: {t.patterns.toArray}" else ""
+
 def inputToTowels (dat : String) : Towels :=
   match dat.splitOn "\n\n" with
     | [pats, towels] =>
@@ -103,6 +107,10 @@ def part1 (dat : String) : Nat :=
 --set_option trace.profiler true in solve 1 236 file  -- takes just under a minute
 
 /-!
+#  Question 2
+-/
+
+/-!
 -/
 
 def rmOneAll (t : OneTowel) : OneTowel := Id.run do
@@ -135,14 +143,6 @@ def rmAllAll (t : OneTowel) : OneTowel := Id.run do
     con := con + 1
   return t
 
-def drawTowel (t : OneTowel) (pat? : Bool := false) : IO Unit := do
-  IO.println <| "Towel: " ++
-    s!"partials: {t.partials.toArray}" ++ if pat? then s!"patterns: {t.patterns.toArray}" else ""
-
-/-!
-#  Question 2
--/
-
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : String) : Nat :=
   let ts := inputToTowels dat
@@ -153,6 +153,7 @@ def part2 (dat : String) : Nat :=
 #assert part2 test == 16
 
 --set_option trace.profiler true in solve 2 643685981770598 file  -- takes approximately 1m45s
+
 #exit
 
 set_option trace.profiler true in
@@ -177,13 +178,5 @@ set_option trace.profiler true in
     --  IO.println s!"Non-expressible: {towel}"
     --IO.println s!"towels:\n{tw.partials.toArray}\n"
   IO.println s!"\nExpressible towels: {tot}"
-
-/-!
--/
-
---  237 -- wrong
-
-
-
 
 end Day19
