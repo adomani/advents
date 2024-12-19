@@ -25,70 +25,55 @@ bbrgwb"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-structure Towels where
-  patterns : Std.HashSet String
-  towels : Std.HashSet String
-  deriving Inhabited
-
-/-- `OneTowel` is the structure recording the progress of writing a towel
-using the available patterns.
-* `towel` is the input towel.
-  `patterns` contains the available patterns.
-* `partials` records the current collection of tails of the initial towel,
-  obtained by iteratively removing patterns from the initial string, each with its multiplicity.
-* `ways` is the number of ways that we already found to write the initial towel
-  using the given patterns.
+/-- `Towels` is the structure recording the available `towels` and `designs`.
+* `towels` contains the available towels: these should be combined to form the given `designs`.
+* `designs` contains all the input designs.
 -/
-structure OneTowel where
-  /-- `towel` is the input towel. -/
-  towel : String
-  /-- `patterns` contains the available patterns. -/
-  patterns : Std.HashSet String
-  /-- `partials` records the current collection of tails of the initial towel,
-  obtained by iteratively removing patterns from the initial string, each with its multiplicity. -/
-  partials : Std.HashMap String Nat
-  /-- `ways` is the number of ways that we already found to write the initial towel
-  using the given patterns. -/
-  ways : Nat := 0
+structure Towels where
+  /-- `towels` contains the available towels:
+  these should be combined to form the given `designs`. -/
+  towels : Std.HashSet String
+  /-- `designs` contains all the input designs. -/
+  designs : Std.HashSet String
   deriving Inhabited
 
-def drawTowel (t : OneTowel) (pat? : Bool := false) : IO Unit := do
-  IO.println <| "Towel: " ++
-    s!"partials: {t.partials.toArray}" ++ if pat? then s!"patterns: {t.patterns.toArray}" else ""
-
+/-- Converts the input data into `Towels`. -/
 def inputToTowels (dat : String) : Towels :=
   match dat.splitOn "\n\n" with
-    | [pats, towels] =>
-      { patterns := .ofList <| pats.splitOn ", "
-        towels := .ofList <| towels.splitOn "\n" |>.erase ""}
+    | [towels, designs] =>
+      { towels := .ofList <| towels.splitOn ", "
+        designs := .ofList <| designs.splitOn "\n" |>.erase ""}
     | _ => panic "Wrong input"
 
+/--
+info: patterns:
+#[b, br, bwu, g, gb, r, rb, wr]
+designs:
+#[bbrgwb, bggr, brgr, brwrr, bwurrg, gbbr, rrbgbr, ubwu]
+-/
+#guard_msgs in
 #eval do
   let dat := test
   let ts := inputToTowels dat
-  IO.println s!"patterns:\n{ts.patterns.toArray}\ntowels:\n{ts.towels.toArray}"
+  IO.println
+    s!"patterns:\n{ts.towels.toArray.qsort (· < ·)}\ndesigns:\n{ts.designs.toArray.qsort (· < ·)}"
 
-def rmOneAll (t : OneTowel) : OneTowel := Id.run do
-  let mut partials : Std.HashMap String Nat := ∅
-  let mut leftPats : Std.HashMap String Nat := ∅
-  for (part, mult) in t.partials do
-    for d in t.patterns do
-      if part.startsWith d then
-        leftPats := leftPats.alter (part.drop d.length) fun oldM => some <| oldM.getD 0 + mult
-  partials := partials.union leftPats
-  {t with partials := partials }
+def rmOneTowel (towels : Std.HashSet String) (part : String) : Std.HashMap String Nat :=
+  towels.fold (init := ∅) fun leftPats d =>
+    if part.startsWith d then
+      leftPats.alter (part.drop d.length) fun oldM => some <| oldM.getD 0 + 1
+      else leftPats
 
 partial
-def addMemo (m : Std.HashMap String Nat) (pats : Std.HashSet String) (t : String) :
+def addMemo (memo : Std.HashMap String Nat) (towels : Std.HashSet String) (t : String) :
     Std.HashMap String Nat :=
-  match m[t]? with
-    | some _ => m
+  match memo[t]? with
+    | some _ => memo
     | none =>
-      if t == "" then m.insert "" 1 else
-      let towel : OneTowel := {towel := t, patterns := pats, partials := {(t, 1)}}
-      let one := rmOneAll towel
-      let (m', tot) := one.partials.fold (init := (m, 0)) fun (memo, tot) tw mul =>
-         let fd := addMemo memo pats tw
+      if t == "" then memo.insert "" 1 else
+      let one := rmOneTowel towels t
+      let (m', tot) := one.fold (init := (memo, 0)) fun (memo, tot) tw mul =>
+         let fd := addMemo memo towels tw
          (fd, tot + mul * fd[tw]?.getD 0)
       m'.insert t tot
 
@@ -99,18 +84,18 @@ info: #[(, 1), (bbr, 2), (bbrgwb, 0), (bgbr, 3), (bggr, 1), (br, 2), (brgr, 2), 
 #eval do
   let dat := test
   let ts := inputToTowels dat
-  let mem : Std.HashMap String Nat := ts.towels.fold (addMemo · ts.patterns ·) ∅
+  let mem : Std.HashMap String Nat := ts.designs.fold (addMemo · ts.towels ·) ∅
   IO.println <| mem.toArray.qsort (·.1 < ·.1)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat :=
   let ts := inputToTowels dat
-  let memo := ts.towels.fold (addMemo · ts.patterns ·) ∅
-  ts.towels.fold (· + if memo[·]! != 0 then 1 else 0) 0
+  let memo := ts.designs.fold (addMemo · ts.towels ·) ∅
+  ts.designs.fold (· + if memo[·]! != 0 then 1 else 0) 0
 
 #assert part1 test == 6
 
-solve 1 236 file  -- takes approximately 12s
+set_option trace.profiler true in solve 1 236 file  -- takes approximately 10s
 
 /-!
 #  Question 2
@@ -119,11 +104,11 @@ solve 1 236 file  -- takes approximately 12s
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : String) : Nat :=
   let ts := inputToTowels dat
-  let memo := ts.towels.fold (addMemo · ts.patterns ·) ∅
-  ts.towels.fold (· + memo[·]!) 0
+  let memo := ts.designs.fold (addMemo · ts.towels ·) ∅
+  ts.designs.fold (· + memo[·]!) 0
 
 #assert part2 test == 16
 
-solve 2 643685981770598 file  -- takes approximately 12s
+set_option trace.profiler true in solve 2 643685981770598 file  -- takes approximately 10s
 
 end Day19
