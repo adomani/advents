@@ -51,7 +51,9 @@ def test2 := "########
 /-- `atest2` is the test string for the problem, split into rows. -/
 def atest2 := (test2.splitOn "\n").toArray
 
-/-- `test3` is the test string for the problem. -/
+/-- `test3` is the test string for the problem.
+
+*Warning.* For .md-parsing issues, I added a `>` as an extra final move! -/
 def test3 := "#######
 #...#.#
 #.....#
@@ -60,7 +62,7 @@ def test3 := "#######
 #.....#
 #######
 
-<vv<<^^<<^^"
+<vv<<^^<<^^>"
 
 /-- `atest3` is the test string for the problem, split into rows. -/
 def atest3 := (test3.splitOn "\n").toArray
