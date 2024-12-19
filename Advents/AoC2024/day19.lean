@@ -144,18 +144,15 @@ def drawTowel (t : OneTowel) (pat? : Bool := false) : IO Unit := do
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : String) : Nat := Id.run do
+def part2 (dat : String) : Nat :=
   let ts := inputToTowels dat
-  let mut tot := 0
-  for towel in ts.towels do
-    let tw := mkOneTowel ts towel
-    let tw := rmAllAll tw
-    tot := tot + tw.ways
-  tot
+  let towel : OneTowel := {patterns := ts.patterns, partials := ts.towels.fold (·.insert · 1) ∅}
+  let towel := rmAllAll towel
+  towel.ways
 
 #assert part2 test == 16
 
---set_option trace.profiler true in solve 2 643685981770598 file  -- takes approximately 3 minutes
+--set_option trace.profiler true in solve 2 643685981770598 file  -- takes approximately 1m45s
 #exit
 
 set_option trace.profiler true in
