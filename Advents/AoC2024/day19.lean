@@ -32,7 +32,8 @@ structure Towels where
 
 structure OneTowel where
   patterns : Std.HashSet String
-  partials : Std.HashSet String
+  partials : Std.HashMap String Nat
+  ways : Nat := 0
   deriving Inhabited
 
 def inputToTowels (dat : String) : Towels :=
@@ -49,7 +50,7 @@ def inputToTowels (dat : String) : Towels :=
 
 def mkOneTowel (ts : Towels) (t : String) : OneTowel where
   patterns := ts.patterns
-  partials:= {t}
+  partials:= {(t, 1)}
 
 #eval do
   let dat := test
@@ -59,10 +60,10 @@ def mkOneTowel (ts : Towels) (t : String) : OneTowel where
 
 def rmOne (t : OneTowel) : OneTowel :=
   {t with
-    partials := t.partials.fold (init := ∅) fun h part =>
-      let sts := t.patterns.fold (init := (∅ : Std.HashSet String)) fun rest d =>
+    partials := t.partials.fold (init := ∅) fun h part _ =>
+      let sts := t.patterns.fold (init := (∅ : Std.HashMap String Nat)) fun rest d =>
         --dbg_trace "part: {part}, d: {d}, cond: {part.startsWith d}"
-        if part.startsWith d then rest.insert (part.drop d.length) else rest
+        if part.startsWith d then rest.insert (part.drop d.length) 1 else rest
       h.union sts
   }
 
@@ -83,8 +84,8 @@ def rmAll (t : OneTowel) : Bool × OneTowel := Id.run do
   let mut t := t
   let mut oldParts := ∅
   let mut con := 0
-  while oldParts != t.partials && !t.partials.contains "" do
-    oldParts := t.partials
+  while oldParts != t.partials.keys && !t.partials.contains "" do
+    oldParts := t.partials.keys
     t := rmOne t
     con := con + 1
   return (t.partials.contains "", t)
@@ -101,24 +102,83 @@ def part1 (dat : String) : Nat :=
 
 --set_option trace.profiler true in solve 1 236 file  -- takes just under a minute
 
+/-!
+-/
+
+def rmOneAll (t : OneTowel) : OneTowel := Id.run do
+  let mut partials : Std.HashMap String Nat := ∅
+  let mut complete := 0
+  let mut leftPats : Std.HashMap String Nat := ∅
+  for (part, mult) in t.partials do
+    if part == "" then complete := complete + mult; --dbg_trace "found trivial"
+    for d in t.patterns do
+    --let (sts, tot) := t.patterns.fold (init := (∅ : Std.HashSet String)) fun rest d =>
+      --dbg_trace "part: {part}, (d, mult): {(d, mult)}, cond: {part.startsWith d}"
+      if part.startsWith d then
+        leftPats := leftPats.alter (part.drop d.length) fun oldM => some <| oldM.getD 0 + mult
+        --dbg_trace leftPats.toArray
+        --if part == d then complete := complete + mult * t.steps
+  partials := partials.union leftPats
+  --dbg_trace "complete: {complete}"
+  {t with
+    partials := partials
+    ways := t.ways + complete
+  }
+
+def rmAllAll (t : OneTowel) : OneTowel := Id.run do
+  let mut t := t
+  let mut oldParts := ∅
+  let mut con := 0
+  while oldParts != t.partials.keys do
+    oldParts := t.partials.keys
+    t := rmOneAll t
+    con := con + 1
+  return t
+
+def drawTowel (t : OneTowel) (pat? : Bool := false) : IO Unit := do
+  IO.println <| "Towel: " ++
+    s!"partials: {t.partials.toArray}" ++ if pat? then s!"patterns: {t.patterns.toArray}" else ""
+
+/-!
+#  Question 2
+-/
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : String) : Nat := Id.run do
+  let ts := inputToTowels dat
+  let mut tot := 0
+  for towel in ts.towels do
+    let tw := mkOneTowel ts towel
+    let tw := rmAllAll tw
+    tot := tot + tw.ways
+  tot
+
+#assert part2 test == 16
+
+--set_option trace.profiler true in solve 2 643685981770598 file  -- takes approximately 3 minutes
+#exit
+
 set_option trace.profiler true in
 #eval do
   let dat := test
   let dat ← IO.FS.readFile input
   let ts := inputToTowels dat
-  IO.println s!"patterns:\n{ts.patterns.toArray}\n"
+  --IO.println s!"patterns:\n{ts.patterns.toArray}\n"
   let mut tot := 0
-  IO.println s!"patterns:\n{ts.patterns.toArray.map (String.length) |>.qsort (· < ·)}\n"
-  IO.println s!"towels:\n{ts.towels.toArray.map (String.length) |>.qsort (· < ·)}\n"
-
-#exit
+  --IO.println s!"patterns:\n{ts.patterns.toArray.map (String.length) |>.qsort (· < ·)}\n"
+  --IO.println s!"towels:\n{ts.towels.toArray.map (String.length) |>.qsort (· < ·)}\n"
   for towel in ts.towels do
     let tw := mkOneTowel ts towel
     --IO.println s!"towels:\n{tw.partials.toArray}\n"
-    let (cond, tw) := rmAll tw
+    --drawTowel tw
+    let tw := rmAllAll tw
+    --drawTowel tw
+    --IO.println s!"ways: {tw.ways}"
+    tot := tot + tw.ways
     --IO.println s!"Expressible: {cond}, final: towels:\n{tw.partials.toArray}\n"
-    if cond then tot := tot + 1 else
-      IO.println s!"Non-expressible: {towel}"
+    --if cond then tot := tot + 1 else
+    --  IO.println s!"Non-expressible: {towel}"
+    --IO.println s!"towels:\n{tw.partials.toArray}\n"
   IO.println s!"\nExpressible towels: {tot}"
 
 /-!
@@ -128,17 +188,5 @@ set_option trace.profiler true in
 
 
 
-
-/-!
-#  Question 2
--/
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
 
 end Day19
