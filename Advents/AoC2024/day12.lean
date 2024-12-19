@@ -82,14 +82,14 @@ structure OneComp where
   `growing`. -/
   front : Std.HashSet pos
   /-- `edges` is the set of entries of `growing` that have a neighbour not in `grid`. -/
-  edges : Std.HashSet pos := {}
+  edges : Std.HashMap pos Nat := {}
   deriving Inhabited
 
 /-- `nbs` is the set of neighbours, namely, the 4 coordinate directions. -/
 abbrev nbs : Std.HashSet pos := {(1, 0), (- 1, 0), (0, 1), (0, - 1)}
 
 /--
-Creates a "live" `OneComp`: this is not yet a connected components, just something that can
+Creates a "live" `OneComp`: this is not yet a connected component, just something that can
 `growComp` to be one.
 -/
 def mkOneComp {α} [BEq α] (g : Std.HashMap pos α) (c : α) (st : pos) : OneComp :=
@@ -109,7 +109,7 @@ def grow (c : OneComp) : OneComp := Id.run do
     for p in nbs do
       let newpos := f + p
       if ! c.grid.contains newpos then
-        edges := edges.insert f
+        edges := edges.alter f fun v => some <| v.getD 0 + 1
       else
       if !newR.contains newpos then
         newR := newR.insert newpos
@@ -131,15 +131,10 @@ def area (h : OneComp) : Nat := h.growing.size
 
 /--
 Finds the perimeter of a connected component by tallying, for each edge, the directions that
-leave the component.
+leave the component: these are already stored in the values of the `edges` `HashMap`.
 -/
-def perimeter (h : OneComp) : Nat := Id.run do
-  let mut tot := 0
-  for e in h.edges do
-    for n in nbs do
-      if !h.growing.contains (e + n) then
-        tot := tot + 1
-  return tot
+def perimeter (h : OneComp) : Nat :=
+  h.edges.fold (fun tot _ v => tot + v) 0
 
 /--
 For each character that appears as a value in `tot`, determine the connected components of the
@@ -180,7 +175,7 @@ Computes the `HashSet`s of the entries of `h` whose first coordinate is `i` and 
 a left/right neighbour, storing them separately into the two output `HashSet`s.
 -/
 def leftRightBounds (h : OneComp) (i : Int) : Std.HashSet Int × Std.HashSet Int :=
-  h.edges.fold (fun new@(newl, newr) p =>
+  h.edges.fold (fun new@(newl, newr) p _ =>
     if p.1 == i
     then
       match !h.grid.contains (p + (0, - 1)), !h.grid.contains (p + (0, 1)) with
