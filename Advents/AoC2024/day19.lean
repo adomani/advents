@@ -89,6 +89,18 @@ def rmAll (t : OneTowel) : Bool × OneTowel := Id.run do
     con := con + 1
   return (t.partials.contains "", t)
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : String) : Nat :=
+  let ts := inputToTowels dat
+  ts.towels.fold (init := 0) fun tot towel =>
+    let tw := mkOneTowel ts towel
+    let (cond, _tw) := rmAll tw
+    if cond then tot + 1 else tot
+
+#assert part1 test == 6
+
+--set_option trace.profiler true in solve 1 236 file  -- takes just under a minute
+
 set_option trace.profiler true in
 #eval do
   let dat := test
@@ -99,7 +111,7 @@ set_option trace.profiler true in
   IO.println s!"patterns:\n{ts.patterns.toArray.map (String.length) |>.qsort (· < ·)}\n"
   IO.println s!"towels:\n{ts.towels.toArray.map (String.length) |>.qsort (· < ·)}\n"
 
---#exit
+#exit
   for towel in ts.towels do
     let tw := mkOneTowel ts towel
     --IO.println s!"towels:\n{tw.partials.toArray}\n"
@@ -116,14 +128,6 @@ set_option trace.profiler true in
 
 
 
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
 
 /-!
 #  Question 2
