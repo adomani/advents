@@ -325,3 +325,21 @@ Effectively, I started two processes:
 The first one to finish decides who wins.
 Bisecting on the line at which each corrupted byte appears, we find the location of the first byte
 that seals off the start from the finish.
+-- Day 19
+Creating designs by concatenating towels.
+
+### Description
+
+#### Part 1
+
+The input contains some towels (a few strings) and designs (more strings, but longer!).
+We should determine how many of the designs can be written as concatenations of towels, with
+repetitions of towels allowed.
+
+#### Part 2
+
+Similar to part 1, but now we should determine in how many ways each design can be written as a
+concatenation of towels.
+
+I ended up storing previous value to compute later ones: this produced a speed up by a factor of
+approximately 6.
