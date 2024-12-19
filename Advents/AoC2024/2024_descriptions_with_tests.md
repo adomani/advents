@@ -869,3 +869,42 @@ that seals off the start from the finish.
 [Solution in Lean](day18.lean)
 
 ---
+
+#  [Day 19](https://adventofcode.com/2024/day/19)
+
+Creating designs by concatenating towels.
+
+####  Test
+
+<pre>
+r, wr, b, g, bwu, rb, gb, br
+
+brwrr
+bggr
+gbbr
+rrbgbr
+ubwu
+bwurrg
+brgr
+bbrgwb
+</pre>
+
+### Description
+
+#### Part 1
+
+The input contains some towels (a few strings) and designs (more strings, but longer!).
+We should determine how many of the designs can be written as concatenations of towels, with
+repetitions of towels allowed.
+
+#### Part 2
+
+Similar to part 1, but now we should determine in how many ways each design can be written as a
+concatenation of towels.
+
+I ended up storing previous value to compute later ones: this produced a speed up by a factor of
+approximately 6.
+
+[Solution in Lean](day19.lean)
+
+---
