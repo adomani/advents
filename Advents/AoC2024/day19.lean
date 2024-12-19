@@ -58,24 +58,35 @@ designs:
   IO.println
     s!"patterns:\n{ts.towels.toArray.qsort (· < ·)}\ndesigns:\n{ts.designs.toArray.qsort (· < ·)}"
 
-def rmOneTowel (towels : Std.HashSet String) (part : String) : Std.HashMap String Nat :=
+/--
+Given a set `towels` of available towels and a `pattern`, return all the strings obtained from
+`pattern` by removing an element of `towels` from the start of `pattern`.
+-/
+def rmOneTowel (towels : Std.HashSet String) (pattern : String) : Std.HashSet String :=
   towels.fold (init := ∅) fun leftPats d =>
-    if part.startsWith d then
-      leftPats.alter (part.drop d.length) fun oldM => some <| oldM.getD 0 + 1
-      else leftPats
+    if pattern.startsWith d then
+      leftPats.insert (pattern.drop d.length)
+    else leftPats
 
+/--
+`memo` stores the number of ways to write a given string, representing a design, as a
+concatenation nof `towels`.
+
+`addMemo` extends the currently known set of values by adding the value for `pattern` and
+its trailing substrings that are visited in the process of computing the value.
+-/
 partial
-def addMemo (memo : Std.HashMap String Nat) (towels : Std.HashSet String) (t : String) :
+def addMemo (memo : Std.HashMap String Nat) (towels : Std.HashSet String) (pattern : String) :
     Std.HashMap String Nat :=
-  match memo[t]? with
+  match memo[pattern]? with
     | some _ => memo
     | none =>
-      if t == "" then memo.insert "" 1 else
-      let one := rmOneTowel towels t
-      let (m', tot) := one.fold (init := (memo, 0)) fun (memo, tot) tw mul =>
+      if pattern == "" then memo.insert "" 1 else
+      let one := rmOneTowel towels pattern
+      let (m', tot) := one.fold (init := (memo, 0)) fun (memo, tot) tw =>
          let fd := addMemo memo towels tw
-         (fd, tot + mul * fd[tw]?.getD 0)
-      m'.insert t tot
+         (fd, tot + fd[tw]!)
+      m'.insert pattern tot
 
 /--
 info: #[(, 1), (bbr, 2), (bbrgwb, 0), (bgbr, 3), (bggr, 1), (br, 2), (brgr, 2), (brgwb, 0), (brwrr, 2), (bwurrg, 1), (g, 1), (gbbr, 4), (gbr, 3), (ggr, 1), (gr, 1), (gwb, 0), (r, 1), (rbgbr, 6), (rg, 1), (rgr, 1), (rgwb, 0), (rrbgbr, 6), (rrg, 1), (rwrr, 1), (ubwu, 0), (wb, 0), (wrr, 1), (wurrg, 0)]
