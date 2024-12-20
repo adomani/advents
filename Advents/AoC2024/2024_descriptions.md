@@ -19,3 +19,4 @@
 | [17](2024_descriptions_with_tests.md#day-17) | The state machine and its list of instructions.                                             |
 | [18](2024_descriptions_with_tests.md#day-18) | Historians making their way in memory, avoiding corrupted bytes.                            |
 | [19](2024_descriptions_with_tests.md#day-19) | Creating designs by concatenating towels.                                                   |
+| [20](2024_descriptions_with_tests.md#day-20) | Racing programs that are allowed to cheat.                                                  |

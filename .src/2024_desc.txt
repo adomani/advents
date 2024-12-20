@@ -343,3 +343,18 @@ concatenation of towels.
 
 I ended up storing previous value to compute later ones: this produced a speed up by a factor of
 approximately 6.
+-- Day 20
+Racing programs that are allowed to cheat.
+
+### Description
+
+#### Part 1
+
+The input is a maze with a unique path from `S` to `E`.
+Part `1` asks to find the cumulative savings on the distance between `S` and `E` if you are allowed
+to contain at most 1 position that is not on the unique path.
+
+#### Part 2
+
+Similar to part 1, except that now you are allowed to cross through walls for up to 20 consecutive
+steps, before resuming on the main course.

@@ -908,3 +908,44 @@ approximately 6.
 [Solution in Lean](day19.lean)
 
 ---
+
+#  [Day 20](https://adventofcode.com/2024/day/20)
+
+Racing programs that are allowed to cheat.
+
+####  Test
+
+<pre>
+###############
+#...#...#.....#
+#.#.#.#.#.###.#
+#S#...#.#.#...#
+#######.#.#.###
+#######.#.#...#
+#######.#.###.#
+###..E#...#...#
+###.#######.###
+#...###...#...#
+#.#####.#.###.#
+#.#...#.#.#...#
+#.#.#.#.#.#.###
+#...#...#...###
+###############
+</pre>
+
+### Description
+
+#### Part 1
+
+The input is a maze with a unique path from `S` to `E`.
+Part `1` asks to find the cumulative savings on the distance between `S` and `E` if you are allowed
+to contain at most 1 position that is not on the unique path.
+
+#### Part 2
+
+Similar to part 1, except that now you are allowed to cross through walls for up to 20 consecutive
+steps, before resuming on the main course.
+
+[Solution in Lean](day20.lean)
+
+---
