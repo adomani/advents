@@ -32,16 +32,22 @@ def atest := (test.splitOn "\n").toArray
 
 structure Race where
   grid : Std.HashSet pos
-  S : pos
   E : pos
+
+def posAtMost (n : Nat) : Std.HashSet pos :=
+  (Array.range (n + 1)).foldl (init := ∅) fun tot p =>
+    tot.insertMany <|
+      (Array.range (n + 1 - p)).foldl (init := (∅ : Std.HashSet pos)) fun tot' q =>
+        let p : Int := p.cast
+        let q : Int := q.cast
+        tot'.union ({(p, q), (p, - q), (- p, q), (- p, - q)})
 
 def path (r : Race) : Std.HashMap pos Nat := Id.run do
   let mut curr := r.E
   let mut dists := {(curr, 0)}
   let mut gr := r.grid.erase curr
-  let tgt := r.S
-  let nbs : Std.HashSet pos := {(0, 1), (0, - 1), (1, 0), (- 1, 0)}
-  while tgt != curr do
+  let nbs := (posAtMost 1).erase default
+  while !gr.isEmpty do
     for n in nbs do
       let newPos := curr + n
       if gr.contains newPos then
@@ -52,20 +58,11 @@ def path (r : Race) : Std.HashMap pos Nat := Id.run do
 
 def inputToRace (dat : Array String) : Race where
   grid := sparseGrid dat "SE.".contains
-  S    := (sparseGrid dat "S".contains).toArray[0]!
   E    := (sparseGrid dat "E".contains).toArray[0]!
 
 def drawRace (r : Race) : IO Unit := do
   let sz := if r.grid.size ≤ 1000 then 15 else 141
   draw <| drawSparse r.grid sz sz
-
-def posAtMost (n : Nat) : Std.HashSet pos := Id.run do
-  let mut tot := ∅
-  for p in [0:n + 1] do
-    for q in [0:n + 1] do
-      if p + q ≤ n then
-        tot := tot.insertMany #[((p, q) : pos), (p, - q), (- p, q), (- p, - q)]
-  return tot
 
 /-- `parts dat` takes as input the input of the problem and returns the solution to part 2. -/
 def parts (dat : Array String) (cheat : Nat) (saving : Nat) : Nat := Id.run do
@@ -73,12 +70,12 @@ def parts (dat : Array String) (cheat : Nat) (saving : Nat) : Nat := Id.run do
   let path := path r
   let poss := posAtMost cheat
   let mut improve : Std.HashMap Nat Nat := ∅
-  for (p, toE) in path do
+  for (p, pToE) in path do
     for shift in poss do
       let q := p + shift
       let dist := shift.1.natAbs + shift.2.natAbs
-      if let some toEq := path[q]? then
-        improve := improve.alter (toEq - toE - dist) (some <| ·.getD 0 + 1)
+      if let some qToE := path[q]? then
+        improve := improve.alter (qToE - pToE - dist) (some <| ·.getD 0 + 1)
   return improve.fold (· + if saving ≤ · then · else 0) 0
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
