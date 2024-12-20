@@ -79,6 +79,41 @@ def drawRace (r : Race) : IO Unit := do
 
 instance : HMul Nat pos pos where hMul a p := (a * p.1, a * p.2)
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) (saving : Nat := 100) : Nat := Id.run do
+  let r := inputToRace dat
+  let path := path r
+  let nbs : Std.HashSet pos := {(0, 1), (0, - 1), (1, 0), (- 1, 0)}
+  let mut improve : Std.HashMap Nat Nat := ∅
+  for (p, toE) in path do
+    for n in nbs do
+      let pNew := p + n
+      if path[pNew]?.isSome then continue
+      let pNew := p + 2 * n
+      match path[pNew]? with
+        | none => continue
+        | some newDistToE =>
+          if toE ≤ newDistToE + 2 then continue
+          improve := improve.alter (toE - newDistToE - 2) (some <| ·.getD 0 + 1)
+  return improve.fold (init := 0) fun tot imp mult => if saving ≤ imp then tot + mult else tot
+
+-- The puzzle did not contain an example with savings of over 100ps, so I made up this test.
+#assert part1 atest 20 == 5
+
+set_option trace.profiler true in solve 1 1445
+
+/-!
+#  Question 2
+-/
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat := sorry
+--def part2 (dat : String) : Nat :=
+
+--#assert part2 atest == ???
+
+--set_option trace.profiler true in solve 2
+
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
@@ -114,25 +149,5 @@ instance : HMul Nat pos pos where hMul a p := (a * p.1, a * p.2)
   --drawRace r
   --IO.println s!"{r.nbs.toArray}"
   --draw <| drawSparse r.grid dat.size dat.size
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
-
-/-!
-#  Question 2
--/
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
 
 end Day20
