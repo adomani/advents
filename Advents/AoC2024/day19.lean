@@ -106,7 +106,7 @@ def part1 (dat : String) : Nat :=
 
 #assert part1 test == 6
 
-set_option trace.profiler true in solve 1 236 file  -- takes approximately 10s
+solve 1 236 file  -- takes approximately 10s
 
 /-!
 #  Question 2
@@ -120,6 +120,6 @@ def part2 (dat : String) : Nat :=
 
 #assert part2 test == 16
 
-set_option trace.profiler true in solve 2 643685981770598 file  -- takes approximately 10s
+solve 2 643685981770598 file  -- takes approximately 10s
 
 end Day19
