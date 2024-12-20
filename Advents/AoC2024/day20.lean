@@ -30,10 +30,18 @@ def test := "###############
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+The main data for the puzzle.
+* `grid` is the collection of positions that a program can occupy.
+* `E` is the final position.
+-/
 structure Race where
+  /-- `grid` is the collection of positions that a program can occupy. -/
   grid : Std.HashSet pos
+  /-- `E` is the final position. -/
   E : pos
 
+/-- Returns all positions with L¹-distance at most `n` from the origin. -/
 def posAtMost (n : Nat) : Std.HashSet pos :=
   (Array.range (n + 1)).foldl (init := ∅) fun tot p =>
     tot.insertMany <|
@@ -42,6 +50,7 @@ def posAtMost (n : Nat) : Std.HashSet pos :=
         let q : Int := q.cast
         tot'.union ({(p, q), (p, - q), (- p, q), (- p, - q)})
 
+/-- Returns the distances to `E` along the unique path that programs can follow without cheating. -/
 def path (r : Race) : Std.HashMap pos Nat := Id.run do
   let mut curr := r.E
   let mut dists := {(curr, 0)}
@@ -56,10 +65,12 @@ def path (r : Race) : Std.HashMap pos Nat := Id.run do
         curr := newPos
   return dists
 
+/-- Converts the input data into a `Race`. -/
 def inputToRace (dat : Array String) : Race where
   grid := sparseGrid dat "SE.".contains
   E    := (sparseGrid dat "E".contains).toArray[0]!
 
+/-- A utility function to draw a `Race`. This was useful while figuring out the answer. -/
 def drawRace (r : Race) : IO Unit := do
   let sz := if r.grid.size ≤ 1000 then 15 else 141
   draw <| drawSparse r.grid sz sz
