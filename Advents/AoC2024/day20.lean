@@ -95,7 +95,7 @@ def part1 (dat : Array String) (saving : Nat := 100) : Nat := Id.run do
         | some newDistToE =>
           if toE ≤ newDistToE + 2 then continue
           improve := improve.alter (toE - newDistToE - 2) (some <| ·.getD 0 + 1)
-  return improve.fold (init := 0) fun tot imp mult => if saving ≤ imp then tot + mult else tot
+  return improve.fold (· + if saving ≤ · then · else 0) 0
 
 -- The puzzle did not contain an example with savings of over 100ps, so I made up this test.
 #assert part1 atest 20 == 5
@@ -106,14 +106,6 @@ solve 1 1445
 #  Question 2
 -/
 
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
-
 def posAtMost (n : Nat) : Std.HashSet pos := Id.run do
   let mut tot := ∅
   for p in [0:n + 1] do
@@ -122,6 +114,25 @@ def posAtMost (n : Nat) : Std.HashSet pos := Id.run do
         tot := tot.insertMany #[((p, q) : pos), (p, - q), (- p, q), (- p, - q)]
   return tot
 
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) (saving : Nat := 100) : Nat := Id.run do
+  let r := inputToRace dat
+  let path := path r
+  let poss := posAtMost 20
+  let mut improve : Std.HashMap Nat Nat := ∅
+  for (p, toE) in path do
+    for shift in poss do
+      let q := p + shift
+      let dist := shift.1.natAbs + shift.2.natAbs
+      if let some toEq := path[q]? then
+        improve := improve.alter (toEq - toE - dist) (some <| ·.getD 0 + 1)
+  return improve.fold (· + if saving ≤ · then · else 0) 0
+
+-- The puzzle did not contain an example with savings of over 100ps, so I made up this test.
+#assert part2 atest 50 == 285
+
+--set_option trace.profiler true in solve 2 1008040  -- takes about 1 minute
+#exit
 #eval 20 * 21 / 2
 
 set_option trace.profiler true in
