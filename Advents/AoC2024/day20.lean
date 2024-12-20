@@ -32,22 +32,16 @@ def atest := (test.splitOn "\n").toArray
 
 structure Race where
   grid : Std.HashSet pos
-  front : Std.HashSet pos
-  visited : Std.HashSet pos
+  S : pos
   E : pos
-  nbs : Std.HashSet pos
-  cheat : Option pos := none
 
 def path (r : Race) : Std.HashMap pos Nat := Id.run do
   let mut curr := r.E
   let mut dists := {(curr, 0)}
   let mut gr := r.grid.erase curr
-  let tgt := r.front.toArray[0]!
+  let tgt := r.S
   let nbs : Std.HashSet pos := {(0, 1), (0, - 1), (1, 0), (- 1, 0)}
-  let mut con := 0
   while tgt != curr do
-    --let p := gr.toArray[0]!
-    con := con + 1
     for n in nbs do
       let newPos := curr + n
       if gr.contains newPos then
@@ -56,46 +50,39 @@ def path (r : Race) : Std.HashMap pos Nat := Id.run do
         curr := newPos
   return dists
 
-def inputToRace (dat : Array String) : Race :=
-  let fr := sparseGrid dat "S".contains
-  let nbs : Std.HashSet pos := {(0, 1), (0, - 1), (1, 0), (- 1, 0)}
-  {
-    grid := sparseGrid dat "SE.".contains
-    front := fr
-    visited := fr
-    E := (sparseGrid dat "E".contains).toArray[0]!
-    nbs := nbs.fold (init := nbs) fun h p =>
-      let sums := nbs.fold (init := nbs) fun h' p' => h'.insert (p + p')
-      h.union sums |>.erase (0, 0)
-  }
+def inputToRace (dat : Array String) : Race where
+  grid := sparseGrid dat "SE.".contains
+  S    := (sparseGrid dat "S".contains).toArray[0]!
+  E    := (sparseGrid dat "E".contains).toArray[0]!
 
 def drawRace (r : Race) : IO Unit := do
   let sz := if r.grid.size ≤ 1000 then 15 else 141
-  match r.cheat, r.nbs.size with
-    | none, 12 => IO.println s!"Not cheated yet"
-    | some p, 4 => IO.println s!"Already cheated at {p}"
-    | _, _ => panic "Did you update the neighbours?"
   draw <| drawSparse r.grid sz sz
 
-instance : HMul Nat pos pos where hMul a p := (a * p.1, a * p.2)
+def posAtMost (n : Nat) : Std.HashSet pos := Id.run do
+  let mut tot := ∅
+  for p in [0:n + 1] do
+    for q in [0:n + 1] do
+      if p + q ≤ n then
+        tot := tot.insertMany #[((p, q) : pos), (p, - q), (- p, q), (- p, - q)]
+  return tot
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) (saving : Nat := 100) : Nat := Id.run do
+/-- `parts dat` takes as input the input of the problem and returns the solution to part 2. -/
+def parts (dat : Array String) (cheat : Nat) (saving : Nat) : Nat := Id.run do
   let r := inputToRace dat
   let path := path r
-  let nbs : Std.HashSet pos := {(0, 1), (0, - 1), (1, 0), (- 1, 0)}
+  let poss := posAtMost cheat
   let mut improve : Std.HashMap Nat Nat := ∅
   for (p, toE) in path do
-    for n in nbs do
-      let pNew := p + n
-      if path[pNew]?.isSome then continue
-      let pNew := p + 2 * n
-      match path[pNew]? with
-        | none => continue
-        | some newDistToE =>
-          if toE ≤ newDistToE + 2 then continue
-          improve := improve.alter (toE - newDistToE - 2) (some <| ·.getD 0 + 1)
+    for shift in poss do
+      let q := p + shift
+      let dist := shift.1.natAbs + shift.2.natAbs
+      if let some toEq := path[q]? then
+        improve := improve.alter (toEq - toE - dist) (some <| ·.getD 0 + 1)
   return improve.fold (· + if saving ≤ · then · else 0) 0
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) (saving : Nat := 100) : Nat := parts dat 2 saving
 
 -- The puzzle did not contain an example with savings of over 100ps, so I made up this test.
 #assert part1 atest 20 == 5
@@ -106,27 +93,8 @@ solve 1 1445
 #  Question 2
 -/
 
-def posAtMost (n : Nat) : Std.HashSet pos := Id.run do
-  let mut tot := ∅
-  for p in [0:n + 1] do
-    for q in [0:n + 1] do
-      if p + q ≤ n then
-        tot := tot.insertMany #[((p, q) : pos), (p, - q), (- p, q), (- p, - q)]
-  return tot
-
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) (saving : Nat := 100) : Nat := Id.run do
-  let r := inputToRace dat
-  let path := path r
-  let poss := posAtMost 20
-  let mut improve : Std.HashMap Nat Nat := ∅
-  for (p, toE) in path do
-    for shift in poss do
-      let q := p + shift
-      let dist := shift.1.natAbs + shift.2.natAbs
-      if let some toEq := path[q]? then
-        improve := improve.alter (toEq - toE - dist) (some <| ·.getD 0 + 1)
-  return improve.fold (· + if saving ≤ · then · else 0) 0
+def part2 (dat : Array String) (saving : Nat := 100) : Nat := parts dat 20 saving
 
 -- The puzzle did not contain an example with savings of over 100ps, so I made up this test.
 #assert part2 atest 50 == 285
