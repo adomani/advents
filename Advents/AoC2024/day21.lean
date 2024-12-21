@@ -460,33 +460,46 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
+  let mut (mults, memos) := (insertString ∅ ("A" ++ ""), ∅)
+  let mut res := 0
+  let mut msg := #[]
+  IO.println "#eval"
   for str in dat do
     --let inDir := findFirst str --(strToPaths mkNum str).toArray[0]!
-    IO.println str
+    IO.print s!"{str.dropRightWhile (· == 'A')} * "
     let inDirs := strToPaths mkNum str --(strToPaths mkNum str).toArray[0]!
-    let mut mint := 1000
+    --for i in inDirs do IO.println <| findPair i
+    let mut mint := 100
     let mut correct := ""
-    let mut memos := ∅
     for inDir in inDirs do
-      let mut (mults, memos') := (insertString ∅ ("A" ++ inDir), memos)
-      memos := memos'
+      (mults, memos) := (insertString ∅ ("A" ++ inDir), memos)
       for i in [0:2] do
         (mults, memos) := increaseOne mults memos
       --showMults mults
       --IO.println str
-      if getMults mults < mint then
+      if getMults mults ≤ mint then
+        IO.println s!"{mint}: {inDir}"
         mint := getMults mults
         correct := inDir
-      (mults, memos) := (insertString ∅ ("A" ++ correct), memos)
-      for i in [0:2] do
-        (mults, memos) := increaseOne mults memos
-      IO.println <| getMults mults
-
+    (mults, memos) := (insertString ∅ ("A" ++ correct), memos)
+    msg := msg.push s!"{correct}: {mint}"
+    for i in [0:25] do
+      (mults, memos) := increaseOne mults memos
+    IO.println s!"{getMults mults} + "
+    res := res + (str.dropRight 1).toNat! + getMults mults
+  IO.println <| "\n".intercalate <| "" :: "Used:" :: msg.toList
+  IO.println res
 /-!
 -/
 
 #eval
+964 * 49767208068 +
+140 * 50575382072 +
+413 * 51834670766 +
+670 * 48735351682 +
+593 * 55578896886
 
+#eval
 964 * 125908094772 +
 140 * 127952728204 +
 413 * 131138653760 +
@@ -494,7 +507,10 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
 593 * 140611324032
 #exit
 
+-- 142074832574328 -- too low
+
 -- 359440929327624 -- too high
+
   let second := (strToPaths mkNum "980A").toArray[0]!
   IO.println <| (strToPaths mkNum "029A").toArray
   let str := "<A^A>^^AvvvA"
