@@ -273,6 +273,16 @@ def minOne (seed : String) : Nat := Id.run do
     start := mkNum.keys[i]!
   return mins
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
+  dat.foldl (init := 0) fun tally d =>
+    let newMin := minOne d
+    tally + newMin * d.getNats[0]!
+
+#assert part1 atest == 126384
+
+set_option trace.profiler true in solve 1 197560
+
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest
@@ -540,14 +550,6 @@ Std.HashMap.ofList [('>', (1, 2)), ('^', (0, 1)), ('<', (1, 0)), ('v', (1, 1)), 
 
 
 
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
 
 /-!
 #  Question 2
