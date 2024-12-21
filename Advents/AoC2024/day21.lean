@@ -251,13 +251,21 @@ def lth (s : String) : Nat := Id.run do
 def mkThirdLayer (str : String) (start : pos) : Std.HashSet String := Id.run do
   let firstLayer := strToPaths (mkNum start) str
   let mut secL : Std.HashSet String := ∅
-  let mut thL : Std.HashSet String := ∅
   for f in firstLayer do
     let secondLayer := strToPaths mkDir f
     secL := secL.union secondLayer
+  let vals : Std.HashSet Nat :=
+    secL.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
+  let minS := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
+  secL := secL.filter (!minS < ·.length)
+  let mut thL : Std.HashSet String := ∅
   for f in secL do
     let thirdLayer := strToPaths mkDir f
     thL := thL.union thirdLayer
+  let vals : Std.HashSet Nat :=
+    thL.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
+  let minT := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
+  thL := thL.filter (!minT < ·.length)
   return thL
 
 def minOne (seed : String) : Nat := Id.run do
