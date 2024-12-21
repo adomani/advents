@@ -263,17 +263,16 @@ def mkNlayersAux (currLayer : Std.HashSet String) : Nat → Std.HashSet String
   | 0 => currLayer
   | n + 1 => mkNlayersAux (mkNextLayer currLayer) n
 
-def mkThirdLayer (str : String) (start : pos) : Std.HashSet String :=
+def mkNlayers (str : String) (start : pos) (n : Nat) : Std.HashSet String :=
   let firstLayer := strToPaths (mkNum start) str
-  let nextLayer := mkNextLayer firstLayer
-  mkNextLayer nextLayer
+  mkNlayersAux firstLayer n
 
-def minOne (seed : String) : Nat := Id.run do
+def minOne (seed : String) (n : Nat := 2) : Nat := Id.run do
   let mut start : pos := mkNum.S
   let mut mins := 0
   for i in seed.toList do
     let str : String := ⟨[i]⟩
-    let thL := mkThirdLayer str start
+    let thL := mkNlayers str start n
     let vals : Std.HashSet Nat :=
       thL.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
     let min := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
