@@ -260,10 +260,52 @@ def mkThirdLayer (str : String) (start : pos) : Std.HashSet String := Id.run do
     thL := thL.union thirdLayer
   return thL
 
+def minOne (seed : String) : Nat := Id.run do
+  let mut start : pos := mkNum.S
+  let mut mins := 0
+  for i in seed.toList do
+    let str : String := ⟨[i]⟩
+    let thL := mkThirdLayer str start
+    let vals : Std.HashSet Nat :=
+      thL.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
+    let min := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
+    mins := mins + min
+    start := mkNum.keys[i]!
+  return mins
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest
+  let mut tally := 0
+  for d in dat do
+    let newMin := minOne d
+    tally := tally + newMin * d.getNats[0]!
+  IO.println tally
+
+--#guard_msgs in
+#eval do
+  let mut start : pos := mkNum.S
+  let mut mins := 0
+  let seed := "029A"
+  let dat := atest
+  let seeds := dat
+  IO.println seeds
+  for i in seed.toList do
+    let str : String := ⟨[i]⟩
+    let thL := mkThirdLayer str start
+    let vals : Std.HashSet Nat :=
+      thL.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
+    IO.println s!"\n{i}: {thL.size}"
+    let min := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
+    mins := mins + min
+    IO.println s!"thL.size: {thL.size}, min: {min}, {vals.toArray}"
+    start := mkNum.keys[i]!
+  IO.println s!"\n* Min for {seed}: {mins}"
+
 --#guard_msgs in
 #eval do
   let mut digsToMoves : Std.HashMap Nat String := ∅
-  for i in [0:10] do
+  for i in [0:0] do
     let str := s!"{i}"
     let firstLayer := strToPaths (mkNum (some (2, 1))) str
     IO.println s!"\n{i}: {firstLayer.toArray}"
