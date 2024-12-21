@@ -53,7 +53,25 @@ def posToChar : pos → Char
   | (  1,   0) => 'v'
   | (- 1,   0) => '^'
   | (  0,   0) => '·'
-  | p => panic s!"Not expecting {p} as a position!"
+  | p => panic s!"Not expecting '{p}' as a position!"
+
+def charToPos : Char → pos
+  | '^' => (0, 1)
+  | 'A' => (0, 2)
+  | '<' => (1, 0)
+  | 'v' => (1, 1)
+  | '>' => (1, 2)
+  | '·' => (0, 0)
+  | p => panic s!"Not expecting '{p}' as a character!"
+
+def charToMove : Char → pos
+  | '^' => (- 1,   0)
+  | 'A' => (  0,   0)
+  | '<' => (  0, - 1)
+  | 'v' => (  1,   0)
+  | '>' => (  0,   1)
+  | '·' => (0, 0)
+  | p => panic s!"Not expecting '{p}' as a character!"
 
 structure numKP where
   keys : Std.HashMap Char pos := Std.HashMap.union {('A', (3, 2)), ('0', (3, 1))} <|
@@ -163,6 +181,175 @@ def mkString (mv : pos) : String :=
                ++
               List.replicate mv.1.natAbs (posToChar (mv.1.sign, 0))
   (⟨rep⟩ : String).push 'A'
+
+structure KP where
+  keys : Std.HashMap Char pos
+  S : pos
+  deriving Inhabited
+
+def mkNum (p : Option pos := none) : KP :=
+  let keys := Std.HashMap.union {('A', (3, 2)), ('0', (3, 1))} <|
+    (Array.range 9).foldl (init := (∅ : Std.HashMap Char pos)) fun h n =>
+        h.insert (s!"{n + 1}".get 0) (2 - n.cast / 3, 2 - (8 - n.cast) % 3)
+  {keys := keys, S := p.getD keys['A']!}
+
+def mkDir (p : Option pos := none) : KP :=
+  let keys :=    { ('^', (0, 1)), ('A', (0, 2)),
+    ('<', (1, 0)), ('v', (1, 1)), ('>', (1, 2)) }
+  {keys := keys, S := p.getD keys['A']!}
+
+def validate (n : KP) (s : String) : Bool := Id.run do
+  let mut curr := n.S
+  for si in s.toList do
+    curr := curr + charToMove si --n.keys[si]!
+    if (n.keys.filter fun _c (q : pos) => curr == q).isEmpty then return false
+    --let si := n.keys[s.get ⟨i⟩]!
+    --tot := tot + vecLth (charToPos prev - charToPos si)
+    --prev := si
+  return true
+
+
+
+/--
+Converts a string, such as "029A", into all the strings of instructions, starting from the
+position recorded in `n` and the continuing with the ones in `s`.
+-/
+def strToPaths (n : KP) (s : String) : Std.HashSet String := Id.run do
+  let mut start := n.S
+  let mut fin : Std.HashSet String := {""}
+  for c in s.toList do
+    let tgt := n.keys[c]!
+    let next := findPaths tgt start
+    --dbg_trace "{start} -- {tgt}, {next.toArray}"
+    fin :=  fin.fold (init := ∅) fun h st => h.union (next.fold (·.insert <| st ++ ·) ∅)
+    start := tgt
+  return fin.filter (validate n)
+
+/-- info:
+'<A^A^>^AvvvA'
+'<A^A^^>AvvvA'
+'<A^A>^^AvvvA'
+-/
+#guard_msgs in
+#eval do
+  let str := "029A"
+  let steps := strToPaths mkNum str
+  for s in steps do
+    IO.println s!"'{s}'"
+
+def vecLth (p : pos) : Nat := p.1.natAbs + p.2.natAbs
+
+def lth (s : String) : Nat := Id.run do
+  let mut tot := 0
+  let mut prev := s.get 0
+  for i in [1:s.length] do
+    let si := s.get ⟨i⟩
+    tot := tot + vecLth (charToPos prev - charToPos si)
+    prev := si
+  return tot
+
+def mkThirdLayer (str : String) (start : pos) : Std.HashSet String := Id.run do
+  let firstLayer := strToPaths (mkNum start) str
+  let mut secL : Std.HashSet String := ∅
+  let mut thL : Std.HashSet String := ∅
+  for f in firstLayer do
+    let secondLayer := strToPaths mkDir f
+    secL := secL.union secondLayer
+  for f in secL do
+    let thirdLayer := strToPaths mkDir f
+    thL := thL.union thirdLayer
+  return thL
+
+--#guard_msgs in
+#eval do
+  let mut digsToMoves : Std.HashMap Nat String := ∅
+  for i in [0:10] do
+    let str := s!"{i}"
+    let firstLayer := strToPaths (mkNum (some (2, 1))) str
+    IO.println s!"\n{i}: {firstLayer.toArray}"
+    let mut secL : Std.HashSet String := ∅
+    let mut thL : Std.HashSet String := ∅
+    for f in firstLayer do
+      let secondLayer := strToPaths mkDir f
+      secL := secL.union secondLayer
+    for f in secL do
+      let thirdLayer := strToPaths mkDir f
+      thL := thL.union thirdLayer
+      --IO.println s!"{f}: {secondLayer.toArray.qsort (· < ·)}"
+    let vals : Std.HashSet Nat :=
+      thL.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
+    let min := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
+    IO.println s!"thL.size: {thL.size}, min: {min}, {vals.toArray}"
+  --let str := "<A"
+  --let steps := strToPaths mkDir str
+  --IO.println <| steps.contains "v<<A>>^A<A>AvA<^AA>A<vAAA>^A"
+  --let mut tot := 0
+  --IO.println steps.size
+  --let mut mn := 80
+  --for s in steps do --[steps.toArray[0]!] do
+  --  for t in strToPaths mkDir s do
+  --    if t.length < mn then IO.println s!"corto {t.length}"
+  --    mn := t.length
+
+
+
+
+--#guard_msgs in
+#eval do
+  let str := "<A^A>^^AvvvA"
+  let str := "<A"
+  let steps := strToPaths mkDir str
+  IO.println <| steps.contains "v<<A>>^A<A>AvA<^AA>A<vAAA>^A"
+  let mut tot := 0
+  IO.println steps.size
+  let mut mn := 80
+  for s in steps do --[steps.toArray[0]!] do
+    for t in strToPaths mkDir s do
+      if t.length < mn then IO.println s!"corto {t.length}"
+      mn := t.length
+
+    --for t in strToPaths mkDir s do
+    --  IO.println s!"length: {lth t}"
+    --let new := strToPaths mkDir s
+    --let dists := (s.push 'A').toList.foldl (init := 0) fun t c =>
+--      let st :=
+      --tot := tot + lth s
+    --tot := tot + new.size
+    --IO.println <| (new.fold (init := (∅ : Std.HashSet Nat)) (fun (h : Std.HashSet Nat) (st : String) => h.insert st.length) : Std.HashSet Nat).size
+  --IO.println tot
+
+#exit
+
+def movesNumOnePath (n : numKP) (s : Array Char) : numKP × String := Id.run do
+  let mut n := n
+  let mut str := ""
+  for c in s do
+    let tgt := n.keys[c]!
+    let mv := tgt - n.S
+    n := {n with S := tgt}
+    str := str ++ mkString mv
+    --dbg_trace "start: {start}, tgt: {tgt}, mv: {mv}"
+  (n, str)
+
+def movesNumOneString (n : numKP) (s : String) : numKP × String := Id.run do
+  let mut n := n
+  let mut str := ""
+  for c in s.toList do
+    let tgt := n.keys[c]!
+    let mv := tgt - n.S
+    n := {n with S := tgt}
+    str := str ++ mkString mv
+    --dbg_trace "start: {start}, tgt: {tgt}, mv: {mv}"
+  (n, str)
+
+#eval do
+  let n : numKP := {}
+  let strs := findPaths (3, 1) (3, 2)
+  let strs := #["029A"]
+  dbg_trace strs.toList
+  for s in strs do
+    let (_, moves) := movesNumOneString n s
+    IO.println s!"{moves}"
 
 def movesNumOne (n : numKP) (c : Char) : numKP × String :=
   let start := n.S
