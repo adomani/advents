@@ -338,6 +338,12 @@ def increaseMultiplicitiesSemiOld (base : Std.HashMap String Nat) : Std.HashMap 
       h''.alter p (some <| ·.getD 0 + 1)
     --h'
 
+def getMults (mults : Std.HashMap String Nat) : Nat := Id.run do
+  let mut tots := 0
+  for (_s, val) in mults do
+    tots := tots + val -- * s.length
+  tots
+
 def showMults (mults : Std.HashMap String Nat) : IO Unit := do
   let mut tots := 0
   for (s, val) in mults do
@@ -400,13 +406,25 @@ def increaseMultiplicities (base : Std.HashMap String Nat) : Std.HashMap String 
 28 total >
 -/
 
+def findFirst (str : String) : String := Id.run do
+  let firstLayer := strToPaths mkNum str --(mkDir <| grid[str.get ⟨0⟩]!) str
+  let later := repeatDirLayers firstLayer 2
+  for f in firstLayer do
+    for cand in strToPaths mkDir f do -- (mkDir <| grid[str.get ⟨1⟩]!) f do
+      for cand1 in strToPaths mkDir cand do
+        if later.contains cand1 then return f
+  panic "oh no!"
+  return ""
+
 def findPair (str : String) : String := Id.run do
-  let firstLayer := strToPaths mkDir str
+  let grid := mkDir.keys
+  let firstLayer := strToPaths mkDir str --(mkDir <| grid[str.get ⟨0⟩]!) str
   let later := repeatDirLayers firstLayer 1
   for f in firstLayer do
-    for cand in strToPaths mkDir f do
---      for cand1 in strToPaths mkDir cand do
+    for cand in strToPaths mkDir f do -- (mkDir <| grid[str.get ⟨1⟩]!) f do
+      --for cand1 in strToPaths mkDir cand do
         if later.contains cand then return f
+  panic "oh no!"
   return ""
 
 def insertString (h : Std.HashMap String Nat) (s : String) : Std.HashMap String Nat := Id.run do
@@ -423,8 +441,8 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
   for (s, rep) in reps do
     match newMemo[s]? with
       | none =>
-        let newVal := findPair s
-        dbg_trace "{s}, newVal: {newVal}"
+        let newVal := (findPair s).dropWhile (· != 'A')
+        --dbg_trace "{s}, newVal: {newVal}"
         let mut arr := #[]
         for i in [0:newVal.length - 1] do
           let newString : String := ⟨[newVal.get ⟨i⟩, newVal.get ⟨i + 1⟩]⟩
@@ -436,14 +454,56 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
           newReps := newReps.alter newString (some <| ·.getD 0 + rep)
   return (newReps, newMemo)
 /-
-<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
-v<<A>>^A<A>AvA<^AA>A<vAAA>^A
--/ -- >>>>>>>>> '-/
+-- <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+-- v<<A>>^A<A>AvA<^AA>A<vAAA>^A
+-/
 #eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  for str in dat do
+    --let inDir := findFirst str --(strToPaths mkNum str).toArray[0]!
+    IO.println str
+    let inDirs := strToPaths mkNum str --(strToPaths mkNum str).toArray[0]!
+    let mut mint := 1000
+    let mut correct := ""
+    let mut memos := ∅
+    for inDir in inDirs do
+      let mut (mults, memos') := (insertString ∅ ("A" ++ inDir), memos)
+      memos := memos'
+      for i in [0:2] do
+        (mults, memos) := increaseOne mults memos
+      --showMults mults
+      --IO.println str
+      if getMults mults < mint then
+        mint := getMults mults
+        correct := inDir
+      (mults, memos) := (insertString ∅ ("A" ++ correct), memos)
+      for i in [0:2] do
+        (mults, memos) := increaseOne mults memos
+      IO.println <| getMults mults
+
+/-!
+-/
+
+#eval
+
+964 * 125908094772 +
+140 * 127952728204 +
+413 * 131138653760 +
+670 * 123297559500 +
+593 * 140611324032
+#exit
+
+-- 359440929327624 -- too high
+  let second := (strToPaths mkNum "980A").toArray[0]!
+  IO.println <| (strToPaths mkNum "029A").toArray
   let str := "<A^A>^^AvvvA"
+  let str := second
+  let third := (strToPaths mkNum "179A").toArray[1]!
+  let str := third
   let mut (mults, memos) := (insertString ∅ ("A" ++ str), {})
   showMults mults
-  for i in [0:1] do
+  for i in [0:2] do
     (mults, memos) := increaseOne mults memos
   IO.println mults.toArray
   showMults mults
