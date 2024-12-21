@@ -88,6 +88,17 @@ def drawNum (n : numKP) : IO Unit := do
   draw gr.toArray
   IO.println s!"value: '{val[0]!}', S: {n.S}"
 
+/--
+info: --012-
+0|789|
+1|456|
+2|123|
+3|·0✅️|
+--012-
+
+value: 'A', S: (3, 2)
+-/
+#guard_msgs in
 #eval do
   drawNum {}
 
@@ -124,6 +135,15 @@ def drawDir (n : dirKP) : IO Unit := do
   draw gr.toArray
   IO.println s!"value: '{val[0]!}', S: {n.S}"
 
+/--
+info: --0123-
+0|·^✅️|
+1|<v>|
+--0123-
+
+value: 'A', S: (0, 2)
+-/
+#guard_msgs in
 #eval do
   drawDir {}
 
@@ -171,6 +191,12 @@ def findPaths (p q : pos) : Std.HashSet String :=
   let left :=  List.replicate mv.1.natAbs (posToChar (mv.1.sign, 0))
   seqs left right |>.fold (init := ∅) (·.insert <| (⟨·⟩ : String).push 'A')
 
+/--
+info: <<vA
+v<<A
+<v<A
+-/ -- >-/
+#guard_msgs in
 #eval do
   for p in findPaths (1, - 2) default do
     IO.println p
@@ -286,7 +312,8 @@ def part1 (dat : Array String) : Nat :=
 
 set_option trace.profiler true in solve 1 197560
 
-#eval do
+/-
+#eval do -- 126384
   let dat ← IO.FS.lines input
   let dat := atest
   let mut tally := 0
@@ -294,8 +321,178 @@ set_option trace.profiler true in solve 1 197560
     let newMin := minOne d
     tally := tally + newMin * d.getNats[0]!
   IO.println tally
+-/
 
-def justLengths (s : String)
+def increaseMultiplicitiesOld (base : Std.HashMap String Nat) (currLayer : Std.HashSet String) :
+    Std.HashMap String Nat :=
+  currLayer.fold (init := base) fun h s =>
+    let parts := s.splitOn "A" |>.map (·.push 'A')
+    parts.foldl (init := h) fun h'' p =>
+      h''.alter p (some <| ·.getD 0 + 1)
+
+def increaseMultiplicitiesSemiOld (base : Std.HashMap String Nat) : Std.HashMap String Nat :=
+  let new := nextDirLayer <| base.fold (init := ∅) fun h p _ => h.insert p
+  new.fold (init := ∅) fun h s =>
+    let parts := s.splitOn "A" |>.map (·.push 'A')
+    parts.foldl (init := h) fun h'' p =>
+      h''.alter p (some <| ·.getD 0 + 1)
+    --h'
+
+def showMults (mults : Std.HashMap String Nat) : IO Unit := do
+  let mut tots := 0
+  for (s, val) in mults do
+    IO.println s!"{val} × {s}"
+    tots := tots + val -- * s.length
+  IO.println s!"---\n{tots} total\n"
+  --{mults.fold (init := 0) (fun h (s : String) m => h + (s.length - 1) * m)} total\n"
+
+def mkMultiplicities (base : String) : Std.HashMap String Nat := Id.run do
+  let mut fin : Std.HashMap String Nat := ∅
+  let parts := (base).splitOn "A" |>.map ("A" ++ ·.push 'A')
+  for q in parts do
+    fin := fin.alter q (some <| ·.getD 0 + 1)
+  return fin.alter "AA" (some <| ·.getD 0 - 1)
+  --return fin.fold (init := ∅) fun h (s : String) m => h.alter (s.drop 1) (some <| ·.getD 0 + m)
+
+#eval do
+  IO.println <| (strToPaths mkDir "<A").toArray
+  IO.println <| (strToPaths mkDir "<A").contains "v<<A>>^A"
+
+def increaseMultiplicities (base : Std.HashMap String Nat) : Std.HashMap String Nat := Id.run do
+  let mut fin := ∅
+  for (s, mult) in base do
+    --let pieces := nextDirLayer {s.drop 1}
+    --dbg_trace s.drop 1
+    let pieces := strToPaths mkDir (s.drop 1) --nextDirLayer {s.drop 1} --(s.drop 1)
+    dbg_trace "pieces: {pieces.toArray}"
+    for p in [pieces.toArray[pieces.toArray.size - 4]?.getD pieces.toArray[0]!] do
+      let parts := p.splitOn "A" |>.map ("A" ++ ·.push 'A')
+      for q in parts do
+        fin := fin.alter q (some <| ·.getD 1 + mult) --((base.getD s 1) * mult)
+  return fin --.alter fin "AA" (some <| ·.getD 0 - 1)
+
+/-
+1 × <v<A
+1 × >>^A
+1 × <A
+1 × vA
+1 × ^<A
+2 × >A
+1 × <vA
+1 × ^>A
+
+3 × A
+
+
+---
+16 total
+
+3 × AA
+2 × A>A
+1 × A<A
+1 × AvA
+1 × A^<A
+1 × A>>^A
+1 × A^>A
+1 × A<v<A
+1 × A<vA
+---
+28 total >
+-/
+
+def findPair (str : String) : String := Id.run do
+  let firstLayer := strToPaths mkDir str
+  let later := repeatDirLayers firstLayer 1
+  for f in firstLayer do
+    for cand in strToPaths mkDir f do
+--      for cand1 in strToPaths mkDir cand do
+        if later.contains cand then return f
+  return ""
+
+def insertString (h : Std.HashMap String Nat) (s : String) : Std.HashMap String Nat := Id.run do
+  let mut arr := h
+  for i in [0:s.length - 1] do
+    let newString : String := ⟨[s.get ⟨i⟩, s.get ⟨i + 1⟩]⟩
+    arr := arr.alter newString (some <| ·.getD 0 + 1)
+  return arr
+
+def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Array String)) :
+    Std.HashMap String Nat × Std.HashMap String (Array String) := Id.run do
+  let mut newReps := ∅
+  let mut newMemo := memo
+  for (s, rep) in reps do
+    match newMemo[s]? with
+      | none =>
+        let newVal := findPair s
+        dbg_trace "{s}, newVal: {newVal}"
+        let mut arr := #[]
+        for i in [0:newVal.length - 1] do
+          let newString : String := ⟨[newVal.get ⟨i⟩, newVal.get ⟨i + 1⟩]⟩
+          arr := arr.push newString
+          newReps := newReps.alter newString (some <| ·.getD 0 + rep)
+        newMemo := newMemo.insert s arr
+      | some outs =>
+        for newString in outs do
+          newReps := newReps.alter newString (some <| ·.getD 0 + rep)
+  return (newReps, newMemo)
+/-
+<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+v<<A>>^A<A>AvA<^AA>A<vAAA>^A
+-/ -- >>>>>>>>> '-/
+#eval do
+  let str := "<A^A>^^AvvvA"
+  let mut (mults, memos) := (insertString ∅ ("A" ++ str), {})
+  showMults mults
+  for i in [0:1] do
+    (mults, memos) := increaseOne mults memos
+  IO.println mults.toArray
+  showMults mults
+  IO.println memos.size
+  IO.println memos.toArray
+
+-- <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A  -- actual
+-- v<A<AA>^>AvAA^<A>A<v<A>>^AvA^A -- computed
+#eval do
+  --let dat := atest
+  let mut start : pos := mkNum.S
+  --let mut mins := 0
+  let seed := "980A"
+  let seed := "029A"
+  let firstLayer := mkNlayers seed start 1
+  IO.println <| findPair "<A" ++ findPair "^A"
+  --let firstLayer := strToPaths mkDir "<<"
+  --let later := repeatDirLayers firstLayer 2
+  --for f in firstLayer do
+  --  for cand in strToPaths mkDir f do
+  --    for cand1 in strToPaths mkDir cand do
+  --      IO.println <| later.contains cand1
+
+  --IO.println <| firstLayer.toArray --contains "v<<A>>^A<A>AvA<^AA>A<vAAA>^A"
+#exit
+  let secondLayer := repeatDirLayers firstLayer
+  IO.println <| secondLayer.contains "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
+
+  let mut mults := mkMultiplicities firstLayer.toArray[2]! --|>.alter "A" (some <| ·.getD 0 - 1)
+  showMults mults
+--  let mut mults := increaseMultiplicities {(firstLayer.toArray[0]!, 1)} --firstLayer
+  for i in [0:1] do
+  --for (s, val) in mults do
+  --  IO.println s!"s: {s}, val: {val}"
+    mults := increaseMultiplicities mults --<| nextDirLayer (mults.fold (init := ∅) fun h p _ => h.insert p)
+  showMults mults
+  --IO.println firstLayer.toArray
+  --let dat := atest
+  --let seeds := dat
+--  let firstLayer := strToPaths (mkNum start) str
+
+
+def mkMultiplicities (currLayer : Std.HashSet String) : Std.HashMap String Nat :=
+  currLayer.fold (init := ∅) fun h s =>
+    let parts := s.splitOn "A" |>.map (·.push 'A')
+    parts.foldl (init := h) fun h'' p =>
+      h''.alter p (some <| ·.getD 0 + 1)
+    --h'
+
 
 --#guard_msgs in
 #eval do
