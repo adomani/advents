@@ -248,37 +248,33 @@ def lth (s : String) : Nat := Id.run do
     prev := si
   return tot
 
-def mkNextLayer (currLayer : Std.HashSet String) : Std.HashSet String := Id.run do
-  let mut nextLayer := ∅
-  for f in currLayer do
-    let thirdLayer := strToPaths mkDir f
-    nextLayer := nextLayer.union thirdLayer
+def nextDirLayer (currLayer : Std.HashSet String) : Std.HashSet String :=
+  let nextLayer : Std.HashSet String :=
+    currLayer.fold (init := ∅) fun h f =>
+      let thirdLayer := strToPaths mkDir f
+      h.union thirdLayer
   let vals : Std.HashSet Nat :=
     nextLayer.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
-  let minT := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
-  nextLayer := nextLayer.filter (!minT < ·.length)
-  return nextLayer
+  let minT := vals.fold min vals.toArray[0]!
+  nextLayer.filter (!minT < ·.length)
 
-def mkNlayersAux (currLayer : Std.HashSet String) : Nat → Std.HashSet String
+def repeatDirLayers (currLayer : Std.HashSet String) : Nat → Std.HashSet String
   | 0 => currLayer
-  | n + 1 => mkNlayersAux (mkNextLayer currLayer) n
+  | n + 1 => repeatDirLayers (nextDirLayer currLayer) n
 
 def mkNlayers (str : String) (start : pos) (n : Nat) : Std.HashSet String :=
   let firstLayer := strToPaths (mkNum start) str
-  mkNlayersAux firstLayer n
+  repeatDirLayers firstLayer n
 
-def minOne (seed : String) (n : Nat := 2) : Nat := Id.run do
-  let mut start : pos := mkNum.S
-  let mut mins := 0
-  for i in seed.toList do
+def minOne (seed : String) (n : Nat := 2) : Nat :=
+  let (_, mins) := seed.toList.foldl (init := (mkNum.S, 0)) fun (start, mins) i =>
     let str : String := ⟨[i]⟩
     let thL := mkNlayers str start n
     let vals : Std.HashSet Nat :=
       thL.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
     let min := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
-    mins := mins + min
-    start := mkNum.keys[i]!
-  return mins
+    (mkNum.keys[i]!, mins + min)
+  mins
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
@@ -298,6 +294,8 @@ set_option trace.profiler true in solve 1 197560
     let newMin := minOne d
     tally := tally + newMin * d.getNats[0]!
   IO.println tally
+
+def justLengths (s : String)
 
 --#guard_msgs in
 #eval do
