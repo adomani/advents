@@ -248,25 +248,25 @@ def lth (s : String) : Nat := Id.run do
     prev := si
   return tot
 
-def mkThirdLayer (str : String) (start : pos) : Std.HashSet String := Id.run do
-  let firstLayer := strToPaths (mkNum start) str
-  let mut secL : Std.HashSet String := ∅
-  for f in firstLayer do
-    let secondLayer := strToPaths mkDir f
-    secL := secL.union secondLayer
-  let vals : Std.HashSet Nat :=
-    secL.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
-  let minS := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
-  secL := secL.filter (!minS < ·.length)
-  let mut thL : Std.HashSet String := ∅
-  for f in secL do
+def mkNextLayer (currLayer : Std.HashSet String) : Std.HashSet String := Id.run do
+  let mut nextLayer := ∅
+  for f in currLayer do
     let thirdLayer := strToPaths mkDir f
-    thL := thL.union thirdLayer
+    nextLayer := nextLayer.union thirdLayer
   let vals : Std.HashSet Nat :=
-    thL.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
+    nextLayer.fold (init := (∅ : Std.HashSet Nat)) (·.insert <| String.length ·)
   let minT := vals.fold (init := vals.toArray[0]!) (fun m v => min m v)
-  thL := thL.filter (!minT < ·.length)
-  return thL
+  nextLayer := nextLayer.filter (!minT < ·.length)
+  return nextLayer
+
+def mkNlayersAux (currLayer : Std.HashSet String) : Nat → Std.HashSet String
+  | 0 => currLayer
+  | n + 1 => mkNlayersAux (mkNextLayer currLayer) n
+
+def mkThirdLayer (str : String) (start : pos) : Std.HashSet String :=
+  let firstLayer := strToPaths (mkNum start) str
+  let nextLayer := mkNextLayer firstLayer
+  mkNextLayer nextLayer
 
 def minOne (seed : String) : Nat := Id.run do
   let mut start : pos := mkNum.S
