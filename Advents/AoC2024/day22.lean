@@ -10,7 +10,7 @@ def input : System.FilePath := "Advents/AoC2024/day22.input"
 #  Question 1
 -/
 
-/-- `test0` is the test string for the problem. -/
+/-- `test0` is a test string for the problem. -/
 def test0 := "15887950
 16495136
 527345
@@ -22,35 +22,23 @@ def test0 := "15887950
 7753432
 5908254"
 
-/-- `atest0` is the test string for the problem, split into rows. -/
-def atest0 := (test0.splitOn "\n").toArray
-
-/-- `test` is the test string for the problem. -/
+/-- `test` is a test string for the problem. -/
 def test := "1
 10
 100
 2024"
 
-/-- `atest` is the test string for the problem, split into rows. -/
-def atest := (test.splitOn "\n").toArray
-
-/-- `test1` is the test string for the problem. -/
+/-- `test1` is a test string for the problem. -/
 def test1 := "1: 8685429
 10: 4700978
 100: 15273692
 2024: 8667524"
 
-/-- `atest1` is the test string for the problem, split into rows. -/
-def atest1 := (test1.splitOn "\n").toArray
-
-/-- `test2` is the test string for the problem. -/
+/-- `test2` is a test string for the problem. -/
 def test2 := "1
 2
 3
 2024"
-
-/-- `atest2` is the test string for the problem, split into rows. -/
-def atest2 := (test2.splitOn "\n").toArray
 
 /-- One of the ingredients to generate a secret: could be inlined. -/
 def mix (s n : Nat) := s.xor n
@@ -76,12 +64,11 @@ def s3 (s : Nat) := prune <| s.xor (s * 2048)
 /-- `step s` generates the new secret from an old secret `s`. -/
 def step (s : Nat) := s3 <| s2 <| s1 s
 
--- Testing the `step` function.
+-- Testing the `step` function: should not emit anything.
+#guard_msgs in
 #eval do
-  let t := test0
   let mut init := 123
-  let dat := t.getNats
-  for d in dat do
+  for d in test0.getNats do
     init := step init
     if init != d then IO.println s!"Expected {d}, found {init}!"
 
@@ -92,9 +79,7 @@ def iter (s : Nat) : Nat → Nat
 
 -- Testing the `iter` function.
 #eval show Elab.Term.TermElabM _ from do
-  let t := test
-  let dat := t.getNats
-  let msg := dat.foldl (init := #[]) fun m d => m.push s!"{d}: {(iter d 2000)}"
+  let msg := test.getNats.foldl (init := #[]) fun m d => m.push s!"{d}: {(iter d 2000)}"
   guard <| test1 == "\n".intercalate msg.toList
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
