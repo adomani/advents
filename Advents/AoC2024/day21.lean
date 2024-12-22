@@ -472,6 +472,35 @@ def wholeRun (w : window) : String := Id.run do
   IO.println <| wholeRun {mv := s}
   IO.println <| "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
 
+#eval do
+  let dat := "<A^A>^^AvvvA"
+  let mut w : window := {mv := dat}
+  for i in [0:2] do
+    let s := wholeRun w
+    w := {mv := s}
+    IO.println <| w.mv.length
+
+def splitWindow (w : window) : Std.HashMap window Nat :=
+  (w.mv.dropRight 1).splitOn "A" |>.foldl (fun h s => h.alter {mv := s.push 'A'} (some <| ·.getD 0 + 1)) ∅
+
+def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.run do
+  let mut fin := ∅
+  for (w, mult) in h do
+    let s := wholeRun w
+    let pieces := splitWindow {mv := s}
+    for (p, m') in pieces do
+      fin := fin.alter p (some <| ·.getD 0 + mult * m')
+  return fin
+
+#eval do
+  let dat := "<A^A>^^AvvvA"
+  let mut hw := splitWindow {mv := dat}
+  for (w, m) in hw do
+    IO.println <| s!"{w.mv} × {m}"
+  for i in [0:25] do
+    hw := tallyMoveWindow hw
+    IO.println <| hw.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
+
 
 
 /-- info:
