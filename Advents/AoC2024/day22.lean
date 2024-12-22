@@ -99,9 +99,7 @@ def iter (s : Nat) : Nat → Nat
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat :=
-  let dat := dat.getNats
-  let vals := dat.foldl (init := #[]) fun m d => m.push (iter d 2000)
-  vals.sum
+  (dat.getNats.foldl (·.push <| iter · 2000) #[]).sum
 
 #assert part1 test == 37327623
 
@@ -138,16 +136,14 @@ def storeWindows (h : Std.HashMap (Array Int) Int) (s : Nat) (it : Nat := 2000) 
   return tot
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : String) : Nat := Id.run do
+def part2 (dat : String) : Nat :=
   let dat := dat.getNats.toArray
-  let mut tallies : Std.HashMap (Array Int) Int := ∅
-  for d in dat do
-    tallies := storeWindows tallies d
-  let mut (window, max) := (#[], 0)
-  for r@(_, t) in tallies do
-    if max < t then
-      (window, max) := r
-  return max.natAbs
+  let tallies := dat.foldl storeWindows ∅
+  let (_window, max) := tallies.fold (init := (#[], 0)) fun (w, m) w_new max_candidate =>
+    if m < max_candidate then
+      (w_new, max_candidate)
+    else (w, m)
+  max.natAbs
 
 #assert part2 test2 == 23
 
