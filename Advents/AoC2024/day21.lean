@@ -73,20 +73,17 @@ def charToMove : Char → pos
   | '·' => (0, 0)
   | p => panic s!"Not expecting '{p}' as a character!"
 
-structure numKP where
-  keys : Std.HashMap Char pos := Std.HashMap.union {('A', (3, 2)), ('0', (3, 1))} <|
+def numKeys : Std.HashMap Char pos := .union {('A', (3, 2)), ('0', (3, 1))} <|
     (Array.range 9).foldl (init := (∅ : Std.HashMap Char pos)) fun h n =>
         h.insert (s!"{n + 1}".get 0) (2 - n.cast / 3, 2 - (8 - n.cast) % 3)
-  S : pos := keys['A']!
-  deriving Inhabited
 
-def drawNum (n : numKP) : IO Unit := do
-  let val := n.keys.fold (init := #[]) fun h c p => if p == n.S then h.push c else h
+def drawNum (n : pos) : IO Unit := do
+  let val := numKeys.fold (init := #[]) fun h c p => if p == n then h.push c else h
   if val.size != 1 then panic "Expecting only one value!"
   let str := "789 456 123 ·0A".replace ("".push val[0]!) checkEmoji --"*"
   let gr := str.splitOn
   draw gr.toArray
-  IO.println s!"value: '{val[0]!}', S: {n.S}"
+  IO.println s!"value: '{val[0]!}', S: {n}"
 
 /--
 info: --012-
@@ -99,41 +96,35 @@ info: --012-
 value: 'A', S: (3, 2)
 -/
 #guard_msgs in
-#eval do
-  drawNum {}
+#eval do drawNum (3, 2)
 
 /--
-info: ((3, 2),
- Std.HashMap.ofList [('9', (0, 2)),
-  ('8', (0, 1)),
-  ('7', (0, 0)),
-  ('6', (1, 2)),
-  ('5', (1, 1)),
-  ('4', (1, 0)),
-  ('3', (2, 2)),
-  ('2', (2, 1)),
-  ('A', (3, 2)),
-  ('1', (2, 0)),
-  ('0', (3, 1))])
+info: Std.HashMap.ofList [('9', (0, 2)),
+ ('8', (0, 1)),
+ ('7', (0, 0)),
+ ('6', (1, 2)),
+ ('5', (1, 1)),
+ ('4', (1, 0)),
+ ('3', (2, 2)),
+ ('2', (2, 1)),
+ ('A', (3, 2)),
+ ('1', (2, 0)),
+ ('0', (3, 1))]
 -/
-#guard_msgs (whitespace := lax) in
-#eval
-  let n : numKP := {}
-  (n.S, n.keys)
+#guard_msgs in #eval numKeys
 
-structure dirKP where
-  keys : Std.HashMap Char pos := { ('^', (0, 1)), ('A', (0, 2)),
-                    ('<', (1, 0)), ('v', (1, 1)), ('>', (1, 2)) }
-  S : pos := keys['A']!
-  deriving Inhabited
+def dirKeys : Std.HashMap Char pos := {
+                   ('^', (0, 1)), ('A', (0, 2)),
+    ('<', (1, 0)), ('v', (1, 1)), ('>', (1, 2))
+  }
 
-def drawDir (n : dirKP) : IO Unit := do
-  let val := n.keys.fold (init := #[]) fun h c p => if p == n.S then h.push c else h
+def drawDir (n : pos) : IO Unit := do
+  let val := dirKeys.fold (init := #[]) fun h c p => if p == n then h.push c else h
   if val.size != 1 then panic "Expecting only one value!"
   let str := "·^A <v>".replace ("".push val[0]!) checkEmoji --"*"
   let gr := str.splitOn
   draw gr.toArray
-  IO.println s!"value: '{val[0]!}', S: {n.S}"
+  IO.println s!"value: '{val[0]!}', S: {n}"
 
 /--
 info: --0123-
@@ -145,35 +136,7 @@ value: 'A', S: (0, 2)
 -/
 #guard_msgs in
 #eval do
-  drawDir {}
-
-/-
-structure keyboard where
-  keys : Std.HashMap Char pos
-  S : pos := keys['A']!
-
-def nk : keyboard :=
-  let keys := Std.HashMap.union {('A', (3, 2)), ('0', (3, 1))} <|
-    (Array.range 9).foldl (init := (∅ : Std.HashMap Char pos)) fun h n =>
-        h.insert (s!"{n + 1}".get 0) (2 - n.cast / 3, 2 - (8 - n.cast) % 3)
-  { keys := keys
-    S := keys['A']! }
-
-def dk : keyboard :=
-  let keys := { ('^', (0, 1)), ('A', (0, 2)),
-                    ('<', (1, 0)), ('v', (1, 1)), ('>', (1, 2)) }
-  { keys := keys
-    S := keys['A']! }
-
-def movesOne (n : keyboard) (c : Char) : numKP × Array Char :=
-  let start := n.S
-  let tgt := n.keys[c]!
-  let mv := tgt - start
-  dbg_trace "start: {start}, tgt: {tgt}, mv: {mv}"
-  let rep :=  List.replicate mv.1.natAbs (posToChar (mv.1.sign, 0)) ++
-              List.replicate mv.2.natAbs (posToChar (0, mv.2.sign))
-  ({n with S := tgt}, rep.toArray.push 'A')
--/
+  drawDir (0, 2)
 
 partial
 def seqs {α} [BEq α] [Hashable α] : List α → List α → Std.HashSet (List α)
@@ -213,28 +176,20 @@ structure KP where
   S : pos
   deriving Inhabited
 
-def mkNum (p : Option pos := none) : KP :=
-  let keys := Std.HashMap.union {('A', (3, 2)), ('0', (3, 1))} <|
-    (Array.range 9).foldl (init := (∅ : Std.HashMap Char pos)) fun h n =>
-        h.insert (s!"{n + 1}".get 0) (2 - n.cast / 3, 2 - (8 - n.cast) % 3)
-  {keys := keys, S := p.getD keys['A']!}
+def mkNum (p : Option pos := none) : KP where
+  keys := numKeys
+  S := p.getD numKeys['A']!
 
-def mkDir (p : Option pos := none) : KP :=
-  let keys :=    { ('^', (0, 1)), ('A', (0, 2)),
-    ('<', (1, 0)), ('v', (1, 1)), ('>', (1, 2)) }
-  {keys := keys, S := p.getD keys['A']!}
+def mkDir (p : Option pos := none) : KP where
+  keys := dirKeys
+  S := p.getD dirKeys['A']!
 
 def validate (n : KP) (s : String) : Bool := Id.run do
   let mut curr := n.S
   for si in s.toList do
-    curr := curr + charToMove si --n.keys[si]!
+    curr := curr + charToMove si
     if (n.keys.filter fun _c (q : pos) => curr == q).isEmpty then return false
-    --let si := n.keys[s.get ⟨i⟩]!
-    --tot := tot + vecLth (charToPos prev - charToPos si)
-    --prev := si
   return true
-
-
 
 /--
 Converts a string, such as "029A", into all the strings of instructions, starting from the
@@ -262,17 +217,6 @@ def strToPaths (n : KP) (s : String) : Std.HashSet String := Id.run do
   let steps := strToPaths mkNum str
   for s in steps do
     IO.println s!"'{s}'"
-
-def vecLth (p : pos) : Nat := p.1.natAbs + p.2.natAbs
-
-def lth (s : String) : Nat := Id.run do
-  let mut tot := 0
-  let mut prev := s.get 0
-  for i in [1:s.length] do
-    let si := s.get ⟨i⟩
-    tot := tot + vecLth (charToPos prev - charToPos si)
-    prev := si
-  return tot
 
 def nextDirLayer (currLayer : Std.HashSet String) : Std.HashSet String :=
   let nextLayer : Std.HashSet String :=
@@ -458,8 +402,8 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
 -- v<<A>>^A<A>AvA<^AA>A<vAAA>^A
 -/
 #eval do
-  let dat := atest
   let dat ← IO.FS.lines input
+  let dat := atest
   let mut (mults, memos) := (insertString ∅ ("A" ++ ""), ∅)
   let mut res := 0
   let mut msg := #[]
