@@ -387,19 +387,19 @@ def expDist (s : String) (start : Char) : Nat := Id.run do
     startPos := nextPos
   return dist
 
-def validate' (s : String) (start : Char) : Bool := Id.run do
-  let keys := dirKeys
+def validate' (s : String) (start : Char) (type : String) : Bool := Id.run do
+  let keys := if type == "dir" then dirKeys else numKeys
   let mut curr := keys[start]!
   for si in s.toList do
     curr := curr + charToMove si
     if (keys.filter fun _c (q : pos) => curr == q).isEmpty then return false
   return true
 
-def minPath (start tgt : Char) : String := Id.run do
-  let keys := dirKeys
+def minPath (start tgt : Char) (type : String) : String := Id.run do
+  let keys := if type == "dir" then dirKeys else numKeys
   let startPos := keys[start]!
   let tgtPos := keys[tgt]!
-  let paths := findPaths tgtPos startPos |>.filter (validate' · start)
+  let paths := findPaths tgtPos startPos |>.filter (validate' · start type)
   --dbg_trace paths.toArray
   let mut (minDist, minPath) := (1000, "")
   for candPath in paths do
@@ -421,7 +421,7 @@ v<<A
 #guard_msgs in
 #eval do
   if let [s, t] := "A<".toList then
-    dbg_trace minPath s t
+    dbg_trace minPath s t "dir"
 
 -- -- #[>>^A, >^>A]
 /--
@@ -431,7 +431,7 @@ info:
 #guard_msgs in
 #eval do
   if let [s, t] := "<A".toList then
-    dbg_trace minPath s t
+    dbg_trace minPath s t "dir"
 
 -- -- #[<vA, v<A]
 /--
@@ -441,42 +441,58 @@ info:
 #guard_msgs in
 #eval do
   if let [s, t] := "Av".toList then
-    dbg_trace minPath s t
+    dbg_trace minPath s t "dir"
 
 #eval do
   if let [s, t] := "A^".toList then
-    dbg_trace minPath s t
+    dbg_trace minPath s t "dir"
 
-def moveWindow (w : window) : String × window :=
-  (minPath w.seed (w.mv.get 0), {seed := w.mv.get 0, mv := w.mv.drop 1})
+def moveWindow (w : window) (type : String) : String × window :=
+  (minPath w.seed (w.mv.get 0) type, {seed := w.mv.get 0, mv := w.mv.drop 1})
 
 --  {(w, 0)}
 
-def wholeRun (w : window) : String := Id.run do
+def wholeRun (w : window) (type : String) : String := Id.run do
   let mut (s, w) : String × window := ("", w)
   while !w.mv.isEmpty do
-    let (s', w') := moveWindow w
+    let (s', w') := moveWindow w type
     (s, w) := (s ++ s', w')
   s
 
+#eval do
+  let st := "029A"
+  let step := wholeRun {mv := st} "num"
+  IO.println step
+
+/--
+info: 28 v<<A>>^A<A>AvA<^AA>A<vAAA^>A
+true
+v<<A>>^A<A>AvA<^AA>A<vAAA>^A
+<vA<AA>>^AvAA<^A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AAvA^Av<<A>A^>AAA<Av>A^A
+<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+---
+warning: unused variable `dat`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
+-/
+#guard_msgs in
 #eval do
   let dat := "<A^A>^^AvvvA"
   let dat := "<A^A>^^AvvvA"
   let mut (s, w) : String × window := ("", {mv := dat})
   while !w.mv.isEmpty do
-    let (s', w') := moveWindow w
+    let (s', w') := moveWindow w "dir"
     (s, w) := (s ++ s', w')
   IO.println s!"{s.length} {s}"
-  IO.println <| s == wholeRun {mv := dat}
+  IO.println <| s == wholeRun {mv := dat} "dir"
   IO.println <| "v<<A>>^A<A>AvA<^AA>A<vAAA>^A"
-  IO.println <| wholeRun {mv := s}
+  IO.println <| wholeRun {mv := s} "dir"
   IO.println <| "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
 
 #eval do
   let dat := "<A^A>^^AvvvA"
   let mut w : window := {mv := dat}
   for i in [0:2] do
-    let s := wholeRun w
+    let s := wholeRun w "dir"
     w := {mv := s}
     IO.println <| w.mv.length
 
@@ -486,7 +502,7 @@ def splitWindow (w : window) : Std.HashMap window Nat :=
 def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.run do
   let mut fin := ∅
   for (w, mult) in h do
-    let s := wholeRun w
+    let s := wholeRun w "dir"
     let pieces := splitWindow {mv := s}
     for (p, m') in pieces do
       fin := fin.alter p (some <| ·.getD 0 + mult * m')
