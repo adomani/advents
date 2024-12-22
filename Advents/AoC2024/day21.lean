@@ -148,6 +148,11 @@ def seqs {α} [BEq α] [Hashable α] : List α → List α → Std.HashSet (List
 --termination_by fun a b => _ --exact L.length + M.length
 --decreasing_by _ --L.length + M.length
 
+/--
+Computes all paths from `q` to `p` that are minimal with respect to the L¹-distance,
+written as strings of instructions `<`, `^`, `>`, `v`.
+`findPaths` then returns each such path, with `A` appended at the end.
+-/
 def findPaths (p q : pos) : Std.HashSet String :=
   let mv := p - q
   let right := List.replicate mv.2.natAbs (posToChar (0, mv.2.sign))
@@ -164,12 +169,14 @@ v<<A
   for p in findPaths (1, - 2) default do
     IO.println p
 
+/-
 def mkString (mv : pos) : String :=
   let rep :=
               List.replicate mv.2.natAbs (posToChar (0, mv.2.sign))
                ++
               List.replicate mv.1.natAbs (posToChar (mv.1.sign, 0))
   (⟨rep⟩ : String).push 'A'
+-/
 
 structure KP where
   keys : Std.HashMap Char pos
@@ -289,7 +296,7 @@ def minWeight (s : String) : Nat × Std.HashMap String Nat := Id.run do
       --dbg_trace "characters: {(a, b)}"
       let firstL := findPaths dirKeys[b]! dirKeys[a]!
       for pathChoice in firstL do
-        let newMults := cut2 pathChoice
+        let newMults := cutBasic2 pathChoice
         let totMults := newMults.fold (fun t _ m => t + m) 0
         if totMults < minimum then
           (minimum, mults) := (totMults, newMults)
@@ -300,17 +307,19 @@ def minWeight (s : String) : Nat × Std.HashMap String Nat := Id.run do
 def localMinimizer (s : String) (type : String) : Std.HashMap String Nat := Id.run do
   let keys := if type == "num" then numKeys else dirKeys
   let mut final := ∅
-  let parts := cut2 s
+  let parts := cutBasic2 s
 --  let mut choices := #[]
-  let mut tot := 0
+  --let mut tot := 0
+  --dbg_trace "there are {parts.size} parts {parts.toArray}"
   for (str, mult) in parts do
     --dbg_trace "\n** (str, mult) = ('{str}', {mult})"
     let firstL := findPaths keys[str.get ⟨1⟩]! keys[str.get ⟨0⟩]!
+    dbg_trace "Starts: {firstL.fold (fun h s => h.push (s.take 1)) #[]}"
     let mut (minChoice, multChoice) := (1000, ∅)
     let mut firstStepMults := ∅
     for pathChoice in firstL do
 
-      let newMults := cut2 pathChoice --mergeMults parts (cut2 pathChoice) mult
+      let newMults := cutBasic2 <| pathChoice --mergeMults parts (cut2 pathChoice) mult
       --dbg_trace "'{pathChoice}' newMults summed: {newMults.fold (fun h s m => dbg_trace "within {(minWeight s).1}"; h + m) 0}\n\
       --            {newMults.toArray}"
       let expContribution : Nat × Std.HashMap String Nat :=
@@ -335,24 +344,135 @@ def localMinimizer (s : String) (type : String) : Std.HashMap String Nat := Id.r
     --if minS.size == 0 then fin := fin else continue
   return final
 
+-- -- v<<A>>^A<A>AvA<^AA>A<vAAA>^A
 -- -- <A A^| ^A A>| >^ ^^ ^A Av| vv vv vA
 -- -- #[(<A, 1), (^A, 2), (vA, 1), (>^, 1), (vv, 2), (^^, 1)] >> --/
 
+
+
 #eval do
   let st := "A456A"
-  let st := "029A"
-  let locMin := localMinimizer st "num"
+  let st := "A029A"
+  let locMin := localMinimizer (st) "num"
   IO.println s!"\ntotal: {locMin.fold (fun h _ m => h + m) 0} from {locMin.toArray}"
-  for (p, mult) in locMin do
-    dbg_trace "{(p, mult)}"
-    dbg_trace "{(localMinimizer p "dir").toArray}\n"
+  --for (p, mult) in locMin do
+  --  dbg_trace "{(p, mult)}"
+  --  dbg_trace "{(localMinimizer p "dir").toArray}\n"
   let sec : Std.HashMap String Nat :=
-    (locMin).fold (fun h p m => dbg_trace "missing out on {m}"; mergeMults (localMinimizer p "dir") h m) ∅
+    (locMin).fold (fun h p m => dbg_trace "missing out on {m}"; mergeMults h (localMinimizer p "dir") m) ∅
+  IO.println s!"\ntotal: {sec.fold (fun h _ m => h + m) 0} from {sec.toArray}"
+
+  let sec : Std.HashMap String Nat :=
+    sec.fold (fun h p m => dbg_trace "missing out on {m}"; mergeMults h (localMinimizer p "jjj") m) ∅
+
   IO.println s!"\ntotal: {sec.fold (fun h _ m => h + m) 0} from {sec.toArray}"
   --let pths := moveEdge ∅ st "num"
   --IO.println pths.toList --size
   --let pths := strToPaths mkNum st
   --IO.println pths.toList
+
+structure window where
+  seed : Char := 'A'
+  mv : String
+  deriving BEq, Hashable
+
+def lth (p : pos) : Nat := p.1.natAbs + p.2.natAbs
+
+def expDist (s : String) (start : Char) : Nat := Id.run do
+  let mut startPos := dirKeys[start]!
+  let mut dist := 0
+  for next in s.toList do
+    let nextPos := dirKeys[next]!
+    dist := dist + lth (nextPos - startPos)
+    startPos := nextPos
+  return dist
+
+def validate' (s : String) (start : Char) : Bool := Id.run do
+  let keys := dirKeys
+  let mut curr := keys[start]!
+  for si in s.toList do
+    curr := curr + charToMove si
+    if (keys.filter fun _c (q : pos) => curr == q).isEmpty then return false
+  return true
+
+def minPath (start tgt : Char) : String := Id.run do
+  let keys := dirKeys
+  let startPos := keys[start]!
+  let tgtPos := keys[tgt]!
+  let paths := findPaths tgtPos startPos |>.filter (validate' · start)
+  --dbg_trace paths.toArray
+  let mut (minDist, minPath) := (1000, "")
+  for candPath in paths do
+    let newDist := expDist candPath start
+    if newDist < minDist then
+      (minDist, minPath) := (newDist, candPath)
+    --if tgtPos == tgtPos then
+    --dbg_trace "expDist candPath {candPath} {expDist candPath}"
+    --else continue
+--    x := 0
+--  dbg_trace x
+  return minPath
+
+-- -- #[v<<A, <v<A]
+/--
+info:
+v<<A
+-/
+#guard_msgs in
+#eval do
+  if let [s, t] := "A<".toList then
+    dbg_trace minPath s t
+
+-- -- #[>>^A, >^>A]
+/--
+info:
+>>^A
+-/
+#guard_msgs in
+#eval do
+  if let [s, t] := "<A".toList then
+    dbg_trace minPath s t
+
+-- -- #[<vA, v<A]
+/--
+info:
+<vA
+-/
+#guard_msgs in
+#eval do
+  if let [s, t] := "Av".toList then
+    dbg_trace minPath s t
+
+#eval do
+  if let [s, t] := "A^".toList then
+    dbg_trace minPath s t
+
+def moveWindow (w : window) : String × window :=
+  (minPath w.seed (w.mv.get 0), {seed := w.mv.get 0, mv := w.mv.drop 1})
+
+--  {(w, 0)}
+
+def wholeRun (w : window) : String := Id.run do
+  let mut (s, w) : String × window := ("", w)
+  while !w.mv.isEmpty do
+    let (s', w') := moveWindow w
+    (s, w) := (s ++ s', w')
+  s
+
+#eval do
+  let dat := "<A^A>^^AvvvA"
+  let dat := "<A^A>^^AvvvA"
+  let mut (s, w) : String × window := ("", {mv := dat})
+  while !w.mv.isEmpty do
+    let (s', w') := moveWindow w
+    (s, w) := (s ++ s', w')
+  IO.println s!"{s.length} {s}"
+  IO.println <| s == wholeRun {mv := dat}
+  IO.println <| "v<<A>>^A<A>AvA<^AA>A<vAAA>^A"
+  IO.println <| wholeRun {mv := s}
+  IO.println <| "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
+
+
 
 /-- info:
 '<A^A^>^AvvvA'
@@ -509,7 +629,7 @@ def findFirst (str : String) : String := Id.run do
   return ""
 
 def findPair (str : String) : String := Id.run do
-  let grid := mkDir.keys
+  --let grid := mkDir.keys
   let firstLayer := strToPaths mkDir str --(mkDir <| grid[str.get ⟨0⟩]!) str
   let later := repeatDirLayers firstLayer 1
   for f in firstLayer do
