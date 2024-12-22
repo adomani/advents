@@ -192,8 +192,8 @@ def validate (n : KP) (s : String) : Bool := Id.run do
   return true
 
 /--
-Converts a string, such as "029A", into all the strings of instructions, starting from the
-position recorded in `n` and the continuing with the ones in `s`.
+Converts a string, such as "029A", into all the strings of instructions
+It starts from the position recorded in `n` and then continues with the ones in `s`.
 -/
 def strToPaths (n : KP) (s : String) : Std.HashSet String := Id.run do
   let mut start := n.S
@@ -205,6 +205,125 @@ def strToPaths (n : KP) (s : String) : Std.HashSet String := Id.run do
     fin :=  fin.fold (init := ∅) fun h st => h.union (next.fold (·.insert <| st ++ ·) ∅)
     start := tgt
   return fin.filter (validate n)
+
+def cut2 (s : String) : Std.HashMap String Nat := Id.run do
+  let mut fin := ∅
+  for i in [1:s.length] do
+    let si := "".push (s.get ⟨i - 1⟩) |>.push (s.get ⟨i⟩)
+    fin := fin.alter si (some <| ·.getD 0 + 1)
+  return fin
+
+def extractMin [BEq α] [Hashable α] (h : Std.HashSet α) (lth : α → Nat) : Std.HashSet α :=
+  if let some a := h.toArray.back? then
+    let minT := h.fold (fun m n => min m (lth n)) (lth a)
+    h.filter (!minT < lth ·)
+  else ∅
+
+def mergeMults (h1 h2 : Std.HashMap String Nat) (mult1 : Nat := 1) : Std.HashMap String Nat :=
+  h2.fold (init := h1) fun h' p mult => h'.alter p (some <| ·.getD 0 * mult1 + mult)
+
+/-- -/
+def moveEdge (h : Std.HashMap String Nat) (s : String) (type : String) :
+    Std.HashMap String Nat := Id.run do
+  let mut fin := h
+  let keys := if type == "num" then numKeys else dirKeys
+  match s.toList with
+    | [a, b] =>
+      --let mut h := h
+      --for c in s.toList do
+      --  --let tgt := n.keys[c]!
+        let next := findPaths keys[b]! keys[a]!
+
+        for n in next do
+          dbg_trace "dealing with {n}"
+          let parts := cut2 n
+          let mut tot := 0
+          for (str, mult) in parts do
+            let secL := findPaths dirKeys[str.get ⟨0⟩]! dirKeys[str.get ⟨1⟩]!
+            let minS := extractMin secL String.length
+            dbg_trace "(str, mult) = {(str, mult)}\nsecL: {(secL.fold (·.insert <| ·.length) (∅ : Std.HashSet Nat)).toArray}"
+            dbg_trace ((str, mult), secL.toArray)
+            dbg_trace ""
+            if minS.size == 0 then fin := fin else continue
+          --dbg_trace parts.toArray
+        --dbg_trace "{start} -- {tgt}, {next.toArray}"
+        --fin :=  fin.fold (init := ∅) fun h st => h.union (next.fold (·.insert <| st ++ ·) ∅)
+        --let start := tgt
+        dbg_trace next.toArray
+        return fin
+    | _ => panic s!"Only string of length 2, unlike {s}, please!"
+
+def minWeight (s : String) : Nat × Std.HashMap String Nat := Id.run do
+  let mut (minimum, mults) := (1000, ∅)
+  match s.toList with
+    | [a, b] =>
+      --dbg_trace "characters: {(a, b)}"
+      let firstL := findPaths dirKeys[b]! dirKeys[a]!
+      for pathChoice in firstL do
+        let newMults := cut2 pathChoice
+        let totMults := newMults.fold (fun t _ m => t + m) 0
+        if totMults < minimum then
+          (minimum, mults) := (totMults, newMults)
+      return (minimum, mults)
+    | _ => panic s!"Only paths of length two are allowed, unlike {s}!"
+
+
+def localMinimizer (s : String) (type : String) : Std.HashMap String Nat := Id.run do
+  let keys := if type == "num" then numKeys else dirKeys
+  let mut final := ∅
+  let parts := cut2 s
+--  let mut choices := #[]
+  let mut tot := 0
+  for (str, mult) in parts do
+    --dbg_trace "\n** (str, mult) = ('{str}', {mult})"
+    let firstL := findPaths keys[str.get ⟨1⟩]! keys[str.get ⟨0⟩]!
+    let mut (minChoice, multChoice) := (1000, ∅)
+    let mut firstStepMults := ∅
+    for pathChoice in firstL do
+
+      let newMults := cut2 pathChoice --mergeMults parts (cut2 pathChoice) mult
+      --dbg_trace "'{pathChoice}' newMults summed: {newMults.fold (fun h s m => dbg_trace "within {(minWeight s).1}"; h + m) 0}\n\
+      --            {newMults.toArray}"
+      let expContribution : Nat × Std.HashMap String Nat :=
+        newMults.fold (fun (h, mus) s m => ((minWeight s).1 + h + m, mergeMults mus (minWeight s).2)) (0, ∅)
+      if expContribution.1 < minChoice then
+        minChoice := expContribution.1
+        multChoice := expContribution.2
+        firstStepMults := newMults
+      --dbg_trace "NEW: {expContribution.1}, {expContribution.2.toArray}"
+      --dbg_trace "newMults {newMults.toArray} plus within: {newMults.fold (fun h s m =>
+      --  dbg_trace "using {(minWeight s).2.toArray} for {s}"
+      --  (minWeight s).1 + h + m) 0}"
+      --if newMults.size == 0 then final := newMults else final := newMults
+    --dbg_trace "{minChoice} realized via {multChoice.toArray}, with first choice:\n{firstStepMults.toArray}"
+    final := mergeMults final firstStepMults mult
+--      _
+--    let minS := secL --extractMin secL String.length
+--    choices := choices.push minS
+--    dbg_trace ((str, mult), (secL.fold (·.insert <| ·.length) (∅ : Std.HashSet Nat)).toArray)
+--    dbg_trace ((str, mult), secL.toArray)
+--    dbg_trace ""
+    --if minS.size == 0 then fin := fin else continue
+  return final
+
+-- -- <A A^| ^A A>| >^ ^^ ^A Av| vv vv vA
+-- -- #[(<A, 1), (^A, 2), (vA, 1), (>^, 1), (vv, 2), (^^, 1)] >> --/
+
+#eval do
+  let st := "A456A"
+  let st := "A0A2A9A"
+  let locMin := localMinimizer st "num"
+  IO.println s!"\ntotal: {locMin.fold (fun h _ m => h + m) 0} from {locMin.toArray}"
+  for (p, mult) in locMin do
+    dbg_trace "{(p, mult)}"
+    dbg_trace "{(localMinimizer p "dir").toArray}\n"
+  --let sec : Std.HashMap String Nat :=
+  --  locMin.fold (fun h p m => dbg_trace "missing out on {m}"; mergeMults (localMinimizer p "dir") h m) ∅
+  --IO.println s!"\ntotal: {sec.fold (fun h _ m => h + m) 0} from {sec.toArray}"
+  --let pths := moveEdge ∅ st "num"
+  --IO.println pths.toList --size
+  --let pths := strToPaths mkNum st
+  --IO.println pths.toList
 
 /-- info:
 '<A^A^>^AvvvA'
@@ -402,8 +521,8 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
 -- v<<A>>^A<A>AvA<^AA>A<vAAA>^A
 -/
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest
+  let dat ← IO.FS.lines input
   let mut (mults, memos) := (insertString ∅ ("A" ++ ""), ∅)
   let mut res := 0
   let mut msg := #[]
@@ -422,11 +541,12 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
       --showMults mults
       --IO.println str
       if getMults mults ≤ mint then
-        IO.println s!"{mint}: {inDir}"
+        IO.println s!"                                     -- {mint}: {inDir}"
         mint := getMults mults
         correct := inDir
     (mults, memos) := (insertString ∅ ("A" ++ correct), memos)
     msg := msg.push s!"{correct}: {mint}"
+    memos := ∅
     for i in [0:25] do
       (mults, memos) := increaseOne mults memos
     IO.println s!"{getMults mults} + "
@@ -436,6 +556,7 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
 /-!
 -/
 
+-- 142074832574328 -- too low
 #eval
 964 * 49767208068 +
 140 * 50575382072 +
@@ -443,17 +564,23 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
 670 * 48735351682 +
 593 * 55578896886
 
+-- 359440929327624 -- too high
 #eval
 964 * 125908094772 +
 140 * 127952728204 +
 413 * 131138653760 +
 670 * 123297559500 +
 593 * 140611324032
+
+-- 363423815590716 -- beyond too high
+#eval
+964 * 128760902214 +
+140 * 127952728204 +
+413 * 131138653760 +
+670 * 123297559500 +
+593 * 142690210860
 #exit
 
--- 142074832574328 -- too low
-
--- 359440929327624 -- too high
 
   let second := (strToPaths mkNum "980A").toArray[0]!
   IO.println <| (strToPaths mkNum "029A").toArray
