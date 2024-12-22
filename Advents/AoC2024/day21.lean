@@ -379,10 +379,11 @@ structure window where
 def lth (p : pos) : Nat := p.1.natAbs + p.2.natAbs
 
 def expDist (s : String) (start : Char) : Nat := Id.run do
-  let mut startPos := dirKeys[start]!
+  let keys := dirKeys
+  let mut startPos := keys[start]?.getD (3, 2)
   let mut dist := 0
   for next in s.toList do
-    let nextPos := dirKeys[next]!
+    let nextPos := keys[next]!
     dist := dist + lth (nextPos - startPos)
     startPos := nextPos
   return dist
@@ -455,14 +456,17 @@ def moveWindow (w : window) (type : String) : String × window :=
 def wholeRun (w : window) (type : String) : String := Id.run do
   let mut (s, w) : String × window := ("", w)
   while !w.mv.isEmpty do
+    --dbg_trace w.mv
     let (s', w') := moveWindow w type
     (s, w) := (s ++ s', w')
   s
 
+/-- info: true -/
+#guard_msgs in
 #eval do
   let st := "029A"
   let step := wholeRun {mv := st} "num"
-  IO.println step
+  IO.println <| step == "<A^A>^^AvvvA"
 
 /--
 info: 28 v<<A>>^A<A>AvA<^AA>A<vAAA^>A
@@ -496,6 +500,19 @@ note: this linter can be disabled with `set_option linter.unusedVariables false`
     w := {mv := s}
     IO.println <| w.mv.length
 
+#eval do
+  let dat := atest
+  for st in dat do
+  --let st := "029A"
+  --let st := "980A"
+
+  let mut step := wholeRun {mv := st} "num"
+  let mut w : window := {mv := step}
+  for i in [0:2] do
+    let s := wholeRun w "dir"
+    w := {mv := s}
+  IO.println <| w.mv.length
+
 def splitWindow (w : window) : Std.HashMap window Nat :=
   (w.mv.dropRight 1).splitOn "A" |>.foldl (fun h s => h.alter {mv := s.push 'A'} (some <| ·.getD 0 + 1)) ∅
 
@@ -516,6 +533,23 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
   for i in [0:25] do
     hw := tallyMoveWindow hw
     IO.println <| hw.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
+
+#eval do
+  let dat := atest
+  let mut tally := 0
+  for st in dat do
+  --let st := "029A"
+  --let st := "980A"
+
+    let mut step := wholeRun {mv := st} "num"
+    let mut w : window := {mv := step}
+    let mut hw := splitWindow {mv := step}
+    for i in [0:25] do
+      hw := tallyMoveWindow hw
+    let tot := hw.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
+    tally := tally + tot * st.getNats[0]!
+    IO.println <| tot
+  IO.println <| tally
 
 
 
