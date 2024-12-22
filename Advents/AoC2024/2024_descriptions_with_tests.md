@@ -938,7 +938,7 @@ Racing programs that are allowed to cheat.
 #### Part 1
 
 The input is a maze with a unique path from `S` to `E`.
-Part `1` asks to find the cumulative savings on the distance between `S` and `E` if you are allowed
+Part 1 asks to find the cumulative savings on the distance between `S` and `E` if you are allowed
 to contain at most 1 position that is not on the unique path.
 
 #### Part 2
@@ -947,5 +947,73 @@ Similar to part 1, except that now you are allowed to cross through walls for up
 steps, before resuming on the main course.
 
 [Solution in Lean](day20.lean)
+
+---
+
+#  [Day 22](https://adventofcode.com/2024/day/22)
+
+Trading bananas with the monkeys.
+
+####  Test 0
+
+<pre>
+15887950
+16495136
+527345
+704524
+1553684
+12683156
+11100544
+12249484
+7753432
+5908254
+</pre>
+
+####  Test
+
+<pre>
+1
+10
+100
+2024
+</pre>
+
+####  Test 1
+
+<pre>
+1: 8685429
+10: 4700978
+100: 15273692
+2024: 8667524
+</pre>
+
+####  Test 2
+
+<pre>
+1
+2
+3
+2024
+</pre>
+
+### Description
+
+#### Part 1
+
+The input is a list of integer
+</pre>seeds".
+The monkeys use each seed to generate 2000 new seeds.
+Part 1 asks to compute the sum of all the 2000th generation secrets.
+
+#### Part 2
+
+In part 2, we need to determine the largest number of bananas that we can buy if we can choose to
+buy by just specifying a fixed window of 4 consecutive price differences and buying the bananas
+the first time that window is realized.
+
+This part is slow in my solution.
+This is maybe not too surprising, since I went for a brute-force approach!
+
+[Solution in Lean](day22.lean)
 
 ---
