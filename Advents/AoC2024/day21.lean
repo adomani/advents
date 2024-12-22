@@ -405,7 +405,7 @@ def minPath (start tgt : Char) (type : String) : String := Id.run do
   let mut (minDist, minPath) := (1000, "")
   for candPath in paths do
     let newDist := expDist candPath start
-    if newDist < minDist then
+    if newDist ≤ minDist then
       (minDist, minPath) := (newDist, candPath)
     --if tgtPos == tgtPos then
     --dbg_trace "expDist candPath {candPath} {expDist candPath}"
@@ -500,6 +500,36 @@ note: this linter can be disabled with `set_option linter.unusedVariables false`
     w := {mv := s}
     IO.println <| w.mv.length
 
+/-
+029A:
+<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+<vA<AA>>^AvAA<^A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AAvA^Av<<A>A^>AAA<Av>A^A
+68
+
+980A:
+<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A
+v<<A>>^AAAvA^A<vA<AA>>^AvAA<^A>Av<<A>A^>AAA<Av>A^A<vA^>A<A>A
+60
+
+179A:
+<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
+v<<A>>^A<vA<A>>^AAvAA<^A>Av<<A>>^AAvA^A<vA^>AA<A>Av<<A>A^>AAA<Av>A^A
+68
+
+456A:
+<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
+v<<A>>^A<vA<A>>^AAvA<^A>AvA^A<vA^>A<A>A<vA^>A<A>Av<<A>A^>AA<Av>A^A
+66
+
+379A:
+<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
+v<<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA^>AA<A>Av<<A>A^>AAA<Av>A^A
+64
+
+
+
+-/
+
 #eval do
   let dat := atest
   for st in dat do
@@ -512,6 +542,7 @@ note: this linter can be disabled with `set_option linter.unusedVariables false`
     let s := wholeRun w "dir"
     w := {mv := s}
   IO.println <| w.mv.length
+  IO.println <| w.mv --.length
 
 def splitWindow (w : window) : Std.HashMap window Nat :=
   (w.mv.dropRight 1).splitOn "A" |>.foldl (fun h s => h.alter {mv := s.push 'A'} (some <| ·.getD 0 + 1)) ∅
@@ -536,6 +567,7 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
 
 #eval do
   let dat := atest
+  let dat ← IO.FS.lines input
   let mut tally := 0
   for st in dat do
   --let st := "029A"
@@ -792,6 +824,14 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
 670 * 48735351682 +
 593 * 55578896886
 
+#eval
+964 * 133093870844 + -- multiplications should involve the test numbers
+140 * 115740358202 + -- multiplications should involve the test numbers
+413 * 129556635932 + -- multiplications should involve the test numbers
+670 * 129556635930 + -- multiplications should involve the test numbers
+593 * 124720038676   -- multiplications should involve the test numbers
+-- 246822631766548 -- too high -- misunderstanding: used test file
+
 -- 359440929327624 -- too high
 #eval
 964 * 125908094772 +
@@ -807,6 +847,15 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
 413 * 131138653760 +
 670 * 123297559500 +
 593 * 142690210860
+
+#eval
+964 * 136392453062 +
+140 * 137930468098 +
+413 * 141834898620 +
+670 * 133093870844 +
+593 * 154351814006
+-- 390073922586586
+
 #exit
 
 
