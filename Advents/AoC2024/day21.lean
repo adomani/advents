@@ -206,11 +206,40 @@ def strToPaths (n : KP) (s : String) : Std.HashSet String := Id.run do
     start := tgt
   return fin.filter (validate n)
 
-def cut2 (s : String) : Std.HashMap String Nat := Id.run do
+def cutBasic2 (s : String) : Std.HashMap String Nat := Id.run do
   let mut fin := ∅
   for i in [1:s.length] do
     let si := "".push (s.get ⟨i - 1⟩) |>.push (s.get ⟨i⟩)
     fin := fin.alter si (some <| ·.getD 0 + 1)
+  return fin
+
+#eval cutBasic2 "123123"
+
+/-- Prepend the starting button and segment with pieces of length 2. -/
+def inputToHash (s : String) : Std.HashMap String Nat :=
+  cutBasic2 <| "A" ++ s
+
+
+
+def interleaveA (h : Std.HashMap String Nat) : Std.HashMap String Nat :=
+  h.fold (init := h) fun h p m =>
+    h.alter ((p.take 1).push 'A') (some <| ·.getD 0 + m)
+     |>.alter ((p.drop 1).push 'A') (some <| ·.getD 0 + m)
+
+def cut2 (s : String) : Std.HashMap String Nat := Id.run do
+  let mut fin := ∅
+  for i in [1:s.length - 1] do
+    let si := "".push (s.get ⟨i - 1⟩) |>.push (s.get ⟨i⟩)
+    fin := fin.alter si (some <| ·.getD 0 + 1)
+  return interleaveA fin
+
+def cut2' (s : String) : Std.HashMap String Nat := Id.run do
+  let mut fin := ∅
+  for i in [0:s.length] do
+    --let si1 := "".push (s.get ⟨i - 1⟩) |>.push (s.get ⟨i⟩)
+    let si := "".push (s.get ⟨i ⟩) |>.push 'A'
+    --let si := "A".push (s.get ⟨i - 1⟩) --|>.push (s.get ⟨i⟩)
+    fin := (fin.alter si (some <| ·.getD 0 + 1)) --.alter si1 (some <| ·.getD 0 + 1)
   return fin
 
 def extractMin [BEq α] [Hashable α] (h : Std.HashSet α) (lth : α → Nat) : Std.HashSet α :=
@@ -311,15 +340,15 @@ def localMinimizer (s : String) (type : String) : Std.HashMap String Nat := Id.r
 
 #eval do
   let st := "A456A"
-  let st := "A0A2A9A"
+  let st := "029A"
   let locMin := localMinimizer st "num"
   IO.println s!"\ntotal: {locMin.fold (fun h _ m => h + m) 0} from {locMin.toArray}"
   for (p, mult) in locMin do
     dbg_trace "{(p, mult)}"
     dbg_trace "{(localMinimizer p "dir").toArray}\n"
-  --let sec : Std.HashMap String Nat :=
-  --  locMin.fold (fun h p m => dbg_trace "missing out on {m}"; mergeMults (localMinimizer p "dir") h m) ∅
-  --IO.println s!"\ntotal: {sec.fold (fun h _ m => h + m) 0} from {sec.toArray}"
+  let sec : Std.HashMap String Nat :=
+    (locMin).fold (fun h p m => dbg_trace "missing out on {m}"; mergeMults (localMinimizer p "dir") h m) ∅
+  IO.println s!"\ntotal: {sec.fold (fun h _ m => h + m) 0} from {sec.toArray}"
   --let pths := moveEdge ∅ st "num"
   --IO.println pths.toList --size
   --let pths := strToPaths mkNum st
