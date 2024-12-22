@@ -73,22 +73,29 @@ def iter (s : Nat) : Nat → Nat
 #eval show Elab.Term.TermElabM _ from do
   let t := test
   let dat := t.getNats
-  let mut msg := #[]
-  for d in dat do
-    msg := msg.push s!"{d}: {(iter d 2000)}"
+  let msg := dat.foldl (init := #[]) fun m d => m.push s!"{d}: {(iter d 2000)}"
   guard <| test1 == "\n".intercalate msg.toList
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : String) : Nat :=
+  let dat := dat.getNats
+  let vals := dat.foldl (init := #[]) fun m d => m.push (iter d 2000)
+  vals.sum
 
---#assert part1 atest == ???
+#assert part1 test == 37327623
 
---set_option trace.profiler true in solve 1
+set_option trace.profiler true in solve 1 14869099597 file
 
 /-!
 #  Question 2
 -/
+
+#eval show Elab.Term.TermElabM _ from do
+  let t := test
+  let t ← IO.FS.readFile input
+  let dat := t.getNats
+  let vals := dat.foldl (init := #[]) fun m d => m.push (iter d 2000)
+  IO.println vals.sum
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
