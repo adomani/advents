@@ -371,25 +371,48 @@ def localMinimizer (s : String) (type : String) : Std.HashMap String Nat := Id.r
   --let pths := strToPaths mkNum st
   --IO.println pths.toList
 
+/--
+A `window` has
+* a `seed`, the current character, that starts out being `A` and
+* a `mv`, a sequence of moves, encoded by a string.
+-/
 structure window where
+  /-- A `seed` is the character representing a button to which the robot is currently pointing.
+  It starts out being `A`. -/
   seed : Char := 'A'
+  /-- A `mv` is a sequence of moves, encoded by a string.
+  It represents the next buttons that the robot should push. -/
   mv : String
   deriving BEq, Hashable
 
-inductive keyboard where | num | dir
+/--
+A `keyboard` represents either
+* a `num`eric keyboard with buttons `0` through `9` and `A`; or
+* a `dir`ectional kyeboard with buttons `<`, `^`, `>`, `v` and `A`.
+-/
+inductive keyboard where
+  | /-- A `num`eric keyboard with buttons `0` through `9` and `A`. -/
+    num
+  | /-- A `dir`ectional kyeboard with buttons `<`, `^`, `>`, `v` and `A`. -/
+    dir
 
+/--
+`keys k` converts the `keyboard` `k` into its `HashMap` of keys, mapping a character to
+the corresponding position.
+-/
 def keys : keyboard → Std.HashMap Char pos
   | .dir => dirKeys | .num => numKeys
 
-def lth (p : pos) : Nat := p.1.natAbs + p.2.natAbs
+/-- The L¹-length of an integer vector. -/
+def length (p : pos) : Nat := p.1.natAbs + p.2.natAbs
 
-def expectedDist (s : String) (start : Char) : Nat := Id.run do
-  let keys := dirKeys
+def expectedDist (s : String) (start : Char) (type : keyboard) : Nat := Id.run do
+  let keys := keys type
   let mut startPos := keys[start]?.getD (3, 2)
   let mut dist := 0
   for next in s.toList do
     let nextPos := keys[next]!
-    dist := dist + lth (nextPos - startPos)
+    dist := dist + length (nextPos - startPos)
     startPos := nextPos
   return dist
 
@@ -398,7 +421,7 @@ def validate' (s : String) (start : Char) (type : keyboard) : Bool := Id.run do
   let mut curr := keys[start]!
   for si in s.toList do
     curr := curr + charToMove si
-    if (keys.filter fun _c (q : pos) => curr == q).isEmpty then return false
+    if (keys.filter fun _c q => curr == q).isEmpty then return false
   return true
 
 def minPath (start tgt : Char) (type : keyboard) : String := Id.run do
@@ -409,7 +432,7 @@ def minPath (start tgt : Char) (type : keyboard) : String := Id.run do
   --dbg_trace paths.toArray
   let mut (minDist, minPath) := (1000, "")
   for candPath in paths do
-    let newDist := expectedDist candPath start
+    let newDist := expectedDist candPath start .dir
     if newDist ≤ minDist then
       (minDist, minPath) := (newDist, candPath)
     --if tgtPos == tgtPos then
