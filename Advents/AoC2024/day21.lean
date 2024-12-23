@@ -541,21 +541,21 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
 64: `v<<A>>^AvA^Av<A<AA>>^AAvA<^A>AAvA^Av<A>^AA<A>Av<A<A>>^AAAvA<^A>A`
 -/
 #guard_msgs in
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let dat := atest
+  let mut tot := 0
   for st in dat do
-  --let st := "029A"
-  --let st := "980A"
-
-  let mut step := wholeRun {mv := st} .num
-  let mut w : window := {mv := step}
-  for _ in [0:2] do
-    let s := wholeRun w .dir
-    w := {mv := s}
-  IO.println <| s!"{w.mv.length}: `{w.mv}`"
+    let mut step := wholeRun {mv := st} .num
+    let mut w : window := {mv := step}
+    for _ in [0:2] do
+      let s := wholeRun w .dir
+      w := {mv := s}
+    tot := tot + st.getNats[0]! * w.mv.length
+    IO.println <| s!"{w.mv.length}: `{w.mv}`"
+  guard <| tot == 126384
 
 def splitWindow (w : window) : Std.HashMap window Nat :=
-  (w.mv.dropRight 1).splitOn "A" |>.foldl (fun h s => h.alter {mv := s.push 'A'} (some <| ·.getD 0 + 1)) ∅
+  (w.mv.dropRight 1).splitOn "A" |>.foldl (·.alter {mv := ·.push 'A'} (some <| ·.getD 0 + 1)) ∅
 
 def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.run do
   let mut fin := ∅
