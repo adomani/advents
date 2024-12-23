@@ -50,12 +50,31 @@ def atest := (test.splitOn "\n").toArray
 structure graph where
   edges : Std.HashSet (String × String)
 
-def inputToGraph1 (dat : Array String) : graph where
+def inputToGraph (dat : Array String) : graph where
   edges := dat.foldl (init := ∅) fun h s =>
-    --if (s.splitOn "t").length == 1 then h else
     match s.splitOn "-" with
       | [a, b] => h.insert (a, b) |>.insert (b, a)
       | _ => panic "wrong input!"
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := Id.run do
+  let gr := inputToGraph dat
+  let mut trs : Std.HashSet (Array String) := ∅
+  for (e, f) in gr.edges do
+    if ! e.startsWith "t" then continue
+    for (g, h) in gr.edges do
+        if g == f && gr.edges.contains (h, e) then
+          trs := trs.insert <| #[e, f, h].qsort (· < ·)
+  trs.size
+
+#assert part1 atest == 7
+
+set_option trace.profiler true in solve 1 1000
+
+/-!
+#  Question 2
+-/
+
 
 /-
 tc,td,wh
@@ -71,7 +90,7 @@ td,wh,yn
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
-  let gr := inputToGraph1 dat
+  let gr := inputToGraph dat
   --IO.println gr.edges.toArray
   let mut trs : Std.HashSet (Array String) := ∅
   for (e, f) in gr.edges do
@@ -88,19 +107,6 @@ td,wh,yn
   for t in trs do IO.println t--rs.toArray
 
 -- 2195
-
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
