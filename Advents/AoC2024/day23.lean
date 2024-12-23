@@ -197,10 +197,32 @@ eval do
 def getNbs (g : graph) (h : Std.HashSet String) : Std.HashSet String :=
   g.edges.fold (fun nbs (a, b) => if h.contains a then nbs.insert b else nbs) ∅
 
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) (param : Nat := 37) : String := Id.run do
+  let mut gr := inputToGraph dat
+  let mut nbs13 := gr.vertices
+  for v in gr.vertices do
+    let nbs := getNbs gr (getNbs gr {v})
+    if nbs.size ≤ param then
+      nbs13 := nbs13.filter nbs.contains
+  showClique nbs13
+
+#eval part2 atest 9 --== "co,de,ka,ta"
+#assert part2 atest 17 == "co,de,ka,ta"
+
+set_option trace.profiler true in solve 2 "cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd"
+#exit
 set_option trace.profiler true in
 #eval do
   let dat ← IO.FS.lines input
   let mut gr := inputToGraph dat
+  let mut nbs13 := gr.vertices
+  for v in gr.vertices do
+    let nbs := getNbs gr (getNbs gr {v})
+    if nbs.size ≤ 37 then
+      nbs13 := nbs13.filter nbs.contains
+  IO.println <| showClique nbs13
+#exit
   let c : clique := {
     gr := gr
     cl := {"cf","ct","cv","cz","fi","lq","my","pa","sl","tt","vw","wz","yd"}
@@ -333,12 +355,5 @@ there are 11011 cliques with at least 3 vertices(?).  Found in [1171.946153]s
     gr := rest
   --IO.println <| showClique (cliqueContaining gr ("ka", "co"))
 
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
 
 end Day23
