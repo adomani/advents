@@ -47,10 +47,18 @@ td-yn"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+A `graph` is simply a `HashSet` of pairs of vertices.
+Each pair appears in both orders and the entries are strings.
+For the problem, they are 2-letter strings, though this is not relevant.
+-/
 structure graph where
+  /-- `edges` is a `HashSet` of pairs of vertices.
+  Each pair appears in both orders and the entries are strings. -/
   edges : Std.HashSet (String × String)
   deriving Inhabited
 
+/-- Converts the input data into a `graph`. -/
 def inputToGraph (dat : Array String) : graph where
   edges := dat.foldl (init := ∅) fun h s =>
     match s.splitOn "-" with
@@ -78,12 +86,20 @@ solve 1 1000 -- under 3s
 
 namespace graph
 
+/--
+Displays the answer in the form that the problem requires: comma-separated, no spaces and sorted.
+-/
 def showHash (h : Std.HashSet String) : String :=
   ",".intercalate (h.toArray.qsort (· < ·)).toList
 
+/-- If `g : graph` is a graph, then `g.vertices` returns the vertices of `g`. -/
 def vertices (g : graph) : Std.HashSet String :=
   g.edges.fold (init := ∅) fun h (e, f) => h.insert e |>.insert f
 
+/--
+If `g : graph` is a graph, then `g.getNeighbours h` finds the vertices that are at distance one
+from a vertex in `h` in `g`.
+-/
 def getNeighbours (g : graph) (h : Std.HashSet String) : Std.HashSet String :=
   g.edges.fold (fun nbs (a, b) => if h.contains a then nbs.insert b else nbs) ∅
 
@@ -101,7 +117,7 @@ def part2 (dat : Array String) (param : Nat := 37) : String :=
 
 #assert part2 atest 9 == "co,de,ka,ta,tb,tc" -- this should be `"co,de,ka,ta"`!
 
-set_option trace.profiler true in solve 2 "cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd"
+solve 2 "cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd" -- takes approximately 11s
 
 end graph
 
