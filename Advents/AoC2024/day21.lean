@@ -220,7 +220,7 @@ def cutBasic2 (s : String) : Std.HashMap String Nat := Id.run do
     fin := fin.alter si (some <| ·.getD 0 + 1)
   return fin
 
-#eval cutBasic2 "123123"
+#assert (cutBasic2 "123123").toList == [("31", 1), ("12", 2), ("23", 2)]
 
 /-- Prepend the starting button and segment with pieces of length 2. -/
 def inputToHash (s : String) : Std.HashMap String Nat :=
@@ -273,7 +273,7 @@ def moveEdge (h : Std.HashMap String Nat) (s : String) (type : String) :
         for n in next do
           dbg_trace "dealing with {n}"
           let parts := cut2 n
-          let mut tot := 0
+          --let mut tot := 0
           for (str, mult) in parts do
             let secL := findPaths dirKeys[str.get ⟨0⟩]! dirKeys[str.get ⟨1⟩]!
             let minS := extractMin secL String.length
@@ -351,8 +351,8 @@ def localMinimizer (s : String) (type : String) : Std.HashMap String Nat := Id.r
 
 
 #eval do
-  let st := "A456A"
-  let st := "A029A"
+  let sts := #["A456A", "A029A"]
+  let st := sts[1]!
   let locMin := localMinimizer (st) "num"
   IO.println s!"\ntotal: {locMin.fold (fun h _ m => h + m) 0} from {locMin.toArray}"
   --for (p, mult) in locMin do
@@ -489,10 +489,12 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
   guard <| wholeRun {mv := s} .dir == "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A"
   -- input `<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A`
 
+/-- info: 28 68 -/
+#guard_msgs in
 #eval do
   let dat := "<A^A>^^AvvvA"
   let mut w : window := {mv := dat}
-  for i in [0:2] do
+  for _ in [0:2] do
     let s := wholeRun w .dir
     w := {mv := s}
     IO.println <| w.mv.length
@@ -519,6 +521,14 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
 `v<<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA^>AA<A>Av<<A>A^>AAA<Av>A^A`
 -/
 
+/-- info:
+68: `v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A`
+60: `v<<A>>^AAAvA^Av<A<AA>>^AvAA<^A>Av<A<A>>^AAAvA<^A>Av<A>^A<A>A`
+68: `v<<A>>^Av<A<A>>^AAvAA<^A>Av<<A>>^AAvA^Av<A>^AA<A>Av<A<A>>^AAAvA<^A>A`
+64: `v<<A>>^AAv<A<A>>^AAvAA<^A>Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A`
+64: `v<<A>>^AvA^Av<A<AA>>^AAvA<^A>AAvA^Av<A>^AA<A>Av<A<A>>^AAAvA<^A>A`
+-/
+#guard_msgs in
 #eval do
   let dat := atest
   for st in dat do
@@ -527,11 +537,10 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
 
   let mut step := wholeRun {mv := st} .num
   let mut w : window := {mv := step}
-  for i in [0:2] do
+  for _ in [0:2] do
     let s := wholeRun w .dir
     w := {mv := s}
-  IO.println <| w.mv.length
-  IO.println <| w.mv --.length
+  IO.println <| s!"{w.mv.length}: `{w.mv}`"
 
 def splitWindow (w : window) : Std.HashMap window Nat :=
   (w.mv.dropRight 1).splitOn "A" |>.foldl (fun h s => h.alter {mv := s.push 'A'} (some <| ·.getD 0 + 1)) ∅
@@ -545,15 +554,59 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
       fin := fin.alter p (some <| ·.getD 0 + mult * m')
   return fin
 
+/-- info:
+1 × `vvvA`
+1 × `^A`
+1 × `<A`
+1 × `>^^A`
+28
+68
+168
+426
+1078
+2736
+6942
+17622
+44732
+113556
+288272
+731810
+1857782
+4716192
+11972598
+30393822
+77158236
+195875108
+497251640
+1262330842
+3204572982
+8135179472
+20652094862
+52427733542
+133093870844
+-/
+#guard_msgs in
 #eval do
   let dat := "<A^A>^^AvvvA"
   let mut hw := splitWindow {mv := dat}
   for (w, m) in hw do
-    IO.println <| s!"{w.mv} × {m}"
-  for i in [0:25] do
+    IO.println <| s!"{m} × `{w.mv}`"
+  for _ in [0:25] do
     hw := tallyMoveWindow hw
     IO.println <| hw.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
 
+/-- info:
+136392453062
+137930468098
+141834898620
+133093870844
+154351814006
+390073922586586
+---
+warning: unused variable `dat`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
+-/
+#guard_msgs in
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
@@ -563,9 +616,9 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
   --let st := "980A"
 
     let mut step := wholeRun {mv := st} .num
-    let mut w : window := {mv := step}
+    --let mut w : window := {mv := step}
     let mut hw := splitWindow {mv := step}
-    for i in [0:25] do
+    for _ in [0:25] do
       hw := tallyMoveWindow hw
     let tot := hw.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
     tally := tally + tot * st.getNats[0]!
@@ -575,16 +628,16 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
 
 
 /-- info:
-'<A^A^>^AvvvA'
-'<A^A^^>AvvvA'
-'<A^A>^^AvvvA'
+`<A^A^>^AvvvA`
+`<A^A^^>AvvvA`
+`<A^A>^^AvvvA`
 -/
 #guard_msgs in
 #eval do
   let str := "029A"
   let steps := strToPaths mkNum str
   for s in steps do
-    IO.println s!"'{s}'"
+    IO.println s!"`{s}`"
 
 def nextDirLayer (currLayer : Std.HashSet String) : Std.HashSet String :=
   let nextLayer : Std.HashSet String :=
