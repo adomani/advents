@@ -148,6 +148,14 @@ def seqs {α} [BEq α] [Hashable α] : List α → List α → Std.HashSet (List
 --termination_by fun a b => _ --exact L.length + M.length
 --decreasing_by _ --L.length + M.length
 
+def straight (s : String) : String :=
+  let new := s |>.replace "^>A" ">^A" |>.replace "<v<" "v<<" |>.replace "vA<^A>A" "<Av>A^A"
+  if s != new then
+    --dbg_trace "found!"
+    new
+  else
+    new
+
 /--
 Computes all paths from `q` to `p` that are minimal with respect to the L¹-distance,
 written as strings of instructions `<`, `^`, `>`, `v`.
@@ -157,7 +165,7 @@ def findPaths (p q : pos) : Std.HashSet String :=
   let mv := p - q
   let right := List.replicate mv.2.natAbs (posToChar (0, mv.2.sign))
   let left :=  List.replicate mv.1.natAbs (posToChar (mv.1.sign, 0))
-  seqs left right |>.fold (init := ∅) (·.insert <| (⟨·⟩ : String).push 'A')
+  seqs left right |>.fold (init := ∅) (·.insert <| straight <| (⟨·⟩ : String).push 'A')
 
 /--
 info: <<vA
@@ -452,7 +460,7 @@ def minPath (start tgt : Char) (type : keyboard) : String := Id.run do
 --  dbg_trace x
   --dbg_trace "chosen `{minPath}` with {alts minPath} alternations, minimum: {minAlts}"
   if minAlts < alts minPath then dbg_trace "***************** Oh no!"
-  return minPath
+  return straight minPath
 
 -- `#[v<<A, <v<A]`
 #eval show Elab.Term.TermElabM _ from do
@@ -482,7 +490,7 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
     --dbg_trace w.mv
     let (s', w') := moveWindow w type
     (s, w) := (s ++ s', w')
-  s
+  s.replace "<v<" "v<<"
 
 #eval show Elab.Term.TermElabM _ from do
   let st := "029A"
@@ -555,13 +563,19 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
   guard <| tot == 126384
 
 def splitWindow (w : window) : Std.HashMap window Nat :=
-  (w.mv.dropRight 1).splitOn "A" |>.foldl (·.alter {mv := ·.push 'A'} (some <| ·.getD 0 + 1)) ∅
+  ((straight w.mv).dropRight 1).splitOn "A" |>.foldl (·.alter {mv := ·.push 'A'} (some <| ·.getD 0 + 1)) ∅
+
+def straightenOneWindow (w : window) : window :=
+  {w with mv := straight w.mv}
+
+def splitAndStraightenWindow (w : window) : Std.HashMap window Nat :=
+  splitWindow (straightenOneWindow w) |>.fold (fun h w mult => h.alter w (some <| ·.getD 0 + mult)) ∅
 
 def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.run do
   let mut fin := ∅
   for (w, mult) in h do
     let s := wholeRun w .dir
-    let pieces := splitWindow {mv := s}
+    let pieces := splitAndStraightenWindow {mv := s}
     for (p, m') in pieces do
       fin := fin.alter p (some <| ·.getD 0 + mult * m')
   return fin
@@ -600,12 +614,27 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
 #guard_msgs in
 #eval do
   let dat := "<A^A>^^AvvvA"
-  let mut hw := splitWindow {mv := dat}
+  let mut hw := splitAndStraightenWindow {mv := dat}
   for (w, m) in hw do
     IO.println <| s!"{m} × `{w.mv}`"
   for _ in [0:25] do
     hw := tallyMoveWindow hw
     IO.println <| hw.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
+
+#eval do
+  let is := #[
+    "<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A",
+    "v<<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA^>AA<A>Av<<A>A^>AAAvA<^A>A",
+    "v<<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA^>AA<A>Av<<A>A^>AAA<Av>A^A"]
+  for a in is do
+    let ta := splitAndStraightenWindow {mv := a}
+    let ta := tallyMoveWindow ta
+    let ta := tallyMoveWindow ta
+    let ta := tallyMoveWindow ta
+    let ta := tallyMoveWindow ta
+    let ta := tallyMoveWindow ta
+    IO.println <| ta.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
+
 
 /-- info:
 136392453062
@@ -629,7 +658,7 @@ note: this linter can be disabled with `set_option linter.unusedVariables false`
 
     let mut step := wholeRun {mv := st} .num
     --let mut w : window := {mv := step}
-    let mut hw := splitWindow {mv := step}
+    let mut hw := splitAndStraightenWindow {mv := step}
     for _ in [0:25] do
       hw := tallyMoveWindow hw
     let tot := hw.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
@@ -637,7 +666,47 @@ note: this linter can be disabled with `set_option linter.unusedVariables false`
     IO.println <| tot
   IO.println <| tally
 
+#eval show Elab.Term.TermElabM _ from do
+  let dat := atest
+  let mut tally := 0
+  let mut totals := #[]
+  for st in dat do
+    let step := wholeRun {mv := st} .num
+    let mut hw := splitAndStraightenWindow {mv := step}
+    for _ in [0:2] do
+      hw := tallyMoveWindow hw
+    let tot := hw.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
+    tally := tally + tot * st.getNats[0]!
+    totals := totals.push tot
+  totals := totals.push tally
+  guard <| totals == #[68, 60, 68, 64, 64, 126384]
 
+/--
+Returns the answer to the puzzle, where `reps = 2` for part 1 and `reps = 25` for part 2.
+The first output values are the lengths of the final strings of each input, in order;
+the last output value is the answer.
+
+**Warning.** Yields the *wrong* answer for part 2, certainly for the actual puzzle,
+likely also for the test.
+-/
+def combined (dat : Array String) (reps : Nat) :
+    Array Nat := Id.run do
+  let mut tally := 0
+  let mut totals := #[]
+  for st in dat do
+    let step := wholeRun {mv := st} .num
+    let mut hw := splitAndStraightenWindow {mv := step}
+    for _ in [0:reps] do
+      hw := tallyMoveWindow hw
+    let tot := hw.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
+    tally := tally + tot * st.getNats[0]!
+    totals := totals.push tot
+  totals.push tally
+
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  IO.println <| combined dat 25
 
 /-- info:
 `<A^A^>^AvvvA`
