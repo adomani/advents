@@ -950,6 +950,22 @@ steps, before resuming on the main course.
 
 ---
 
+#  [Day 21](https://adventofcode.com/2024/day/21)
+
+####  Test
+
+<pre>
+029A
+980A
+179A
+456A
+379A
+</pre>
+
+[Solution in Lean](day21.lean)
+
+---
+
 #  [Day 22](https://adventofcode.com/2024/day/22)
 
 Trading bananas with the monkeys.
@@ -1015,5 +1031,73 @@ This part is slow in my solution.
 This is maybe not too surprising, since I went for a brute-force approach!
 
 [Solution in Lean](day22.lean)
+
+---
+
+#  [Day 23](https://adventofcode.com/2024/day/23)
+
+LAN party: finding maximal cliques in graphs.
+
+####  Test
+
+<pre>
+kh-tc
+qp-kh
+de-cg
+ka-co
+yn-aq
+qp-ub
+cg-tb
+vc-aq
+tb-ka
+wh-tc
+yn-cg
+kh-ub
+ta-co
+de-co
+tc-td
+tb-wq
+wh-td
+ta-ka
+td-qp
+aq-cg
+wq-ub
+ub-vc
+de-ta
+wq-aq
+wq-vc
+wh-yn
+ka-de
+kh-ta
+co-tc
+wh-qp
+tb-vc
+td-yn
+</pre>
+
+### Description
+
+#### Part 1
+
+The input is a list of edges of a graph, whose vertices are 2-letter strings.
+We should determine the number of triangles in the graph, such that at least one of the vertices
+in the triangle starts with `t`.
+
+#### Part 2
+
+Now we should find a maximal clique.
+The input that I received is a regular graph of valence 13 (and the example graph is also regular,
+but of valence 6).
+In the input graph, there is a maximal clique on 13 vertices, with the property that the
+</pre>external" edges (each vertex in the clique has exactly one neighbour outside) are 13 distinct
+vertices.
+We find the clique by scanning all vertices, isolating the ones for which the set of neighbours
+of the neighbours is (at most) 37.
+Intersecting the neighbourhoods of the resulting vertices, we find the maximal clique.
+
+There must be some further property of this graph that I missed,
+since this approach fails on the test.
+
+[Solution in Lean](day23.lean)
 
 ---
