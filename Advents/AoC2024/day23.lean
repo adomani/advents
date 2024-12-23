@@ -47,6 +47,49 @@ td-yn"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+structure graph where
+  edges : Std.HashSet (String × String)
+
+def inputToGraph1 (dat : Array String) : graph where
+  edges := dat.foldl (init := ∅) fun h s =>
+    --if (s.splitOn "t").length == 1 then h else
+    match s.splitOn "-" with
+      | [a, b] => h.insert (a, b) |>.insert (b, a)
+      | _ => panic "wrong input!"
+
+/-
+tc,td,wh
+
+co,de,ta
+co,ka,ta
+de,ka,ta
+qp,td,wh
+tb,vc,wq
+td,wh,yn
+-/
+
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let gr := inputToGraph1 dat
+  --IO.println gr.edges.toArray
+  let mut trs : Std.HashSet (Array String) := ∅
+  for (e, f) in gr.edges do
+    if ! e.startsWith "t" then continue
+    for (g, h) in gr.edges do
+    --let fromF : Std.HashSet (Array String) :=
+      --gr.edges.fold (init := ∅) fun trf (g, h) =>
+        if g == f && gr.edges.contains (h, e) then
+          trs := trs.insert <| #[e, f, h].qsort (· < ·)
+        --else trf
+  --trs := trs.union <| fromF --.fold (init := ∅)
+  for t in trs do let T : Std.HashSet String :=  .ofArray t; if T.size != 3 then IO.println t
+  IO.println trs.size --toArray
+  for t in trs do IO.println t--rs.toArray
+
+-- 2195
+
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
