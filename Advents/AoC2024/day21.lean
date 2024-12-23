@@ -442,44 +442,27 @@ def minPath (start tgt : Char) (type : keyboard) : String := Id.run do
 --  dbg_trace x
   return minPath
 
--- -- #[v<<A, <v<A]
-/--
-info:
-v<<A
--/
-#guard_msgs in
-#eval do
+-- `#[v<<A, <v<A]`
+#eval show Elab.Term.TermElabM _ from do
   if let [s, t] := "A<".toList then
-    dbg_trace minPath s t .dir
+    guard <| minPath s t .dir == "v<<A"
 
--- -- #[>>^A, >^>A]
-/--
-info:
->>^A
--/
-#guard_msgs in
-#eval do
+-- `#[>>^A, >^>A]`
+#eval show Elab.Term.TermElabM _ from do
   if let [s, t] := "<A".toList then
-    dbg_trace minPath s t .dir
+    guard <| minPath s t .dir == ">>^A"
 
--- -- #[<vA, v<A]
-/--
-info:
-v<A
--/
-#guard_msgs in
-#eval do
+-- `#[<vA, v<A]`
+#eval show Elab.Term.TermElabM _ from do
   if let [s, t] := "Av".toList then
-    dbg_trace minPath s t .dir
+    guard <| minPath s t .dir == "v<A"
 
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   if let [s, t] := "A^".toList then
-    dbg_trace minPath s t .dir
+    guard <| minPath s t .dir == "<A"
 
 def moveWindow (w : window) (type : keyboard) : String × window :=
   (minPath w.seed (w.mv.get 0) type, {seed := w.mv.get 0, mv := w.mv.drop 1})
-
---  {(w, 0)}
 
 def wholeRun (w : window) (type : keyboard) : String := Id.run do
   let mut (s, w) : String × window := ("", w)
@@ -489,36 +472,22 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
     (s, w) := (s ++ s', w')
   s
 
-/-- info: true -/
-#guard_msgs in
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let st := "029A"
   let step := wholeRun {mv := st} .num
-  IO.println <| step == "<A^A>^^AvvvA"
+  guard <| step == "<A^A>^^AvvvA"
 
-/--
-info: 28 v<<A>>^A<A>AvA<^AA>Av<AAA>^A
-true
-v<<A>>^A<A>AvA<^AA>A<vAAA>^A
-v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A
-<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
----
-warning: unused variable `dat`
-note: this linter can be disabled with `set_option linter.unusedVariables false`
--/
-#guard_msgs in
-#eval do
-  let dat := "<A^A>^^AvvvA"
+#eval show Elab.Term.TermElabM _ from do
   let dat := "<A^A>^^AvvvA"
   let mut (s, w) : String × window := ("", {mv := dat})
   while !w.mv.isEmpty do
     let (s', w') := moveWindow w .dir
     (s, w) := (s ++ s', w')
-  IO.println s!"{s.length} {s}"
-  IO.println <| s == wholeRun {mv := dat} .dir
-  IO.println <| "v<<A>>^A<A>AvA<^AA>A<vAAA>^A"
-  IO.println <| wholeRun {mv := s} .dir
-  IO.println <| "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
+  guard <| s.length == 28
+  guard <| s == "v<<A>>^A<A>AvA<^AA>Av<AAA>^A" -- input `v<<A>>^A<A>AvA<^AA>A<vAAA>^A`
+  guard <| s == wholeRun {mv := dat} .dir
+  guard <| wholeRun {mv := s} .dir == "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A"
+  -- input `<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A`
 
 #eval do
   let dat := "<A^A>^^AvvvA"
@@ -529,33 +498,25 @@ note: this linter can be disabled with `set_option linter.unusedVariables false`
     IO.println <| w.mv.length
 
 /-
-029A:
-<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
-<vA<AA>>^AvAA<^A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AAvA^Av<<A>A^>AAA<Av>A^A
-68
+029A: 68
+`<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A`
+`<vA<AA>>^AvAA<^A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AAvA^Av<<A>A^>AAA<Av>A^A`
 
-980A:
-<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A
-v<<A>>^AAAvA^A<vA<AA>>^AvAA<^A>Av<<A>A^>AAA<Av>A^A<vA^>A<A>A
-60
+980A: 60
+`<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A`
+`v<<A>>^AAAvA^A<vA<AA>>^AvAA<^A>Av<<A>A^>AAA<Av>A^A<vA^>A<A>A`
 
-179A:
-<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-v<<A>>^A<vA<A>>^AAvAA<^A>Av<<A>>^AAvA^A<vA^>AA<A>Av<<A>A^>AAA<Av>A^A
-68
+179A: 68
+`<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A`
+`v<<A>>^A<vA<A>>^AAvAA<^A>Av<<A>>^AAvA^A<vA^>AA<A>Av<<A>A^>AAA<Av>A^A`
 
-456A:
-<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
-v<<A>>^A<vA<A>>^AAvA<^A>AvA^A<vA^>A<A>A<vA^>A<A>Av<<A>A^>AA<Av>A^A
-66
+456A: 66
+`<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A`
+`v<<A>>^A<vA<A>>^AAvA<^A>AvA^A<vA^>A<A>A<vA^>A<A>Av<<A>A^>AA<Av>A^A`
 
-379A:
-<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-v<<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA^>AA<A>Av<<A>A^>AAA<Av>A^A
-64
-
-
-
+379A: 64
+`<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A`
+`v<<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA^>AA<A>Av<<A>A^>AAA<Av>A^A`
 -/
 
 #eval do
