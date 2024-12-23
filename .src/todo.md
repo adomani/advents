@@ -31,4 +31,6 @@
 * Day 19, part 2 is slow (cheating programs through a maze -- Manhattan distance,
   approximately 1m -- try to implement by keeping track of the fact that shorter cheats are reused
   multiple times)
+* Day 22, part 2 is slow (minimizing price windows to obtain bananas -- bitwise operations,
+  approximately 3m -- try to streamline the generation of the bits for speed up?)
 * Day 23, part 2 takes approximately 11s, however, the test is quicker, but does not work!
