@@ -424,6 +424,11 @@ def validate' (s : String) (start : Char) (type : keyboard) : Bool := Id.run do
     if (keys.filter fun _c q => curr == q).isEmpty then return false
   return true
 
+def switchAt (s : String) (n : Nat) : Bool := s.get ⟨n⟩ != s.get ⟨n + 1⟩
+
+def alts (s : String) : Nat :=
+  (Array.range s.length).foldl (· + if switchAt s · then 1 else 0) 0
+
 def minPath (start tgt : Char) (type : keyboard) : String := Id.run do
   let keys := keys type
   let startPos := keys[start]!
@@ -431,15 +436,22 @@ def minPath (start tgt : Char) (type : keyboard) : String := Id.run do
   let paths := findPaths tgtPos startPos |>.filter (validate' · start type)
   --dbg_trace paths.toArray
   let mut (minDist, minPath) := (1000, "")
+  let mut minAlts := 1000
   for candPath in paths do
+    minAlts := min minAlts (alts candPath)
+    --dbg_trace "alts `{candPath}` = {alts candPath}"
     let newDist := expectedDist candPath start .dir
     if newDist ≤ minDist then
+      --if !minPath.isEmpty then
+      --  dbg_trace "min changes? {(newDist < minDist : Bool)}, oldPath: '{minPath}'"
       (minDist, minPath) := (newDist, candPath)
     --if tgtPos == tgtPos then
     --dbg_trace "expDist candPath {candPath} {expDist candPath}"
     --else continue
 --    x := 0
 --  dbg_trace x
+  --dbg_trace "chosen `{minPath}` with {alts minPath} alternations, minimum: {minAlts}"
+  if minAlts < alts minPath then dbg_trace "***************** Oh no!"
   return minPath
 
 -- `#[v<<A, <v<A]`
@@ -489,15 +501,15 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
   guard <| wholeRun {mv := s} .dir == "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A"
   -- input `<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A`
 
-/-- info: 28 68 -/
-#guard_msgs in
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let dat := "<A^A>^^AvvvA"
   let mut w : window := {mv := dat}
+  let mut lengths := #[]
   for _ in [0:2] do
     let s := wholeRun w .dir
     w := {mv := s}
-    IO.println <| w.mv.length
+    lengths := lengths.push w.mv.length
+  guard <| lengths == #[28, 68]
 
 /-
 029A: 68
@@ -858,45 +870,41 @@ def increaseOne (reps : Std.HashMap String Nat) (memo : Std.HashMap String (Arra
 /-!
 -/
 
--- 142074832574328 -- too low
-#eval
+#assert 142074832574328 == -- too low
 964 * 49767208068 +
 140 * 50575382072 +
 413 * 51834670766 +
 670 * 48735351682 +
 593 * 55578896886
 
-#eval
-964 * 133093870844 + -- multiplications should involve the test numbers
-140 * 115740358202 + -- multiplications should involve the test numbers
-413 * 129556635932 + -- multiplications should involve the test numbers
-670 * 129556635930 + -- multiplications should involve the test numbers
-593 * 124720038676   -- multiplications should involve the test numbers
--- 246822631766548 -- too high -- misunderstanding: used test file
+#assert 246822631766548 == -- too high -- misunderstanding: used test file
+ 29 * 133093870844 +
+980 * 115740358202 +
+179 * 129556635932 +
+456 * 129556635930 +
+379 * 124720038676
+--
 
--- 359440929327624 -- too high
-#eval
+#assert 359440929327624 == -- too high
 964 * 125908094772 +
 140 * 127952728204 +
 413 * 131138653760 +
 670 * 123297559500 +
 593 * 140611324032
 
--- 363423815590716 -- beyond too high
-#eval
+#assert 363423815590716 == -- beyond too high
 964 * 128760902214 +
 140 * 127952728204 +
 413 * 131138653760 +
 670 * 123297559500 +
 593 * 142690210860
 
-#eval
+#assert 390073922586586 == -- beyond too high
 964 * 136392453062 +
 140 * 137930468098 +
 413 * 141834898620 +
 670 * 133093870844 +
 593 * 154351814006
--- 390073922586586
 
 #exit
 
