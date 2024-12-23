@@ -108,7 +108,7 @@ def cliqueContainingAnd (gr : graph) (e : String × String) : Std.HashSet String
       leftGraph := leftGraph.erase new |>.erase (f, st)
   return (fin, ⟨leftGraph⟩)
 
-def showClique (h : Std.HashSet String) : String :=
+def showHash (h : Std.HashSet String) : String :=
   ",".intercalate (h.toArray.qsort (· < ·)).toList
 
 def valence (g : graph) (e : String) : Nat :=
@@ -159,6 +159,8 @@ ez,fg,jt,kv,ng,nv,nx,oa,ph,uw,wh,xn
   let mut gr := inputToGraph dat
   --let verts := gr.vertices
   --IO.println s!"There are {verts.size} vertices and {(verts.size * (verts.size - 1)) / 2} possible edges.\nThere are {gr.edges.size} edges"
+  let allNbs : Array (String × Std.HashSet String) :=
+    gr.vertices.fold (fun h v => h.push (v, getNbs gr {v})) ∅
   let mut goodU : Std.HashSet String := {}
   let mut goodI : Std.HashSet String := gr.vertices
   for v in gr.vertices do
@@ -166,6 +168,9 @@ ez,fg,jt,kv,ng,nv,nx,oa,ph,uw,wh,xn
     --let cl : clique := {gr := gr, cl := {v}, left := gr.vertices.erase v}
     let nbs := getNbs gr {v}
     let nbs := getNbs gr nbs
+    let nbs := (allNbs.find? (·.1 == v)).get!.2 --[0]!
+    let nbs : Std.HashSet String :=
+      allNbs.foldl (init := ∅) fun h (w, nw) => if nbs.contains w then h.union nw else h
     if nbs.size ≤ perim then
 --    let cls := expandClique cl
 --    for next in cls do
@@ -175,8 +180,8 @@ ez,fg,jt,kv,ng,nv,nx,oa,ph,uw,wh,xn
         goodU := goodU.insert v
         goodI := goodI.filter nbs.contains
         --IO.println s!"{showClique nbs}: {nbs.size}"
-  IO.println s!"goodU: {showClique goodU}"
-  IO.println s!"goodI: {showClique goodI}"
+  IO.println s!"goodU: {showHash goodU}"
+  IO.println s!"goodI: {showHash goodI}"
 /-!
 -/
 
@@ -209,19 +214,21 @@ eval do
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) (param : Nat := 37) : String := Id.run do
-  let mut gr := inputToGraph dat
-  let mut nbs13 := gr.vertices
-  for v in gr.vertices do
-    let nbs := getNbs gr (getNbs gr {v})
-    if nbs.size ≤ param then
-      nbs13 := nbs13.filter nbs.contains
-  showClique nbs13
+def part2 (dat : Array String) (param : Nat := 37) : String :=
+  let gr := inputToGraph dat
+  let allNbs : Array (String × Std.HashSet String) :=
+    gr.vertices.fold (fun h v => h.push (v, getNbs gr {v})) ∅
+  let clique : Std.HashSet String := gr.vertices.fold (init := ∅) fun h v =>
+    let nbdV := (allNbs.find? (·.1 == v)).get!.2
+    let nbs : Std.HashSet String :=
+      allNbs.foldl (init := ∅) fun h (w, nw) => if nbdV.contains w then h.union nw else h
+    if nbs.size ≤ param then h.insert v else h
+  showHash clique
 
 #eval part2 atest 9 --== "co,de,ka,ta"
 #assert part2 atest 17 == "co,de,ka,ta"
-
---set_option trace.profiler true in solve 2 "cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd"
+#exit
+set_option trace.profiler true in solve 2 "cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd"
 #exit
 set_option trace.profiler true in
 #eval do
