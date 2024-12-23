@@ -138,6 +138,12 @@ def expandClique (c : clique) : Array clique := Id.run do
       nextCliques := nextCliques.push ({c with cl := c.cl.insert v, left := c.left.erase v})
   return nextCliques
 
+def edgeNumbers (g : graph) (h : Std.HashSet String) : Nat :=
+  (g.edges.filter fun (a, b) => h.contains a && h.contains b).size / 2
+
+def getNbs (g : graph) (h : Std.HashSet String) : Std.HashSet String :=
+  g.edges.fold (fun nbs (a, b) => if h.contains a then nbs.insert b else nbs) ∅
+
 set_option trace.profiler true in
 /-
 ac,ei,gj,kh,li,lx,mz,oo,pr,sk,uh,wm
@@ -147,27 +153,35 @@ ez,fg,jt,kv,ng,nv,nx,oa,ph,uw,wh,xn
 /-
 
 -/
-eval do
-  let dat := atest
-  let dat ← IO.FS.lines input
+#eval do
+  let (dat, perim) := (atest, 9)
+  let (dat, perim) := (← IO.FS.lines input, 37)
   let mut gr := inputToGraph dat
   --let verts := gr.vertices
   --IO.println s!"There are {verts.size} vertices and {(verts.size * (verts.size - 1)) / 2} possible edges.\nThere are {gr.edges.size} edges"
+  let mut goodU : Std.HashSet String := {}
+  let mut goodI : Std.HashSet String := gr.vertices
   for v in gr.vertices do
-    IO.println s!"** {v}"
-    let cl : clique := {gr := gr, cl := {v}, left := gr.vertices.erase v}
-    let cls := expandClique cl
-    for next in cls do
-      let cl2 := expandClique next
-      let sz := cl2.size
-      if sz != 10 then
-        IO.println s!"{showClique next.cl}: {sz}"
+    --IO.println s!"** {v}"
+    --let cl : clique := {gr := gr, cl := {v}, left := gr.vertices.erase v}
+    let nbs := getNbs gr {v}
+    let nbs := getNbs gr nbs
+    if nbs.size ≤ perim then
+--    let cls := expandClique cl
+--    for next in cls do
+--      let cl2 := expandClique next
+--      let sz := cl2.size
+--      if sz == 0 then
+        goodU := goodU.insert v
+        goodI := goodI.filter nbs.contains
+        --IO.println s!"{showClique nbs}: {nbs.size}"
+  IO.println s!"goodU: {showClique goodU}"
+  IO.println s!"goodI: {showClique goodI}"
 /-!
 -/
 
-def edgNs (g : graph) (h : Std.HashSet String) : Nat :=
-  (g.edges.filter fun (a, b) => h.contains a && h.contains b).size / 2
 #eval 13 * 7
+#eval 13 * 1
 /-
 set_option trace.profiler true in
 eval do
@@ -194,9 +208,6 @@ eval do
 /-!
 -/
 
-def getNbs (g : graph) (h : Std.HashSet String) : Std.HashSet String :=
-  g.edges.fold (fun nbs (a, b) => if h.contains a then nbs.insert b else nbs) ∅
-
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) (param : Nat := 37) : String := Id.run do
   let mut gr := inputToGraph dat
@@ -210,7 +221,7 @@ def part2 (dat : Array String) (param : Nat := 37) : String := Id.run do
 #eval part2 atest 9 --== "co,de,ka,ta"
 #assert part2 atest 17 == "co,de,ka,ta"
 
-set_option trace.profiler true in solve 2 "cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd"
+--set_option trace.profiler true in solve 2 "cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd"
 #exit
 set_option trace.profiler true in
 #eval do
