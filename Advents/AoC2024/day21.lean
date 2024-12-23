@@ -442,7 +442,7 @@ info:
 -- -- #[<vA, v<A]
 /--
 info:
-<vA
+v<A
 -/
 #guard_msgs in
 #eval do
@@ -474,10 +474,10 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
   IO.println <| step == "<A^A>^^AvvvA"
 
 /--
-info: 28 v<<A>>^A<A>AvA<^AA>A<vAAA^>A
+info: 28 v<<A>>^A<A>AvA<^AA>Av<AAA>^A
 true
 v<<A>>^A<A>AvA<^AA>A<vAAA>^A
-<vA<AA>>^AvAA<^A>Av<<A>>^AvA^A<vA^>Av<<A>^A>AAvA^Av<<A>A^>AAA<Av>A^A
+v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A
 <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
 ---
 warning: unused variable `dat`
