@@ -11,7 +11,16 @@ def input : System.FilePath := "Advents/AoC2024/day24.input"
 -/
 
 /-- `test` is the test string for the problem. -/
-def test := ""
+def test := "x00: 1
+x01: 1
+x02: 1
+y00: 0
+y01: 1
+y02: 0
+
+x00 AND y00 -> z00
+x01 XOR y01 -> z01
+x02 OR y02 -> z02"
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
