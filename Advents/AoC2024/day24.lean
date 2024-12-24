@@ -111,10 +111,10 @@ def inputToState (dat : Array String) : state :=
   dat.foldl (init := {values := {}, gates := {}}) fun s i =>
     match i.splitOn with
     | [v, tf] =>
-      {s with values := s.values.insert (v.dropRight 1) (if tf == "1" then true else false)}
+      {s with values := s.values.insert (v.dropRight 1) (tf == "1")}
     | [v1, op, v2, _, tgt] => {s with
         values := [v1, v2, tgt].foldl (init := s.values) fun vs n => (vs.alter n (some <| ·.getD none))
-        gates := s.gates.insert (v1, op, v2, tgt)
+        gates := s.gates.insert  <| if v1 < v2 then (v1, op, v2, tgt) else (v2, op, v1, tgt)
 
         }
     | [""] => s
@@ -388,7 +388,7 @@ info: ✅️ (x, y, z) = (34359738368, 34359738368, 68719476736), sum: 687194767
 #eval do
   let dat ← IO.FS.lines input
   --let pairs := #[("z05", "z00"), ("z02", "z01")]
-  let pairs := #[("z09", "z08"), ("z29", "z28"), ("bkr", "rnq")]
+  let pairs := #[("z09", "z08"), ("bkr", "rnq"), ("z29", "z28")] --#[("z09", "z08"), ("z29", "z28"), ("bkr", "rnq")]
   let mut swaps := inputToState dat
   for (l, r) in pairs do
     swaps := swaps.swap l r
@@ -400,13 +400,13 @@ info: ✅️ (x, y, z) = (34359738368, 34359738368, 68719476736), sum: 687194767
     swaps.gates.fold (init := ∅) fun h ((s1, _, s2, tgt) : String × String × String × String) =>
       let foundZs := #[s1, s2, tgt].filter (String.startsWith · "z")
       h.insertMany foundZs
-  for i' in [35:40] do
+  for i' in [0:45] do
 --  for i' in [0:46] do
     --for j' in [0:41] do
 --  for i in [100000 + 10:100000 + 20] do
 --    for j in [100000 + 10:100000 + 20] do
-      let i := 2 ^ i'
-      let j := 2 ^ i'
+      let i := 1 + 2 ^ i'
+      let j := 1 + 2 ^ (i' + 0 * 1)
       swaps := setValues swaps i j --2 6
       let finState := run2 swaps zs
       showOut finState
@@ -434,6 +434,82 @@ def getDownstream (seen : Std.HashSet String) (s : state) : Std.HashSet String :
 #eval Nat.factors 131072
 #eval Nat.factors 549755813888
 
+def checkOne (s : state) (i : Nat) : Array Nat :=
+  let x := "x"
+  let prev := getDownstream {x ++ pad 2 i} s
+  let curr := getDownstream {x ++ pad 2 (i + 1)} s
+  let onlyPrev := prev.filter (!curr.contains ·)
+  let onlyCurr := curr.filter (!prev.contains ·)
+  let overlap : Std.HashSet _ := onlyPrev.fold (init := ∅) fun overlap str =>
+    overlap.union <| (s.gates.filter fun (s1, _op, s2, tgt) => s1 == str || s2 == str || s2 == tgt)
+  let (tally, mults) : Std.HashMap String Nat × Array Nat := overlap.fold (init := (∅, #[]))
+    fun (h, rest) (s1, op, s2, tg) =>
+      let r :=
+        if op == "AND" && (s1 == tg || s2 == tg) then #[1] else #[0] ++
+        if op == "XOR" && (s1 == tg || s2 == tg) then #[1] else #[0] ++
+        if op == "OR" && (s1 == tg || s2 == tg) then #[1] else #[0]
+      (h  |>.alter s1         (some <| ·.getD 0 + 1)
+          |>.alter s2         (some <| ·.getD 0 + 1)
+          |>.alter op         (some <| ·.getD 0 + 1)
+          |>.alter tg         (some <| ·.getD 0 + 1)
+          |>.alter (op ++ s2) (some <| ·.getD 0 + 1)
+          |>.alter (op ++ s1) (some <| ·.getD 0 + 1)
+          |>.alter (tg ++ s2) (some <| ·.getD 0 + 1)
+          |>.alter (tg ++ s1) (some <| ·.getD 0 + 1),
+      rest ++ r)
+  let withCurr : Std.HashMap String Nat := onlyCurr.fold (init := tally) fun h s =>
+    h.alter s (some <| ·.getD 0 + 1)
+  let ands : Std.HashMap String Nat := s.gates.fold (init := ∅) fun h (s1, op, s2, tg) =>
+    if op == "OR" then
+      h |>.alter tg (some <| ·.getD 0 + 1)
+        |>.alter s1 (some <| ·.getD 0 + 1)
+        |>.alter s2 (some <| ·.getD 0 + 1)
+    else h
+  let tgZ : Std.HashMap String Nat := s.gates.fold (init := ∅) fun h (s1, op, s2, tg) =>
+    if s1.startsWith "x" && op == "OR" then
+      h |>.alter tg (some <| ·.getD 0 + 1)
+        |>.alter s1 (some <| ·.getD 0 + 1)
+        |>.alter s2 (some <| ·.getD 0 + 1)
+    else h
+  tgZ.fold (fun h _ m => h.push m) #[] |>.qsort (· < ·)
+  --(tally.fold (fun h _ m => h.push m) #[] |>.qsort (· < ·)) ++ --mults
+  --  (withCurr.fold (fun h _ m => h.push m) #[] |>.qsort (· < ·)) --++ mults
+/--
+info:
+-- y40, y41: 6 3
+AND: gqd jds = wdg
+AND: x40 y40 = vnr
+AND: jmm qvf = pgm
+OR: vnr wdg = jmm
+XOR: jmm qvf = z41
+XOR: x40 y40 = gqd
+XOR: gqd jds = z40
+
+-- y41, y42: 6 3
+AND: x41 y41 = gmm
+AND: jmm qvf = pgm
+AND: jdf nmw = cvn
+OR: gmm pgm = nmw
+XOR: jmm qvf = z41
+XOR: x41 y41 = qvf
+XOR: jdf nmw = z42
+
+-- y42, y43: 6 3
+AND: jdf nmw = cvn
+AND: x42 y42 = nnn
+AND: gdc ncj = pbj
+OR: cvn nnn = gdc
+XOR: jdf nmw = z42
+XOR: gdc ncj = z43
+XOR: x42 y42 = jdf
+---
+warning: unused variable `op`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
+---
+warning: unused variable `tgt`
+note: this linter can be disabled with `set_option linter.unusedVariables false`
+-/
+#guard_msgs in
 #eval do
   let dat ← IO.FS.lines input
   let pairs := #[("z09", "z08"), ("z29", "z28"), ("bkr", "rnq")] ----, ("bkr", "kbg")
@@ -442,19 +518,23 @@ def getDownstream (seen : Std.HashSet String) (s : state) : Std.HashSet String :
     swaps := swaps.swap l r
   swaps := setValues swaps 1 2 --2 6
   let x := "y"
-  for i in [35:40] do
-    let prev := getDownstream {x ++ pad 2 i} swaps
-    let curr := getDownstream {x ++ pad 2 (i + 1)} swaps
+  for i in [0:45] do
+    --let prev := getDownstream {x ++ pad 2 i} swaps
+    --let curr := getDownstream {x ++ pad 2 (i + 1)} swaps
+    let co := checkOne swaps i
+    if #[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] != co then IO.println <| s!"Error! {i}: {co}"
+#exit
     let onlyPrev := prev.filter (!curr.contains ·)
     let onlyCurr := curr.filter (!prev.contains ·)
-    IO.println s!"\nds {x ++ pad 2 i} vs {x ++ pad 2 (i + 1)}: {onlyPrev.size} {onlyCurr.size}"
+    if (onlyPrev.size, onlyCurr.size) != (6, 3) then
+      IO.println s!"WARNING: {(onlyPrev.size, onlyCurr.size)} should be (6, 3)"
+    IO.println s!"\n-- {x ++ pad 2 i}, {x ++ pad 2 (i + 1)}: {onlyPrev.size} {onlyCurr.size}"
     let mut overlap : Std.HashSet _ := ∅
     for s in onlyPrev do
       overlap := overlap.union <| (swaps.gates.filter fun ((s1, op, s2, tgt): String × String × String × String) =>
         s1 == s || s2 == s)
     for (s1, op, s2, tgt) in overlap.toArray.qsort (·.2.1 < ·.2.1) do
-      let (t1, t2) := if s1 < s2 then (s1, s2) else (s2, s1)
-      IO.println s!"{op}: {t1} {t2} = {tgt}"
+      IO.println s!"{op}: {s1} {s2} = {tgt}"
     --IO.println s!"ds {"x" ++ pad 2 i} only: {      (prev.filter (!curr.contains ·)).toArray}"
     --IO.println s!"ds {"x" ++ pad 2 (i + 1)} only: {(curr.filter (!prev.contains ·)).toArray}"
 
