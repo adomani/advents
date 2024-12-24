@@ -96,6 +96,10 @@ def inputToState (dat : Array String) : state :=
     | [""] => s
     | _ => dbg_trace "oh no!"; s
 
+def showGates (s : state) : IO Unit := do
+  let sortedGates := s.gates.toArray.qsort (·.1 < ·.1)
+  IO.println <| s!"gates:\n{"\n".intercalate <| sortedGates.toList.map (s!"{·}")}"
+
 def showState (s : state) : IO Unit := do
   let sortedValues := s.values.toArray.qsort (·.1 < ·.1)
   IO.println <|
@@ -142,39 +146,164 @@ def out (s : state) : Nat :=
   toNum sortedZs
 
 #eval do
-  let dat := atest1
-  let s := inputToState dat
-  showState s
-  IO.println "\nrunOnce\n"
-  showState <| runOnce s
-  IO.println <| s!"\nanswer: {out <| runOnce s}"
-
-#eval do
   let dat := atest2
   let s := inputToState dat
   showState s
-  --let s := runOnce s
-  --let s := runOnce s
   IO.println "\nrunAll\n"
   showState <| runAll s
   IO.println <| s!"\nanswer: {out <| runAll s}"
 
-#eval do
-  let dat ← IO.FS.lines input
-  let s := inputToState dat
-  IO.println <| s!"\nanswer: {out <| runAll s}"
-
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : Array String) : Nat :=
+  let s := inputToState dat
+  out <| runAll s
 
---#assert part1 atest == ???
+#assert part1 atest2 == 2024
 
---set_option trace.profiler true in solve 1
+solve 1 58639252480880
 
 /-!
 #  Question 2
 -/
+
+def showOut (s : state) : IO Unit := do
+  let mut tots := #[]
+  for xyz in #["x", "y", "z"] do
+    let xs := s.values.filterMap fun str bl => if str.startsWith xyz then bl else none
+    tots := tots.push <| toNum <| xs.toArray.qsort (·.1 < ·.1) |>.map (·.2)
+  let sum := tots[0]! + tots[1]!
+  IO.println s!"{if sum == tots[2]! then checkEmoji else crossEmoji} \
+              (x, y, z) = ({tots[0]!}, {tots[1]!}, {tots[2]!}), \
+              sum: {sum}"
+
+/-- info:
+❌️ (x, y, z) = (7, 2, 4), sum: 9
+❌️ (x, y, z) = (13, 31, 2024), sum: 44
+-/
+#guard_msgs in
+#eval do
+  for dat in [atest1, atest2] do
+    showOut <| runAll (inputToState dat)
+
+#eval do
+  for i in [13, 31, 2024] do
+    IO.println <| List.reverse <| Nat.toDigits 2 i
+
+/-- `visitedOnce` is just like this, but uses the state `VisState` -/
+def visitedOnce' (h : Std.HashSet String) (s : state) : Std.HashSet String :=
+  s.gates.fold (init := h) fun vs (_s1, _op, _s2, tgt) =>
+    if vs.contains tgt then
+      dbg_trace "loop detected!"
+      vs.insert tgt
+    else
+      vs.insert tgt
+
+def mkVisited (s : state) : Std.HashSet String :=
+  s.values.fold (init := ∅) fun h inp tf => if tf.isSome then h.insert inp else h
+
+structure VisState where
+  s : state
+  visited : Std.HashSet String := mkVisited s
+
+def inputToVisState (dat : Array String) : VisState where
+  s := inputToState dat
+
+def visitedOnce (h : VisState) : Option VisState :=
+  if h.visited.contains "loop" then none else
+  let (unusedGates, visited) :=
+    h.s.gates.fold (init := (h.s.gates, h.visited)) fun (gs, vs) g@(_s1, _op, _s2, tgt) =>
+      if vs.contains tgt then
+        dbg_trace "loop detected!"
+        ({("loop", "op", "loop", "tgt")}, {"loop"})
+      else
+        (gs.erase g, vs.insert tgt)
+  some {h with
+    s := {h.s with gates := unusedGates}
+    visited := visited}
+
+-- contains also all possible values, but maybe we never reach them
+--def mkVisited (s : state) : Std.HashSet String × Std.HashSet String :=
+--  (s.values.fold (init := ∅) fun h inp tf => if tf.isSome then h.insert inp else h,
+--   s.values.fold (init := ∅) fun h inp _ => h.insert inp)
+
+#eval do
+  let dat := atest2
+  let dat := atest1
+  let dat ← IO.FS.lines input
+  let mut vs := inputToVisState dat
+  let mut oldVs := ∅
+  let mut con := 0
+  while oldVs != vs.visited && con ≤ 10 do
+    con := con + 1
+    IO.println s!"Step {con} starting with {vs.s.gates.size} gates and {vs.visited.size} visited"
+    oldVs := vs.visited
+    match visitedOnce vs with
+      | none => IO.println "Looped";
+      | some newVs => vs := newVs
+  IO.println s!"gates:\n{vs.s.gates.toArray}\n\nvisited\n{vs.visited.toArray}\n"
+
+def state.swap (s : state) (a b : String) : state :=
+  {s with
+    gates := s.gates.fold (init := s.gates) fun h vs@(s1, op, s2, tgt) =>
+      if tgt == a then
+        --dbg_trace "swapping '{a}'"
+        (h.erase vs).insert (s1, op, s2, b)
+      else
+      if tgt == b then
+        --dbg_trace "swapping '{b}'"
+        (h.erase vs).insert (s1, op, s2, a)
+      else h}
+
+#eval do
+  let dat := atest2
+  let dat ← IO.FS.lines input
+  let dat := atest1
+  let s := inputToState dat
+  showGates <| s
+  showGates <| s.swap "z00" "z01"
+  --showState <| swap (runOnce s) "" ""
+
+def swappable (s : state) (a b : String) : Bool := Id.run do
+  let s := s.swap a b
+  let mut visited : Std.HashSet String := s.values.fold (init := ∅) fun h inp tf =>
+    if tf.isSome then h.insert inp else h
+  dbg_trace "visited:{"\n".intercalate <| ""::(visited.toArray.qsort (· < ·)).toList.map (s!"{·}")}"
+  return default
+
+#eval do
+  let dat := atest2
+  let dat ← IO.FS.lines input
+  let dat := atest1
+  let s := inputToState dat
+  IO.println <| swappable (runOnce s) "" ""
+
+#eval (List.range 4 |>.map (312 - 2 * · |>.binom 2)).prod
+
+#eval do
+  let dat := atest2
+  let dat := atest1
+  let dat ← IO.FS.lines input
+  let mut vs := inputToVisState dat
+  dbg_trace "pool of {vs.s.values.size} values"
+  --let pairs := #[("tvp", "z17"), ("vpd", "kbk"), ("gps", "gvw"), ("gvj", "qdf"), ("kmd", "mmc"), ("x00", "vng")]
+  let pairs := #[("vng", "vng")]
+  let mut swaps := vs.s
+  for (l, r) in pairs do
+    swaps := swaps.swap l r
+  vs := {vs with s := swaps}
+  let mut oldVs := ∅
+  let mut con := 0
+  while oldVs != vs.visited && con ≤ 10 do
+    con := con + 1
+    --IO.println s!"Step {con} starting with {vs.s.gates.size} gates and {vs.visited.size} visited"
+    oldVs := vs.visited
+    match visitedOnce vs with
+      | none => IO.println "Looped";
+      | some newVs => vs := newVs
+  IO.println s!"\ngates:\n{vs.s.gates.toArray}\n\nvisited:\n{vs.visited.toArray}"
+
+
+
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
