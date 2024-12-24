@@ -77,6 +77,30 @@ tnw OR pbm -> gnj"
 /-- `atest2` is the test string for the problem, split into rows. -/
 def atest2 := (test2.splitOn "\n").toArray
 
+/-- `test3` is the test string for the problem. -/
+def test3 := "x00: 0
+x01: 1
+x02: 0
+x03: 1
+x04: 0
+x05: 1
+y00: 0
+y01: 0
+y02: 1
+y03: 1
+y04: 0
+y05: 1
+
+x00 AND y00 -> z05
+x01 AND y01 -> z02
+x02 AND y02 -> z01
+x03 AND y03 -> z03
+x04 AND y04 -> z04
+x05 AND y05 -> z00"
+
+/-- `atest3` is the test string for the problem, split into rows. -/
+def atest3 := (test3.splitOn "\n").toArray
+
 structure state where
   /-- `1 ↦ some true`, `0 ↦ some false`, `. ↦ none`. -/
   values : Std.HashMap String (Option Bool)
@@ -120,7 +144,7 @@ def oper : String → Bool → Bool → Bool
 def runOnce (s : state) : state :=
   let newValues := s.gates.fold (init := s.values) fun vs (s1, op, s2, tgt) =>
     match vs[s1]?, vs[s2]?, op with
-      | none, _, _ | _, none, _ => dbg_trace "runOnce error!"; vs
+      | none, _, _ | _, none, _ => vs -- dbg_trace "runOnce error!"; vs -- the check can fail in part 2
       | some none, _, _ | _, some none, _ => vs
       | some (some s1), some (some s2), op => vs.insert tgt <| some ((oper op) s1 s2)
       --| _, _, _ => dbg_trace "runOnce error!"; vs
@@ -129,6 +153,12 @@ def runOnce (s : state) : state :=
 def runAll (s : state) : state := Id.run do
   let mut s := s
   while s.values.valuesArray.contains none do
+    s := runOnce s
+  s
+
+def run2 (s : state) (zs : Std.HashSet String) : state := Id.run do
+  let mut s := s
+  while !(zs.filter (! s.values.keysArray.contains ·)).isEmpty do
     s := runOnce s
   s
 
@@ -166,12 +196,12 @@ solve 1 58639252480880
 #  Question 2
 -/
 
-def showOut (s : state) : IO Unit := do
+def showOut (s : state) (op : Nat → Nat → Nat := (· + ·)) : IO Unit := do
   let mut tots := #[]
   for xyz in #["x", "y", "z"] do
     let xs := s.values.filterMap fun str bl => if str.startsWith xyz then bl else none
     tots := tots.push <| toNum <| xs.toArray.qsort (·.1 < ·.1) |>.map (·.2)
-  let sum := tots[0]! + tots[1]!
+  let sum := op tots[0]! tots[1]!
   IO.println s!"{if sum == tots[2]! then checkEmoji else crossEmoji} \
               (x, y, z) = ({tots[0]!}, {tots[1]!}, {tots[2]!}), \
               sum: {sum}"
@@ -184,6 +214,57 @@ def showOut (s : state) : IO Unit := do
 #eval do
   for dat in [atest1, atest2] do
     showOut <| runAll (inputToState dat)
+
+def pad (width n : Nat) : String :=
+  let n := s!"{n}"
+  let l := width - n.length
+  ⟨List.replicate l '0'⟩ ++ n
+
+def natToValues (x : Nat) (s : String) (padl : Nat := 2) (lth : Nat := 45) : List (String × Bool) :=
+  let xs := (Nat.toDigits 2 x).reverse
+  (List.range lth).map fun i => (s ++ pad padl i, xs.getD i '0' == '1')
+
+def setValues (s : state) (x y : Nat) (padl : Nat := 2) (lth : Nat := 45) : state :=
+  {s with
+    values := (natToValues x "x" padl lth ++ natToValues y "y" padl lth).foldl (init := ∅)
+                fun vs (var, value) => vs.insert var value}
+
+def act (s : state) (x y : Nat) (padl : Nat := 2) (lth : Nat := 45) : state :=
+  runAll <| setValues s x y padl lth
+
+#eval do
+  let dat := atest3
+  showState <| act (inputToState dat) 12 5 2 6
+
+#eval do
+  for dat in [atest1, atest2, ← IO.FS.lines input] do
+    showState <| act (inputToState dat) 12 0
+
+def showBinOut (s : state) : IO Unit := do
+  let mut tots := #[]
+  for xyz in #["x", "y", "z"] do
+    let xs := s.values.filterMap fun str bl => if str.startsWith xyz then bl else none
+    tots := tots.push <| toNum <| xs.toArray.qsort (·.1 < ·.1) |>.map (·.2)
+  let sum := tots[0]! + tots[1]!
+  match tots with
+    | #[x, y, z] =>
+      IO.println s!"{if sum == tots[2]! then checkEmoji else crossEmoji} {x} + {y} = {sum}, computed {z}\n\
+              x.rev = {Nat.toDigits 2 tots[0]! |>.reverse}\n\
+              y.rev = {Nat.toDigits 2 tots[1]! |>.reverse}\n\
+              z.rev = {Nat.toDigits 2 tots[2]! |>.reverse}\n\
+              sum.rev {Nat.toDigits 2 sum      |>.reverse}"
+    | _ => IO.println "Something went wrong"
+
+#eval do
+  for dat in [atest1, atest2, ← IO.FS.lines input] do
+    showBinOut <| runAll (inputToState dat)
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest3
+
+  for i in [0:10] do
+    showBinOut <| act (inputToState dat) 0 i 1
 
 #eval do
   for i in [13, 31, 2024] do
@@ -262,6 +343,155 @@ def state.swap (s : state) (a b : String) : state :=
   showGates <| s
   showGates <| s.swap "z00" "z01"
   --showState <| swap (runOnce s) "" ""
+
+#eval do
+  let dat := atest3
+  let pairs := #[("z05", "z00"), ("z02", "z01")]
+  let mut swaps := inputToState dat
+  for (l, r) in pairs do
+    swaps := swaps.swap l r
+  swaps := setValues swaps 1 2 2 6
+  --showOut (run2 swaps) (· &&& ·)
+  --showState <| swaps
+  --showState <| run2 swaps
+  let zs : Std.HashSet String :=
+    swaps.gates.fold (init := ∅) fun h ((s1, _, s2, tgt) : String × String × String × String) =>
+      let foundZs := #[s1, s2, tgt].filter (String.startsWith · "z")
+      h.insertMany foundZs
+  for i in [0:2^5] do
+    for j in [0:2^5] do
+      swaps := setValues swaps i j 2 6
+      let finState := run2 swaps zs
+      --showOut finState (· &&& ·)
+      let fin := out finState
+      if i &&& j != fin then
+        IO.println s!"\n{(i, j)} AND: {i &&& j}, computed: {fin}"
+
+/-!
+-/
+
+
+--/-!
+/--
+info: ✅️ (x, y, z) = (34359738368, 34359738368, 68719476736), sum: 68719476736
+35
+✅️ (x, y, z) = (68719476736, 68719476736, 137438953472), sum: 137438953472
+36
+✅️ (x, y, z) = (137438953472, 137438953472, 274877906944), sum: 274877906944
+37
+❌️ (x, y, z) = (274877906944, 274877906944, 1099511627776), sum: 549755813888
+38
+✅️ (x, y, z) = (549755813888, 549755813888, 1099511627776), sum: 1099511627776
+39
+-/
+#guard_msgs in
+#eval do
+  let dat ← IO.FS.lines input
+  --let pairs := #[("z05", "z00"), ("z02", "z01")]
+  let pairs := #[("z09", "z08"), ("z29", "z28"), ("bkr", "rnq")]
+  let mut swaps := inputToState dat
+  for (l, r) in pairs do
+    swaps := swaps.swap l r
+  swaps := setValues swaps 1 2 --2 6
+  --showOut (run2 swaps) (· &&& ·)
+  --showState <| swaps
+  --showState <| run2 swaps
+  let zs : Std.HashSet String :=
+    swaps.gates.fold (init := ∅) fun h ((s1, _, s2, tgt) : String × String × String × String) =>
+      let foundZs := #[s1, s2, tgt].filter (String.startsWith · "z")
+      h.insertMany foundZs
+  for i' in [35:40] do
+--  for i' in [0:46] do
+    --for j' in [0:41] do
+--  for i in [100000 + 10:100000 + 20] do
+--    for j in [100000 + 10:100000 + 20] do
+      let i := 2 ^ i'
+      let j := 2 ^ i'
+      swaps := setValues swaps i j --2 6
+      let finState := run2 swaps zs
+      showOut finState
+      IO.println i'
+      --let fin := out finState
+      --if i + j != fin then
+      --  IO.println s!"\n{(i, j)} sum: {i + j}, computed: {fin}"
+
+/-!
+-/
+--/
+
+abbrev TT : Std.HashSet String := {
+    "x35", "y35", "qgs", "jgr", "ckr", "mjn", "z35", "bpq", "bbk", "crp", "x36", "y36",
+    "fcn", "z36", "kbk", "pgn", "thk", "wnk", "mqh", "x37", "y37", "qsw", "hbw", "z37",
+    "jjj", "fkp", "x38", "y38", "fdd", "fpw", "z38", "z39"}
+
+partial
+def getDownstream (seen : Std.HashSet String) (s : state) : Std.HashSet String :=
+  let next := s.gates.fold (init := ∅) fun h (s1, _op, s2, tgt) =>
+    if (seen.contains s1 || seen.contains s2) && !seen.contains tgt then h.insert tgt else h
+  if next.isEmpty then seen else
+  getDownstream (seen.union next) s
+
+#eval Nat.factors 131072
+#eval Nat.factors 549755813888
+
+#eval do
+  let dat ← IO.FS.lines input
+  let pairs := #[("z09", "z08"), ("z29", "z28"), ("bkr", "rnq")] ----, ("bkr", "kbg")
+  let mut swaps := inputToState dat
+  for (l, r) in pairs do
+    swaps := swaps.swap l r
+  swaps := setValues swaps 1 2 --2 6
+  let x := "y"
+  for i in [35:40] do
+    let prev := getDownstream {x ++ pad 2 i} swaps
+    let curr := getDownstream {x ++ pad 2 (i + 1)} swaps
+    let onlyPrev := prev.filter (!curr.contains ·)
+    let onlyCurr := curr.filter (!prev.contains ·)
+    IO.println s!"\nds {x ++ pad 2 i} vs {x ++ pad 2 (i + 1)}: {onlyPrev.size} {onlyCurr.size}"
+    let mut overlap : Std.HashSet _ := ∅
+    for s in onlyPrev do
+      overlap := overlap.union <| (swaps.gates.filter fun ((s1, op, s2, tgt): String × String × String × String) =>
+        s1 == s || s2 == s)
+    for (s1, op, s2, tgt) in overlap.toArray.qsort (·.2.1 < ·.2.1) do
+      let (t1, t2) := if s1 < s2 then (s1, s2) else (s2, s1)
+      IO.println s!"{op}: {t1} {t2} = {tgt}"
+    --IO.println s!"ds {"x" ++ pad 2 i} only: {      (prev.filter (!curr.contains ·)).toArray}"
+    --IO.println s!"ds {"x" ++ pad 2 (i + 1)} only: {(curr.filter (!prev.contains ·)).toArray}"
+
+
+#eval do
+  let dat ← IO.FS.lines input
+  --let pairs := #[] --#[("z05", "z00"), ("z02", "z01")]
+  let pairs := #[("z09", "z08"), ("z29", "z28"), ("bkr", "kbg")]
+  let mut swaps := inputToState dat
+  for (l, r) in pairs do
+    swaps := swaps.swap l r
+  swaps := setValues swaps 1 2 --2 6
+  --showOut (run2 swaps) (· &&& ·)
+  --showState <| swaps
+  --showState <| run2 swaps
+  IO.println s!"ds x38: {(getDownstream {"x38"} swaps).toArray.qsort (· < ·)}"
+  IO.println s!"ds x39: {(getDownstream {"x39"} swaps).toArray.qsort (· < ·)}"
+  let zs : Std.HashSet String :=
+    swaps.gates.fold (init := ∅) fun h ((s1, _, s2, tgt) : String × String × String × String) =>
+      let foundZs := #[s1, s2, tgt].filter (String.startsWith · "z")
+      h.insertMany foundZs
+  for i' in [2 ^ 46 - 1] do
+    --for j' in [0:41] do
+--  for i in [100000 + 10:100000 + 20] do
+--    for j in [100000 + 10:100000 + 20] do
+      let i := i'
+      let j := i'
+      swaps := setValues swaps i j --2 6
+      let finState := run2 swaps zs
+      showBinOut finState
+      showOut finState
+      --let fin := out finState
+      --if i + j != fin then
+      --  IO.println s!"\n{(i, j)} sum: {i + j}, computed: {fin}"
+/-!
+-/
+#eval 2 ^ 16
 
 def swappable (s : state) (a b : String) : Bool := Id.run do
   let s := s.swap a b
