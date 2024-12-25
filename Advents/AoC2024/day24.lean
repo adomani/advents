@@ -120,21 +120,6 @@ def inputToState (dat : Array String) : state :=
     | [""] => s
     | _ => dbg_trace "oh no!"; s
 
-def showGates (s : state) : IO Unit := do
-  let sortedGates := s.gates.toArray.qsort (·.1 < ·.1)
-  IO.println <| s!"gates:\n{"\n".intercalate <| sortedGates.toList.map (s!"{·}")}"
-
-def showState (s : state) : IO Unit := do
-  let sortedValues := s.values.toArray.qsort (·.1 < ·.1)
-  IO.println <|
-    s!"values:\n{"\n".intercalate <| sortedValues.map (s!"{·}") |>.toList}\n\n\
-      gates:\n{"\n".intercalate <| s.gates.toList.map (s!"{·}")}"
-
-#eval do
-  let dat := atest1
-  let s := inputToState dat
-  showState s
-
 def oper : String → Bool → Bool → Bool
   | "AND" => and
   | "OR"  => or
@@ -144,21 +129,14 @@ def oper : String → Bool → Bool → Bool
 def runOnce (s : state) : state :=
   let newValues := s.gates.fold (init := s.values) fun vs (s1, op, s2, tgt) =>
     match vs[s1]?, vs[s2]?, op with
-      | none, _, _ | _, none, _ => vs -- dbg_trace "runOnce error!"; vs -- the check can fail in part 2
+      | none, _, _ | _, none, _ => dbg_trace "runOnce error!"; vs
       | some none, _, _ | _, some none, _ => vs
       | some (some s1), some (some s2), op => vs.insert tgt <| some ((oper op) s1 s2)
-      --| _, _, _ => dbg_trace "runOnce error!"; vs
   {s with values := newValues}
 
 def runAll (s : state) : state := Id.run do
   let mut s := s
   while s.values.valuesArray.contains none do
-    s := runOnce s
-  s
-
-def run2 (s : state) (zs : Std.HashSet String) : state := Id.run do
-  let mut s := s
-  while !(zs.filter (! s.values.keysArray.contains ·)).isEmpty do
     s := runOnce s
   s
 
@@ -174,14 +152,6 @@ def out (s : state) : Nat :=
   let zs := s.values.filterMap fun str bl => if str.startsWith "z" then bl else none
   let sortedZs := zs.toArray.qsort (·.1 < ·.1) |>.map (·.2)
   toNum sortedZs
-
-#eval do
-  let dat := atest2
-  let s := inputToState dat
-  showState s
-  IO.println "\nrunAll\n"
-  showState <| runAll s
-  IO.println <| s!"\nanswer: {out <| runAll s}"
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
@@ -283,15 +253,117 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool :=
   OR.size == 1 &&
   (tzi == orL || tzi == orR) && (andXtgt == orL || andXtgt == orR) && toPrint
 
+/--
+info: 1
+2
+3
+4
+5
+6
+7
+'(x07, (XOR, (y07, cnk)))
+(gvw, (XOR, (kgn, vvr)))
+(cnk, (XOR, (ksv, z07)))
+XORzisucc, expecting z08' has size 0, not 1
+Error at 7
+8
+'(ggf, (XOR, (vvr, z09)))
+(gvw, (XOR, (kgn, vvr)))
+(x08, (XOR, (y08, kgn)))
+XORzi, expecting z08' has size 0, not 1
+'ANDzi' has size 0, not 1
+Error at 8
+9
+10
+11
+12
+13
+14
+15
+(gms, (OR, (ngf, pvv)))
+(x15, (XOR, (y15, sfc)))
+(sdv, (XOR, (sfc, z15)))
+(x15, (AND, (y15, gms)))
+(sdv, (AND, (sfc, ngf)))
+(pvv, (XOR, (rnq, z16)))
+(pvv, (AND, (rnq, mcc)))
+16
+'
+ANDxs#[(x16, (AND, (y16, rnq)))]
+
+ANDzi:
+#[(pvv, (AND, (rnq, mcc)))]
+
+OR:
+#[(bkr, (OR, (mcc, kbg)))]' has size 2, not 1
+Error at 16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+'(nct, (XOR, (njn, z27)))
+(x27, (XOR, (y27, njn)))
+(djn, (XOR, (ptk, tfb)))
+XORzisucc, expecting z28' has size 0, not 1
+Error at 27
+28
+'(djn, (XOR, (ptk, tfb)))
+(gwp, (XOR, (vst, z29)))
+(x28, (XOR, (y28, ptk)))
+XORzi, expecting z28' has size 0, not 1
+'ANDzi' has size 0, not 1
+'
+ANDxs#[(x28, (AND, (y28, z28)))]
+
+ANDzi:
+#[]
+
+OR:
+#[(gws, (OR, (tfb, vst)))]' has size 2, not 1
+Error at 28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+'(thk, (XOR, (wnk, mqh)))
+(fpw, (XOR, (jjj, z38)))
+(x38, (XOR, (y38, jjj)))
+XORzisucc, expecting z39' has size 0, not 1
+Error at 38
+39
+'(thk, (XOR, (wnk, mqh)))
+(gqd, (XOR, (jds, z40)))
+(x39, (XOR, (y39, wnk)))
+XORzi, expecting z39' has size 0, not 1
+'ANDzi' has size 0, not 1
+Error at 39
+40
+41
+42
+43
+-/
+#guard_msgs in
 #eval do
   let dat ← IO.FS.lines input
   let pairs := #[] --#[("vvr", "z08"), ("tfb", "z28"), ("mqh", "z39"), ("rnq", "bkr")]
   let mut swaps := inputToState dat
   for (l, r) in pairs do
     swaps := swaps.swap l r
-  swaps := setValues swaps 1 2 --2 6
   let x := "y"
-  for i in [0:45] do
+  for i in [1:44] do
 --  for i in [14:15] do
     IO.println i
     let prev := getDownstream {x ++ pad 2 i} swaps
@@ -304,8 +376,8 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool :=
         s1 == s || s2 == s)
     if ! fc overlap then
       IO.println s!"Error at {i}"
-    --if i == 15 then
-    --  for o in overlap do IO.println s!"{o}"
+    if i == 15 then
+      for o in overlap do IO.println s!"{o}"
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
