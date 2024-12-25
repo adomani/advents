@@ -219,21 +219,25 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool × Array 
   let i :=
     if xi.getNats.length == 1 then xi.getNats[0]! else dbg_trace "{xi.getNats}: no index found!"; 0
 
-  let XORzi := s.filter fun (_, op, _, z) =>
-    op == "XOR" && z == "z" ++ (pad 2 i)
-  let (s1zi, _, s2zi, _) := valHash XORzi s!"\
-    {"\n".intercalate <| (s.filter fun (_, op, _, _) =>
-      op == "XOR").toList.map (s!"{·}")}\nXORzi, expecting z{pad 2 i}"
-
   let XORzisucc := s.filter fun (_, op, _, z) =>
     op == "XOR" && z == "z" ++ (pad 2 i.succ)
 
   let pair := (s.filter fun (not_x, op, _, not_z) =>
-      op == "XOR" && "z" != not_z.take 1 && "x" != not_x.take 1).toArray.map (s!"z{pad 2 i.succ}", ·.2.2.2)
+      op == "XOR" && "z{pad 2 i}" != not_z.take 1 && "x" != not_x.take 1).toArray.map (s!"z{pad 2 i.succ}", ·.2.2.2)
 
-  let (s1zisucc, _, s2zisucc, _) := valHash XORzisucc s!"\
-    {"\n".intercalate <| (s.filter fun (not_x, op, _, not_z) =>
-      op == "XOR" && "z" != not_z.take 1 && "x" != not_x.take 1).toList.map (s!"(z{pad 2 i.succ}, {·.2.2.2})")}\nXORzisucc, expecting z{pad 2 i.succ}"
+  let (pair, _) := pair.partition fun (l, r) => l != r
+  let pair := if pair.size == 1 then #[] else pair.filter (!·.2.startsWith "z")
+  if !pair.isEmpty then (false, pair) else
+
+  let XORzi := s.filter fun (_, op, _, z) =>
+    op == "XOR" && z == "z" ++ (pad 2 i)
+  let (s1zi, _, s2zi, _) := valHash XORzi "XORzi"
+    --s!"{"\n".intercalate <| (s.filter fun (_, op, _, _) =>
+    --  op == "XOR").toList.map (s!"{·}")}\nXORzi, expecting z{pad 2 i}"
+
+  let (s1zisucc, _, s2zisucc, _) := valHash XORzisucc "XORzisucc"
+    --s!"{"\n".intercalate <| (s.filter fun (not_x, op, _, not_z) =>
+    --  op == "XOR" && "z" != not_z.take 1 && "x" != not_x.take 1).toList.map (s!"(z{pad 2 i.succ}, {·.2.2.2})")}\nXORzisucc, expecting z{pad 2 i.succ}"
 
   let ANDzi := s.filter fun (s1, op, s2, _) =>
     op == "AND" && s1 == s1zi && s2 == s2zi
@@ -265,16 +269,10 @@ info: 1
 5
 6
 7
-'(gvw, (XOR, (kgn, vvr)))
-XORzisucc, expecting z08' has size 0, not 1
 Error at 7
 8
-'(ggf, (XOR, (vvr, z09)))
-(gvw, (XOR, (kgn, vvr)))
-(x08, (XOR, (y08, kgn)))
-XORzi, expecting z08' has size 0, not 1
+'XORzi' has size 0, not 1
 'ANDzi' has size 0, not 1
-Error at 8
 9
 10
 11
@@ -298,7 +296,6 @@ ANDzi:
 
 OR:
 #[(bkr, (OR, (mcc, kbg)))]' has size 2, not 1
-Error at 16
 17
 18
 19
@@ -310,14 +307,9 @@ Error at 16
 25
 26
 27
-'(djn, (XOR, (ptk, tfb)))
-XORzisucc, expecting z28' has size 0, not 1
 Error at 27
 28
-'(djn, (XOR, (ptk, tfb)))
-(gwp, (XOR, (vst, z29)))
-(x28, (XOR, (y28, ptk)))
-XORzi, expecting z28' has size 0, not 1
+'XORzi' has size 0, not 1
 'ANDzi' has size 0, not 1
 '
 ANDxs#[(x28, (AND, (y28, z28)))]
@@ -327,7 +319,6 @@ ANDzi:
 
 OR:
 #[(gws, (OR, (tfb, vst)))]' has size 2, not 1
-Error at 28
 29
 30
 31
@@ -338,20 +329,15 @@ Error at 28
 36
 37
 38
-'(thk, (XOR, (wnk, mqh)))
-XORzisucc, expecting z39' has size 0, not 1
 Error at 38
 39
-'(thk, (XOR, (wnk, mqh)))
-(gqd, (XOR, (jds, z40)))
-(x39, (XOR, (y39, wnk)))
-XORzi, expecting z39' has size 0, not 1
+'XORzi' has size 0, not 1
 'ANDzi' has size 0, not 1
-Error at 39
 40
 41
 42
 43
+pairs: #[(z08, vvr), (z28, tfb), (z39, mqh)]
 -/
 #guard_msgs in
 #eval do
@@ -361,6 +347,7 @@ Error at 39
   for (l, r) in pairs do
     swaps := swaps.swap l r
   let x := "y"
+  let mut pairs := #[]
   for i in [1:44] do
 --  for i in [14:15] do
     IO.println i
@@ -374,9 +361,12 @@ Error at 39
         s1 == s || s2 == s)
     let (err?, pair) := fc overlap
     if ! err? then
-      IO.println s!"Error at {i}"
+      pairs := pairs ++ pair
+      if !pair.isEmpty then
+        IO.println s!"Error at {i}"
     if i == 15 then
       for o in overlap do IO.println s!"{o}"
+  IO.println s!"pairs: {pairs}"
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
