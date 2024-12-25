@@ -54,16 +54,25 @@ def test := "#####
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-structure off where
-  locks : Std.HashSet (Array Nat)
-  keys : Std.HashSet (Array Nat)
-  deriving Inhabited
+/--
+Assumes that `s` represents a puzzle input.
+Returns the tally of how many characters `c` appear from the start of each column.
 
+For locks, we use `c = '#'`.
+For keys, we use `c = '.'` and then take the complement to 5 of the corresponding counts.
+-/
 def toCounts (s : String) (c : Char) : Array Nat :=
   let ss := Array.transposeString (s.splitOn "\n" ).toArray
   ss.foldl (init := ∅) fun ct s => ct.push <| (s.takeWhile (· == c)).length - 1
 
-def inputToOff (s : String) : off :=
+/-- The check to verify if a lock and a key fit together. -/
+partial
+def le (a b : Array Nat) : Bool :=
+  if a.isEmpty then true else if b.isEmpty then true else
+    a.back! + b.back! ≤ 5 && le a.pop b.pop
+
+/-- Converts the input to the pair consists of all the locks and all the keys. -/
+def inputToLocksAndKeys (s : String) : Std.HashSet (Array Nat) × Std.HashSet (Array Nat) :=
   let parts := s.splitOn "\n\n"
   let (l, k) :=
   parts.foldl (init := (∅, ∅)) fun (ls, ks) st =>
@@ -73,33 +82,19 @@ def inputToOff (s : String) : off :=
       (ls.insert ct, ks)
     else
       (ls, ks.insert (ct.foldl (·.push <| 5 - ·) #[]))
-  ⟨l, k⟩
-
-#eval do
-  let dat := test
-  let off := inputToOff dat
-  IO.println off.locks.toArray
-  IO.println off.keys.toArray
-
+  (l, k)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : String) : Nat := Id.run do
+  let (locks, keys) := inputToLocksAndKeys dat
+  let mut tot := 0
+  for l in locks do
+    for k in keys do
+      if le l k then tot := tot + 1
+  return tot
 
---#assert part1 atest == ???
+#assert part1 test == 3
 
---set_option trace.profiler true in solve 1
-
-/-!
-#  Question 2
--/
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
+set_option trace.profiler true in solve 1 3483 file
 
 end Day25
