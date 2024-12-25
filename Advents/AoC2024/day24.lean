@@ -204,7 +204,7 @@ def valHash {α} [BEq α] [Hashable α] [Inhabited α] (h : Std.HashSet α) (s :
     | #[a] => a
     | _ => dbg_trace "'{s}' has size {h.size}, not 1"; default
 
-def fc (s : Std.HashSet (String × String × String × String)) : Bool :=
+def fc (s : Std.HashSet (String × String × String × String)) : Bool × Array (String × String) :=
   let xy := s.filter fun (s1, _, s2, _) =>
     s1.startsWith "x" && s2.startsWith "y" && s1.drop 1 == s2.drop 1
   let OR := s.filter fun (_, op, _, _) =>
@@ -227,9 +227,13 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool :=
 
   let XORzisucc := s.filter fun (_, op, _, z) =>
     op == "XOR" && z == "z" ++ (pad 2 i.succ)
+
+  let pair := (s.filter fun (not_x, op, _, not_z) =>
+      op == "XOR" && "z" != not_z.take 1 && "x" != not_x.take 1).toArray.map (s!"z{pad 2 i.succ}", ·.2.2.2)
+
   let (s1zisucc, _, s2zisucc, _) := valHash XORzisucc s!"\
-    {"\n".intercalate <| (s.filter fun (_, op, _, _) =>
-      op == "XOR").toList.map (s!"{·}")}\nXORzisucc, expecting z{pad 2 i.succ}"
+    {"\n".intercalate <| (s.filter fun (not_x, op, _, not_z) =>
+      op == "XOR" && "z" != not_z.take 1 && "x" != not_x.take 1).toList.map (s!"(z{pad 2 i.succ}, {·.2.2.2})")}\nXORzisucc, expecting z{pad 2 i.succ}"
 
   let ANDzi := s.filter fun (s1, op, s2, _) =>
     op == "AND" && s1 == s1zi && s2 == s2zi
@@ -245,13 +249,13 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool :=
       valHash (ANDxs.insert default) s!"\
     \nANDxs{ANDxs.toArray}\n\nANDzi:\n{ANDzi.toArray}\n\nOR:\n{OR.toArray}"
 
-  s.size == 7 &&
+  (s.size == 7 &&
   xy.size == 2 &&
   ANDxs.size == 1 && XORxs.size == 1 &&
   XORzi.size == 1 && XORzisucc.size == 1 &&
   ANDzi.size == 1 && ANDzisucc.size == 1 &&
   OR.size == 1 &&
-  (tzi == orL || tzi == orR) && (andXtgt == orL || andXtgt == orR) && toPrint
+  (tzi == orL || tzi == orR) && (andXtgt == orL || andXtgt == orR) && toPrint, pair)
 
 /--
 info: 1
@@ -261,9 +265,7 @@ info: 1
 5
 6
 7
-'(x07, (XOR, (y07, cnk)))
-(gvw, (XOR, (kgn, vvr)))
-(cnk, (XOR, (ksv, z07)))
+'(gvw, (XOR, (kgn, vvr)))
 XORzisucc, expecting z08' has size 0, not 1
 Error at 7
 8
@@ -308,9 +310,7 @@ Error at 16
 25
 26
 27
-'(nct, (XOR, (njn, z27)))
-(x27, (XOR, (y27, njn)))
-(djn, (XOR, (ptk, tfb)))
+'(djn, (XOR, (ptk, tfb)))
 XORzisucc, expecting z28' has size 0, not 1
 Error at 27
 28
@@ -339,8 +339,6 @@ Error at 28
 37
 38
 '(thk, (XOR, (wnk, mqh)))
-(fpw, (XOR, (jjj, z38)))
-(x38, (XOR, (y38, jjj)))
 XORzisucc, expecting z39' has size 0, not 1
 Error at 38
 39
@@ -374,7 +372,8 @@ Error at 39
     for s in onlyPrev do
       overlap := overlap.union <| (swaps.gates.filter fun ((s1, _, s2, _): String × String × String × String) =>
         s1 == s || s2 == s)
-    if ! fc overlap then
+    let (err?, pair) := fc overlap
+    if ! err? then
       IO.println s!"Error at {i}"
     if i == 15 then
       for o in overlap do IO.println s!"{o}"
