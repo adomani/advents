@@ -47,7 +47,7 @@ def answerAll := "029A: <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A
 456A: <v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
 379A: <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A"
 
-def posToChar : pos → Char
+def dirToChar : pos → Char
   | (  0,   1) => '>'
   | (  0, - 1) => '<'
   | (  1,   0) => 'v'
@@ -63,6 +63,15 @@ def charToPos : Char → pos
   | '>' => (1, 2)
   | '·' => (0, 0)
   | p => panic s!"Not expecting '{p}' as a character!"
+
+def posToChar : pos → Char
+  | (0, 1) => '^'
+  | (0, 2) => 'A'
+  | (1, 0) => '<'
+  | (1, 1) => 'v'
+  | (1, 2) => '>'
+  | (0, 0) => '·'
+  | p => panic s!"Not expecting '{p}' as a position!"
 
 def charToMove : Char → pos
   | '^' => (- 1,   0)
@@ -163,8 +172,8 @@ written as strings of instructions `<`, `^`, `>`, `v`.
 -/
 def findPaths (p q : pos) : Std.HashSet String :=
   let mv := p - q
-  let right := List.replicate mv.2.natAbs (posToChar (0, mv.2.sign))
-  let left :=  List.replicate mv.1.natAbs (posToChar (mv.1.sign, 0))
+  let right := List.replicate mv.2.natAbs (dirToChar (0, mv.2.sign))
+  let left :=  List.replicate mv.1.natAbs (dirToChar (mv.1.sign, 0))
   seqs left right |>.fold (init := ∅) (·.insert <| straight <| (⟨·⟩ : String).push 'A')
 
 /-- info:
@@ -407,14 +416,14 @@ inductive keyboard where
 `keys k` converts the `keyboard` `k` into its `HashMap` of keys, mapping a character to
 the corresponding position.
 -/
-def keys : keyboard → Std.HashMap Char pos
+def keyboard.keys : keyboard → Std.HashMap Char pos
   | .dir => dirKeys | .num => numKeys
 
 /-- The L¹-length of an integer vector. -/
 def length (p : pos) : Nat := p.1.natAbs + p.2.natAbs
 
 def expectedDist (s : String) (start : Char) (type : keyboard) : Nat := Id.run do
-  let keys := keys type
+  let keys := type.keys
   let mut startPos := keys[start]?.getD (3, 2)
   let mut dist := 0
   for next in s.toList do
@@ -424,7 +433,7 @@ def expectedDist (s : String) (start : Char) (type : keyboard) : Nat := Id.run d
   return dist
 
 def validate' (s : String) (start : Char) (type : keyboard) : Bool := Id.run do
-  let keys := keys type
+  let keys := type.keys
   let mut curr := keys[start]!
   for si in s.toList do
     curr := curr + charToMove si
@@ -437,7 +446,7 @@ def alts (s : String) : Nat :=
   (Array.range s.length).foldl (· + if switchAt s · then 1 else 0) 0
 
 def minPath (start tgt : Char) (type : keyboard) : String := Id.run do
-  let keys := keys type
+  let keys := type.keys
   let startPos := keys[start]!
   let tgtPos := keys[tgt]!
   let paths := findPaths tgtPos startPos |>.filter (validate' · start type)
@@ -634,6 +643,19 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
     let ta := tallyMoveWindow ta
     IO.println <| ta.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
 
+def performPushes (s : String) (type : keyboard) (c : Char := 'A') : String :=
+  let keys := type.keys
+  let dirs := s.toList.foldl (init := #[]) (·.push <| charToMove ·)
+  let (_, buttons) : pos × String := dirs.foldl (init := (keys[c]!, ""))
+    fun (currPos, buttons) mv =>
+      if mv == ((0, 0) : pos) then (currPos, buttons.push (posToChar currPos))
+      else
+        (currPos + mv, buttons)
+  buttons
+
+#assert "<A^A>^^AvvvA" == performPushes "v<<A>>^A<A>AvA<^AA>A<vAAA>^A" .dir
+#assert "v<<A>>^A<A>AvA<^AA>A<vAAA>^A" ==
+  performPushes "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A" .dir
 
 /--
 info:
