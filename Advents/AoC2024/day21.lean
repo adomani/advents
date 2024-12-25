@@ -64,15 +64,6 @@ def charToPos : Char → pos
   | '·' => (0, 0)
   | p => panic s!"Not expecting '{p}' as a character!"
 
-def posToChar : pos → Char
-  | (0, 1) => '^'
-  | (0, 2) => 'A'
-  | (1, 0) => '<'
-  | (1, 1) => 'v'
-  | (1, 2) => '>'
-  | (0, 0) => '·'
-  | p => panic s!"Not expecting '{p}' as a position!"
-
 def charToMove : Char → pos
   | '^' => (- 1,   0)
   | 'A' => (  0,   0)
@@ -158,12 +149,36 @@ inductive keyboard where
   | /-- A `dir`ectional kyeboard with buttons `<`, `^`, `>`, `v` and `A`. -/
     dir
 
+instance : ToString keyboard where toString | .dir => "directional" | .num => "numerical"
+
 /--
 `keys k` converts the `keyboard` `k` into its `HashMap` of keys, mapping a character to
 the corresponding position.
 -/
 def keyboard.keys : keyboard → Std.HashMap Char pos
   | .dir => dirKeys | .num => numKeys
+
+def posToChar : keyboard → pos → Char
+  | .dir, (0, 1) => '^'
+  | .dir, (0, 2) => 'A'
+  | .dir, (1, 0) => '<'
+  | .dir, (1, 1) => 'v'
+  | .dir, (1, 2) => '>'
+  | .dir, (0, 0) => '·'
+
+  | .num, (0, 0) => '7'
+  | .num, (0, 1) => '8'
+  | .num, (0, 2) => '9'
+  | .num, (1, 0) => '4'
+  | .num, (1, 1) => '5'
+  | .num, (1, 2) => '6'
+  | .num, (2, 0) => '3'
+  | .num, (2, 1) => '2'
+  | .num, (2, 2) => '1'
+  | .num, (3, 1) => '0'
+  | .num, (3, 2) => 'A'
+
+  | d, p => panic s!"posToChar: Not expecting '{p}' as a position on a {d} keyboard!"
 
 partial
 def seqs {α} [BEq α] [Hashable α] : List α → List α → Std.HashSet (List α)
@@ -648,7 +663,7 @@ def performPushes (s : String) (type : keyboard) (c : Char := 'A') : String :=
   let dirs := s.toList.foldl (init := #[]) (·.push <| charToMove ·)
   let (_, buttons) : pos × String := dirs.foldl (init := (keys[c]!, ""))
     fun (currPos, buttons) mv =>
-      if mv == ((0, 0) : pos) then (currPos, buttons.push (posToChar currPos))
+      if mv == ((0, 0) : pos) then (currPos, buttons.push (posToChar type currPos))
       else
         (currPos + mv, buttons)
   buttons
@@ -657,10 +672,13 @@ def performPushes (s : String) (type : keyboard) (c : Char := 'A') : String :=
 #assert "v<<A>>^A<A>AvA<^AA>A<vAAA>^A" ==
   performPushes "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A" .dir
 
-#eval do
-  let s := "<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A"
-  IO.println <| performPushes (performPushes s .dir) .dir
-
+#assert "029A" == performPushes (performPushes (performPushes "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A" .dir) .dir) .num
+#assert "980A" == performPushes (performPushes (performPushes "<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A" .dir) .dir) .num
+-- This may be an error in the input: the sequence of steps corresponds to `379A` below.
+#assert "179A" == performPushes (performPushes (performPushes "<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A" .dir) .dir) .num
+#assert "456A" == performPushes (performPushes (performPushes "<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A" .dir) .dir) .num
+-- This may be an error in the input: the sequence of steps corresponds to `179A` above.
+#assert "379A" == performPushes (performPushes (performPushes "<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A" .dir) .dir) .num
 
 /--
 info:
