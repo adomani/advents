@@ -204,7 +204,7 @@ def valHash {α} [BEq α] [Hashable α] [Inhabited α] (h : Std.HashSet α) (s :
     | #[a] => a
     | _ => dbg_trace "'{s}' has size {h.size}, not 1"; default
 
-def fc (s : Std.HashSet (String × String × String × String)) : Bool × Array (String × String) :=
+def fc (s : Std.HashSet (String × String × String × String)) : Bool × Option (String × String) :=
   let xy := s.filter fun (s1, _, s2, _) =>
     s1.startsWith "x" && s2.startsWith "y" && s1.drop 1 == s2.drop 1
   let OR := s.filter fun (_, op, _, _) =>
@@ -226,12 +226,12 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool × Array 
       op == "XOR" && "z{pad 2 i}" != not_z.take 1 && "x" != not_x.take 1).toArray.map (s!"z{pad 2 i.succ}", ·.2.2.2)
 
   let (pair, _) := pair.partition fun (l, r) => l != r
-  let pair := if pair.size == 1 then #[] else pair.filter (!·.2.startsWith "z")
-  if !pair.isEmpty then (false, pair) else
+  let pair := if pair.size == 1 then none else (pair.filter (!·.2.startsWith "z")).getD 0 default
+  if pair.isSome then (false, pair) else
 
   let XORzi := s.filter fun (_, op, _, z) =>
     op == "XOR" && z == "z" ++ (pad 2 i)
-  let (s1zi, _, s2zi, _) := valHash XORzi "XORzi"
+  let (s1zi, _, s2zi, _) := XORzi.toArray.getD 0 default --valHash XORzi "XORzi"
     --s!"{"\n".intercalate <| (s.filter fun (_, op, _, _) =>
     --  op == "XOR").toList.map (s!"{·}")}\nXORzi, expecting z{pad 2 i}"
 
@@ -248,97 +248,27 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool × Array 
 
   let (orL, _, orR, _) := valHash OR "OR"
 
-  let toPrint := default ==
-    if (andXtgt == orL || andXtgt == orR) then default else
-      valHash (ANDxs.insert default) s!"\
-    \nANDxs{ANDxs.toArray}\n\nANDzi:\n{ANDzi.toArray}\n\nOR:\n{OR.toArray}"
+  if !(andXtgt == orL || andXtgt == orR) then
+  let one := (ANDxs.toArray[0]!).2.2.2
+  if one.startsWith "z" then (true, none) else
+  let notTwo := (ANDzi.toArray.getD 0 default).2.2.2
+  let two := [OR.toArray[0]!.1, OR.toArray[0]!.2.1].filter (· != notTwo)
+  (false, (one, two[0]!))
+  --let toPrint := default ==
+  --  if (andXtgt == orL || andXtgt == orR) then default else
+  --    valHash (ANDxs.insert default) s!"\
+  --  \nANDxs'{one}'\n\nANDzi:\n'{ANDzi.toArray[0]!.2.2.2}'\n\nOR:\n{OR.toArray}"
+  else
+  (true, default)
+  --(s.size == 7 &&
+  --xy.size == 2 &&
+  --ANDxs.size == 1 && XORxs.size == 1 &&
+  --XORzi.size == 1 && XORzisucc.size == 1 &&
+  --ANDzi.size == 1 && ANDzisucc.size == 1 &&
+  --OR.size == 1 &&
+  --(tzi == orL || tzi == orR) && (andXtgt == orL || andXtgt == orR), pair)
 
-  (s.size == 7 &&
-  xy.size == 2 &&
-  ANDxs.size == 1 && XORxs.size == 1 &&
-  XORzi.size == 1 && XORzisucc.size == 1 &&
-  ANDzi.size == 1 && ANDzisucc.size == 1 &&
-  OR.size == 1 &&
-  (tzi == orL || tzi == orR) && (andXtgt == orL || andXtgt == orR) && toPrint, pair)
-
-/--
-info: 1
-2
-3
-4
-5
-6
-7
-Error at 7
-8
-'XORzi' has size 0, not 1
-'ANDzi' has size 0, not 1
-9
-10
-11
-12
-13
-14
-15
-(gms, (OR, (ngf, pvv)))
-(x15, (XOR, (y15, sfc)))
-(sdv, (XOR, (sfc, z15)))
-(x15, (AND, (y15, gms)))
-(sdv, (AND, (sfc, ngf)))
-(pvv, (XOR, (rnq, z16)))
-(pvv, (AND, (rnq, mcc)))
-16
-'
-ANDxs#[(x16, (AND, (y16, rnq)))]
-
-ANDzi:
-#[(pvv, (AND, (rnq, mcc)))]
-
-OR:
-#[(bkr, (OR, (mcc, kbg)))]' has size 2, not 1
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-Error at 27
-28
-'XORzi' has size 0, not 1
-'ANDzi' has size 0, not 1
-'
-ANDxs#[(x28, (AND, (y28, z28)))]
-
-ANDzi:
-#[]
-
-OR:
-#[(gws, (OR, (tfb, vst)))]' has size 2, not 1
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-Error at 38
-39
-'XORzi' has size 0, not 1
-'ANDzi' has size 0, not 1
-40
-41
-42
-43
-pairs: #[(z08, vvr), (z28, tfb), (z39, mqh)]
--/
+/-- info: pairs: #[z08, vvr, rnq, bkr, z28, tfb, z39, mqh] -/
 #guard_msgs in
 #eval do
   let dat ← IO.FS.lines input
@@ -350,7 +280,7 @@ pairs: #[(z08, vvr), (z28, tfb), (z39, mqh)]
   let mut pairs := #[]
   for i in [1:44] do
 --  for i in [14:15] do
-    IO.println i
+--    IO.println i
     let prev := getDownstream {x ++ pad 2 i} swaps
     let curr := getDownstream {x ++ pad 2 (i + 1)} swaps
     let onlyPrev := prev.filter (!curr.contains ·)
@@ -361,19 +291,30 @@ pairs: #[(z08, vvr), (z28, tfb), (z39, mqh)]
         s1 == s || s2 == s)
     let (err?, pair) := fc overlap
     if ! err? then
-      pairs := pairs ++ pair
-      if !pair.isEmpty then
-        IO.println s!"Error at {i}"
-    if i == 15 then
-      for o in overlap do IO.println s!"{o}"
+      let (l, r) := pair.getD default
+      pairs := (pairs.push l).push r
   IO.println s!"pairs: {pairs}"
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : String := Id.run do
+  let mut swaps := inputToState dat
+  let x := "y"
+  let mut pairs := #[]
+  for i in [1:44] do
+    let prev := getDownstream {x ++ pad 2 i} swaps
+    let curr := getDownstream {x ++ pad 2 (i + 1)} swaps
+    let onlyPrev := prev.filter (!curr.contains ·)
+    let mut overlap : Std.HashSet _ := ∅
+    for s in onlyPrev do
+      overlap := overlap.union <| (swaps.gates.filter fun (s1, _, s2, _) =>
+        s1 == s || s2 == s)
+    let (err?, pair) := fc overlap
+    if ! err? then
+      let (l, r) := pair.getD default
+      pairs := (pairs.push l).push r
+  let sortedPairs := pairs.qsort (· < ·)
+  ",".intercalate sortedPairs.toList
 
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
+solve 2 "bkr,mqh,rnq,tfb,vvr,z08,z28,z39"  -- takes about 4s
 
 end Day24
