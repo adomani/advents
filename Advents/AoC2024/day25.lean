@@ -95,6 +95,6 @@ def part1 (dat : String) : Nat := Id.run do
 
 #assert part1 test == 3
 
-set_option trace.profiler true in solve 1 3483 file
+solve 1 3483 file
 
 end Day25
