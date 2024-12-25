@@ -1085,3 +1085,66 @@ since this approach fails on the test.
 [Solution in Lean](day23.lean)
 
 ---
+
+#  [Day 25](https://adventofcode.com/2024/day/25)
+
+Match locks and keys.
+
+####  Test
+
+<pre>
+#####
+.####
+.####
+.####
+.#.#.
+.#...
+.....
+
+#####
+##.##
+.#.##
+...##
+...#.
+...#.
+.....
+
+.....
+#....
+#....
+#...#
+#.#.#
+#.###
+#####
+
+.....
+.....
+#.#..
+###..
+###.#
+###.#
+#####
+
+.....
+.....
+.....
+#....
+#.#..
+#.#.#
+#####
+</pre>
+
+### Description
+
+#### Part 1
+
+The input consists of 250 locks and 250 keys.
+We should determine how many pairs of fitting lock-and-key combinations there are.
+
+#### Part 2
+
+We need to collect all the previous stars!
+
+[Solution in Lean](day25.lean)
+
+---
