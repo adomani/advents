@@ -205,25 +205,20 @@ def valHash {α} [BEq α] [Hashable α] [Inhabited α] (h : Std.HashSet α) (s :
     | _ => dbg_trace "'{s}' has size {h.size}, not 1"; default
 
 def fc (s : Std.HashSet (String × String × String × String)) : Bool × Option (String × String) :=
-  let xy := s.filter fun (s1, _, s2, _) =>
-    s1.startsWith "x" && s2.startsWith "y" && s1.drop 1 == s2.drop 1
   let OR := s.filter fun (_, op, _, _) =>
     op == "OR"
   let ANDxs := s.filter fun (s1, op, s2, _) =>
     op == "AND" && s1.startsWith "x" && s2.startsWith "y" && s1.drop 1 == s2.drop 1
-  let XORxs := s.filter fun (s1, op, s2, _) =>
-    op == "XOR" && s1.startsWith "x" && s2.startsWith "y" && s1.drop 1 == s2.drop 1
 
   let (xi, _, _, andXtgt) := valHash ANDxs "ANDxs"
 
   let i :=
     if xi.getNats.length == 1 then xi.getNats[0]! else dbg_trace "{xi.getNats}: no index found!"; 0
 
-  let XORzisucc := s.filter fun (_, op, _, z) =>
-    op == "XOR" && z == "z" ++ (pad 2 i.succ)
-
   let pair := (s.filter fun (not_x, op, _, not_z) =>
-      op == "XOR" && "z{pad 2 i}" != not_z.take 1 && "x" != not_x.take 1).toArray.map (s!"z{pad 2 i.succ}", ·.2.2.2)
+      op == "XOR" &&
+        "z{pad 2 i}" != not_z.take 1 &&
+        "x" != not_x.take 1).toArray.map (s!"z{pad 2 i.succ}", ·.2.2.2)
 
   let (pair, _) := pair.partition fun (l, r) => l != r
   let pair := if pair.size == 1 then none else (pair.filter (!·.2.startsWith "z")).getD 0 default
@@ -231,20 +226,10 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool × Option
 
   let XORzi := s.filter fun (_, op, _, z) =>
     op == "XOR" && z == "z" ++ (pad 2 i)
-  let (s1zi, _, s2zi, _) := XORzi.toArray.getD 0 default --valHash XORzi "XORzi"
-    --s!"{"\n".intercalate <| (s.filter fun (_, op, _, _) =>
-    --  op == "XOR").toList.map (s!"{·}")}\nXORzi, expecting z{pad 2 i}"
-
-  let (s1zisucc, _, s2zisucc, _) := valHash XORzisucc "XORzisucc"
-    --s!"{"\n".intercalate <| (s.filter fun (not_x, op, _, not_z) =>
-    --  op == "XOR" && "z" != not_z.take 1 && "x" != not_x.take 1).toList.map (s!"(z{pad 2 i.succ}, {·.2.2.2})")}\nXORzisucc, expecting z{pad 2 i.succ}"
+  let (s1zi, _, s2zi, _) := XORzi.toArray.getD 0 default
 
   let ANDzi := s.filter fun (s1, op, s2, _) =>
     op == "AND" && s1 == s1zi && s2 == s2zi
-  let (_, _, _, tzi) := valHash ANDzi "ANDzi"
-
-  let ANDzisucc := s.filter fun (s1, op, s2, _) =>
-    op == "AND" && s1 == s1zisucc && s2 == s2zisucc
 
   let (orL, _, orR, _) := valHash OR "OR"
 
@@ -254,46 +239,8 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool × Option
   let notTwo := (ANDzi.toArray.getD 0 default).2.2.2
   let two := [OR.toArray[0]!.1, OR.toArray[0]!.2.1].filter (· != notTwo)
   (false, (one, two[0]!))
-  --let toPrint := default ==
-  --  if (andXtgt == orL || andXtgt == orR) then default else
-  --    valHash (ANDxs.insert default) s!"\
-  --  \nANDxs'{one}'\n\nANDzi:\n'{ANDzi.toArray[0]!.2.2.2}'\n\nOR:\n{OR.toArray}"
   else
   (true, default)
-  --(s.size == 7 &&
-  --xy.size == 2 &&
-  --ANDxs.size == 1 && XORxs.size == 1 &&
-  --XORzi.size == 1 && XORzisucc.size == 1 &&
-  --ANDzi.size == 1 && ANDzisucc.size == 1 &&
-  --OR.size == 1 &&
-  --(tzi == orL || tzi == orR) && (andXtgt == orL || andXtgt == orR), pair)
-
-/-- info: pairs: #[z08, vvr, rnq, bkr, z28, tfb, z39, mqh] -/
-#guard_msgs in
-#eval do
-  let dat ← IO.FS.lines input
-  let pairs := #[] --#[("vvr", "z08"), ("tfb", "z28"), ("mqh", "z39"), ("rnq", "bkr")]
-  let mut swaps := inputToState dat
-  for (l, r) in pairs do
-    swaps := swaps.swap l r
-  let x := "y"
-  let mut pairs := #[]
-  for i in [1:44] do
---  for i in [14:15] do
---    IO.println i
-    let prev := getDownstream {x ++ pad 2 i} swaps
-    let curr := getDownstream {x ++ pad 2 (i + 1)} swaps
-    let onlyPrev := prev.filter (!curr.contains ·)
-    --let onlyCurr := curr.filter (!prev.contains ·)
-    let mut overlap : Std.HashSet _ := ∅
-    for s in onlyPrev do
-      overlap := overlap.union <| (swaps.gates.filter fun ((s1, _, s2, _): String × String × String × String) =>
-        s1 == s || s2 == s)
-    let (err?, pair) := fc overlap
-    if ! err? then
-      let (l, r) := pair.getD default
-      pairs := (pairs.push l).push r
-  IO.println s!"pairs: {pairs}"
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : String := Id.run do
