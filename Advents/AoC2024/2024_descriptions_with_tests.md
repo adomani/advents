@@ -952,6 +952,8 @@ steps, before resuming on the main course.
 
 #  [Day 21](https://adventofcode.com/2024/day/21)
 
+Robots controlling robots controlling robots...
+
 ####  Test
 
 <pre>
@@ -961,6 +963,20 @@ steps, before resuming on the main course.
 456A
 379A
 </pre>
+
+### Description
+
+#### Part 1
+
+The input consists of which buttons to push on a numeric keyboard.
+However, we can only push the buttons by controlling the robot on the numeric keyboard through
+two layers of robots operated by directional keyboards.
+We should determine the minimum number of buttons that we should push to make the last robot type the input codes on its numeric keyboard.
+
+#### Part 2
+
+Similar to part 1, except that now there are 25 intervening layers of robots pushing directional keyboards,
+before the one at the numeric keyboard.
 
 [Solution in Lean](day21.lean)
 
