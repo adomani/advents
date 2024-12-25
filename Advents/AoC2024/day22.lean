@@ -88,7 +88,7 @@ def part1 (dat : String) : Nat :=
 
 #assert part1 test == 37327623
 
-set_option trace.profiler true in solve 1 14869099597 file
+solve 1 14869099597 file  -- takes approx 5s
 
 /-!
 #  Question 2
