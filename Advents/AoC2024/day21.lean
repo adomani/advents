@@ -672,14 +672,25 @@ def performPushes (s : String) (type : keyboard) (c : Char := 'A') : String :=
 #assert "v<<A>>^A<A>AvA<^AA>A<vAAA>^A" ==
   performPushes "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A" .dir
 
-#assert "029A" == performPushes (performPushes (performPushes "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A" .dir) .dir) .num
-#assert "980A" == performPushes (performPushes (performPushes "<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A" .dir) .dir) .num
--- This may be an error in the input: the sequence of steps corresponds to `379A` below.
-#assert "179A" == performPushes (performPushes (performPushes "<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A" .dir) .dir) .num
-#assert "456A" == performPushes (performPushes (performPushes "<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A" .dir) .dir) .num
--- This may be an error in the input: the sequence of steps corresponds to `179A` above.
-#assert "379A" == performPushes (performPushes (performPushes "<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A" .dir) .dir) .num
+def decodeNdir (s : String) : Nat → String
+  | 0 => s
+  | n + 1 => performPushes (decodeNdir s n) .dir
 
+def decodeN (s : String) (n : Nat) : String :=
+  performPushes (decodeNdir s n) .num
+
+def decodePart1 (s : String) : String := decodeN s 2
+
+#assert "029A" == decodePart1 "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
+#assert "980A" == decodePart1 "<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A"
+-- This may be an error in the input: the sequence of steps corresponds to `379A` below.
+#assert "179A" == decodePart1 "<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A"
+#assert "456A" == decodePart1 "<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A"
+-- This may be an error in the input: the sequence of steps corresponds to `179A` above.
+#assert "379A" == decodePart1 "<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A"
+#eval 68 * 29 + 60 * 980 + 68 * 179 + 64 * 456 + 64 * 379
+
+#eval "<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A".length
 /--
 info:
 122667368278
