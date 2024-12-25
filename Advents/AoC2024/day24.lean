@@ -245,22 +245,23 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool × Option
   (true, default)
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : String := Id.run do
-  let mut swaps := inputToState dat
+def part2 (dat : Array String) : String :=
+  let swaps := inputToState dat
   let x := "y"
-  let mut pairs := #[]
-  for i in [1:44] do
+  let pairs := (Array.range 43).foldl (init := #[]) fun pairs i' =>
+    let i := i' + 1
     let prev := getDownstream {x ++ pad 2 i} swaps
     let curr := getDownstream {x ++ pad 2 (i + 1)} swaps
     let onlyPrev := prev.filter (!curr.contains ·)
-    let mut overlap : Std.HashSet _ := ∅
-    for s in onlyPrev do
-      overlap := overlap.union <| (swaps.gates.filter fun (s1, _, s2, _) =>
+    let overlap := onlyPrev.fold (init := ∅) fun overlap s =>
+      overlap.union <| (swaps.gates.filter fun (s1, _, s2, _) =>
         s1 == s || s2 == s)
     let (err?, pair) := fc overlap
     if ! err? then
       let (l, r) := pair.getD default
-      pairs := (pairs.push l).push r
+      (pairs.push l).push r
+    else
+      pairs
   let sortedPairs := pairs.qsort (· < ·)
   ",".intercalate sortedPairs.toList
 
