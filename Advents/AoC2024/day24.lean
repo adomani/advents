@@ -501,31 +501,44 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool :=
 
   let XORzi := s.filter fun (_, op, _, z) =>
     op == "XOR" && z == "z" ++ (pad 2 i)
-  let (s1zi, _, s2zi, _) := valHash XORzi "XORzi"
+  let (s1zi, _, s2zi, _) := valHash XORzi s!"\
+    {"\n".intercalate <| (s.filter fun (_, op, _, z) =>
+      op == "XOR" /-&& z == "z" ++ (pad 2 i.succ)-/).toList.map (s!"{·}")}\nXORzi, expecting z{pad 2 i}"
 
   let XORzisucc := s.filter fun (_, op, _, z) =>
     op == "XOR" && z == "z" ++ (pad 2 i.succ)
   let (s1zisucc, _, s2zisucc, _) := valHash XORzisucc s!"\
     {"\n".intercalate <| (s.filter fun (_, op, _, z) =>
-      op == "XOR" /-&& z == "z" ++ (pad 2 i.succ)-/).toList.map (s!"{·}")}\nXORzisucc"
+      op == "XOR" /-&& z == "z" ++ (pad 2 i.succ)-/).toList.map (s!"{·}")}\nXORzisucc, expecting z{pad 2 i.succ}"
 
   let ANDzi := s.filter fun (s1, op, s2, _) =>
     op == "AND" && s1 == s1zi && s2 == s2zi
+  let (_, _, _, tzi) := valHash ANDzi "ANDzi"
 
   let ANDzisucc := s.filter fun (s1, op, s2, _) =>
     op == "AND" && s1 == s1zisucc && s2 == s2zisucc
 
   let orEq@(orL, _, orR, orT) := valHash OR "OR"
+
+  let toPrint := default ==
+    if (andXtgt == orL || andXtgt == orR) then default else
+      valHash (ANDxs.insert default) s!"\
+    \nANDxs{ANDxs.toArray}\n\nANDzi:\n{ANDzi.toArray}\n\nOR:\n{OR.toArray}"
+
+
   s.size == 7 &&
   xy.size == 2 &&
   ANDxs.size == 1 && XORxs.size == 1 &&
   XORzi.size == 1 && XORzisucc.size == 1 &&
   ANDzi.size == 1 && ANDzisucc.size == 1 &&
-  OR.size == 1
+  OR.size == 1 &&
+  (tzi == orL || tzi == orR) && (andXtgt == orL || andXtgt == orR) && toPrint
+
+-- bkr,mqh,rnq,tfb,vvr,z08,z28,z39
 
 #eval do
   let dat ← IO.FS.lines input
-  let pairs := #[] --#[("z07", "z08")] -- #[("z09", "z08"), ("z29", "z28"), ("bkr", "rnq")] ----, ("bkr", "kbg")
+  let pairs := #[("vvr", "z08"), ("tfb", "z28"), ("mqh", "z39"), ("rnq", "bkr")] -- #[("z09", "z08"), ("z29", "z28"), ("bkr", "rnq")] ----, ("bkr", "kbg")
   let mut swaps := inputToState dat
   for (l, r) in pairs do
     swaps := swaps.swap l r
@@ -544,6 +557,8 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool :=
         s1 == s || s2 == s)
     if ! fc overlap then
       IO.println s!"Error at {i}"
+    --if i == 15 then
+    --  for o in overlap do IO.println s!"{o}"
 
 
 
