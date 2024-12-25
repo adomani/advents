@@ -147,6 +147,24 @@ value: 'A', S: (0, 2)
 #eval do
   drawDir (0, 2)
 
+/--
+A `keyboard` represents either
+* a `num`eric keyboard with buttons `0` through `9` and `A`; or
+* a `dir`ectional kyeboard with buttons `<`, `^`, `>`, `v` and `A`.
+-/
+inductive keyboard where
+  | /-- A `num`eric keyboard with buttons `0` through `9` and `A`. -/
+    num
+  | /-- A `dir`ectional kyeboard with buttons `<`, `^`, `>`, `v` and `A`. -/
+    dir
+
+/--
+`keys k` converts the `keyboard` `k` into its `HashMap` of keys, mapping a character to
+the corresponding position.
+-/
+def keyboard.keys : keyboard → Std.HashMap Char pos
+  | .dir => dirKeys | .num => numKeys
+
 partial
 def seqs {α} [BEq α] [Hashable α] : List α → List α → Std.HashSet (List α)
   | [], l => {l}
@@ -401,24 +419,6 @@ structure window where
   mv : String
   deriving BEq, Hashable
 
-/--
-A `keyboard` represents either
-* a `num`eric keyboard with buttons `0` through `9` and `A`; or
-* a `dir`ectional kyeboard with buttons `<`, `^`, `>`, `v` and `A`.
--/
-inductive keyboard where
-  | /-- A `num`eric keyboard with buttons `0` through `9` and `A`. -/
-    num
-  | /-- A `dir`ectional kyeboard with buttons `<`, `^`, `>`, `v` and `A`. -/
-    dir
-
-/--
-`keys k` converts the `keyboard` `k` into its `HashMap` of keys, mapping a character to
-the corresponding position.
--/
-def keyboard.keys : keyboard → Std.HashMap Char pos
-  | .dir => dirKeys | .num => numKeys
-
 /-- The L¹-length of an integer vector. -/
 def length (p : pos) : Nat := p.1.natAbs + p.2.natAbs
 
@@ -656,6 +656,11 @@ def performPushes (s : String) (type : keyboard) (c : Char := 'A') : String :=
 #assert "<A^A>^^AvvvA" == performPushes "v<<A>>^A<A>AvA<^AA>A<vAAA>^A" .dir
 #assert "v<<A>>^A<A>AvA<^AA>A<vAAA>^A" ==
   performPushes "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A" .dir
+
+#eval do
+  let s := "<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A"
+  IO.println <| performPushes (performPushes s .dir) .dir
+
 
 /--
 info:
