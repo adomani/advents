@@ -167,15 +167,14 @@ def findPaths (p q : pos) : Std.HashSet String :=
   let left :=  List.replicate mv.1.natAbs (posToChar (mv.1.sign, 0))
   seqs left right |>.fold (init := ∅) (·.insert <| straight <| (⟨·⟩ : String).push 'A')
 
-/--
-info: <<vA
-v<<A
-<v<A
--/ -- >-/
+/-- info:
+- <<vA
+- v<<A
+-/
 #guard_msgs in
 #eval do
   for p in findPaths (1, - 2) default do
-    IO.println p
+    IO.println s!"- {p}"
 
 /-
 def mkString (mv : pos) : String :=
@@ -589,27 +588,27 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
 68
 168
 426
-1078
-2736
-6942
-17622
-44732
-113556
-288272
-731810
-1857782
-4716192
-11972598
-30393822
-77158236
-195875108
-497251640
-1262330842
-3204572982
-8135179472
-20652094862
-52427733542
-133093870844
+1072
+2708
+6834
+17272
+43630
+110230
+278466
+703530
+1777396
+4490432
+11344588
+28660984
+72409146
+182934610
+462166124
+1167616914
+2949868574
+7452551250
+18828133304
+47567415420
+120174367796
 -/
 #guard_msgs in
 #eval do
@@ -636,13 +635,14 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
     IO.println <| ta.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
 
 
-/-- info:
-136392453062
-137930468098
-141834898620
-133093870844
-154351814006
-390073922586586
+/--
+info:
+122667368278
+124667559426
+127753762758
+119474332746
+136317388492
+349351119674262
 ---
 warning: unused variable `dat`
 note: this linter can be disabled with `set_option linter.unusedVariables false`
@@ -710,7 +710,6 @@ def combined (dat : Array String) (reps : Nat) :
 
 /-- info:
 `<A^A^>^AvvvA`
-`<A^A^^>AvvvA`
 `<A^A>^^AvvvA`
 -/
 #guard_msgs in
