@@ -171,6 +171,7 @@ def pad (width n : Nat) : String :=
   let l := width - n.length
   ⟨List.replicate l '0'⟩ ++ n
 
+/- unused code, but was helpful to design tests.
 def natToValues (x : Nat) (s : String) (padl : Nat := 2) (lth : Nat := 45) : List (String × Bool) :=
   let xs := (Nat.toDigits 2 x).reverse
   (List.range lth).map fun i => (s ++ pad padl i, xs.getD i '0' == '1')
@@ -191,6 +192,7 @@ def state.swap (s : state) (a b : String) : state :=
         --dbg_trace "swapping '{b}'"
         (h.erase vs).insert (s1, op, s2, a)
       else h}
+-/
 
 partial
 def getDownstream (seen : Std.HashSet String) (s : state) : Std.HashSet String :=
