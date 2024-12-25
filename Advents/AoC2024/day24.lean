@@ -474,6 +474,95 @@ def checkOne (s : state) (i : Nat) : Array Nat :=
   tgZ.fold (fun h _ m => h.push m) #[] |>.qsort (· < ·)
   --(tally.fold (fun h _ m => h.push m) #[] |>.qsort (· < ·)) ++ --mults
   --  (withCurr.fold (fun h _ m => h.push m) #[] |>.qsort (· < ·)) --++ mults
+
+/-!
+-/
+
+def valHash {α} [BEq α] [Hashable α] [Inhabited α] (h : Std.HashSet α) (s : String) : α :=
+  match h.toArray with
+    | #[a] => a
+    | _ => dbg_trace "'{s}' has size {h.size}, not 1"; default
+
+def fc (s : Std.HashSet (String × String × String × String)) : Bool :=
+  let xy := s.filter fun (s1, _, s2, _) =>
+    s1.startsWith "x" && s2.startsWith "y" && s1.drop 1 == s2.drop 1
+  let OR := s.filter fun (_, op, _, _) =>
+    op == "OR"
+  let ANDxs := s.filter fun (s1, op, s2, _) =>
+    op == "AND" && s1.startsWith "x" && s2.startsWith "y" && s1.drop 1 == s2.drop 1
+  let XORxs := s.filter fun (s1, op, s2, _) =>
+    op == "XOR" && s1.startsWith "x" && s2.startsWith "y" && s1.drop 1 == s2.drop 1
+
+  let (xi, _, _, andXtgt) := valHash ANDxs "ANDxs"
+
+  let i := if xi.getNats.length == 1 then xi.getNats[0]! else dbg_trace "{xi.getNats}: no index found!"; 0
+
+  let (_, _, _, xorXtgt) := valHash XORxs "XORxs"
+
+  let XORzi := s.filter fun (_, op, _, z) =>
+    op == "XOR" && z == "z" ++ (pad 2 i)
+  let (s1zi, _, s2zi, _) := valHash XORzi "XORzi"
+
+  let XORzisucc := s.filter fun (_, op, _, z) =>
+    op == "XOR" && z == "z" ++ (pad 2 i.succ)
+  let (s1zisucc, _, s2zisucc, _) := valHash XORzisucc s!"\
+    {"\n".intercalate <| (s.filter fun (_, op, _, z) =>
+      op == "XOR" /-&& z == "z" ++ (pad 2 i.succ)-/).toList.map (s!"{·}")}\nXORzisucc"
+
+  let ANDzi := s.filter fun (s1, op, s2, _) =>
+    op == "AND" && s1 == s1zi && s2 == s2zi
+
+  let ANDzisucc := s.filter fun (s1, op, s2, _) =>
+    op == "AND" && s1 == s1zisucc && s2 == s2zisucc
+
+  let orEq@(orL, _, orR, orT) := valHash OR "OR"
+  s.size == 7 &&
+  xy.size == 2 &&
+  ANDxs.size == 1 && XORxs.size == 1 &&
+  XORzi.size == 1 && XORzisucc.size == 1 &&
+  ANDzi.size == 1 && ANDzisucc.size == 1 &&
+  OR.size == 1
+
+#eval do
+  let dat ← IO.FS.lines input
+  let pairs := #[] --#[("z07", "z08")] -- #[("z09", "z08"), ("z29", "z28"), ("bkr", "rnq")] ----, ("bkr", "kbg")
+  let mut swaps := inputToState dat
+  for (l, r) in pairs do
+    swaps := swaps.swap l r
+  swaps := setValues swaps 1 2 --2 6
+  let x := "y"
+  for i in [0:45] do
+--  for i in [14:15] do
+    IO.println i
+    let prev := getDownstream {x ++ pad 2 i} swaps
+    let curr := getDownstream {x ++ pad 2 (i + 1)} swaps
+    let onlyPrev := prev.filter (!curr.contains ·)
+    --let onlyCurr := curr.filter (!prev.contains ·)
+    let mut overlap : Std.HashSet _ := ∅
+    for s in onlyPrev do
+      overlap := overlap.union <| (swaps.gates.filter fun ((s1, _, s2, _): String × String × String × String) =>
+        s1 == s || s2 == s)
+    if ! fc overlap then
+      IO.println s!"Error at {i}"
+
+
+
+
+
+
+
+
+
+
+
+#exit
+    if (onlyPrev.size, onlyCurr.size) != (6, 3) then
+      IO.println s!"WARNING: {(onlyPrev.size, onlyCurr.size)} should be (6, 3)"
+    IO.println s!"\n-- {x ++ pad 2 i}, {x ++ pad 2 (i + 1)}: {onlyPrev.size} {onlyCurr.size}"
+
+
+#exit
+
 /--
 info:
 -- y40, y41: 6 3
