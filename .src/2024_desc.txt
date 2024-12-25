@@ -402,3 +402,31 @@ Intersecting the neighbourhoods of the resulting vertices, we find the maximal c
 
 There must be some further property of this graph that I missed,
 since this approach fails on the test.
+-- Day 24
+A machine with gates to compute additions.
+
+### Description
+
+#### Part 1
+
+The input contains the initial values and the bitwise operations that a machine can perform.
+In part 1, we should determine the value of the machine with the given initial values.
+
+#### Part 2
+
+In part 2, the instructions tell us that there are 4 pairs of cables in the machine that are transposed.
+Undoing these transpositions, if we set the input to be the binary digits of two numbers, then the machine would compute the sum of these numbers.
+The solution is the sorted, comma-separated list of transpositions that should be performed.
+-- Day 25
+Match locks and keys.
+
+### Description
+
+#### Part 1
+
+The input consists of 250 locks and 250 keys.
+We should determine how many pairs of fitting lock-and-key combinations there are.
+
+#### Part 2
+
+We need to collect all the previous stars!

@@ -22,3 +22,5 @@ import Advents.AoC2024.day20
 import Advents.AoC2024.day21
 import Advents.AoC2024.day22
 import Advents.AoC2024.day23
+import Advents.AoC2024.day24
+import Advents.AoC2024.day25
