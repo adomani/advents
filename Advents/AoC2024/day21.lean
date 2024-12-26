@@ -207,10 +207,48 @@ def generatePathFromPos (p : pos) : Array pos :=
   let x := generatePathFromPos (1, -1)
   IO.println <| x.map dirToChar
 
+def charToPresses (k : keyboard) (c d : Char) : Array Char :=
+  let keys := k.keys
+  let diff := keys[d]! - keys[c]!
+  generatePathFromPos diff |>.map dirToChar
 
+def numToDir (str : String) : String :=
+  let (tot, _) := str.toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
+    (tot ++ charToPresses .num prev ci |>.push 'A', ci)
+  tot.toList.toString
+
+/-- info: [<, A, ^, A, >, ^, ^, A, v, v, v, A] -/
+#guard_msgs in
+#eval do
+  let str := "029A"
+  IO.println <| numToDir str
 --def generatePath (s t : Char) : String :=
 --  let
 
+def stringToDir (k : keyboard) (str : String) : String :=
+  let (tot, _) := str.toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
+    (tot ++ charToPresses k prev ci |>.push 'A', ci)
+  ⟨tot.toList⟩
+
+/-- info: `<A^A>^^AvvvA` -/
+#guard_msgs in
+#eval do
+  let str := "029A"
+  IO.println s!"`{stringToDir .num str}`"
+
+#eval do
+  let str := "<A^A>^^AvvvA"
+  IO.println s!"`{stringToDir .dir str}`"
+
+--        `v<<A>>^A<A>AvA<^AA>A<vAAA>^A`
+/-- info: `v<<A>>^A<A>AvA^<AA>Av<AAA>^A` -/
+#guard_msgs in
+#eval do
+  let str := "029A"
+  let first := stringToDir .num str
+  let second := stringToDir .dir first
+  IO.println s!"`{second}`"
+  IO.println s!"`{stringToDir .dir second}`"
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
