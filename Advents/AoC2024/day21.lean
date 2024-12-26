@@ -172,58 +172,65 @@ Applies to the numeric keyboard. Use `generatePathFromPos` for a directional key
 
 *Note.* Probably these two functions should be merged, once I get part 2 to work.
 -/
-def generatePathFromPos (p : pos) : Array pos :=
+def generatePathFromPos1 (p : pos) : Array pos :=
   let horMove := List.replicate p.2.natAbs (0, p.2.sign) |>.toArray
   let verMove := List.replicate p.1.natAbs (p.1.sign, 0) |>.toArray
   -- if I need to move left, then I move vertically first
   if p.2 < 0 then verMove ++ horMove else
   horMove ++ verMove
 
+def generatePathFromPos (k : keyboard) (p : pos) : Array pos :=
+  let horMove := List.replicate p.2.natAbs (0, p.2.sign) |>.toArray
+  let verMove := List.replicate p.1.natAbs (p.1.sign, 0) |>.toArray
+  -- if I know that I am going down, then I can move horizontally first
+  if 0 < p.1 then horMove ++ verMove else
+  -- if I know that I am going up and right, then I can move horizontally first
+  if p.1 < 0 && 0 < p.2 then horMove ++ verMove else
+  verMove ++ horMove
+
 -- In the numeric keyboard, avoid going through the bottom-left entry.
 /-- info: #[>, v] -/
 #guard_msgs in
 #eval do
-  let x := generatePathFromPos (1, 1)
+  let x := generatePathFromPos .num (1, 1)
   IO.println <| x.map dirToChar
 
 -- In the numeric keyboard, avoid going through the bottom-left entry.
 /-- info: #[^, <] -/
 #guard_msgs in
 #eval do
-  let x := generatePathFromPos (- 1, - 1)
+  let x := generatePathFromPos .num (- 1, - 1)
   IO.println <| x.map dirToChar
 
 -- In the directional keyboard, avoid going through the top-left entry.
 /-- info: #[>, ^] -/
 #guard_msgs in
 #eval do
-  let x := generatePathFromPos (-1, 1)
+  let x := generatePathFromPos .dir (-1, 1)
   IO.println <| x.map dirToChar
 
 -- In the directional keyboard, avoid going through the top-left entry.
 /-- info: #[v, <] -/
 #guard_msgs in
 #eval do
-  let x := generatePathFromPos (1, -1)
+  let x := generatePathFromPos .dir (1, -1)
   IO.println <| x.map dirToChar
 
 def charToPresses (k : keyboard) (c d : Char) : Array Char :=
   let keys := k.keys
   let diff := keys[d]! - keys[c]!
-  generatePathFromPos diff |>.map dirToChar
+  generatePathFromPos k diff |>.map dirToChar
 
 def numToDir (str : String) : String :=
   let (tot, _) := str.toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
     (tot ++ charToPresses .num prev ci |>.push 'A', ci)
-  tot.toList.toString
-
-/-- info: [<, A, ^, A, >, ^, ^, A, v, v, v, A] -/
+  ⟨tot.toList⟩
+----------`<A^A>^^AvvvA`
+/-- info: `<A^A^^>AvvvA` -/
 #guard_msgs in
 #eval do
   let str := "029A"
-  IO.println <| numToDir str
---def generatePath (s t : Char) : String :=
---  let
+  IO.println s!"`{numToDir str}`"
 
 def stringToDir (k : keyboard) (str : String) : String :=
   let (tot, _) := str.toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
@@ -241,7 +248,9 @@ def stringToDir (k : keyboard) (str : String) : String :=
   IO.println s!"`{stringToDir .dir str}`"
 
 --        `v<<A>>^A<A>AvA<^AA>A<vAAA>^A`
-/-- info: `v<<A>>^A<A>AvA^<AA>Av<AAA>^A` -/
+/-- info: `v<<A>>^A<A>AvA^<AA>Av<AAA>^A`
+`v<A<AA>>^AvAA^<A>Av<<A>>^AvA^Av<A>^A<Av<A>>^AAvA^Av<A<A>>^AAAvA^<A>A`
+-/
 #guard_msgs in
 #eval do
   let str := "029A"
@@ -249,6 +258,21 @@ def stringToDir (k : keyboard) (str : String) : String :=
   let second := stringToDir .dir first
   IO.println s!"`{second}`"
   IO.println s!"`{stringToDir .dir second}`"
+
+#eval do
+  let dat := atest
+  let mut tot := 0
+  let mut msg := #[]
+  for d in dat do
+    let first := stringToDir .num d
+    let second := stringToDir .dir first
+    let third := stringToDir .dir second
+    msg := msg.push s!"{third.length} * {d.getNats[0]!}"
+    tot := tot + d.getNats[0]! * third.length
+  IO.println <| s!"{tot} = " ++ " + ".intercalate msg.toList
+
+
+
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
