@@ -182,11 +182,19 @@ def generatePathFromPos1 (p : pos) : Array pos :=
 def generatePathFromPos (k : keyboard) (p : pos) : Array pos :=
   let horMove := List.replicate p.2.natAbs (0, p.2.sign) |>.toArray
   let verMove := List.replicate p.1.natAbs (p.1.sign, 0) |>.toArray
-  -- if I know that I am going down, then I can move horizontally first
-  if 0 < p.1 then horMove ++ verMove else
-  -- if I know that I am going up and right, then I can move horizontally first
-  if p.1 < 0 && 0 < p.2 then horMove ++ verMove else
-  verMove ++ horMove
+  match k with
+    | .num =>
+      ---- if I know that I am going left and up, then I can move horizontally first
+      --if p.1 < 0 && p.2 < 0 then horMove ++ verMove else
+      -- if I know that I am going down, then I can move horizontally first
+      if 0 < p.1 then horMove ++ verMove else
+      -- if I know that I am going up and right, then I can move horizontally first
+      if p.1 < 0 && 0 < p.2 then horMove ++ verMove else
+      -- if I know that I am going left and down, then I can move horizontally first
+      if 0 < p.1 && p.2 < 0 then horMove ++ verMove else
+      verMove ++ horMove
+    | .dir =>
+      horMove ++ verMove
 
 -- In the numeric keyboard, avoid going through the bottom-left entry.
 /-- info: #[>, v] -/
@@ -226,11 +234,13 @@ def numToDir (str : String) : String :=
     (tot ++ charToPresses .num prev ci |>.push 'A', ci)
   ⟨tot.toList⟩
 ----------`<A^A>^^AvvvA`
-/-- info: `<A^A^^>AvvvA` -/
+/-- info: `<A^A>^^AvvvA` -/
 #guard_msgs in
 #eval do
   let str := "029A"
   IO.println s!"`{numToDir str}`"
+  if numToDir str != "<A^A>^^AvvvA" then
+    IO.println "Difference with example"
 
 def stringToDir (k : keyboard) (str : String) : String :=
   let (tot, _) := str.toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
@@ -248,10 +258,10 @@ def stringToDir (k : keyboard) (str : String) : String :=
   IO.println s!"`{stringToDir .dir str}`"
 
 --        `v<<A>>^A<A>AvA<^AA>A<vAAA>^A`
-/-- info: `v<<A>>^A<A>AvA^<AA>Av<AAA>^A`
-`v<A<AA>>^AvAA^<A>Av<<A>>^AvA^Av<A>^A<Av<A>>^AAvA^Av<A<A>>^AAAvA^<A>A`
+/- info: `v<<A>>^A<A>AvA<^AA>Av<AAA>^A`
+`v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A`
 -/
-#guard_msgs in
+--#guard_msgs in
 #eval do
   let str := "029A"
   let first := stringToDir .num str
@@ -259,6 +269,22 @@ def stringToDir (k : keyboard) (str : String) : String :=
   IO.println s!"`{second}`"
   IO.println s!"`{stringToDir .dir second}`"
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/-- info: 126384 = 68 * 29 + 60 * 980 + 68 * 179 + 64 * 456 + 64 * 379 -/
+#guard_msgs in
 #eval do
   let dat := atest
   let mut tot := 0
