@@ -194,7 +194,13 @@ def generatePathFromPos (k : keyboard) (p : pos) : Array pos :=
       if 0 < p.1 && p.2 < 0 then horMove ++ verMove else
       verMove ++ horMove
     | .dir =>
-      horMove ++ verMove
+      -- if I know that I am going up, then I can move horizontally first
+      if p.1 < 0 then horMove ++ verMove else
+      -- if I know that I am going down and right, then I can move horizontally first
+      if 0 < p.1 && 0 < p.2 then horMove ++ verMove else
+      -- if I know that I am going left and up, then I can move horizontally first
+      if p.1 < 0 && p.2 < 0 then horMove ++ verMove else
+      verMove ++ horMove
 
 -- In the numeric keyboard, avoid going through the bottom-left entry.
 /-- info: #[>, v] -/
@@ -233,6 +239,7 @@ def numToDir (str : String) : String :=
   let (tot, _) := str.toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
     (tot ++ charToPresses .num prev ci |>.push 'A', ci)
   ⟨tot.toList⟩
+
 ----------`<A^A>^^AvvvA`
 /-- info: `<A^A>^^AvvvA` -/
 #guard_msgs in
@@ -247,6 +254,30 @@ def stringToDir (k : keyboard) (str : String) : String :=
     (tot ++ charToPresses k prev ci |>.push 'A', ci)
   ⟨tot.toList⟩
 
+def stringToTally (str : String) : Std.HashMap (Char × Char) Nat :=
+  if str.isEmpty then ∅ else
+  let (tot, _) := ((str.drop 1).push 'A').toList.foldl (init := (#[], str.get 0)) fun (tot, prev) ci =>
+    (tot.push (prev, ci), ci)
+  tot.foldl (init := ∅) fun h cs => dbg_trace "inserting {cs}"; h.alter cs (some <| ·.getD 0 + 1)
+
+def ltTally [LT α] [DecidableRel (LT.lt (α := α))] (x y : α × Nat) : Bool :=
+  y.2 < x.2 || (x.2 == y.2 && x.1 < y.1)
+
+def showTally [ToString α] [BEq α] [Hashable α] [LT α] [DecidableRel (LT.lt (α := α))]
+    (h : Std.HashMap α Nat) (count : α → Nat := fun _ => 1) : IO Unit := do
+  let mut tot := 0
+  for (x, m) in h.toArray.qsort ltTally do
+    tot := tot + m * count x
+    IO.println s!"{m} times {x}"
+  IO.println s!"\n{tot} total multiplicities"
+
+#eval do
+  let s := "02922929A"
+  showTally (stringToTally s)
+
+#eval do
+  showTally (stringToTally "029A")
+
 /-- info: `<A^A>^^AvvvA` -/
 #guard_msgs in
 #eval do
@@ -258,22 +289,48 @@ def stringToDir (k : keyboard) (str : String) : String :=
   IO.println s!"`{stringToDir .dir str}`"
 
 --        `v<<A>>^A<A>AvA<^AA>A<vAAA>^A`
-/- info: `v<<A>>^A<A>AvA<^AA>Av<AAA>^A`
-`v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A`
+/-- info: `v<<A>>^A<A>AvA<^AA>Av<AAA>^A`
+-- `v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A`
 -/
---#guard_msgs in
+-- `<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A`
+#guard_msgs in
 #eval do
   let str := "029A"
   let first := stringToDir .num str
   let second := stringToDir .dir first
   IO.println s!"`{second}`"
-  IO.println s!"`{stringToDir .dir second}`"
+  IO.println s!"-- `{stringToDir .dir second}`"
 
+def genericTally [BEq α] [Hashable α] (h : Std.HashMap α Nat) (f : α → Std.HashMap α Nat) :
+    Std.HashMap α Nat :=
+  h.fold (init := ∅) fun h a m =>
+    (f a).fold (init := h) fun h b n => h.alter b (some <| ·.getD 0 + m * n)
 
+/-- info: #[(abbac, 3), (abbba, 1), (abbbc, 1), (bbbac, 1)] -/
+#guard_msgs in
+#eval do
+  let s : Std.HashMap String Nat := {("abbbac", 1)}
+  let f (st : String) : Std.HashMap String Nat :=
+    (Array.range st.length).foldl (init := ∅) fun h i => h.alter (⟨st.toList.eraseIdx i⟩) (some <| ·.getD 0 + 1)
+  IO.println <| (genericTally s f).toArray.qsort (·.1 < ·.1)
 
+#eval do
+  let s : Std.HashMap String Nat := {("abbbac", 1)}
+  let f (st : String) : Std.HashMap String Nat :=
+    (Array.range st.length).foldl (init := ∅) fun h i => h.alter (⟨st.toList.eraseIdx i⟩) (some <| ·.getD 0 + 1)
+  IO.println <| (genericTally s f).toArray
 
-
-
+#eval do
+  let s := "029A"
+  --showTally (stringToTally s)
+  IO.println ""
+  let tal := genericTally (stringToTally "02") fun (l, r) =>
+    --dbg_trace "and also {(l, r)}"
+    stringToTally ⟨(charToPresses .num l r).toList⟩
+  showTally tal
+  IO.println ""
+  let tal := genericTally (stringToTally s) fun (l, r) => stringToTally ⟨(charToPresses .num l r).toList⟩
+  showTally tal
 
 
 
