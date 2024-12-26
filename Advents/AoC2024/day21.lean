@@ -460,6 +460,173 @@ def switchAt (s : String) (n : Nat) : Bool := s.get ⟨n⟩ != s.get ⟨n + 1⟩
 def alts (s : String) : Nat :=
   (Array.range s.length).foldl (· + if switchAt s · then 1 else 0) 0
 
+def minimizeFirstStep (s : Std.HashSet String) (type : keyboard) : Std.HashSet String := Id.run do
+  let kb := match type with | keyboard.num => mkNum | _ => mkDir
+  let ps := s.fold (init := ∅)
+    fun (h : Std.HashSet String) s => h.union (strToPaths kb s)
+  let mut min := 10000
+  let mut minOnes : Std.HashSet String := ∅
+  for p in ps do
+    if p.length < min then
+      minOnes := {p}
+      min := p.length
+    if p.length == min then
+      minOnes := minOnes.insert p
+  return minOnes
+
+def genFirstMin (s : String) (num? : Bool) : String :=
+  let ps1 := minimizeFirstStep {s} (if num? then .num else .dir)
+  let ps2 := minimizeFirstStep ps1 .dir --|>.toArray[0]!
+  let ps3 := minimizeFirstStep ps2 .dir
+  ps3.toArray[0]!
+
+def performPushes (w : window) (type : keyboard) : window :=
+  let keys := type.keys
+  let dirs := w.mv.toList.foldl (init := #[]) (·.push <| charToMove ·)
+  dirs.foldl (init := {w with mv := ""})
+    fun w' mv =>
+      if mv == (0, 0) then {w' with mv := w'.mv.push (posToChar type keys[w'.seed]!)}
+      else
+        {w' with seed := posToChar type (keys[w'.seed]! + mv)}
+
+def upAndDown (w : window) (k : keyboard) : window :=
+  let fmin := genFirstMin w.mv (match k with | .num => true | .dir => false)
+  performPushes (performPushes {w with mv := fmin} .dir) .dir
+
+def splitWindow (w : window) : Std.HashMap window Nat := --Id.run do
+  --let parts := ((straight w.mv).dropRight 1).splitOn "A"
+  --let mut pth := "A"
+  --let mut h := ∅
+  --for p in parts do
+  --  pth := p
+  --  let val := performPushes {w with mv := pth.push 'A'} .dir |>.seed
+  --  h := h.alter {mv := p.push 'A', seed := val} (some <| ·.getD 0 + 1)
+  --dbg_trace "here"
+  (( w.mv).dropRight 1).splitOn "A" |>.foldl (·.alter {w with mv := ·.push 'A'} (some <| ·.getD 0 + 1)) ∅
+  --return h
+
+#eval do
+  let mut tally := 0
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let mut memo : Std.HashMap window (List (window × Nat)) := ∅
+  for s in dat do
+    --let s := dat[0]!
+    let w : window := {mv := s}
+    --dbg_trace w.mv
+    let first := upAndDown w .num
+    --dbg_trace "first step: {first.mv.length} {first.mv}"
+    let mut split := splitWindow first
+    for i in [0:25] do
+      let mut newSplit : Std.HashMap window Nat := ∅
+      for (w, m) in split do
+        --dbg_trace w.mv
+        if !memo.contains w then
+          let new := upAndDown w .dir
+          memo := memo.insert w (splitWindow new).toList
+        newSplit := memo[w]!.foldl (init := newSplit) fun h ((w', m') : window × Nat) =>
+              h.alter w' (some <| ·.getD 0 + m' * m)
+      split := newSplit
+    let fin := split.fold (init := 0) fun h (w : window) n => h + n * (w.mv.length)
+    tally := tally + s.getNats[0]! * fin
+    IO.println memo.size
+    IO.println s!"{s} mults: {fin}"
+  IO.println tally
+
+/-!
+-/
+/-
+#assert 142074832574328 == -- too low
+964 * 49767208068 +
+140 * 50575382072 +
+413 * 51834670766 +
+670 * 48735351682 +
+593 * 55578896886
+        110060123381626
+        120610857096518
+        239384518851636 -- not right
+
+#assert 246822631766548 == -- too high -- misunderstanding: used test file
+ 29 * 133093870844 +
+980 * 115740358202 +
+179 * 129556635932 +
+456 * 129556635930 +
+379 * 124720038676
+
+-/
+#eval
+964 * 85455922270+ 140 * 85935515972+ 413 * 85762730562+ 670 * 82304569918+ 593 * 91753740270
+
+/-
+17
+19
+22
+24
+-/
+def splitAndStraightenWindow (w : window) : Std.HashMap window Nat :=
+  splitWindow (straightenOneWindow w) |>.fold (fun h w mult => h.alter w (some <| ·.getD 0 + mult)) ∅
+
+structure memoW where
+  w : window
+  memo : Std.HashMap window (List (window × Nat)) := ∅
+
+def performPushesW (w : memoW) (type : keyboard) : memoW :=
+  let keys := type.keys
+  let dirs := w.w.mv.toList.foldl (init := #[]) (·.push <| charToMove ·)
+  dirs.foldl (init := {w with w := {seed := w.w.seed, mv := ""}})
+    fun w' mv =>
+      if mv == (0, 0) then {w' with w := {mv:= w'.w.mv.push (posToChar type keys[w'.w.seed]!)}}
+      else
+        {w' with w := {w'.w with seed := posToChar type (keys[w'.w.seed]! + mv)}}
+
+def upAndDown (w : memoW) (k : keyboard) : memoW :=
+  let fmin := genFirstMin w.w.mv (match k with | .num => true | .dir => false)
+  performPushesW (performPushesW {w with w := {mv := fmin}} .dir) .dir
+
+def splitWindow (w : window) : Std.HashMap window Nat :=
+  ((straight w.mv).dropRight 1).splitOn "A" |>.foldl (·.alter {mv := ·.push 'A'} (some <| ·.getD 0 + 1)) ∅
+
+def straightenOneWindow (w : window) : window :=
+  {w with mv := straight w.mv}
+
+def splitAndStraightenWindow (w : window) : Std.HashMap window Nat :=
+  splitWindow (straightenOneWindow w) |>.fold (fun h w mult => h.alter w (some <| ·.getD 0 + mult)) ∅
+
+def moveWindow (w : memoW) (type : keyboard) : String × memoW :=
+  ((upAndDown w type).w.mv, {w with w := {seed := w.w.mv.get 0, mv := w.w.mv.drop 1}})
+
+def wholeRun (w : memoW) (type : keyboard) : String := Id.run do
+  let mut (s, w) : String × memoW := ("", w)
+  while !w.w.mv.isEmpty do
+    --dbg_trace w.mv
+    let (s', w') := moveWindow w type
+    (s, w) := (s ++ s', w')
+  s.replace "<v<" "v<<"
+
+def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.run do
+  let mut fin := ∅
+  for (w, mult) in h do
+    let s := wholeRun w .dir
+    let pieces := splitAndStraightenWindow {mv := s}
+    for (p, m') in pieces do
+      fin := fin.alter p (some <| ·.getD 0 + mult * m')
+  return fin
+
+#eval do
+  let dat := atest
+  let mut memo : Std.HashMap window (List (window × Nat)) := ∅
+  for s in dat do
+    --let fmin : window := {mv := genFirstMin s true}
+    let fw : window := {mv := s}
+
+    let fmin := if memo.contains fw then Std.HashMap.ofList memo[fw]! else
+      let new := upAndDown fw .num
+      let ws := splitWindow new
+      ws
+    memo := memo.insert fw fmin.toList
+    IO.println <| fmin.mv == "v<<A>>^A<A>AvA<^AA>A<vAAA>^A"
+    IO.println s!"{fmin.mv.length}: {fmin.mv}"
+#exit
 def minPath (start tgt : Char) (type : keyboard) : String := Id.run do
   let keys := type.keys
   let startPos := keys[start]!
@@ -503,17 +670,6 @@ def minPath (start tgt : Char) (type : keyboard) : String := Id.run do
 #eval show Elab.Term.TermElabM _ from do
   if let [s, t] := "A^".toList then
     guard <| minPath s t .dir == "<A"
-
-def moveWindow (w : window) (type : keyboard) : String × window :=
-  (minPath w.seed (w.mv.get 0) type, {seed := w.mv.get 0, mv := w.mv.drop 1})
-
-def wholeRun (w : window) (type : keyboard) : String := Id.run do
-  let mut (s, w) : String × window := ("", w)
-  while !w.mv.isEmpty do
-    --dbg_trace w.mv
-    let (s', w') := moveWindow w type
-    (s, w) := (s ++ s', w')
-  s.replace "<v<" "v<<"
 
 #eval show Elab.Term.TermElabM _ from do
   let st := "029A"
@@ -585,24 +741,6 @@ def wholeRun (w : window) (type : keyboard) : String := Id.run do
     IO.println <| s!"{w.mv.length}: `{w.mv}`"
   guard <| tot == 126384
 
-def splitWindow (w : window) : Std.HashMap window Nat :=
-  ((straight w.mv).dropRight 1).splitOn "A" |>.foldl (·.alter {mv := ·.push 'A'} (some <| ·.getD 0 + 1)) ∅
-
-def straightenOneWindow (w : window) : window :=
-  {w with mv := straight w.mv}
-
-def splitAndStraightenWindow (w : window) : Std.HashMap window Nat :=
-  splitWindow (straightenOneWindow w) |>.fold (fun h w mult => h.alter w (some <| ·.getD 0 + mult)) ∅
-
-def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.run do
-  let mut fin := ∅
-  for (w, mult) in h do
-    let s := wholeRun w .dir
-    let pieces := splitAndStraightenWindow {mv := s}
-    for (p, m') in pieces do
-      fin := fin.alter p (some <| ·.getD 0 + mult * m')
-  return fin
-
 /-- info:
 1 × `vvvA`
 1 × `^A`
@@ -658,7 +796,39 @@ def tallyMoveWindow (h : Std.HashMap window Nat) : Std.HashMap window Nat := Id.
     let ta := tallyMoveWindow ta
     IO.println <| ta.fold (fun tot (s : window) m => tot + m * String.length s.mv) 0
 
+def minimizeOne (s : String) (type : keyboard) : String :=
+  let ps := strToPaths (mkNum) s
+  dbg_trace ps.size
+  dbg_trace ps.toArray
+  if ps.size == 0 then default else default
+
+#exit
+#eval do
+  let s := "379A"
+  let ps1 := minimizeFirstStep {s} .num
+  let ps2 := minimizeFirstStep ps1 .dir
+  let ps3 := minimizeFirstStep ps2 .dir
+  IO.println ps3.size
+  IO.println ps3.toArray[0]!.length
+  let type : keyboard := .num
+  let ps := strToPaths (match type with | keyboard.num => mkNum | _ => mkDir) s
+  let mut min := 1000
+  let mut minOnes : Std.HashSet String := ∅
+  for p in ps do
+    if p.length < min then
+      minOnes := {p}
+      min := p.length
+    if p.length == min then
+      minOnes := minOnes.insert p
+  IO.println minOnes.toArray
+
+  --if ps.size == 0 then default else default
+  --minimizeOne "029A"
+
+
+
 def performPushes (s : String) (type : keyboard) (c : Char := 'A') : String :=
+  --performPushesW {seed := c, mv := s} type |>.mv
   let keys := type.keys
   let dirs := s.toList.foldl (init := #[]) (·.push <| charToMove ·)
   let (_, buttons) : pos × String := dirs.foldl (init := (keys[c]!, ""))
@@ -681,6 +851,17 @@ def decodeN (s : String) (n : Nat) : String :=
 
 def decodePart1 (s : String) : String := decodeN s 2
 
+#eval "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A".splitOn "A" |>.length
+#eval "<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A".splitOn "A" |>.length
+
+#eval (performPushesW {mv := "<vA<AA>>^AvAA<^A>A"} .dir).seed
+#eval decodeNdir "<vA<AA>>^AvAA<^A>A" 2
+#eval (performPushesW {mv := "<v<A>>^AvA^A<vA"} .dir).seed
+#eval decodeNdir                   "<v<A>>^AvA^A<vA" 2
+#eval (performPushesW {seed := 'v', mv := ">^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"} .dir).seed
+#eval decodeNdir ">^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A" 2
+#eval decodeNdir "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A" 2
+
 #assert "029A" == decodePart1 "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
 #assert "980A" == decodePart1 "<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A"
 -- This may be an error in the input: the sequence of steps corresponds to `379A` below.
@@ -699,6 +880,7 @@ info:
 119474332746
 136317388492
 349351119674262
+
 ---
 warning: unused variable `dat`
 note: this linter can be disabled with `set_option linter.unusedVariables false`
