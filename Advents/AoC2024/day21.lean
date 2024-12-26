@@ -167,17 +167,44 @@ def posToChar : keyboard → pos → Char
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+Applies to the numeric keyboard. Use `generatePathFromPos` for a directional keyboard.
+
+*Note.* Probably these two functions should be merged, once I get part 2 to work.
+-/
 def generatePathFromPos (p : pos) : Array pos :=
   let horMove := List.replicate p.2.natAbs (0, p.2.sign) |>.toArray
   let verMove := List.replicate p.1.natAbs (p.1.sign, 0) |>.toArray
-  -- if I need to move down, then I'll move horizontally first
-  if p.1 < 0 then horMove ++ verMove else
   -- if I need to move left, then I move vertically first
   if p.2 < 0 then verMove ++ horMove else
   horMove ++ verMove
 
+-- In the numeric keyboard, avoid going through the bottom-left entry.
+/-- info: #[>, v] -/
+#guard_msgs in
 #eval do
-  let x := generatePathFromPos (-1, 2)
+  let x := generatePathFromPos (1, 1)
+  IO.println <| x.map dirToChar
+
+-- In the numeric keyboard, avoid going through the bottom-left entry.
+/-- info: #[^, <] -/
+#guard_msgs in
+#eval do
+  let x := generatePathFromPos (- 1, - 1)
+  IO.println <| x.map dirToChar
+
+-- In the directional keyboard, avoid going through the top-left entry.
+/-- info: #[>, ^] -/
+#guard_msgs in
+#eval do
+  let x := generatePathFromPos (-1, 1)
+  IO.println <| x.map dirToChar
+
+-- In the directional keyboard, avoid going through the top-left entry.
+/-- info: #[v, <] -/
+#guard_msgs in
+#eval do
+  let x := generatePathFromPos (1, -1)
   IO.println <| x.map dirToChar
 
 
