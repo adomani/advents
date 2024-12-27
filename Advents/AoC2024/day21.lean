@@ -99,40 +99,27 @@ def findPaths (p q : pos) : Std.HashSet String :=
   let left :=  List.replicate mv.1.natAbs (dirToChar (mv.1.sign, 0))
   seqs left right |>.fold (init := ∅) (·.insert <| (⟨·⟩ : String).push 'A')
 
-structure KP where
-  keys : Std.HashMap Char pos
-  S : pos
-  deriving Inhabited
-
-def mkNum (p : Option pos := none) : KP where
-  keys := numKeys
-  S := p.getD numKeys['A']!
-
-def mkDir (p : Option pos := none) : KP where
-  keys := dirKeys
-  S := p.getD dirKeys['A']!
-
-def validate (n : KP) (s : String) : Bool := Id.run do
-  let mut curr := n.S
+def validate (k : keyboard) (s : String) : Bool := Id.run do
+  let mut curr := k.keys['A']!
   for si in s.toList do
     curr := curr + charToDir si
-    if (n.keys.filter fun _c (q : pos) => curr == q).isEmpty then return false
+    if (k.keys.filter fun _c (q : pos) => curr == q).isEmpty then return false
   return true
 
 /--
 Converts a string, such as "029A", into all the strings of instructions
 It starts from the position recorded in `n` and then continues with the ones in `s`.
 -/
-def strToPaths (n : KP) (s : String) : Std.HashSet String := Id.run do
-  let mut start := n.S
+def strToPaths (k : keyboard) (s : String) : Std.HashSet String := Id.run do
+  let mut start := k.keys['A']!
   let mut fin : Std.HashSet String := {""}
   for c in s.toList do
-    let tgt := n.keys[c]!
+    let tgt := k.keys[c]!
     let next := findPaths tgt start
     --dbg_trace "{start} -- {tgt}, {next.toArray}"
     fin :=  fin.fold (init := ∅) fun h st => h.union (next.fold (·.insert <| st ++ ·) ∅)
     start := tgt
-  return fin.filter (validate n)
+  return fin.filter (validate k)
 
 def splitAtAs (s : String) : Array String :=
   (s.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
@@ -152,7 +139,7 @@ def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) N
       if cache.contains (sk, j + 1) then
         tot := tot + cache[(sk, j + 1)]!
       else
-        let currSeq := strToPaths mkDir sk
+        let currSeq := strToPaths .dir sk
         let (recMin, cache') := currSeq.fold (init := (10^100, cache)) fun (m, cc) pth =>
           let (newMin, newCache) := shortestSeq pth j cc
           (min m newMin, cc.union newCache)
@@ -162,7 +149,7 @@ def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) N
 
 def minOne (str : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
     Nat × Std.HashMap (String × Nat) Nat := Id.run do
-  let parts := strToPaths mkNum str
+  let parts := strToPaths .num str
   let mut cache := cache
   let mut strMin := 10^100
   for p in parts do
