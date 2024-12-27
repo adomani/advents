@@ -534,45 +534,55 @@ def extendPath (s : Std.HashSet (Array (String × Nat))) (ns : Std.HashSet (Stri
 --#exit
 
 structure Tstring where
-  str : String
+  str : Array (String × Nat)
   deriving BEq, Hashable
 
-instance : ToString Tstring where toString := (·.str)
+instance : ToString Tstring where toString t := s!"{t.str}"
 
-def Tstring.length (s : Tstring) : Nat := s.str.length
+def Tstring.length (s : Tstring) : Nat := s.str.foldl (init := 0) fun tot (s, m) => tot + s.length * m
+#assert Tstring.length ⟨#[]⟩ == 0
+#assert Tstring.length ⟨#[("", 10)]⟩ == 0
+#assert Tstring.length ⟨#[("1", 10), ("2", 2)]⟩ == 12
+
 def Tstring.dropRight (s : Tstring) (n : Nat) : Tstring := ⟨s.str.drop n⟩
 def Tstring.splitOn (s : Tstring) (st : String) : List Tstring := s.str.splitOn st |>.foldl (· ++ [⟨·⟩]) []
 def Tstring.push (s : Tstring) (c : Char) : Tstring := ⟨s.str.push c⟩
 
-def shortestSeq (keys : Tstring) (d : Nat) (cache : Std.HashMap (Tstring × Nat) Nat) (con : Nat) :
+def shortestSeq (keys : Tstring) (d : Nat) (cache : Std.HashMap (Tstring × Nat) Nat) :
     Nat × Std.HashMap (Tstring × Nat) Nat := Id.run do
-  if con == 0 then dbg_trace "keys: {keys}"; return default
+  --if con == 0 then dbg_trace "keys: {keys}"; return default
   let mut cache := cache
   let mut tot := 0
   match d with
   | 0 => return (keys.length, cache.insert (keys, 0) keys.length)
   | d + 1 => if cache.contains (keys, d) then return (cache[(keys, d)]!, cache) else
-    let subkeys := (keys.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
-    for {str := sk} in subkeys do
-      let currSeq := strToPaths mkDir sk
+    let subkeys := keys.str --(keys.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
+    for (sk, mult) in subkeys do
+      let currSeq : Std.HashSet (Array (String × Nat)):=
+        strToPaths mkDir sk |>.fold (init := ∅) fun (h : Std.HashSet (Array (String × Nat))) s =>
+          let sA := splitAtAs s
+          --dbg_trace "inserting {s}"
+          h.insert <| sA.foldl (·.push (·, mult)) #[]
       let (recMin, cache') := currSeq.fold (init := (10^100, cache)) fun (m, cc) pth =>
-        let (newMin, newCache) := shortestSeq ⟨pth⟩ d cc (con - 1)
+        let (newMin, newCache) := shortestSeq ⟨pth⟩ d cc
         (min m newMin, cc) --.union newCache)
       tot := tot + recMin
       cache := cache'.insert (keys, d) tot
     --dbg_trace cache.size
     return (tot, cache)
 
+set_option trace.profiler true in
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
   let mut tot := 0
   let mut cache := ∅
   for str in dat do
-    let parts := strToPaths mkNum str
+    --let parts := strToPaths mkNum str
+    let parts := extendPath {#[]} (strToPaths mkNum str |>.fold (init := ∅) fun h n => h.insert (n, 1))
     let mut strMin := 10^100
     for p in parts do
-      let (newMin, newCache) := shortestSeq p 2 cache 3
+      let (newMin, newCache) := shortestSeq ⟨p⟩ 5 cache
       strMin := min strMin newMin
       cache := cache.union newCache
     IO.println <| s!"{str} * {strMin}"
