@@ -488,7 +488,7 @@ def splitAtAs (s : String) : Array String :=
   (s.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
 
 /--
-Adds the entries of `ns` to each entry of `s`, while memoizing over "splits at `A`".
+To each entry of `s`, `extendPath` appends each entry of `ns`, while memoizing over "splits at `A`".
 
 In particular, all the entries of `s` are expected to end with `A` and contain no further `A`.
 The entries of `ns` could have non-trailing `A`s, as they get split before extending the tally.
