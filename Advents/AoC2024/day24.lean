@@ -239,7 +239,7 @@ def fc (s : Std.HashSet (String × String × String × String)) : Bool × Option
   let one := (ANDxs.toArray[0]!).2.2.2
   if one.startsWith "z" then (true, none) else
   let notTwo := (ANDzi.toArray.getD 0 default).2.2.2
-  let two := [OR.toArray[0]!.1, OR.toArray[0]!.2.1].filter (· != notTwo)
+  let two := [OR.toArray[0]!.1, OR.toArray[0]!.2.2.1].filter (· != notTwo)
   (false, (one, two[0]!))
   else
   (true, default)
