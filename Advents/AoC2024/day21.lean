@@ -157,6 +157,9 @@ The `cache` is, well, a cache of the values that get computed along the way.
 This function assumes that all `keyboard`s are directional.
 The function `shortestSeq` prepares the input, converting it
 from a numeric `keyboard` to a directional one.
+
+This solution is taken from
+https://www.reddit.com/r/adventofcode/comments/1hjx0x4/2024_day_21_quick_tutorial_to_solve_part_2_in/
 -/
 def shortestSeqDir (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
     Nat × Std.HashMap (String × Nat) Nat :=

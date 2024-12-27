@@ -374,6 +374,9 @@ We should determine the minimum number of buttons that we should push to make th
 
 Similar to part 1, except that now there are 25 intervening layers of robots pushing directional keyboards,
 before the one at the numeric keyboard.
+
+Even though it feels like I had all the pieces to solve part 2, I ended up using
+[this tutorial](https://www.reddit.com/r/adventofcode/comments/1hjx0x4/2024_day_21_quick_tutorial_to_solve_part_2_in/) to actually solve the puzzle.
 -- Day 22
 Trading bananas with the monkeys.
 
