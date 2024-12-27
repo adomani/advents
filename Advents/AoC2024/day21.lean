@@ -232,7 +232,7 @@ def generatePathFromPos (k : keyboard) (p : pos) : Array pos :=
 
 def charToPresses (k : keyboard) (c d : Char) : Array Char :=
   let keys := k.keys
-  let diff := keys[d]! - keys[c]!
+  let diff := keys.getD d default - keys.getD c default
   generatePathFromPos k diff |>.map dirToChar
 
 def numToDir (str : String) : String :=
@@ -249,16 +249,42 @@ def numToDir (str : String) : String :=
   if numToDir str != "<A^A>^^AvvvA" then
     IO.println "Difference with example"
 
-def stringToDir (k : keyboard) (str : String) : String :=
+/--
+*Adds* and extra first character `A` and, starting from there, produces the movements that continue
+on to the input characters.
+
+The difference with `stringToPathString'` is that `stringToPathString'` does not start at `A`,
+but from the first input character.
+-/
+def stringToPathString (k : keyboard) (str : String) : String :=
   let (tot, _) := str.toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
     (tot ++ charToPresses k prev ci |>.push 'A', ci)
   ⟨tot.toList⟩
 
+/--
+Assumes that the first character is the starting point of the movement and,
+starting from there, produces the movements that continue on to the following characters.
+
+The difference with `stringToPathString` is that `stringToPathString` starts at `A` and,
+from `A`, continues on to the characters in the string.
+-/
+def stringToPathString' (k : keyboard) (str : String) : String :=
+  if str.isEmpty then "" else
+  let (tot, _) := (str.drop 1).toList.foldl (init := (#[], str.get 0)) fun (tot, prev) ci =>
+    (tot ++ charToPresses k prev ci |>.push 'A', ci)
+  ⟨tot.toList⟩
+
+#eval stringToPathString' .num "A0"
+#eval stringToPathString' .num "02"
+#eval stringToPathString' .num "29"
+#eval stringToPathString' .num "9A"
+#eval stringToPathString .num "029A"
+
 def stringToTally (str : String) : Std.HashMap (Char × Char) Nat :=
-  if str.isEmpty then ∅ else
-  let (tot, _) := ((str.drop 1).push 'A').toList.foldl (init := (#[], str.get 0)) fun (tot, prev) ci =>
+  --if str.length ≤ 1 then ∅ else
+  let (tot, _) := (str).toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
     (tot.push (prev, ci), ci)
-  tot.foldl (init := ∅) fun h cs => dbg_trace "inserting {cs}"; h.alter cs (some <| ·.getD 0 + 1)
+  tot.foldl (init := ∅) fun h cs => h.alter cs (some <| ·.getD 0 + 1)
 
 def ltTally [LT α] [DecidableRel (LT.lt (α := α))] (x y : α × Nat) : Bool :=
   y.2 < x.2 || (x.2 == y.2 && x.1 < y.1)
@@ -268,8 +294,17 @@ def showTally [ToString α] [BEq α] [Hashable α] [LT α] [DecidableRel (LT.lt 
   let mut tot := 0
   for (x, m) in h.toArray.qsort ltTally do
     tot := tot + m * count x
-    IO.println s!"{m} times {x}"
+    IO.println s!"{m} time{if m == 1 then " " else "s"} {x}"
   IO.println s!"\n{tot} total multiplicities"
+
+def showTally! [ToString α] [BEq α] [Hashable α] [LT α] [DecidableRel (LT.lt (α := α))]
+    (h : Std.HashMap α Nat) (count : α → Nat := fun _ => 1) : IO Unit := do
+  let h := h.filter fun _ => (· != 0)
+  showTally h count
+
+def showMults [BEq α] [Hashable α] [LT α] [DecidableRel (LT.lt (α := α))]
+    (h : Std.HashMap α Nat) (count : α → Nat := fun _ => 1) : IO Unit := do
+  IO.println s!"{h.fold (init := 0) fun tot x m => tot + m * count x} with multiplicities."
 
 #eval do
   let s := "02922929A"
@@ -282,11 +317,11 @@ def showTally [ToString α] [BEq α] [Hashable α] [LT α] [DecidableRel (LT.lt 
 #guard_msgs in
 #eval do
   let str := "029A"
-  IO.println s!"`{stringToDir .num str}`"
+  IO.println s!"`{stringToPathString .num str}`"
 
 #eval do
   let str := "<A^A>^^AvvvA"
-  IO.println s!"`{stringToDir .dir str}`"
+  IO.println s!"`{stringToPathString .dir str}`"
 
 --        `v<<A>>^A<A>AvA<^AA>A<vAAA>^A`
 /-- info: `v<<A>>^A<A>AvA<^AA>Av<AAA>^A`
@@ -296,47 +331,225 @@ def showTally [ToString α] [BEq α] [Hashable α] [LT α] [DecidableRel (LT.lt 
 #guard_msgs in
 #eval do
   let str := "029A"
-  let first := stringToDir .num str
-  let second := stringToDir .dir first
+  let first := stringToPathString .num str
+  let second := stringToPathString .dir first
   IO.println s!"`{second}`"
-  IO.println s!"-- `{stringToDir .dir second}`"
+  IO.println s!"-- `{stringToPathString .dir second}`"
 
 def genericTally [BEq α] [Hashable α] (h : Std.HashMap α Nat) (f : α → Std.HashMap α Nat) :
     Std.HashMap α Nat :=
   h.fold (init := ∅) fun h a m =>
     (f a).fold (init := h) fun h b n => h.alter b (some <| ·.getD 0 + m * n)
 
-/-- info: #[(abbac, 3), (abbba, 1), (abbbc, 1), (bbbac, 1)] -/
+def genericTallyFor [ToString α] [BEq α] [Hashable α] (h : Std.HashMap α Nat) (f : α → Std.HashMap α Nat) :
+    Std.HashMap α Nat := Id.run do
+  let mut fin := ∅
+  for (a, m) in h do
+    for (b, n) in f a do
+      --dbg_trace "inserting {b} with mult {n}"
+      fin := fin.alter b (some <| ·.getD 0 + m * n)
+  return fin
+
+#eval do
+  let f : Nat → Std.HashMap Nat Nat :=
+    fun t => (Std.HashMap.empty.insert (t - 1) t).insert (t - 2) (t - 1)
+  let mut g : Std.HashMap Nat Nat := {(15, 1)}
+  for _ in [0:14] do
+    g := genericTallyFor g f
+  showTally! <| g
+  --showTally <| genericTallyFor {(5, 1)} fun t => {(t - 1, t), (t + 1, t - 1)}
+
+/-- info:
+3 times abbac
+3 times abbad
+2 times abbba
+1 time  abbbc
+1 time  abbbd
+1 time  bbbac
+1 time  bbbad
+
+12 total multiplicities
+-/
 #guard_msgs in
 #eval do
-  let s : Std.HashMap String Nat := {("abbbac", 1)}
+  let s : Std.HashMap String Nat := {("abbbac", 1), ("abbbad", 1)}
   let f (st : String) : Std.HashMap String Nat :=
     (Array.range st.length).foldl (init := ∅) fun h i => h.alter (⟨st.toList.eraseIdx i⟩) (some <| ·.getD 0 + 1)
-  IO.println <| (genericTally s f).toArray.qsort (·.1 < ·.1)
+  showTally <| genericTally s f
+
+#eval do
+  let s : Std.HashMap String Nat := {("abbbac", 1), ("abbbad", 4)}
+  let f (st : String) : Std.HashMap String Nat :=
+    (Array.range st.length).foldl (init := ∅) fun h i => h.alter (⟨st.toList.eraseIdx i⟩) (some <| ·.getD 0 + 1)
+  showTally <| genericTally s f
 
 #eval do
   let s : Std.HashMap String Nat := {("abbbac", 1)}
   let f (st : String) : Std.HashMap String Nat :=
     (Array.range st.length).foldl (init := ∅) fun h i => h.alter (⟨st.toList.eraseIdx i⟩) (some <| ·.getD 0 + 1)
-  IO.println <| (genericTally s f).toArray
+  showTally (genericTally s f)
+
+def pairToTally (c : Char × Char) : Std.HashMap (Char × Char) Nat :=
+  stringToTally (stringToPathString' .dir (("".push c.1).push c.2))
+
+#eval
+  let s := "v<<A>>^A<A>AvA<^AA>Av<AAA>^A"
+  (s.length, s.splitOn "A" |>.length)
 
 #eval do
   let s := "029A"
-  --showTally (stringToTally s)
+  let strTo := stringToPathString .num s
+  let mut init := stringToTally strTo
+  for _ in [0:2] do
+    init := genericTallyFor init pairToTally
+  showTally init
+
+
+#eval do
+  let dat := atest
+  for s in dat do
+    let strTo := stringToPathString .num s
+    let mut init := stringToTally strTo
+    for _ in [0:2] do
+      init := genericTallyFor init pairToTally
+    showMults init
   IO.println ""
-  let tal := genericTally (stringToTally "02") fun (l, r) =>
-    --dbg_trace "and also {(l, r)}"
-    stringToTally ⟨(charToPresses .num l r).toList⟩
-  showTally tal
+
+
+
+partial
+def seqs {α} [BEq α] [Hashable α] : List α → List α → Std.HashSet (List α)
+  | [], l => {l}
+  | l, [] => {l}
+  | L@(l::ls), M@(m::ms) =>
+    ((seqs ls M).fold (init := (∅ : Std.HashSet (List α))) (·.insert <| l::·)).union <|
+      (seqs L ms).fold (init := (∅ : Std.HashSet (List α))) (·.insert <| m::·)
+
+/--
+Computes all paths from `q` to `p` that are minimal with respect to the L¹-distance,
+written as strings of instructions `<`, `^`, `>`, `v`.
+`findPaths` then returns each such path, with `A` appended at the end.
+-/
+def findPaths (p q : pos) : Std.HashSet String :=
+  let mv := p - q
+  let right := List.replicate mv.2.natAbs (dirToChar (0, mv.2.sign))
+  let left :=  List.replicate mv.1.natAbs (dirToChar (mv.1.sign, 0))
+  seqs left right |>.fold (init := ∅) (·.insert <| (⟨·⟩ : String).push 'A')
+
+structure KP where
+  keys : Std.HashMap Char pos
+  S : pos
+  deriving Inhabited
+
+def mkNum (p : Option pos := none) : KP where
+  keys := numKeys
+  S := p.getD numKeys['A']!
+
+def mkDir (p : Option pos := none) : KP where
+  keys := dirKeys
+  S := p.getD dirKeys['A']!
+
+def validate (n : KP) (s : String) : Bool := Id.run do
+  let mut curr := n.S
+  for si in s.toList do
+    curr := curr + charToDir si
+    if (n.keys.filter fun _c (q : pos) => curr == q).isEmpty then return false
+  return true
+
+/--
+Converts a string, such as "029A", into all the strings of instructions
+It starts from the position recorded in `n` and then continues with the ones in `s`.
+-/
+def strToPaths (n : KP) (s : String) : Std.HashSet String := Id.run do
+  let mut start := n.S
+  let mut fin : Std.HashSet String := {""}
+  for c in s.toList do
+    let tgt := n.keys[c]!
+    let next := findPaths tgt start
+    --dbg_trace "{start} -- {tgt}, {next.toArray}"
+    fin :=  fin.fold (init := ∅) fun h st => h.union (next.fold (·.insert <| st ++ ·) ∅)
+    start := tgt
+  return fin.filter (validate n)
+
+/-!
+-/
+#eval do
+  IO.println <| strToPaths mkDir "<A" |>.toArray
+  IO.println <| strToPaths mkNum "029A" |>.toArray
+/-!
+-/
+
+def extendPathOne (s : Array (String × Nat)) (next : String) : Array (String × Nat) :=
+  match s.findIdx? (·.1 == next) with
+    | none => s.push (next, 1)
+    | some idx => s.modify idx fun (_, oldMult) => (next, oldMult + 1)
+
+def splitAtAs (s : String) : Array String :=
+  (s.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
+
+/--
+Adds the entries of `ns` to each entry of `s`, while memoizing over "splits at `A`".
+
+In particular, all the entries of `s` are expected to end with `A` and contain no further `A`.
+The entries of `ns` could have non-trailing `A`s, as they get split before extending the tally.
+-/
+def extendPath (s : Std.HashSet (Array (String × Nat))) (ns : Std.HashSet String) :
+    Std.HashSet (Array (String × Nat)) := Id.run do
+  let mut fin := ∅
+  for os in s do
+    for nextLong in ns do
+      let newOs := (splitAtAs nextLong).foldl (init := os) extendPathOne
+      fin := (fin.erase os).insert newOs
+  return fin
+
+/-!
+-/
+#eval strToPaths mkNum "0"
+
+#eval do
+  let first := extendPath {#[]} (strToPaths mkDir "<A")
+  let second := extendPath first (strToPaths mkDir "<A")
+  for f in first do IO.println f
   IO.println ""
-  let tal := genericTally (stringToTally s) fun (l, r) => stringToTally ⟨(charToPresses .num l r).toList⟩
-  showTally tal
+  for f in second do IO.println f
+  --IO.println <| extendPath mkNum #[("029A", 1)]
 
+#exit
 
+def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) (con : Nat) :
+    Nat × Std.HashMap (String × Nat) Nat := Id.run do
+  if con == 0 then dbg_trace "keys: {keys}"; return default
+  let mut cache := cache
+  let mut tot := 0
+  match d with
+  | 0 => return (keys.length, cache.insert (keys, 0) keys.length)
+  | d + 1 => if cache.contains (keys, d) then return (cache[(keys, d)]!, cache) else
+    let subkeys := (keys.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
+    for sk in subkeys do
+      let currSeq := strToPaths mkDir sk
+      let (recMin, cache') := currSeq.fold (init := (10^100, cache)) fun (m, cc) pth =>
+        let (newMin, newCache) := shortestSeq pth d cc (con - 1)
+        (min m newMin, cc) --.union newCache)
+      tot := tot + recMin
+      cache := cache'.insert (keys, d) tot
+    --dbg_trace cache.size
+    return (tot, cache)
 
-
-
-
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let mut tot := 0
+  let mut cache := ∅
+  for str in dat do
+    let parts := strToPaths mkNum str
+    let mut strMin := 10^100
+    for p in parts do
+      let (newMin, newCache) := shortestSeq p 5 cache 3
+      strMin := min strMin newMin
+      cache := cache.union newCache
+    IO.println <| s!"{str} * {strMin}"
+    tot := tot + strMin * str.getNats[0]!
+  IO.println tot
 
 
 
@@ -347,9 +560,9 @@ def genericTally [BEq α] [Hashable α] (h : Std.HashMap α Nat) (f : α → Std
   let mut tot := 0
   let mut msg := #[]
   for d in dat do
-    let first := stringToDir .num d
-    let second := stringToDir .dir first
-    let third := stringToDir .dir second
+    let first := stringToPathString .num d
+    let second := stringToPathString .dir first
+    let third := stringToPathString .dir second
     msg := msg.push s!"{third.length} * {d.getNats[0]!}"
     tot := tot + d.getNats[0]! * third.length
   IO.println <| s!"{tot} = " ++ " + ".intercalate msg.toList
