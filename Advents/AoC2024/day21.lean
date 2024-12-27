@@ -548,28 +548,45 @@ def Tstring.dropRight (s : Tstring) (n : Nat) : Tstring := ⟨s.str.drop n⟩
 def Tstring.splitOn (s : Tstring) (st : String) : List Tstring := s.str.splitOn st |>.foldl (· ++ [⟨·⟩]) []
 def Tstring.push (s : Tstring) (c : Char) : Tstring := ⟨s.str.push c⟩
 
-def shortestSeq (keys : Tstring) (d : Nat) (cache : Std.HashMap (Tstring × Nat) Nat) :
-    Nat × Std.HashMap (Tstring × Nat) Nat := Id.run do
-  --if con == 0 then dbg_trace "keys: {keys}"; return default
+def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
+    Nat × Std.HashMap (String × Nat) Nat := Id.run do
   let mut cache := cache
   let mut tot := 0
   match d with
   | 0 => return (keys.length, cache.insert (keys, 0) keys.length)
-  | d + 1 => if cache.contains (keys, d) then return (cache[(keys, d)]!, cache) else
-    let subkeys := keys.str --(keys.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
-    for (sk, mult) in subkeys do
-      let currSeq : Std.HashSet (Array (String × Nat)):=
-        strToPaths mkDir sk |>.fold (init := ∅) fun (h : Std.HashSet (Array (String × Nat))) s =>
-          let sA := splitAtAs s
-          --dbg_trace "inserting {s}"
-          h.insert <| sA.foldl (·.push (·, mult)) #[]
-      let (recMin, cache') := currSeq.fold (init := (10^100, cache)) fun (m, cc) pth =>
-        let (newMin, newCache) := shortestSeq ⟨pth⟩ d cc
-        (min m newMin, cc) --.union newCache)
-      tot := tot + recMin
-      cache := cache'.insert (keys, d) tot
+  | j + 1 =>
+    if cache.contains (keys, j + 1) then
+      --dbg_trace "found cache {(keys, j + 1)}"
+      return (cache[(keys, j + 1)]!, cache)
+    else
+    let subkeys := splitAtAs keys --(keys.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
+    --dbg_trace "{keys.length}"
+    for sk in subkeys do
+      --dbg_trace "{sk}"
+      if cache.contains (sk, j + 1) then
+        dbg_trace "found other cache {(sk, j + 1)}"
+        tot := tot + cache[(sk, j + 1)]!
+      else
+        let currSeq := strToPaths mkDir sk
+        let (recMin, cache') := currSeq.fold (init := (10^100, cache)) fun (m, cc) pth =>
+          let (newMin, newCache) := shortestSeq pth j cc
+          (min m newMin, cc.union newCache)
+        tot := tot + recMin
+        cache := cache'.insert (keys, j + 1) tot
     --dbg_trace cache.size
     return (tot, cache)
+
+def minOne (str : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
+    Nat × Std.HashMap (String × Nat) Nat := Id.run do
+  let parts := strToPaths mkNum str
+  let mut cache := cache
+  let mut strMin := 10^100
+  for p in parts do
+    --dbg_trace p
+    let (newMin, newCache) := shortestSeq p d cache
+    strMin := min strMin newMin
+    cache := cache.union newCache
+  (strMin, cache)
 
 set_option trace.profiler true in
 #eval do
@@ -578,18 +595,22 @@ set_option trace.profiler true in
   let mut tot := 0
   let mut cache := ∅
   for str in dat do
+    --cache := ∅
+    let (strMin, cc) := minOne str 25 cache
     --let parts := strToPaths mkNum str
-    let parts := extendPath {#[]} (strToPaths mkNum str |>.fold (init := ∅) fun h n => h.insert (n, 1))
-    let mut strMin := 10^100
-    for p in parts do
-      let (newMin, newCache) := shortestSeq ⟨p⟩ 5 cache
-      strMin := min strMin newMin
-      cache := cache.union newCache
+    --let mut strMin := 10^100
+    --for p in parts do
+--      for q in splitAtAs p do
+--        IO.println (minOne q 0 cache).1
+    --  let (newMin, newCache) := shortestSeq p 2 cache 4
+    --  strMin := min strMin newMin
+    --  cache := cache.union newCache
+    cache := cache.union cc
+    --IO.println s!"\nintermediate cache.size: {cache.size}"
     IO.println <| s!"{str} * {strMin}"
     tot := tot + strMin * str.getNats[0]!
   IO.println tot
-
-
+  IO.println s!"\ncache.size: {cache.size}"
 
 /-- info: 126384 = 68 * 29 + 60 * 980 + 68 * 179 + 64 * 456 + 64 * 379 -/
 #guard_msgs in
