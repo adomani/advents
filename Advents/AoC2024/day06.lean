@@ -115,6 +115,7 @@ def part2 (dat : Array String) : Nat :=
   obsts.size
 
 #assert part2 atest == 6
---set_option trace.profiler true in solve 2 1770  -- take almost 10 minutes
+
+--set_option trace.profiler true in solve 2 1770  -- takes almost 10 minutes
 
 end Day06

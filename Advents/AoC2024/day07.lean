@@ -50,12 +50,11 @@ def totalsWithOps (t : Nat) (ns : List Nat) (ops : Array (Nat → Nat → Nat)) 
 def part1 (dat : Array String) : Nat :=
   let data := dat.map (·.getNats)
   data.foldl (init := 0) fun M ns =>
-    let tot := ns[0]!
-    let ns := ns.drop 1
-    if ns.prod < tot then M else
-    if (totalsWithOps tot ns #[(· * ·), (· + ·)]).contains tot
-    then M + tot
-    else M
+    match ns with
+      | [] => M
+      | tot::ns =>
+        if (totalsWithOps tot ns #[(· * ·), (· + ·)]).contains tot
+        then M + tot else M
 
 #assert part1 atest == 3749
 
@@ -76,15 +75,16 @@ def cat (n m : Nat) : Nat := n * 10 ^ (Nat.toDigits 10 m).length + m
 def part2 (dat : Array String) : Nat :=
   let data := dat.map (·.getNats)
   data.foldl (init := 0) fun M ns =>
-    let tot := ns[0]!
-    let ns := ns.drop 1
-    -- the earlier test speeds up overall, even with the repeated computations
-    if (totalsWithOps tot ns #[(· * ·), (· + ·)]).contains tot
-    then M + tot
-    else
-    if (totalsWithOps tot ns #[cat, (· * ·), (· + ·)]).contains tot
-    then M + tot
-    else M
+    match ns with
+      | [] => M
+      | tot::ns =>
+        -- this early test speeds up overall, even accounting for the repeated computations
+        if (totalsWithOps tot ns #[(· * ·), (· + ·)]).contains tot
+        then M + tot
+        else
+        if (totalsWithOps tot ns #[cat, (· * ·), (· + ·)]).contains tot
+        then M + tot
+        else M
 
 #assert part2 atest == 11387
 
