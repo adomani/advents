@@ -479,10 +479,11 @@ def strToPaths (n : KP) (s : String) : Std.HashSet String := Id.run do
 /-!
 -/
 
-def extendPathOne (s : Array (String × Nat)) (next : String) : Array (String × Nat) :=
-  match s.findIdx? (·.1 == next) with
-    | none => s.push (next, 1)
-    | some idx => s.modify idx fun (_, oldMult) => (next, oldMult + 1)
+def extendPathOne (s : Array (String × Nat)) (next : String × Nat) : Array (String × Nat) :=
+  let (str, mult) := next
+  match s.findIdx? (·.1 == str) with
+    | none => s.push next
+    | some idx => s.modify idx fun (_, oldMult) => (str, oldMult + mult)
 
 def splitAtAs (s : String) : Array String :=
   (s.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
@@ -493,12 +494,12 @@ To each entry of `s`, `extendPath` appends each entry of `ns`, while memoizing o
 In particular, all the entries of `s` are expected to end with `A` and contain no further `A`.
 The entries of `ns` could have non-trailing `A`s, as they get split before extending the tally.
 -/
-def extendPath (s : Std.HashSet (Array (String × Nat))) (ns : Std.HashSet String) :
+def extendPath (s : Std.HashSet (Array (String × Nat))) (ns : Std.HashSet (String × Nat)) :
     Std.HashSet (Array (String × Nat)) := Id.run do
   let mut fin := ∅
   for os in s do
-    for nextLong in ns do
-      let newOs := (splitAtAs nextLong).foldl (init := os) extendPathOne
+    for (nextLong, mult) in ns do
+      let newOs := (splitAtAs nextLong).foldl (init := os) fun h n => extendPathOne h (n, mult)
       fin := (fin.erase os).insert newOs
   return fin
 
@@ -507,17 +508,44 @@ def extendPath (s : Std.HashSet (Array (String × Nat))) (ns : Std.HashSet Strin
 #eval strToPaths mkNum "0"
 
 #eval do
-  let first := extendPath {#[]} (strToPaths mkDir "<A")
-  let second := extendPath first (strToPaths mkDir "<A")
+  let _sA := "<A"
+  --let mut first := extendPath {#[]} (strToPaths mkDir sA)
+  let mut first := extendPath {#[]} (strToPaths mkNum "029A" |>.fold (init := ∅) fun h n => h.insert (n, 1))
+  let mut next : Array (Std.HashSet (Array (String × Nat))) := ∅
+  for a in first do
+    let mut newArr : Std.HashSet (Array (String × Nat)):= {∅}
+    for (val, mult) in ar do
+      IO.println s!"\n'{val}'"
+      let extendedVal := extendPath {∅} (strToPaths mkDir val |>.fold (·.insert (·, mult)) ∅)
+      newArr := extendedVal.fold (init := newArr) fun h n => extendPath h (.ofArray n)
+      IO.println <| extendedVal.toArray
+    next := next.push newArr
+
+  for a in next do
+    IO.println a.size
+  --for s in splitAtAs "^A>^^AvvvA" do
+  --  first := extendPath first (strToPaths mkDir s)
+  --let second := extendPath first (strToPaths mkDir sA)
   for f in first do IO.println f
   IO.println ""
-  for f in second do IO.println f
+  --for f in second do IO.println f
   --IO.println <| extendPath mkNum #[("029A", 1)]
 
-#exit
+--#exit
 
-def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) (con : Nat) :
-    Nat × Std.HashMap (String × Nat) Nat := Id.run do
+structure Tstring where
+  str : String
+  deriving BEq, Hashable
+
+instance : ToString Tstring where toString := (·.str)
+
+def Tstring.length (s : Tstring) : Nat := s.str.length
+def Tstring.dropRight (s : Tstring) (n : Nat) : Tstring := ⟨s.str.drop n⟩
+def Tstring.splitOn (s : Tstring) (st : String) : List Tstring := s.str.splitOn st |>.foldl (· ++ [⟨·⟩]) []
+def Tstring.push (s : Tstring) (c : Char) : Tstring := ⟨s.str.push c⟩
+
+def shortestSeq (keys : Tstring) (d : Nat) (cache : Std.HashMap (Tstring × Nat) Nat) (con : Nat) :
+    Nat × Std.HashMap (Tstring × Nat) Nat := Id.run do
   if con == 0 then dbg_trace "keys: {keys}"; return default
   let mut cache := cache
   let mut tot := 0
@@ -525,10 +553,10 @@ def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) N
   | 0 => return (keys.length, cache.insert (keys, 0) keys.length)
   | d + 1 => if cache.contains (keys, d) then return (cache[(keys, d)]!, cache) else
     let subkeys := (keys.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
-    for sk in subkeys do
+    for {str := sk} in subkeys do
       let currSeq := strToPaths mkDir sk
       let (recMin, cache') := currSeq.fold (init := (10^100, cache)) fun (m, cc) pth =>
-        let (newMin, newCache) := shortestSeq pth d cc (con - 1)
+        let (newMin, newCache) := shortestSeq ⟨pth⟩ d cc (con - 1)
         (min m newMin, cc) --.union newCache)
       tot := tot + recMin
       cache := cache'.insert (keys, d) tot
@@ -544,7 +572,7 @@ def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) N
     let parts := strToPaths mkNum str
     let mut strMin := 10^100
     for p in parts do
-      let (newMin, newCache) := shortestSeq p 5 cache 3
+      let (newMin, newCache) := shortestSeq p 2 cache 3
       strMin := min strMin newMin
       cache := cache.union newCache
     IO.println <| s!"{str} * {strMin}"
