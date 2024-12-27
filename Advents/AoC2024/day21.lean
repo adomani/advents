@@ -17,6 +17,9 @@ def test := "029A
 456A
 379A"
 
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
+
 /--
 Converts a *direction* (an integer vector with distance 1 to `(0, 0)`) to the corresponding
 move among `<`, `^`, `v`, `>`.
@@ -48,79 +51,14 @@ def charToDir : Char → pos
   | '·' => (0, 0)
   | p => panic s!"`charToDir`: Not expecting '{p}' as a character!"
 
-def charToPos : Char → pos
-  | '^' => (0, 1)
-  | 'A' => (0, 2)
-  | '<' => (1, 0)
-  | 'v' => (1, 1)
-  | '>' => (1, 2)
-  | '·' => (0, 0)
-  | p => panic s!"Not expecting '{p}' as a character!"
-
 def numKeys : Std.HashMap Char pos := .union {('A', (3, 2)), ('0', (3, 1))} <|
     (Array.range 9).foldl (init := (∅ : Std.HashMap Char pos)) fun h n =>
         h.insert (s!"{n + 1}".get 0) (2 - n.cast / 3, 2 - (8 - n.cast) % 3)
-
-def drawNum (n : pos) : IO Unit := do
-  let val := numKeys.fold (init := #[]) fun h c p => if p == n then h.push c else h
-  if val.size != 1 then panic "Expecting only one value!"
-  let str := "789 456 123 ·0A".replace ("".push val[0]!) checkEmoji --"*"
-  let gr := str.splitOn
-  draw gr.toArray
-  IO.println s!"value: '{val[0]!}', S: {n}"
-
-/--
-info: --012-
-0|789|
-1|456|
-2|123|
-3|·0✅️|
---012-
-
-value: 'A', S: (3, 2)
--/
-#guard_msgs in
-#eval do drawNum (3, 2)
-
-/--
-info: Std.HashMap.ofList [('9', (0, 2)),
- ('8', (0, 1)),
- ('7', (0, 0)),
- ('6', (1, 2)),
- ('5', (1, 1)),
- ('4', (1, 0)),
- ('3', (2, 2)),
- ('2', (2, 1)),
- ('A', (3, 2)),
- ('1', (2, 0)),
- ('0', (3, 1))]
--/
-#guard_msgs in #eval numKeys
 
 def dirKeys : Std.HashMap Char pos := {
                    ('^', (0, 1)), ('A', (0, 2)),
     ('<', (1, 0)), ('v', (1, 1)), ('>', (1, 2))
   }
-
-def drawDir (n : pos) : IO Unit := do
-  let val := dirKeys.fold (init := #[]) fun h c p => if p == n then h.push c else h
-  if val.size != 1 then panic "Expecting only one value!"
-  let str := "·^A <v>".replace ("".push val[0]!) checkEmoji --"*"
-  let gr := str.splitOn
-  draw gr.toArray
-  IO.println s!"value: '{val[0]!}', S: {n}"
-
-/--
-info: --0123-
-0|·^✅️|
-1|<v>|
---0123-
-
-value: 'A', S: (0, 2)
--/
-#guard_msgs in
-#eval do
-  drawDir (0, 2)
 
 /--
 A `keyboard` represents either
@@ -141,281 +79,6 @@ the corresponding position.
 -/
 def keyboard.keys : keyboard → Std.HashMap Char pos
   | .dir => dirKeys | .num => numKeys
-
-def posToChar : keyboard → pos → Char
-  | .dir, (0, 1) => '^'
-  | .dir, (0, 2) => 'A'
-  | .dir, (1, 0) => '<'
-  | .dir, (1, 1) => 'v'
-  | .dir, (1, 2) => '>'
-  | .dir, (0, 0) => '·'
-
-  | .num, (0, 0) => '7'
-  | .num, (0, 1) => '8'
-  | .num, (0, 2) => '9'
-  | .num, (1, 0) => '4'
-  | .num, (1, 1) => '5'
-  | .num, (1, 2) => '6'
-  | .num, (2, 0) => '3'
-  | .num, (2, 1) => '2'
-  | .num, (2, 2) => '1'
-  | .num, (3, 1) => '0'
-  | .num, (3, 2) => 'A'
-
-  | d, p => panic s!"posToChar: Not expecting '{p}' as a position on a {d} keyboard!"
-
-/-- `atest` is the test string for the problem, split into rows. -/
-def atest := (test.splitOn "\n").toArray
-
-/--
-Applies to the numeric keyboard. Use `generatePathFromPos` for a directional keyboard.
-
-*Note.* Probably these two functions should be merged, once I get part 2 to work.
--/
-def generatePathFromPos1 (p : pos) : Array pos :=
-  let horMove := List.replicate p.2.natAbs (0, p.2.sign) |>.toArray
-  let verMove := List.replicate p.1.natAbs (p.1.sign, 0) |>.toArray
-  -- if I need to move left, then I move vertically first
-  if p.2 < 0 then verMove ++ horMove else
-  horMove ++ verMove
-
-def generatePathFromPos (k : keyboard) (p : pos) : Array pos :=
-  let horMove := List.replicate p.2.natAbs (0, p.2.sign) |>.toArray
-  let verMove := List.replicate p.1.natAbs (p.1.sign, 0) |>.toArray
-  match k with
-    | .num =>
-      ---- if I know that I am going left and up, then I can move horizontally first
-      --if p.1 < 0 && p.2 < 0 then horMove ++ verMove else
-      -- if I know that I am going down, then I can move horizontally first
-      if 0 < p.1 then horMove ++ verMove else
-      -- if I know that I am going up and right, then I can move horizontally first
-      if p.1 < 0 && 0 < p.2 then horMove ++ verMove else
-      -- if I know that I am going left and down, then I can move horizontally first
-      if 0 < p.1 && p.2 < 0 then horMove ++ verMove else
-      verMove ++ horMove
-    | .dir =>
-      -- if I know that I am going up, then I can move horizontally first
-      if p.1 < 0 then horMove ++ verMove else
-      -- if I know that I am going down and right, then I can move horizontally first
-      if 0 < p.1 && 0 < p.2 then horMove ++ verMove else
-      -- if I know that I am going left and up, then I can move horizontally first
-      if p.1 < 0 && p.2 < 0 then horMove ++ verMove else
-      verMove ++ horMove
-
--- In the numeric keyboard, avoid going through the bottom-left entry.
-/-- info: #[>, v] -/
-#guard_msgs in
-#eval do
-  let x := generatePathFromPos .num (1, 1)
-  IO.println <| x.map dirToChar
-
--- In the numeric keyboard, avoid going through the bottom-left entry.
-/-- info: #[^, <] -/
-#guard_msgs in
-#eval do
-  let x := generatePathFromPos .num (- 1, - 1)
-  IO.println <| x.map dirToChar
-
--- In the directional keyboard, avoid going through the top-left entry.
-/-- info: #[>, ^] -/
-#guard_msgs in
-#eval do
-  let x := generatePathFromPos .dir (-1, 1)
-  IO.println <| x.map dirToChar
-
--- In the directional keyboard, avoid going through the top-left entry.
-/-- info: #[v, <] -/
-#guard_msgs in
-#eval do
-  let x := generatePathFromPos .dir (1, -1)
-  IO.println <| x.map dirToChar
-
-def charToPresses (k : keyboard) (c d : Char) : Array Char :=
-  let keys := k.keys
-  let diff := keys.getD d default - keys.getD c default
-  generatePathFromPos k diff |>.map dirToChar
-
-def numToDir (str : String) : String :=
-  let (tot, _) := str.toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
-    (tot ++ charToPresses .num prev ci |>.push 'A', ci)
-  ⟨tot.toList⟩
-
-----------`<A^A>^^AvvvA`
-/-- info: `<A^A>^^AvvvA` -/
-#guard_msgs in
-#eval do
-  let str := "029A"
-  IO.println s!"`{numToDir str}`"
-  if numToDir str != "<A^A>^^AvvvA" then
-    IO.println "Difference with example"
-
-/--
-*Adds* and extra first character `A` and, starting from there, produces the movements that continue
-on to the input characters.
-
-The difference with `stringToPathString'` is that `stringToPathString'` does not start at `A`,
-but from the first input character.
--/
-def stringToPathString (k : keyboard) (str : String) : String :=
-  let (tot, _) := str.toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
-    (tot ++ charToPresses k prev ci |>.push 'A', ci)
-  ⟨tot.toList⟩
-
-/--
-Assumes that the first character is the starting point of the movement and,
-starting from there, produces the movements that continue on to the following characters.
-
-The difference with `stringToPathString` is that `stringToPathString` starts at `A` and,
-from `A`, continues on to the characters in the string.
--/
-def stringToPathString' (k : keyboard) (str : String) : String :=
-  if str.isEmpty then "" else
-  let (tot, _) := (str.drop 1).toList.foldl (init := (#[], str.get 0)) fun (tot, prev) ci =>
-    (tot ++ charToPresses k prev ci |>.push 'A', ci)
-  ⟨tot.toList⟩
-
-#eval stringToPathString' .num "A0"
-#eval stringToPathString' .num "02"
-#eval stringToPathString' .num "29"
-#eval stringToPathString' .num "9A"
-#eval stringToPathString .num "029A"
-
-def stringToTally (str : String) : Std.HashMap (Char × Char) Nat :=
-  --if str.length ≤ 1 then ∅ else
-  let (tot, _) := (str).toList.foldl (init := (#[], 'A')) fun (tot, prev) ci =>
-    (tot.push (prev, ci), ci)
-  tot.foldl (init := ∅) fun h cs => h.alter cs (some <| ·.getD 0 + 1)
-
-def ltTally [LT α] [DecidableRel (LT.lt (α := α))] (x y : α × Nat) : Bool :=
-  y.2 < x.2 || (x.2 == y.2 && x.1 < y.1)
-
-def showTally [ToString α] [BEq α] [Hashable α] [LT α] [DecidableRel (LT.lt (α := α))]
-    (h : Std.HashMap α Nat) (count : α → Nat := fun _ => 1) : IO Unit := do
-  let mut tot := 0
-  for (x, m) in h.toArray.qsort ltTally do
-    tot := tot + m * count x
-    IO.println s!"{m} time{if m == 1 then " " else "s"} {x}"
-  IO.println s!"\n{tot} total multiplicities"
-
-def showTally! [ToString α] [BEq α] [Hashable α] [LT α] [DecidableRel (LT.lt (α := α))]
-    (h : Std.HashMap α Nat) (count : α → Nat := fun _ => 1) : IO Unit := do
-  let h := h.filter fun _ => (· != 0)
-  showTally h count
-
-def showMults [BEq α] [Hashable α] [LT α] [DecidableRel (LT.lt (α := α))]
-    (h : Std.HashMap α Nat) (count : α → Nat := fun _ => 1) : IO Unit := do
-  IO.println s!"{h.fold (init := 0) fun tot x m => tot + m * count x} with multiplicities."
-
-#eval do
-  let s := "02922929A"
-  showTally (stringToTally s)
-
-#eval do
-  showTally (stringToTally "029A")
-
-/-- info: `<A^A>^^AvvvA` -/
-#guard_msgs in
-#eval do
-  let str := "029A"
-  IO.println s!"`{stringToPathString .num str}`"
-
-#eval do
-  let str := "<A^A>^^AvvvA"
-  IO.println s!"`{stringToPathString .dir str}`"
-
---        `v<<A>>^A<A>AvA<^AA>A<vAAA>^A`
-/-- info: `v<<A>>^A<A>AvA<^AA>Av<AAA>^A`
--- `v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A`
--/
--- `<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A`
-#guard_msgs in
-#eval do
-  let str := "029A"
-  let first := stringToPathString .num str
-  let second := stringToPathString .dir first
-  IO.println s!"`{second}`"
-  IO.println s!"-- `{stringToPathString .dir second}`"
-
-def genericTally [BEq α] [Hashable α] (h : Std.HashMap α Nat) (f : α → Std.HashMap α Nat) :
-    Std.HashMap α Nat :=
-  h.fold (init := ∅) fun h a m =>
-    (f a).fold (init := h) fun h b n => h.alter b (some <| ·.getD 0 + m * n)
-
-def genericTallyFor [ToString α] [BEq α] [Hashable α] (h : Std.HashMap α Nat) (f : α → Std.HashMap α Nat) :
-    Std.HashMap α Nat := Id.run do
-  let mut fin := ∅
-  for (a, m) in h do
-    for (b, n) in f a do
-      --dbg_trace "inserting {b} with mult {n}"
-      fin := fin.alter b (some <| ·.getD 0 + m * n)
-  return fin
-
-#eval do
-  let f : Nat → Std.HashMap Nat Nat :=
-    fun t => (Std.HashMap.empty.insert (t - 1) t).insert (t - 2) (t - 1)
-  let mut g : Std.HashMap Nat Nat := {(15, 1)}
-  for _ in [0:14] do
-    g := genericTallyFor g f
-  showTally! <| g
-  --showTally <| genericTallyFor {(5, 1)} fun t => {(t - 1, t), (t + 1, t - 1)}
-
-/-- info:
-3 times abbac
-3 times abbad
-2 times abbba
-1 time  abbbc
-1 time  abbbd
-1 time  bbbac
-1 time  bbbad
-
-12 total multiplicities
--/
-#guard_msgs in
-#eval do
-  let s : Std.HashMap String Nat := {("abbbac", 1), ("abbbad", 1)}
-  let f (st : String) : Std.HashMap String Nat :=
-    (Array.range st.length).foldl (init := ∅) fun h i => h.alter (⟨st.toList.eraseIdx i⟩) (some <| ·.getD 0 + 1)
-  showTally <| genericTally s f
-
-#eval do
-  let s : Std.HashMap String Nat := {("abbbac", 1), ("abbbad", 4)}
-  let f (st : String) : Std.HashMap String Nat :=
-    (Array.range st.length).foldl (init := ∅) fun h i => h.alter (⟨st.toList.eraseIdx i⟩) (some <| ·.getD 0 + 1)
-  showTally <| genericTally s f
-
-#eval do
-  let s : Std.HashMap String Nat := {("abbbac", 1)}
-  let f (st : String) : Std.HashMap String Nat :=
-    (Array.range st.length).foldl (init := ∅) fun h i => h.alter (⟨st.toList.eraseIdx i⟩) (some <| ·.getD 0 + 1)
-  showTally (genericTally s f)
-
-def pairToTally (c : Char × Char) : Std.HashMap (Char × Char) Nat :=
-  stringToTally (stringToPathString' .dir (("".push c.1).push c.2))
-
-#eval
-  let s := "v<<A>>^A<A>AvA<^AA>Av<AAA>^A"
-  (s.length, s.splitOn "A" |>.length)
-
-#eval do
-  let s := "029A"
-  let strTo := stringToPathString .num s
-  let mut init := stringToTally strTo
-  for _ in [0:2] do
-    init := genericTallyFor init pairToTally
-  showTally init
-
-
-#eval do
-  let dat := atest
-  for s in dat do
-    let strTo := stringToPathString .num s
-    let mut init := stringToTally strTo
-    for _ in [0:2] do
-      init := genericTallyFor init pairToTally
-    showMults init
-  IO.println ""
-
-
 
 partial
 def seqs {α} [BEq α] [Hashable α] : List α → List α → Std.HashSet (List α)
@@ -471,82 +134,8 @@ def strToPaths (n : KP) (s : String) : Std.HashSet String := Id.run do
     start := tgt
   return fin.filter (validate n)
 
-/-!
--/
-#eval do
-  IO.println <| strToPaths mkDir "<A" |>.toArray
-  IO.println <| strToPaths mkNum "029A" |>.toArray
-/-!
--/
-
-def extendPathOne (s : Array (String × Nat)) (next : String × Nat) : Array (String × Nat) :=
-  let (str, mult) := next
-  match s.findIdx? (·.1 == str) with
-    | none => s.push next
-    | some idx => s.modify idx fun (_, oldMult) => (str, oldMult + mult)
-
 def splitAtAs (s : String) : Array String :=
   (s.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
-
-/--
-To each entry of `s`, `extendPath` appends each entry of `ns`, while memoizing over "splits at `A`".
-
-In particular, all the entries of `s` are expected to end with `A` and contain no further `A`.
-The entries of `ns` could have non-trailing `A`s, as they get split before extending the tally.
--/
-def extendPath (s : Std.HashSet (Array (String × Nat))) (ns : Std.HashSet (String × Nat)) :
-    Std.HashSet (Array (String × Nat)) := Id.run do
-  let mut fin := ∅
-  for os in s do
-    for (nextLong, mult) in ns do
-      let newOs := (splitAtAs nextLong).foldl (init := os) fun h n => extendPathOne h (n, mult)
-      fin := (fin.erase os).insert newOs
-  return fin
-
-/-!
--/
-#eval strToPaths mkNum "0"
-
-#eval do
-  let _sA := "<A"
-  --let mut first := extendPath {#[]} (strToPaths mkDir sA)
-  let mut first := extendPath {#[]} (strToPaths mkNum "029A" |>.fold (init := ∅) fun h n => h.insert (n, 1))
-  let mut next : Array (Std.HashSet (Array (String × Nat))) := ∅
-  for a in first do
-    let mut newArr : Std.HashSet (Array (String × Nat)):= {∅}
-    for (val, mult) in ar do
-      IO.println s!"\n'{val}'"
-      let extendedVal := extendPath {∅} (strToPaths mkDir val |>.fold (·.insert (·, mult)) ∅)
-      newArr := extendedVal.fold (init := newArr) fun h n => extendPath h (.ofArray n)
-      IO.println <| extendedVal.toArray
-    next := next.push newArr
-
-  for a in next do
-    IO.println a.size
-  --for s in splitAtAs "^A>^^AvvvA" do
-  --  first := extendPath first (strToPaths mkDir s)
-  --let second := extendPath first (strToPaths mkDir sA)
-  for f in first do IO.println f
-  IO.println ""
-  --for f in second do IO.println f
-  --IO.println <| extendPath mkNum #[("029A", 1)]
-
---#exit
-
-structure Tstring where
-  str : Array (String × Nat)
-  deriving BEq, Hashable
-
-instance : ToString Tstring where toString t := s!"{t.str}"
-
-def Tstring.length (s : Tstring) : Nat := s.str.foldl (init := 0) fun tot (s, m) => tot + s.length * m
-#assert Tstring.length ⟨#[]⟩ == 0
-#assert Tstring.length ⟨#[("", 10)]⟩ == 0
-#assert Tstring.length ⟨#[("1", 10), ("2", 2)]⟩ == 12
-
-def Tstring.dropRight (s : Tstring) (n : Nat) : Tstring := ⟨s.str.drop n⟩
-def Tstring.splitOn (s : Tstring) (st : String) : List Tstring := s.str.splitOn st |>.foldl (· ++ [⟨·⟩]) []
-def Tstring.push (s : Tstring) (c : Char) : Tstring := ⟨s.str.push c⟩
 
 def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
     Nat × Std.HashMap (String × Nat) Nat := Id.run do
@@ -556,15 +145,11 @@ def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) N
   | 0 => return (keys.length, cache.insert (keys, 0) keys.length)
   | j + 1 =>
     if cache.contains (keys, j + 1) then
-      --dbg_trace "found cache {(keys, j + 1)}"
       return (cache[(keys, j + 1)]!, cache)
     else
-    let subkeys := splitAtAs keys --(keys.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
-    --dbg_trace "{keys.length}"
+    let subkeys := splitAtAs keys
     for sk in subkeys do
-      --dbg_trace "{sk}"
       if cache.contains (sk, j + 1) then
-        dbg_trace "found other cache {(sk, j + 1)}"
         tot := tot + cache[(sk, j + 1)]!
       else
         let currSeq := strToPaths mkDir sk
@@ -573,7 +158,6 @@ def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) N
           (min m newMin, cc.union newCache)
         tot := tot + recMin
         cache := cache'.insert (keys, j + 1) tot
-    --dbg_trace cache.size
     return (tot, cache)
 
 def minOne (str : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
@@ -582,71 +166,37 @@ def minOne (str : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
   let mut cache := cache
   let mut strMin := 10^100
   for p in parts do
-    --dbg_trace p
     let (newMin, newCache) := shortestSeq p d cache
     strMin := min strMin newMin
     cache := cache.union newCache
   (strMin, cache)
 
-set_option trace.profiler true in
-#eval do
-  let dat := atest
-  let dat ← IO.FS.lines input
+def parts (dat : Array String) (n : Nat) : Nat := Id.run do
   let mut tot := 0
   let mut cache := ∅
   for str in dat do
-    --cache := ∅
-    let (strMin, cc) := minOne str 25 cache
-    --let parts := strToPaths mkNum str
-    --let mut strMin := 10^100
-    --for p in parts do
---      for q in splitAtAs p do
---        IO.println (minOne q 0 cache).1
-    --  let (newMin, newCache) := shortestSeq p 2 cache 4
-    --  strMin := min strMin newMin
-    --  cache := cache.union newCache
+    let (strMin, cc) := minOne str n cache
     cache := cache.union cc
-    --IO.println s!"\nintermediate cache.size: {cache.size}"
-    IO.println <| s!"{str} * {strMin}"
     tot := tot + strMin * str.getNats[0]!
-  IO.println tot
-  IO.println s!"\ncache.size: {cache.size}"
-
-/-- info: 126384 = 68 * 29 + 60 * 980 + 68 * 179 + 64 * 456 + 64 * 379 -/
-#guard_msgs in
-#eval do
-  let dat := atest
-  let mut tot := 0
-  let mut msg := #[]
-  for d in dat do
-    let first := stringToPathString .num d
-    let second := stringToPathString .dir first
-    let third := stringToPathString .dir second
-    msg := msg.push s!"{third.length} * {d.getNats[0]!}"
-    tot := tot + d.getNats[0]! * third.length
-  IO.println <| s!"{tot} = " ++ " + ".intercalate msg.toList
-
-
-
+  return tot
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : Array String) : Nat := parts dat 2
 
---#assert part1 atest == ???
+#assert part1 atest == 126384
 
---set_option trace.profiler true in solve 1
+solve 1 197560
 
 /-!
 #  Question 2
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
+def part2 (dat : Array String) : Nat := parts dat 25
 --def part2 (dat : String) : Nat :=
 
---#assert part2 atest == ???
+-- set_option trace.profiler true in #assert part2 atest == 154115708116294
 
---set_option trace.profiler true in solve 2
+-- set_option trace.profiler true in solve 2 242337182910752  -- takes approx 34s
 
 end Day21
