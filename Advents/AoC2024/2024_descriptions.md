@@ -20,6 +20,7 @@
 | [18](2024_descriptions_with_tests.md#day-18) | Historians making their way in memory, avoiding corrupted bytes.                            |
 | [19](2024_descriptions_with_tests.md#day-19) | Creating designs by concatenating towels.                                                   |
 | [20](2024_descriptions_with_tests.md#day-20) | Racing programs that are allowed to cheat.                                                  |
+| [21](2024_descriptions_with_tests.md#day-21) | Robots controlling robots controlling robots...                                             |
 | [22](2024_descriptions_with_tests.md#day-22) | Trading bananas with the monkeys.                                                           |
 | [23](2024_descriptions_with_tests.md#day-23) | LAN party: finding maximal cliques in graphs.                                               |
 | [24](2024_descriptions_with_tests.md#day-24) | A machine with gates to compute additions.                                                  |
