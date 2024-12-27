@@ -176,36 +176,38 @@ def get3 (a : Array Nat) : Array Nat × Array Nat :=
   (aleft, a3)
 
 /--
-The hand-rolled program, exploiting the actual steps that it takes.
-It turns out that the program goes through a series of 7 steps before looping back at the beginning.
+The "period" of the program.
+Assumes that the program consists of `2 * lth + 2` entries, where the last `2` entries make the
+program loop, as long as `A` is non-zero.
+
+It turns out that the given program goes through a series of `7` steps before looping back at the
+beginning and the number of entries of the program is `16`.
+Similarly, the example for the puzzle goes through `2` steps before looping back and the number
+of entries of the test program is `6`.
 
 Only the value of `A` is significant in each loop and determines `B`, `C` and each digit of the
 output.
 When the program loops back, it drops 3 binary digits from `A` and starts over.
 
-The slight complication is that more than just the last 3 binary digits of `A` matter: as much as
-10 binary digits of `A` are necessary to know what the output is.
+The slight complication is that more than just the last `3` binary digits of `A` matter: as much as
+`10` binary digits of `A` are necessary to know what the output is.
 -/
-def reprogramOne (a : Array Nat) : Array Nat × Nat :=
-  let (aleft, a3) := get3 a
-  match a3 with
-    | #[] => default
-    | s =>
-      let seed1 := binToNat s
-      let offset := seed1.xor 5
-      let c := (Array.range offset).foldl (fun _ => ·.pop) a
-      let (_, seed2) := get3 c
-      (aleft, (seed1.xor 3).xor (binToNat seed2))
+def reprogramOne (s : State) (a : Array Nat) : Array Nat × Nat :=
+  let seed := binToNat a
+  -- we make the guess that the program goes through `lth`-many steps, before looping back
+  let lth := (s.program.size - 2) / 2
+  let new := (Array.range lth).foldl (init := {s with A := seed}) fun s _ => oneOp s
+  (((Nat.toDigits 2 new.A).map (fun d => String.toNat! (⟨[d]⟩))).toArray, new.out.back!)
 
 /--
 Returns all the 10-digit binary numbers that yield first digit `i` when used in the program.
 The output is stored in *reverse* order, so that the most significant digits are last.
 -/
-def inits (i : Nat) : Std.HashSet (Array Nat) :=
+def inits (s : State) (i : Nat) : Std.HashSet (Array Nat) :=
   --  we use 10, since these should be the relevant digits for guaranteeing the first digit
   (Array.range (2 ^ 10)).foldl (fun h A =>
     let a : Array Nat := (Nat.toDigits 2 (2 ^ 11 + A)).map ("".push · |>.toNat!) |>.toArray
-    if (reprogramOne a).2 == i then
+    if (reprogramOne s a).2 == i then
       -- we only store `9` digits, since empirically this is enough and speeds up the computation
       h.insert (a.reverse.take 9) else h) ∅
 
@@ -230,7 +232,7 @@ def merge2 (sts1 sts2 : Std.HashSet (Array Nat)) : Std.HashSet (Array Nat) :=
 def part2 (dat : Array String) : Nat :=
   let s := inputToState dat
   let pr := s.program
-  let sts := pr.foldl (·.push <| inits ·) #[]
+  let sts := pr.foldl (·.push <| inits s ·) #[]
   let merges := (Array.range (sts.size - 1)).foldl (init := #[]) fun merges pi =>
     let p1 := sts[pi]!
     let p2 := sts[pi + 1]!
@@ -240,7 +242,7 @@ def part2 (dat : Array String) : Nat :=
   let ns := fins.map (binToNat ·.reverse)
   (ns.qsort (· < ·))[0]!
 
---#assert part2 atest2 == 117440  -- does not work...
+#assert part2 atest2 == 117440
 
 solve 2 107413700225434 -- takes about 3s
 
