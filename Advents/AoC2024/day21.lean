@@ -51,10 +51,28 @@ def charToDir : Char → pos
   | '·' => (0, 0)
   | p => panic s!"`charToDir`: Not expecting '{p}' as a character!"
 
+/--
+The numeric keyboard: a conversion between a character in the table
+```
+7 8 9
+4 5 6
+1 2 3
+  0 A
+```
+and a position.  For instance, the character `A` corresponds to `(3, 2)`.
+-/
 def numKeys : Std.HashMap Char pos := .union {('A', (3, 2)), ('0', (3, 1))} <|
     (Array.range 9).foldl (init := (∅ : Std.HashMap Char pos)) fun h n =>
         h.insert (s!"{n + 1}".get 0) (2 - n.cast / 3, 2 - (8 - n.cast) % 3)
 
+/--
+The directional keyboard: a conversion between a character in the table
+```
+  ^ A
+< v >
+```
+and a position.  For instance, the character `A` corresponds to `(0, 2)`.
+-/
 def dirKeys : Std.HashMap Char pos := {
                    ('^', (0, 1)), ('A', (0, 2)),
     ('<', (1, 0)), ('v', (1, 1)), ('>', (1, 2))
@@ -71,8 +89,6 @@ inductive keyboard where
   | /-- A `dir`ectional kyeboard with buttons `<`, `^`, `>`, `v` and `A`. -/
     dir
 
-instance : ToString keyboard where toString | .dir => "directional" | .num => "numerical"
-
 /--
 `keys k` converts the `keyboard` `k` into its `HashMap` of keys, mapping a character to
 the corresponding position.
@@ -80,6 +96,10 @@ the corresponding position.
 def keyboard.keys : keyboard → Std.HashMap Char pos
   | .dir => dirKeys | .num => numKeys
 
+/--
+`seqs l r` takes as input two lists `l` and `r` and returns the `HashSet` of lists
+obtained by interleaving the entries of `l` and of `r` in all possible ways.
+-/
 partial
 def seqs {α} [BEq α] [Hashable α] : List α → List α → Std.HashSet (List α)
   | [], l => {l}
@@ -99,6 +119,11 @@ def findPaths (p q : pos) : Std.HashSet String :=
   let left :=  List.replicate mv.1.natAbs (dirToChar (mv.1.sign, 0))
   seqs left right |>.fold (init := ∅) (·.insert <| (⟨·⟩ : String).push 'A')
 
+/--
+Makes sure that the given string is a sequence of instructions that make the robot move within
+the input `keyboard`.
+The initial robot's position is assumed to be `A`, since the robots always return to this key.
+-/
 def validate (k : keyboard) (s : String) : Bool := Id.run do
   let mut curr := k.keys['A']!
   for si in s.toList do
@@ -116,15 +141,26 @@ def strToPaths (k : keyboard) (s : String) : Std.HashSet String := Id.run do
   for c in s.toList do
     let tgt := k.keys[c]!
     let next := findPaths tgt start
-    --dbg_trace "{start} -- {tgt}, {next.toArray}"
     fin :=  fin.fold (init := ∅) fun h st => h.union (next.fold (·.insert <| st ++ ·) ∅)
     start := tgt
   return fin.filter (validate k)
 
+/--
+Splits a string at the positions of the `A`s, thus isolating all paths starting and ending at `A`.
+-/
 def splitAtAs (s : String) : Array String :=
   (s.dropRight 1).splitOn "A" |>.foldl (init := #[]) (·.push <| ·.push 'A')
 
-def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
+/--
+A recursive function to compute the shortest sequence of key pushes that returns the input `keys`.
+The input `d` is the number of intermediate robots in directional `keyboard`s.
+The `cache` is, well, a cache of the values that get computed along the way.
+
+This function assumes that all `keyboard`s are directional.
+The function `shortestSeq` prepares the input, converting it
+from a numeric `keyboard` to a directional one.
+-/
+def shortestSeqDir (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
     Nat × Std.HashMap (String × Nat) Nat := Id.run do
   let mut cache := cache
   let mut tot := 0
@@ -141,28 +177,41 @@ def shortestSeq (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) N
       else
         let currSeq := strToPaths .dir sk
         let (recMin, cache') := currSeq.fold (init := (10^100, cache)) fun (m, cc) pth =>
-          let (newMin, newCache) := shortestSeq pth j cc
+          let (newMin, newCache) := shortestSeqDir pth j cc
           (min m newMin, cc.union newCache)
         tot := tot + recMin
         cache := cache'.insert (keys, j + 1) tot
     return (tot, cache)
 
-def minOne (str : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
+/--
+A recursive function to compute the shortest sequence of key pushes that returns the input `keys`.
+The input `d` is the number of intermediate robots in directional `keyboard`s.
+The `cache` is, well, a cache of the values that get computed along the way.
+
+The function converts the input string `str` to all sequences of pushes of keys in a directional
+`keyboard` that return `str`.
+Then, computes the value of `shortestSeq` on each such value, returning the smallest that it finds.
+-/
+def shortestSeq (str : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
     Nat × Std.HashMap (String × Nat) Nat := Id.run do
   let parts := strToPaths .num str
   let mut cache := cache
   let mut strMin := 10^100
   for p in parts do
-    let (newMin, newCache) := shortestSeq p d cache
+    let (newMin, newCache) := shortestSeqDir p d cache
     strMin := min strMin newMin
     cache := cache.union newCache
   (strMin, cache)
 
+/--
+The common function for the two parts: the inputs are the puzzle input and the number of
+robots aimed at directional `keyboard`s.
+-/
 def parts (dat : Array String) (n : Nat) : Nat := Id.run do
   let mut tot := 0
   let mut cache := ∅
   for str in dat do
-    let (strMin, cc) := minOne str n cache
+    let (strMin, cc) := shortestSeq str n cache
     cache := cache.union cc
     tot := tot + strMin * str.getNats[0]!
   return tot
@@ -180,7 +229,6 @@ solve 1 197560
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := parts dat 25
---def part2 (dat : String) : Nat :=
 
 -- set_option trace.profiler true in #assert part2 atest == 154115708116294
 
