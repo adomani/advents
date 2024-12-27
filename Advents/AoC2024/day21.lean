@@ -135,15 +135,13 @@ def validate (k : keyboard) (s : String) : Bool := Id.run do
 Converts a string, such as "029A", into all the strings of instructions
 It starts from the position recorded in `n` and then continues with the ones in `s`.
 -/
-def strToPaths (k : keyboard) (s : String) : Std.HashSet String := Id.run do
-  let mut start := k.keys['A']!
-  let mut fin : Std.HashSet String := {""}
-  for c in s.toList do
+def strToPaths (k : keyboard) (s : String) : Std.HashSet String :=
+  let (_start, fin) : pos × Std.HashSet String :=
+    s.toList.foldl (init := (k.keys['A']!, {""})) fun (start, fin) c =>
     let tgt := k.keys[c]!
     let next := findPaths tgt start
-    fin :=  fin.fold (init := ∅) fun h st => h.union (next.fold (·.insert <| st ++ ·) ∅)
-    start := tgt
-  return fin.filter (validate k)
+    (tgt, fin.fold (init := ∅) fun h st => h.union (next.fold (·.insert <| st ++ ·) ∅))
+  fin.filter (validate k)
 
 /--
 Splits a string at the positions of the `A`s, thus isolating all paths starting and ending at `A`.
@@ -161,27 +159,23 @@ The function `shortestSeq` prepares the input, converting it
 from a numeric `keyboard` to a directional one.
 -/
 def shortestSeqDir (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
-    Nat × Std.HashMap (String × Nat) Nat := Id.run do
-  let mut cache := cache
-  let mut tot := 0
+    Nat × Std.HashMap (String × Nat) Nat :=
   match d with
-  | 0 => return (keys.length, cache.insert (keys, 0) keys.length)
+  | 0 => (keys.length, cache.insert (keys, 0) keys.length)
   | j + 1 =>
     if cache.contains (keys, j + 1) then
-      return (cache[(keys, j + 1)]!, cache)
+      (cache[(keys, j + 1)]!, cache)
     else
     let subkeys := splitAtAs keys
-    for sk in subkeys do
+    subkeys.foldl (init := (0, cache)) fun (tot, cache) sk =>
       if cache.contains (sk, j + 1) then
-        tot := tot + cache[(sk, j + 1)]!
+        (tot + cache[(sk, j + 1)]!, cache)
       else
         let currSeq := strToPaths .dir sk
         let (recMin, cache') := currSeq.fold (init := (10^100, cache)) fun (m, cc) pth =>
           let (newMin, newCache) := shortestSeqDir pth j cc
           (min m newMin, cc.union newCache)
-        tot := tot + recMin
-        cache := cache'.insert (keys, j + 1) tot
-    return (tot, cache)
+        (tot + recMin, cache'.insert (keys, j + 1) (tot + recMin))
 
 /--
 A recursive function to compute the shortest sequence of key pushes that returns the input `keys`.
@@ -193,28 +187,20 @@ The function converts the input string `str` to all sequences of pushes of keys 
 Then, computes the value of `shortestSeq` on each such value, returning the smallest that it finds.
 -/
 def shortestSeq (str : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
-    Nat × Std.HashMap (String × Nat) Nat := Id.run do
-  let parts := strToPaths .num str
-  let mut cache := cache
-  let mut strMin := 10^100
-  for p in parts do
+    Nat × Std.HashMap (String × Nat) Nat :=
+  strToPaths .num str |>.fold (init := (10^100, cache)) fun (strMin, cache) p =>
     let (newMin, newCache) := shortestSeqDir p d cache
-    strMin := min strMin newMin
-    cache := cache.union newCache
-  (strMin, cache)
+    (min strMin newMin, cache.union newCache)
 
 /--
 The common function for the two parts: the inputs are the puzzle input and the number of
 robots aimed at directional `keyboard`s.
 -/
-def parts (dat : Array String) (n : Nat) : Nat := Id.run do
-  let mut tot := 0
-  let mut cache := ∅
-  for str in dat do
+def parts (dat : Array String) (n : Nat) : Nat :=
+  let (tot, _cache) := dat.foldl (init := (0, ∅)) fun (tot, cache) str =>
     let (strMin, cc) := shortestSeq str n cache
-    cache := cache.union cc
-    tot := tot + strMin * str.getNats[0]!
-  return tot
+    (tot + strMin * str.getNats[0]!, cache.union cc)
+  tot
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := parts dat 2
@@ -230,8 +216,8 @@ solve 1 197560
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := parts dat 25
 
--- set_option trace.profiler true in #assert part2 atest == 154115708116294
+--set_option trace.profiler true in #assert part2 atest == 154115708116294
 
--- set_option trace.profiler true in solve 2 242337182910752  -- takes approx 34s
+--set_option trace.profiler true in solve 2 242337182910752  -- takes approx 34s
 
 end Day21
