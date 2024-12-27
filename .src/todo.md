@@ -26,8 +26,8 @@
 * Day 12, part 1 and 2 are slow (connected components, perimeters and corners, approx 1m each answer)
 * Day 15, part 2 is slow (moving boxes around, approximately 3 minutes to get each answer)
 * Day 16, part 1 and 2 are slow (Reindeer maze, 20/25 seconds to get each answer)
-* Day 18, part 2 is a little slow (historians and corrupted bytes -- hex-like maze, approximately 30s,
-  possible bug, since it does not appear to work with a different input)
+* Day 18, part 2 has an off-by-1 error with a different input (historians and corrupted bytes --
+  hex-like maze, 3-4s)
 * Day 19, part 2 is slow (cheating programs through a maze -- Manhattan distance,
   approximately 1m -- try to implement by keeping track of the fact that shorter cheats are reused
   multiple times)

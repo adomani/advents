@@ -175,10 +175,9 @@ def historiansEscape? (dat : Array String) (l : Nat) : Bool := Id.run do
     let ex := if dat.size ≤ 1000 then exit_test else exit
     let mut ms := inputToMemorySpace dat l ex.1
     let newTarget := ms.fallen.filter fun (p, q) => q == 0 || p == ms.size
-    while (newTarget.filter ms.visitedCorrupted.contains).isEmpty &&
-          ! ms.visitedHistorians.contains (ms.size, ms.size) do
+    while ! ms.frontCorrupted.isEmpty do
       ms := move ms
-    return ms.visitedHistorians.contains (ms.size, ms.size)
+    return (newTarget.filter ms.visitedCorrupted.contains).isEmpty
 
 /--
 Performs a binary search on the predicate `cond` in the range `[st, fin]`.
@@ -199,12 +198,15 @@ def firstFalse? (fin : Nat) (cond : Nat → Bool) (st : Nat := 0) : Option Nat :
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : pos :=
-  let low := (firstFalse? (dat.size + 1) (historiansEscape? dat ·)).get!
+  let (maxX, maxY) := dat.foldl (init := (0, 0)) fun (mx, my) s =>
+    let ns := s.getNats
+    (max mx ns[0]!, max my ns[1]!)
+  let low := (firstFalse? (maxX * maxY + 1) (historiansEscape? dat ·)).get!
   let cs := dat[low - 1]!.getNats
   (cs[0]!, cs[1]!)
 
 #assert part2 atest == (6, 1)
 
---set_option trace.profiler true in solve 2 (26, 50)  -- takes approximately 30s
+set_option trace.profiler true in solve 2 (26, 50)  -- takes approximately 4s
 
 end Day18
