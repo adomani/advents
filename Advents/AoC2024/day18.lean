@@ -207,6 +207,6 @@ def part2 (dat : Array String) : pos :=
 
 #assert part2 atest == (6, 1)
 
-set_option trace.profiler true in solve 2 (26, 50)  -- takes approximately 4s
+solve 2 (26, 50)  -- takes approximately 4s
 
 end Day18
