@@ -20,7 +20,20 @@
 
 ### 2024
 
-* Day 6, part 2 is slow (moving guard in a maze, finding locations of obstacles to create loops)
-* Day 7, part 2 is slow (filling in binary operations, trying to achieve a fixed total)
-* Day 9, part 2 is slow (defragmenting a file-system)
-* Day 12, part 1 and 2 are slow (connected components, perimeters and corners)
+* Day 6, part 2 is slow (moving guard in a maze, finding locations of obstacles to create loops, almost 10 minutes)
+* Day 7, part 2 is slow (filling in binary operations, trying to achieve a fixed total -- approx 1m30)
+* Day 9, part 2 is slow (defragmenting a file-system, takes approximately 1 minute)
+* Day 12, part 1 and 2 are slow (connected components, perimeters and corners, approx 1m each answer)
+* Day 15, part 2 is slow (moving boxes around, approximately 3 minutes to get each answer)
+* Day 16, part 1 and 2 are slow (Reindeer maze, 20/25 seconds to get each answer)
+* Day 18, part 2 has an off-by-1 error with a different input (historians and corrupted bytes --
+  hex-like maze, 3-4s)
+* Day 19, part 2 is slow (cheating programs through a maze -- Manhattan distance,
+  approximately 1m -- try to implement by keeping track of the fact that shorter cheats are reused
+  multiple times)
+* Day 21, part 2 is slow (robots controlling robots, 25 times -- approximately 34s, solution from
+  AoC forum)
+* Day 22, part 2 is slow (minimizing price windows to obtain bananas -- bitwise operations,
+  approximately 3m -- try to streamline the generation of the bits for speed up?)
+* Day 23, part 2 takes approximately 11s, however, the test is quicker, but does not work!
+* Day 24, part 2 is not automated: there is code to help find the transpositions, but not in a systematic way.

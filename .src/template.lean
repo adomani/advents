@@ -10,8 +10,6 @@ def input : System.FilePath := "Advents/AoCYYYY/day_newDay_.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the test string for the problem. -/
 def test := ""
 
@@ -24,7 +22,7 @@ def part1 (dat : Array String) : Nat := sorry
 
 --#assert part1 atest == ???
 
---solve 1
+--set_option trace.profiler true in solve 1
 
 /-!
 #  Question 2
@@ -36,6 +34,6 @@ def part2 (dat : Array String) : Nat := sorry
 
 --#assert part2 atest == ???
 
---solve 2
+--set_option trace.profiler true in solve 2
 
 end Day_newDay_

@@ -10,8 +10,6 @@ def input : System.FilePath := "Advents/AoC2024/day06.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the test string for the problem. -/
 def test := "....#.....
 .........#
@@ -105,20 +103,19 @@ solve 1 5086
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := Id.run do
+def part2 (dat : Array String) : Nat :=
   let gm := mkGuardMoves dat
   let path : Std.HashSet pos := (moveUntil gm).1.erase gm.S
-  let mut obsts : Std.HashSet pos := {}
-  let mut con := 0
-  for obst in path do
-    con := con + 1
+  let obsts : Std.HashSet pos := path.fold (init := ∅) fun h obst =>
     let gmo := {gm with mz := gm.mz.insert obst}
     let (_, loop?) := moveUntil gmo
-    if (loop?) then
-      obsts := obsts.insert obst
+    if loop? then
+      h.insert obst
+    else h
   obsts.size
 
 #assert part2 atest == 6
---solve 2 1770
+
+--set_option trace.profiler true in solve 2 1770  -- takes almost 10 minutes
 
 end Day06

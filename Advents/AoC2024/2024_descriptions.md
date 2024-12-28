@@ -14,3 +14,14 @@
 | [12](2024_descriptions_with_tests.md#day-12) | The input is a grid with locations of where different kinds of plants have been planted.    |
 | [13](2024_descriptions_with_tests.md#day-13) | The input is a description of various games with the claw.                                  |
 | [14](2024_descriptions_with_tests.md#day-14) | The input is a list of positions and velocities of robots in a periodic grid.               |
+| [15](2024_descriptions_with_tests.md#day-15) | The lanternfish maze: a robot pushing boxes around.                                         |
+| [16](2024_descriptions_with_tests.md#day-16) | The Reindeer maze: most steps are forced, sometimes you have to rotate.                     |
+| [17](2024_descriptions_with_tests.md#day-17) | The state machine and its list of instructions.                                             |
+| [18](2024_descriptions_with_tests.md#day-18) | Historians making their way in memory, avoiding corrupted bytes.                            |
+| [19](2024_descriptions_with_tests.md#day-19) | Creating designs by concatenating towels.                                                   |
+| [20](2024_descriptions_with_tests.md#day-20) | Racing programs that are allowed to cheat.                                                  |
+| [21](2024_descriptions_with_tests.md#day-21) | Robots controlling robots controlling robots...                                             |
+| [22](2024_descriptions_with_tests.md#day-22) | Trading bananas with the monkeys.                                                           |
+| [23](2024_descriptions_with_tests.md#day-23) | LAN party: finding maximal cliques in graphs.                                               |
+| [24](2024_descriptions_with_tests.md#day-24) | A machine with gates to compute additions.                                                  |
+| [25](2024_descriptions_with_tests.md#day-25) | Match locks and keys.                                                                       |

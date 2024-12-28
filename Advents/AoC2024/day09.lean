@@ -158,13 +158,13 @@ def interleave (a : Array ff) : Array ff := Id.run do
   return fin
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : String) : Nat := Id.run do
-  let mut DM := mkDiskMap dat
+def part2 (dat : String) : Nat :=
+  let DM := mkDiskMap dat
   let il := (interleave (DM.posAndIDs.toArray.map Prod.snd)).qsort (·.pos < ·.pos)
   tallyMerged il
 
 #assert part2 test == 2858
 
-solve 2 6469636832766 file
+--set_option trace.profiler true in solve 2 6469636832766 file  -- takes approximately 1 minute
 
 end Day09

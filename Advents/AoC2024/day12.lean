@@ -10,8 +10,6 @@ def input : System.FilePath := "Advents/AoC2024/day12.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test1` is the test string for the problem. -/
 def test1 := "AAAA
 BBCD
@@ -69,40 +67,38 @@ def atestAB := (testAB.splitOn "\n").toArray
 
 /--
 The main structure to create connected components.
-* `gr` is the underlying grid.
+* `grid` is the underlying grid.
 * `growing` is the set of vertices that we have so far added to our "connected component".
-* `front` is the front of the expansion: at the next step, we add the newighbours of `front` to
+* `front` is the front of the expansion: at the next step, we add the neighbours of `front` to
   `growing`.
-* `edges` is the set of entries of `growing` that have a neighbour not in `gr`.
-* `nbs` is the set of neighbours. By default, it is the 4 coordinate directions.
-
+* `edges` is the set of entries of `growing` that have a neighbour not in `grid`.
 -/
 structure OneComp where
-  /-- `gr` is the underlying grid. -/
-  gr : Std.HashSet pos
+  /-- `grid` is the underlying grid. -/
+  grid : Std.HashSet pos
   /-- `growing` is the set of vertices that we have so far added to our "connected component". -/
   growing : Std.HashSet pos
   /-- `front` is the front of the expansion: at the next step, we add the newighbours of `front` to
   `growing`. -/
   front : Std.HashSet pos
-  /-- `edges` is the set of entries of `growing` that have a neighbour not in `gr`. -/
-  edges : Std.HashSet pos := {}
-  /-- `nbs` is the set of neighbours. By default, it is the 4 coordinate directions. -/
-  nbs : Std.HashSet pos := {(1, 0), (- 1, 0), (0, 1), (0, - 1)}
+  /-- `edges` is the set of entries of `growing` that have a neighbour not in `grid`. -/
+  edges : Std.HashMap pos Nat := {}
   deriving Inhabited
 
+/-- `nbs` is the set of neighbours, namely, the 4 coordinate directions. -/
+abbrev nbs : Std.HashSet pos := {(1, 0), (- 1, 0), (0, 1), (0, - 1)}
+
 /--
-Creates a "live" `OneComp`: this is not yet a connected components, just something that can
+Creates a "live" `OneComp`: this is not yet a connected component, just something that can
 `growComp` to be one.
 -/
 def mkOneComp {α} [BEq α] (g : Std.HashMap pos α) (c : α) (st : pos) : OneComp :=
-  let oneVar := g.filter (fun _pos val => val == c)
-  let gr : Std.HashSet pos := oneVar.fold (init := {}) fun h p _ => h.insert p
+  let gr : Std.HashSet pos := g.fold (init := {}) fun h p val => if val == c then h.insert p else h
   if gr.contains st then
-    {gr := gr, growing := {st}, front := {st}}
+    {grid := gr, growing := {st}, front := {st}}
   else
     dbg_trace "'{st}' does not belong to the grid!"
-    {gr := gr, growing := {st}, front := {st}}
+    {grid := gr, growing := {st}, front := {st}}
 
 /-- Expands `growing` by each possible neighbour of `front`, updating also `edges` as necessary. -/
 def grow (c : OneComp) : OneComp := Id.run do
@@ -110,10 +106,10 @@ def grow (c : OneComp) : OneComp := Id.run do
   let mut edges := c.edges
   let mut newF : Std.HashSet pos := {}
   for f in c.front do
-    for p in c.nbs do
+    for p in nbs do
       let newpos := f + p
-      if ! c.gr.contains newpos then
-        edges := edges.insert f
+      if ! c.grid.contains newpos then
+        edges := edges.alter f fun v => some <| v.getD 0 + 1
       else
       if !newR.contains newpos then
         newR := newR.insert newpos
@@ -135,15 +131,10 @@ def area (h : OneComp) : Nat := h.growing.size
 
 /--
 Finds the perimeter of a connected component by tallying, for each edge, the directions that
-leave the component.
+leave the component: these are already stored in the values of the `edges` `HashMap`.
 -/
-def perimeter (h : OneComp) : Nat := Id.run do
-  let mut tot := 0
-  for e in h.edges do
-    for n in h.nbs do
-      if !h.growing.contains (e + n) then
-        tot := tot + 1
-  return tot
+def perimeter (h : OneComp) : Nat :=
+  h.edges.fold (fun tot _ v => tot + v) 0
 
 /--
 For each character that appears as a value in `tot`, determine the connected components of the
@@ -173,7 +164,7 @@ def part1 (dat : Array String) : Nat := tallyAll <| loadGrid dat id
 #assert part1 atest2 == 772
 #assert part1 atest3 == 1930
 
---solve 1 1483212  -- slow, takes approx 80s
+--set_option trace.profiler true in solve 1 1483212  -- slow, takes approx 55s
 
 /-!
 #  Question 2
@@ -184,10 +175,10 @@ Computes the `HashSet`s of the entries of `h` whose first coordinate is `i` and 
 a left/right neighbour, storing them separately into the two output `HashSet`s.
 -/
 def leftRightBounds (h : OneComp) (i : Int) : Std.HashSet Int × Std.HashSet Int :=
-  h.edges.fold (fun new@(newl, newr) p =>
+  h.edges.fold (fun new@(newl, newr) p _ =>
     if p.1 == i
     then
-      match !h.gr.contains (p + (0, - 1)), !h.gr.contains (p + (0, 1)) with
+      match !h.grid.contains (p + (0, - 1)), !h.grid.contains (p + (0, 1)) with
         | true, true => (newl.insert p.2, newr.insert p.2)
         | true, false => (newl.insert p.2, newr)
         | false, true => (newl, newr.insert p.2)
@@ -199,7 +190,7 @@ def leftRightBounds (h : OneComp) (i : Int) : Std.HashSet Int × Std.HashSet Int
 /--
 Computes the corners in the component encoded in `h`, withing the bounds `m` and `M`.
 
-TODO: find the values of `m` and `M` and generally make this more efficients.
+TODO: find the values of `m` and `M` and generally make this more efficient.
 -/
 def corners (h : OneComp) (m M : Nat) : Nat := Id.run do
   let mut diffs := 0
@@ -223,6 +214,6 @@ def part2 (dat : Array String) : Nat :=
 #assert part2 atestAB == 368
 #assert part2 atest3 == 1206
 
---solve 2 897062
+--set_option trace.profiler true in solve 2 897062  -- slow, takes approx 60s
 
 end Day12
