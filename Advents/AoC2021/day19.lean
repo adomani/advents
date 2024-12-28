@@ -215,22 +215,40 @@ abbrev vol := Int × Int × Int
 
 instance : ToString vol where toString := fun (a, b, c) => s!"({a}, {b}, {c})"
 
+/-- The scalar product of two integer vectors. -/
 def sc (v w : vol) : Int := v.1 * w.1 + v.2.1 * w.2.1 + v.2.2 * w.2.2
 
-def inputToData (dat : Array String) : Array (Std.HashSet vol) := Id.run do
-  let mut scanners := #[]
-  let mut curr : Std.HashSet vol := {}
-  for d in dat do
+def inputToData (dat : Array String) : Array (Std.HashSet vol) :=
+  let (scanners, _current) := dat.foldl (init := (#[], {})) fun (scanners, curr) d =>
     if d.startsWith "--- scanner" then
       if ! curr.isEmpty then
-        scanners := scanners.push curr
-        curr := ∅
+        (scanners.push curr, ∅)
+      else
+        (scanners, ∅)
     else
       match d.getInts with
-        | [a, b, c] => curr := curr.insert (a, b, c)
-        | l => if !d.isEmpty then panic s!"{l} should have had 3 entries!"
-  return scanners
+        | [a, b, c] => (scanners, curr.insert (a, b, c))
+        | l => if !d.isEmpty then panic s!"{l} should have had 3 entries!" else (scanners, curr)
+  scanners
 
+/-- A utility function to draw configurations of scanners. -/
+def drawScanners (scs : Array (Std.HashSet vol)) : IO Unit := do
+  let mut con := 0
+  for s in scs do
+    IO.println s!"\nScanner {con}"
+    let lex : vol → vol → Bool := fun (x1, y1, z1) (x2, y2, z2) =>
+      x1 < x2 || (x1 == x2 && y1 < y2) || (x1 == x2 && y1 == y2 && z1 < z2)
+    for t in s.toArray.qsort lex do
+      IO.println t
+    con := con + 1
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest2
+  let scs := inputToData dat
+  drawScanners scs
+
+/-- Tallies the distances between any two beacons. -/
 def distances (h : Std.HashSet vol) : Std.HashMap Int Nat := Id.run do
   let mut left := h
   let mut lths := ∅
@@ -241,6 +259,8 @@ def distances (h : Std.HashSet vol) : Std.HashMap Int Nat := Id.run do
       lths := lths.alter (sc diff diff) (some <| ·.getD 0 + 1)
   return lths
 
+/-- Similar to `distances`, except that it tallies the the symmetric functions of the scalar
+products of the relative positions between any two beacons. -/
 def threes (h : Std.HashSet vol) : Std.HashMap vol Nat := Id.run do
   let mut left := h
   let mut right := h
