@@ -231,13 +231,14 @@ def inputToData (dat : Array String) : Array (Std.HashSet vol) :=
         | l => if !d.isEmpty then panic s!"{l} should have had 3 entries!" else (scanners, curr)
   scanners
 
+def lex : vol → vol → Bool := fun (x1, y1, z1) (x2, y2, z2) =>
+      x1 < x2 || (x1 == x2 && y1 < y2) || (x1 == x2 && y1 == y2 && z1 < z2)
+
 /-- A utility function to draw configurations of scanners. -/
 def drawScanners (scs : Array (Std.HashSet vol)) : IO Unit := do
   let mut con := 0
   for s in scs do
     IO.println s!"\nScanner {con}"
-    let lex : vol → vol → Bool := fun (x1, y1, z1) (x2, y2, z2) =>
-      x1 < x2 || (x1 == x2 && y1 < y2) || (x1 == x2 && y1 == y2 && z1 < z2)
     for t in s.toArray.qsort lex do
       IO.println t
     con := con + 1
@@ -280,6 +281,9 @@ def threes (h : Std.HashSet vol) : Std.HashMap vol Nat := Id.run do
 
 --def findTriangle (n : Nat) : Nat :=
 
+/--
+Finds the pairs `(v, w)` among the elements of `g` whose difference has the same length as `v0`
+-/
 def align (g : Std.HashSet vol) (v0 : vol) : Std.HashMap (vol × vol) vol := Id.run do
   let vlth := sc v0 v0
   let mut left := g
@@ -305,6 +309,164 @@ def translate (ref g : Std.HashSet vol) (v1 v : vol) : Std.HashSet vol :=
   else
     dbg_trace "Common: {(ref.filter g'.contains).size} {(g'.filter ref.contains).size}"
     {}
+
+def translateToZero (g : Std.HashSet vol) (v : vol) : Std.HashSet vol :=
+  g.fold (·.insert <| · - v) ∅
+
+def workable (p q : vol) : Bool :=
+  let (p1, p2, p3) := p
+  let (q1, q2, q3) := q
+  let fst : Std.HashSet Nat := {p1.natAbs, p2.natAbs, p3.natAbs}
+  let snd : Std.HashSet Nat := {q1.natAbs, q2.natAbs, q3.natAbs}
+  fst != snd || fst.size != 3
+
+def rotateAndSign (p q t : vol) : vol :=
+  let (p1, p2, p3) := p
+  let (q1, q2, q3) := q
+  let (t1, t2, t3) := t
+  let fst : Std.HashSet Nat := {p1.natAbs, p2.natAbs, p3.natAbs}
+  let snd : Std.HashSet Nat := {q1.natAbs, q2.natAbs, q3.natAbs}
+  if fst != snd || fst.size != 3 then panic s!"{p} or {q}: should have 3 different absolute values!" else
+  let u1 := match p1.natAbs == q1.natAbs, p1.natAbs == q2.natAbs, p1.natAbs == q3.natAbs with
+    | true, _, _ => p1.sign * q1.sign * t1
+    | _, true, _ => p1.sign * q2.sign * t2
+    | _, _, _    => p1.sign * q3.sign * t3
+  let u2 := match p2.natAbs == q1.natAbs, p2.natAbs == q2.natAbs, p2.natAbs == q3.natAbs with
+    | true, _, _ => p2.sign * q1.sign * t1
+    | _, true, _ => p2.sign * q2.sign * t2
+    | _, _, _    => p2.sign * q3.sign * t3
+  let u3 := match p3.natAbs == q1.natAbs, p3.natAbs == q2.natAbs, p3.natAbs == q3.natAbs with
+    | true, _, _ => p3.sign * q1.sign * t1
+    | _, true, _ => p3.sign * q2.sign * t2
+    | _, _, _    => p3.sign * q3.sign * t3
+  (u1, u2, u3)
+
+#assert
+  let p := (1, 2, 3)
+  let q := (-2, 1, -3)
+  let t := (4, 5, 6)
+  rotateAndSign p q t == (5, -4, -6)
+
+#assert
+  let p := (1, 2, 3)
+  let q := (-2, 3, 1)
+  let t := (4, 5, 6)
+  rotateAndSign p q t == (6, -4, 5)
+
+def completeAlignment (g : Std.HashSet vol) (ref actual : vol) : Std.HashSet vol :=
+  g.fold (·.insert <| rotateAndSign ref actual ·) ∅
+
+def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
+  let mut pair := #[]
+  let mut translation := default
+  let mut con := 0
+  for a0 in g do
+    if 2 ≤ pair.size then continue
+    let diffs : Std.HashSet Int := g.fold (init := ∅) fun h a => h.insert <| sc (a - a0) (a - a0)
+    for v in h do
+      let tr : Std.HashSet Int := h.fold (init := ∅) fun h a => h.insert <| sc (a - v) (a - v)
+      let overlap := (diffs.filter (tr.contains)).size
+      if 12 ≤ overlap then
+        con := con + 1
+        --IO.println s!"{con} match: {a0} and {v}"
+        if pair.size ≤ 2 && workable translation a0 then
+          pair := pair.push (a0, v)
+        if pair.isEmpty then
+          translation := a0
+          pair := pair.push (a0, v)
+  if pair.size ≤ 1 then return none
+  let (a0, v) := pair[0]!
+  let (a1, v1) := pair[1]!
+  --IO.println s!"{a1 - a0} and {v1 - v}"
+  --dbg_trace "{a0}, {a1}, {a1 - a0}, {v - v1 + a1 - a0}"
+  --let h0 := translateToZero h (a1 - a0)
+  return some <| translateToZero (completeAlignment (translateToZero h v) (a1 - a0) (v1 - v)) ((0, 0, 0) - a0)
+  --drawScanners #[translateToZero sc0 a0, completeAlignment (translateToZero sc1 v) (a1 - a0) (v1 - v)]
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest3
+  let scs := inputToData dat
+  let first := scs[0]!
+  let mut fixed := #[first]
+  let mut aligned := #[]
+  let mut left := #[]
+  for n in scs.erase first do
+    match sync first n with
+      | none => left := left.push n
+      | some n' => aligned := aligned.push n'
+  --let news : Array _ := (scs.erase first).foldl (fun h n => match sync first n with | none => h.push n | some n' => h.push n') #[]
+  while !left.isEmpty do
+    let mut newAligned := #[]
+    let mut newLeft := #[]
+    for al in aligned do
+      fixed := fixed.push al
+      for n in left do
+        match sync al n with
+          | none => newLeft := newLeft.push n
+          | some n' => newAligned := newAligned.push n'
+    aligned := newAligned
+    left := newLeft
+
+  drawScanners fixed
+  drawScanners left
+  --drawScanners #[sc0, (sync sc0 sc1).get!]
+
+
+
+#eval do
+  let dat := atest3
+  let dat ← IO.FS.lines input
+  let scs := inputToData dat
+  let sc0 := scs[0]!
+  let sc1 := scs[2]!
+  drawScanners #[sc0, (sync sc0 sc1).get!]
+#exit
+  --let a0 := sc0.toArray[0]!
+  let mut pair := #[]
+  let mut con := 0
+  for a0 in sc0 do
+    let diffs := sc0.fold (init := ∅) fun (h : Std.HashSet Int) a => h.insert <| sc (a - a0) (a - a0)
+    for v in sc1 do
+      let tr := sc1.fold (init := ∅) fun (h : Std.HashSet Int) a => h.insert <| sc (a - v) (a - v)
+      let overlap := (diffs.filter (tr.contains)).size
+      if 12 ≤ overlap then
+        con := con + 1
+        IO.println s!"{con} match: {a0} and {v}"
+        if pair.size ≤ 2 then
+          pair := pair.push (a0, v)
+  let (a0, v) := pair[0]!
+  let (a1, v1) := pair[1]!
+  IO.println s!"{a1 - a0} and {v1 - v}"
+  drawScanners #[translateToZero sc0 a0, completeAlignment (translateToZero sc1 v) (a1 - a0) (v1 - v)]
+  --drawScanners #[translateToZero sc0 a0, translateToZero sc1 v]
+      --IO.println s!"· - {v}: overlap = {(diffs.filter (tr.contains)).size}"
+
+#exit
+  for sc1 in scs do
+    let mut tal : Std.HashMap Int Nat := ∅
+    let mut left := sc1
+    for a in sc1 do
+      left := left.erase a
+      for b in left do
+        let diff := a - b
+        tal := tal.alter (sc diff diff) (some <| ·.getD 0 + 1)
+    IO.println <| (tal.filter fun _ m => m == 1).toArray.qsort (·.1 < ·.1)
+#exit
+  let v0 := scs[0]!.getD (-618, -824, -621) default
+  let v1 := scs[0]!.getD (-537, -823, -458) default
+  let v2 := scs[0]!.getD (-447, -329, 318) default
+  IO.println s!"v0 and v1: {v0} and {v1}"
+  let als := align scs[1]! (v1 - v0)
+  IO.println als.toArray
+  IO.println ""
+  IO.println s!"v0 and v2: {v0} and {v2}"
+  let als := align scs[1]! (v2 - v0)
+  IO.println als.toArray
+  IO.println ""
+  IO.println s!"v1 and v2: {v1} and {v2}"
+  let als := align scs[1]! (v2 - v1)
+  IO.println als.toArray
 
 #eval do
   let dat := atest2
