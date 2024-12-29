@@ -55,13 +55,27 @@ def deterministicRoll (s : State) : State :=
     (s.score1 + red p1, s.score2)
   else
     (s.score1, s.score2 + red p2)
-
   {s with
     p1 := p1
     p2 := p2
     score1 := score1
     score2 := score2
     round := s.round + 1}
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : String) : Nat := Id.run do
+  let mut s := inputToState dat
+  while max s.score1 s.score2 < 1000 do
+    s := deterministicRoll s
+  let losingScore := if s.round % 2 == 1 then s.score1 else s.score2
+  let dieRolls := (s.round - 1) * 3
+  losingScore * dieRolls
+
+#assert part1 test == 739785
+
+solve 1 906093 file
+
+
 #eval 917 * (333 * 3)
 #eval do
   let dat := test
@@ -84,14 +98,6 @@ def deterministicRoll (s : State) : State :=
 -- 916083  -- too high
 -- 918834  -- too high
 -- 921585  -- too high
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
 
 /-!
 #  Question 2
