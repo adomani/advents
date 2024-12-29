@@ -177,7 +177,7 @@ def shortestSeqDir (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat
         let currSeq := strToPaths .dir sk
         let (recMin, cache') := currSeq.fold (init := (10^100, cache)) fun (m, cc) pth =>
           let (newMin, newCache) := shortestSeqDir pth j cc
-          (min m newMin, cc.union newCache)
+          (min m newMin, newCache)
         (tot + recMin, cache'.insert (keys, j + 1) (tot + recMin))
 
 /--
@@ -193,7 +193,7 @@ def shortestSeq (str : String) (d : Nat) (cache : Std.HashMap (String × Nat) Na
     Nat × Std.HashMap (String × Nat) Nat :=
   strToPaths .num str |>.fold (init := (10^100, cache)) fun (strMin, cache) p =>
     let (newMin, newCache) := shortestSeqDir p d cache
-    (min strMin newMin, cache.union newCache)
+    (min strMin newMin, newCache)
 
 /--
 The common function for the two parts: the inputs are the puzzle input and the number of
@@ -202,7 +202,7 @@ robots aimed at directional `keyboard`s.
 def parts (dat : Array String) (n : Nat) : Nat :=
   let (tot, _cache) := dat.foldl (init := (0, ∅)) fun (tot, cache) str =>
     let (strMin, cc) := shortestSeq str n cache
-    (tot + strMin * str.getNats[0]!, cache.union cc)
+    (tot + strMin * str.getNats[0]!, cc)
   tot
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
@@ -219,8 +219,8 @@ solve 1 197560
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := parts dat 25
 
---set_option trace.profiler true in #assert part2 atest == 154115708116294
+set_option trace.profiler true in #assert part2 atest == 154115708116294
 
---set_option trace.profiler true in solve 2 242337182910752  -- takes approx 34s
+set_option trace.profiler true in solve 2 242337182910752  -- takes approx 4s
 
 end Day21
