@@ -3,6 +3,7 @@
 * Day 12, part 2 is a little slow (~10s, finding a path in a cave,
   allowing the repetition of one small cave)
 * Day 15, part 2 is slow (find quickest way through a maze)
+* Day 20, part 2 is slow (iterate 50 times the image enhancing algorithm -- the test takes ~11s, the solution ~65s)
 
 ### 2023
 
