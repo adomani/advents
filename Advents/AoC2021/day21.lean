@@ -75,6 +75,10 @@ def part1 (dat : String) : Nat := Id.run do
 
 solve 1 906093 file
 
+/-!
+#  Question 2
+-/
+
 
 #eval 917 * (333 * 3)
 #eval do
@@ -98,10 +102,6 @@ solve 1 906093 file
 -- 916083  -- too high
 -- 918834  -- too high
 -- 921585  -- too high
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
