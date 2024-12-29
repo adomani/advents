@@ -254,3 +254,17 @@ each scanner may overlap with the other beacons.
 
 Now we should determine the largest Manhattan distance between any two *scanners*
 (not the beacons!).
+-- Day 20
+Repeatedly enhancing an image.
+
+### Description
+
+#### Part 1
+
+The input contains a string of length 512, enconding an `i`mage `e`nhancing `a`lgorithm, and
+an initial image (a grid of `#` and `.`).
+In part 1, we should run the `iea` twice and find out how many pixels are lit as a result.
+
+#### Part 2
+
+In part 1, we should run the `iea` 50 times and find out how many pixels are lit as a result.
