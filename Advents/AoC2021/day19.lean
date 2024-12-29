@@ -365,7 +365,7 @@ def rotateAndSign (p q t : vol) : vol :=
 def completeAlignment (g : Std.HashSet vol) (ref actual : vol) : Std.HashSet vol :=
   g.fold (·.insert <| rotateAndSign ref actual ·) ∅
 
-def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
+def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol × vol) := Id.run do
   let mut pair := #[]
   let mut translation := default
   let mut con := 0
@@ -390,7 +390,9 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
   --IO.println s!"{a1 - a0} and {v1 - v}"
   --dbg_trace "{a0}, {a1}, {a1 - a0}, {v - v1 + a1 - a0}"
   --let h0 := translateToZero h (a1 - a0)
-  return some <| translateToZero (completeAlignment (translateToZero h v) (a1 - a0) (v1 - v)) ((0, 0, 0) - a0)
+  let rearrangeUniv (old : Std.HashSet vol) : Std.HashSet vol :=
+    translateToZero (completeAlignment (translateToZero old v) (a1 - a0) (v1 - v)) ((0, 0, 0) - a0)
+  return some <| (rearrangeUniv h, (rearrangeUniv {(0, 0, 0)}).toArray[0]!)
   --drawScanners #[translateToZero sc0 a0, completeAlignment (translateToZero sc1 v) (a1 - a0) (v1 - v)]
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
@@ -402,7 +404,7 @@ def part1 (dat : Array String) : Nat := Id.run do
   for n in scs.erase beacs do
     match sync beacs n with
       | none => left := left.push n
-      | some n' => aligned := aligned.push n'
+      | some (n', _scanner) => aligned := aligned.push n'
   let mut con := 0
   while !left.isEmpty do
     con := con + 1
@@ -414,7 +416,7 @@ def part1 (dat : Array String) : Nat := Id.run do
       for n in left do
         match sync al n with
           | none => if !newLeft.contains n then newLeft := newLeft.push n
-          | some n' => if !newAligned.contains n' then newAligned := newAligned.push n'; newLeft := newLeft.erase n
+          | some (n', _scanner) => if !newAligned.contains n' then newAligned := newAligned.push n'; newLeft := newLeft.erase n
       aligned := newAligned
       left := newLeft
       beacs := aligned.foldl (init := beacs) (·.union ·)
@@ -433,8 +435,8 @@ def part1 (dat : Array String) : Nat := Id.run do
 
 set_option trace.profiler true in
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest3
+  let dat ← IO.FS.lines input
   let scs := inputToData dat
   --let mut msg := s!"{scs.size} scanners"
   --for i in scs do
@@ -446,13 +448,15 @@ set_option trace.profiler true in
   let first := scs[0]!
   let mut beacs := first
   let mut aligned := #[]
-  let mut notAligned := #[]
   let mut left := #[]
+  let mut scanners := #[]
   --let mut reallyLeft := #[]
   for n in scs.erase first do
     match sync first n with
       | none => left := left.push n
-      | some n' => aligned := aligned.push n'; notAligned := notAligned.push n
+      | some (n', scanner) =>
+        aligned := aligned.push n'
+        scanners := scanners.push scanner
   --let news : Array _ := (scs.erase first).foldl (fun h n => match sync first n with | none => h.push n | some n' => h.push n') #[]
   let mut con := 0
   while !left.isEmpty do
@@ -467,7 +471,11 @@ set_option trace.profiler true in
       for n in left do
         match sync al n with
           | none => if !newLeft.contains n then newLeft := newLeft.push n
-          | some n' => if !newAligned.contains n' then newAligned := newAligned.push n'; newLeft := newLeft.erase n
+          | some (n', scanner) =>
+            if !newAligned.contains n' then
+              scanners := scanners.push scanner
+              newAligned := newAligned.push n'
+              newLeft := newLeft.erase n
       aligned := newAligned
       --if aligned.isEmpty then reallyLeft := reallyLeft ++ left
       left := newLeft
@@ -481,8 +489,8 @@ set_option trace.profiler true in
   --let beacs : Std.HashSet vol := fixed.foldl (init := ∅) (·.union ·)
   IO.println <| s!"Number of beacons: {beacs.size}"
   let mut Mdist := 0
-  let mut leftF := beacs
-  for a in beacs do
+  let mut leftF := scanners
+  for a in scanners do
     leftF := leftF.erase a
     for b in leftF do
       let d@(d1, d2, d3) := a - b
