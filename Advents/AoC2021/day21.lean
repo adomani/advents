@@ -135,11 +135,11 @@ def wins (q : QuantumState) (memo : Std.HashMap QuantumState (Nat × Nat)) :
     let mut vals := (0, 0)
     for q' in quantumRoll q do
       let (v', m') := wins q' memo
-      let v3 := 3 * v'
       let v3 := v'
-      vals := vals + v3
+      let mul3 := false
+      vals := (if mul3 then 3 else 1) * v3 + vals
       memo := m' |>.insert q' v3
-    return (vals, memo)
+    return (3 * vals, memo)
 
 #eval do
   let dat ← IO.FS.readFile input
@@ -151,6 +151,12 @@ def wins (q : QuantumState) (memo : Std.HashMap QuantumState (Nat × Nat)) :
   --for (q, c) in cache do
   --  IO.println s!"cached {c}"
   --  showQuantumState q
+
+/-!
+-/
+
+#eval Nat.factors <| 444356092776315 + 341960390180808 + 9
+
 #exit
 45336756894, 18455834679
 128043950504863 65210564232228
