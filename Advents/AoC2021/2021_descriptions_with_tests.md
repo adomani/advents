@@ -864,3 +864,41 @@ Now we should determine the largest Manhattan distance between any two *scanners
 [Solution in Lean](day19.lean)
 
 ---
+
+#  [Day 20](https://adventofcode.com/2021/day/20)
+
+Repeatedly enhancing an image.
+
+####  Test
+
+<pre>
+..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..##
+#..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###
+.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#.
+.#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#.....
+.#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#..
+...####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.....
+..##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#
+
+#..#.
+#....
+##..#
+..#..
+..###
+</pre>
+
+### Description
+
+#### Part 1
+
+The input contains a string of length 512, enconding an `i`mage `e`nhancing `a`lgorithm, and
+an initial image (a grid of `#` and `.`).
+In part 1, we should run the `iea` twice and find out how many pixels are lit as a result.
+
+#### Part 2
+
+In part 1, we should run the `iea` 50 times and find out how many pixels are lit as a result.
+
+[Solution in Lean](day20.lean)
+
+---
