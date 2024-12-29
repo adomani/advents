@@ -220,12 +220,22 @@ instance : ToString vol where toString := fun (a, b, c) => s!"({a}, {b}, {c})"
 /-- The scalar product of two integer vectors. -/
 def sc (v w : vol) : Int := v.1 * w.1 + v.2.1 * w.2.1 + v.2.2 * w.2.2
 
+/--
+The structure encoding the information of a scanner.
+* `beacons` are the coordinate vectors of the beacons, from the perspective of the scanner.
+* `position` is the coordinate vector of the scanner.  It starts out being `(0, 0, 0)`,
+  but gets updated with translations, rotations and sign-changes.
+
+-/
 structure Scanner where
+  /-- `beacons` are the coordinate vectors of the beacons, from the perspective of the scanner. -/
   beacons : Std.HashSet vol
+  /-- `position` is the coordinate vector of the scanner.  It starts out being `(0, 0, 0)`,
+  but gets updated with translations, rotations and sign-changes. -/
   position : vol := (0, 0, 0)
   deriving Inhabited, BEq
 
-/-- Converts the input data into an array of beacon positions. -/
+/-- Converts the input data into an array of `Scanner`s. -/
 def inputToData (dat : Array String) : Array Scanner :=
   let (scanners, final) := dat.foldl (init := (#[], {beacons := ∅})) fun (scanners, curr) d =>
     if d.startsWith "--- scanner" then
@@ -243,7 +253,7 @@ def inputToData (dat : Array String) : Array Scanner :=
             (scanners, curr)
   scanners.push final
 
-/-- A utility function to display configurations of scanners. -/
+/-- A utility function to display an array of `Scanner`s. -/
 def showScanners (scs : Array Scanner) : IO Unit := do
   if scs.isEmpty then IO.println "There are no scanners!"
   let mut con := 0
@@ -265,7 +275,7 @@ def showScanners (scs : Array Scanner) : IO Unit := do
   let scs := inputToData dat
   showScanners scs
 
-/-- Translates the positions of all the scanners in `g` by subtracting the vector `v`. -/
+/-- Translates the positions of the `Scanner` `g` by subtracting the vector `v`. -/
 def translateToZero (g : Scanner) (v : vol) : Scanner :=
   { beacons := g.beacons.fold (·.insert <| · - v) ∅
     position := g.position - v }
@@ -326,7 +336,7 @@ def rotateAndSign (p q t : vol) : vol :=
   rotateAndSign p q t == (6, -4, 5)
 
 /--
-`rotateAndSignBeacons` permutes and sign-changes the coordinates of the set of beacons `g`,
+`rotateAndSignBeacons` permutes and sign-changes the coordinates in the `Scanner` `g`,
 assuming the `ref` and `actual` satisfy `generalPosition ref actual`.
 -/
 def rotateAndSignBeacons (g : Scanner) (ref actual : vol) : Scanner :=
@@ -334,7 +344,7 @@ def rotateAndSignBeacons (g : Scanner) (ref actual : vol) : Scanner :=
     position := rotateAndSign ref actual g.position }
 
 /--
-A quick test to discard the possibility that two collections of beacons might have an
+A quick test to discard the possibility that two `Scanner`s might have an
 overlap of 12 coordinates.
 
 We use `(12 * 11) / 4 = (12 choose 2) / 2`, rather than `(12 choose 2)` to allow for some
@@ -353,14 +363,13 @@ def quickCheck (g h : Scanner) : Bool := Id.run do
   return (12 * 11) / 4 ≤ (allDists[0]!.filter allDists[1]!.contains).size
 
 /--
-`sync g h` takes as input two sets of beacon coordinates.
+`sync g h` takes as input two `Scanner`s.
 It checks whether `g` and `h` could be translated, rotated and sign-changed so that they would
-overlap in at least `12` vectors.
+overlap in at least `12` beacons.
 
-If this is the case, then it returns `some newH shift`, where
-* `newH` are the vectors of `h` after the change, so that at least `12` vectors in `newH`
-  coincide with vectors in `g`;
-* `shift` is the position of the scanner that produced `h`, in the coordinate system used by `g`.
+If this is the case, then it returns `some newH`, where `newH` is the `Scanner` `h` in the
+coordinates of `g`.
+Otherwise, it returns `none`.
 -/
 def sync (g h : Scanner) : Option Scanner := Id.run do
   if ! quickCheck g h then return none else
@@ -394,11 +403,10 @@ def sync (g h : Scanner) : Option Scanner := Id.run do
   return some <| rearrangeUniv h
 
 /--
-`beaconsAndScanners` converts the input data to the pair consisting of
-* configuration of beacons and
-* configuration of scanners.
+`orientScanners` converts the input data to the array of `Scanner`s all written in the coordinates
+of the first input scanner.
 -/
-def beaconsAndScanners (dat : Array String) : Array Scanner := Id.run do
+def orientScanners (dat : Array String) : Array Scanner := Id.run do
   let scs := inputToData dat
   let first := scs[0]!
   -- `completed` are the `Scanner`s that have been moved and used to find all overlaps.
@@ -431,7 +439,7 @@ def beaconsAndScanners (dat : Array String) : Array Scanner := Id.run do
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
-  let beacons := beaconsAndScanners dat
+  let beacons := orientScanners dat
   beacons.foldl (init := (∅ : Std.HashSet vol)) (·.union ·.beacons) |>.size
 
 #assert part1 atest3 == 79
@@ -444,7 +452,7 @@ set_option trace.profiler true in solve 1 405  -- takes approximately 5s
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
-  let beacons := beaconsAndScanners dat
+  let beacons := orientScanners dat
   let scanners := beacons.foldl (init := (∅ : Std.HashSet vol)) (·.insert ·.position)
   let mut Mdist := 0
   let mut leftF := scanners
