@@ -219,8 +219,8 @@ solve 1 197560
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := parts dat 25
 
-set_option trace.profiler true in #assert part2 atest == 154115708116294
+#assert part2 atest == 154115708116294
 
-set_option trace.profiler true in solve 2 242337182910752  -- takes approx 4s
+solve 2 242337182910752  -- takes approx 4s
 
 end Day21
