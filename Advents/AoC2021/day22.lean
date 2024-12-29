@@ -51,15 +51,15 @@ abbrev vol := Int × Int × Int
 instance : ToString vol where toString v := s!"({v.1}, {v.2.1}, {v.2.2})"
 
 structure Reboot where
-  grid : vol × vol
-  ineqs : Array (Bool × vol × vol)
+  grid : pos × pos × pos
+  ineqs : Array (Bool × pos × pos × pos)
 
 def inputToReboot (dat : Array String) (small? : Bool := true) : Reboot :=
-  let init : vol := (50, 50, 50)
-  { grid := (default - init, init)
+  let init : pos := (- 50, 50)
+  { grid := (init, init, init)
     ineqs := dat.foldl (init := ∅) fun h s =>
       let new := match s.getInts with
-        | [x1, x2, y1, y2, z1, z2] => ((x1, y1, z1), (x2, y2, z2))
+        | [x1, x2, y1, y2, z1, z2] => ((x1, x2), (y1, y2), (z1, z2))
         | _ => panic "Malformed input!"
       if small? && 50 < new.1.1.natAbs then h else h.push (s.startsWith "on", new)
   }
@@ -72,7 +72,7 @@ def inputToReboot (dat : Array String) (small? : Bool := true) : Reboot :=
 def filterThrough (r : Reboot) (v : vol) : Bool := Id.run do
   let (x, y, z) := v
   let mut cond := false
-  for (on?, (x1, y1, z1), (x2, y2, z2)) in r.ineqs do
+  for (on?, ((x1, x2), (y1, y2), (z1, z2))) in r.ineqs do
     if  x1 ≤ x && x ≤ x2 &&
         y1 ≤ y && y ≤ y2 &&
         z1 ≤ z && z ≤ z2 then cond := on?
@@ -94,7 +94,7 @@ def part1 (dat : Array String) : Nat := Id.run do
 #assert part1 atest1 == 39  -- takes approx 4s
 --set_option trace.profiler true in #assert part1 atest2 == 590784  -- takes approx 20s
 
---set_option trace.profiler true in solve 1 610196  -- takes approx 21s
+--set_option trace.profiler true in solve 1 610196  -- takes approx 20s
 
 /-!
 #  Question 2
@@ -104,7 +104,7 @@ def part1 (dat : Array String) : Nat := Id.run do
   let dat ← IO.FS.lines input
   let r := inputToReboot dat
   let mut s : Std.HashMap Int Nat := ∅
-  for ((_, (v1, v2, v3), (w1, w2, w3)) : Bool × vol × vol) in r.ineqs do
+  for ((_, ((v1, w1), (v2, w2), (v3, w3))) : Bool × pos × pos × pos) in r.ineqs do
     s := s  |>.alter v1 (some <| ·.getD 0 + 1)
             |>.alter v2 (some <| ·.getD 0 + 1)
             |>.alter v3 (some <| ·.getD 0 + 1)
@@ -114,9 +114,9 @@ def part1 (dat : Array String) : Nat := Id.run do
   for (v, m) in s do
     if m != 1 then IO.println (v, m)
 
-def overlap (v w : vol × vol) : Bool :=
-  let ((a1, a2, a3), (b1, b2, b3)) := v
-  let ((c1, c2, c3), (d1, d2, d3)) := w
+def overlap (v w : pos × pos × pos) : Bool :=
+  let ((a1, b1), (a2, b2), (a3, b3)) := v
+  let ((c1, d1), (c2, d2), (c3, d3)) := w
   c1 ≤ b1 && a1 ≤ d1 && c2 ≤ b2 && a2 ≤ d2 && c3 ≤ b3 && a3 ≤ d3
 
 def nonOverlap (v w : vol × vol) : Bool :=
@@ -148,35 +148,6 @@ def separateOne (l r l' r' : Int) : Array (Int × Int) :=
     #[(l, r)]
   else
     default
-
-def separateVolX (v w : vol × vol) : Array (vol × vol) := Id.run do
-  let ((a1, a), (b1, b)) := v
-  let ((c1, _c), (d1, _d)) := w
-  let arr := separateOne a1 b1 c1 d1
-  let mut fin := #[]
-  for (l, r) in arr do
-    fin := fin.push ((l, a), (r, b))
-  return fin
-
-def swap12 (v : vol) : vol := (v.2.1, v.1, v.2.2)
-def swap13 (v : vol) : vol := (v.2.2, v.2.1, v.1)
-
-def separateVolY (v w : vol × vol) : Array (vol × vol) :=
-  let (vl, vr) := v
-  let (wl, wr) := w
-  let sw := separateVolX (swap12 vl, swap12 vr) (swap12 wl, swap12 wr)
-  sw.map fun (l, r) => (swap12 l, swap12 r)
-
-def separateVolZ (v w : vol × vol) : Array (vol × vol) :=
-  let (vl, vr) := v
-  let (wl, wr) := w
-  let sw := separateVolX (swap13 vl, swap13 vr) (swap13 wl, swap13 wr)
-  sw.map fun (l, r) => (swap13 l, swap13 r)
-
-def separateAll (v w : vol) : Array (vol × vol) :=
-  let ((a1, a2, a3), (b1, b2, b3)) := v
-  let ((c1, c2, c3), (d1, d2, d3)) := w
-
 
 -- `[0..{1..3}]`
 /-- info: #[(1, 3)] -/
@@ -225,6 +196,91 @@ def separateAll (v w : vol) : Array (vol × vol) :=
   let (l, r)   := (0, 1)
   let (l', r') := (3, 4)
   IO.println <| separateOne l r l' r'
+
+def separateVolX (v w : pos × pos × pos) : Array (pos × pos × pos) := Id.run do
+  let ((a1, a2), b, c) := v
+  let ((d1, d2), _e, _f) := w
+  let arr := separateOne a1 a2 d1 d2
+  let mut fin := #[]
+  for ix in arr do
+    fin := fin.push (ix, b, c)
+  return fin
+
+def swap12 (v : pos × pos × pos) : pos × pos × pos := (v.2.1, v.1, v.2.2)
+def swap13 (v : pos × pos × pos) : pos × pos × pos := (v.2.2, v.2.1, v.1)
+
+def separateVolY (v w : pos × pos × pos) : Array (pos × pos × pos) :=
+  let sw := separateVolX (swap12 v) (swap12 w)
+  sw.map swap12
+
+def separateVolZ (v w : pos × pos × pos) : Array (pos × pos × pos) :=
+  let sw := separateVolX (swap13 v) (swap13 w)
+  sw.map swap13
+
+def separateAll (v w : pos × pos × pos) : Array (pos × pos × pos) :=
+  separateVolX v w  |>.foldl (init := #[]) (· ++ separateVolY · w)
+                    |>.foldl (init := #[]) (· ++ separateVolZ · w)
+
+#eval do
+  IO.println <| separateAll ((1, 2), (3, 4), (5, 6)) ((1, 2), (3, 4), (5, 6))
+  IO.println <| separateAll ((1, 2), (2, 5), (5, 6)) ((1, 2), (3, 4), (5, 6))
+  IO.println s!"{separateAll ((1, 4), (1, 4), (1, 4)) ((2, 3), (2, 3), (2, 3)) |>.size}"
+  IO.println <| separateAll ((1, 4), (1, 4), (1, 4)) ((2, 3), (2, 3), (2, 3))
+
+def contains (f g : pos × pos × pos) : Bool :=
+  let ((f1, f2), (f3, f4), (f5, f6)) := f
+  let ((g1, g2), (g3, g4), (g5, g6)) := g
+  f1 ≤ g1 && g2 ≤ f2 &&
+  f3 ≤ g3 && g4 ≤ f4 &&
+  f5 ≤ g5 && g6 ≤ f6
+
+-- cuboids that overlap with none of their followers or are both "on" or both "off"
+#eval do
+  let dat := atest2
+  let dat ← IO.FS.lines input
+  let r := inputToReboot dat false
+  for i in [0:r.ineqs.size] do
+    let (_ci, ri) := r.ineqs[i]!
+    let mut nop := 0
+    for j in [i + 1:r.ineqs.size] do
+      let (_cj, rj) := r.ineqs[j]!
+      nop := nop + if (overlap ri rj && _ci != _cj) then 1 else 0
+    if 6 ≤ nop then IO.println s!"Cuboid {if i < 10 then "  " else if i < 100 then " " else ""}{i},  {if _ci then "on, " else "off,"}  {nop} overlap{if nop == 1 then "" else "s"}"
+      --if contains rj ri then
+      --  IO.println s!"← {(j, i)} {(_cj, _ci)} {separateAll rj ri |>.size}"
+
+#exit
+-- cuboids entirely contained in another cuboid
+#eval do
+  let dat := atest2
+  let dat ← IO.FS.lines input
+  let r := inputToReboot dat false
+  let mut tots := (0, 1)
+  for i in [0:r.ineqs.size] do
+    let (_ci, ri) := r.ineqs[i]!
+    for j in [i + 1:r.ineqs.size] do
+      let (_cj, rj) := r.ineqs[j]!
+      if contains ri rj then
+        IO.println s!"→ {(i, j)} {(_ci, _cj)} {separateAll ri rj |>.size}"
+      if contains rj ri then
+        IO.println s!"← {(j, i)} {(_cj, _ci)} {separateAll rj ri |>.size}"
+
+#exit
+#eval do
+  let dat := atest2
+  let dat ← IO.FS.lines input
+  let r := inputToReboot dat false
+  let mut tots := (0, 1)
+  for i in [0:r.ineqs.size] do
+    let (_ci, ri) := r.ineqs[i]!
+    for j in [i + 1:r.ineqs.size] do
+      let (_cj, rj) := r.ineqs[j]!
+      let seps := separateAll ri rj |>.size
+      if seps != 1 then IO.println s!"{(i, j)} {(_ci, _cj)} {seps} "
+      tots := (tots.1 + seps, tots.2 * seps)
+
+  IO.println (tots)
+
 
 def separateX (v w : vol × vol) : Array (vol × vol) :=
   let ((a1, a2, a3), (b1, b2, b3)) := v
