@@ -220,17 +220,22 @@ instance : ToString vol where toString := fun (a, b, c) => s!"({a}, {b}, {c})"
 /-- The scalar product of two integer vectors. -/
 def sc (v w : vol) : Int := v.1 * w.1 + v.2.1 * w.2.1 + v.2.2 * w.2.2
 
+structure Scanner where
+  beacons : Std.HashSet vol
+  position : vol := (0, 0, 0)
+  deriving Inhabited, BEq
+
 /-- Converts the input data into an array of beacon positions. -/
-def inputToData (dat : Array String) : Array (Std.HashSet vol) :=
-  let (scanners, final) := dat.foldl (init := (#[], {})) fun (scanners, curr) d =>
+def inputToData (dat : Array String) : Array Scanner :=
+  let (scanners, final) := dat.foldl (init := (#[], {beacons := ∅})) fun (scanners, curr) d =>
     if d.startsWith "--- scanner" then
-      if ! curr.isEmpty then
-        (scanners.push curr, ∅)
+      if ! curr.beacons.isEmpty then
+        (scanners.push curr, {beacons := ∅})
       else
-        (scanners, ∅)
+        (scanners, {beacons := ∅})
     else
       match d.getInts with
-        | [a, b, c] => (scanners, curr.insert (a, b, c))
+        | [a, b, c] => (scanners, {curr with beacons := curr.beacons.insert (a, b, c)})
         | l =>
           if !d.isEmpty then
             panic s!"{l} should have had 3 entries!"
@@ -239,14 +244,14 @@ def inputToData (dat : Array String) : Array (Std.HashSet vol) :=
   scanners.push final
 
 /-- A utility function to display configurations of scanners. -/
-def showScanners (scs : Array (Std.HashSet vol)) : IO Unit := do
+def showScanners (scs : Array Scanner) : IO Unit := do
   if scs.isEmpty then IO.println "There are no scanners!"
   let mut con := 0
   let lex : vol → vol → Bool := fun (x1, y1, z1) (x2, y2, z2) =>
         x1 < x2 || (x1 == x2 && y1 < y2) || (x1 == x2 && y1 == y2 && z1 < z2)
   for s in scs do
-    IO.println s!"\nScanner {con}"
-    for t in s.toArray.qsort lex do
+    IO.println s!"\nScanner {con}, position {s.position}"
+    for t in s.beacons.toArray.qsort lex do
       IO.println t
     con := con + 1
 
@@ -261,8 +266,9 @@ def showScanners (scs : Array (Std.HashSet vol)) : IO Unit := do
   showScanners scs
 
 /-- Translates the positions of all the scanners in `g` by subtracting the vector `v`. -/
-def translateToZero (g : Std.HashSet vol) (v : vol) : Std.HashSet vol :=
-  g.fold (·.insert <| · - v) ∅
+def translateToZero (g : Scanner) (v : vol) : Scanner :=
+  { beacons := g.beacons.fold (·.insert <| · - v) ∅
+    position := g.position - v }
 
 /--
 `generalPosition p q` is a predicate on pairs of vectors.
@@ -323,8 +329,9 @@ def rotateAndSign (p q t : vol) : vol :=
 `rotateAndSignBeacons` permutes and sign-changes the coordinates of the set of beacons `g`,
 assuming the `ref` and `actual` satisfy `generalPosition ref actual`.
 -/
-def rotateAndSignBeacons (g : Std.HashSet vol) (ref actual : vol) : Std.HashSet vol :=
-  g.fold (·.insert <| rotateAndSign ref actual ·) ∅
+def rotateAndSignBeacons (g : Scanner) (ref actual : vol) : Scanner :=
+  { beacons := g.beacons.fold (·.insert <| rotateAndSign ref actual ·) ∅
+    position := rotateAndSign ref actual g.position }
 
 /--
 A quick test to discard the possibility that two collections of beacons might have an
@@ -333,9 +340,9 @@ overlap of 12 coordinates.
 We use `(12 * 11) / 4 = (12 choose 2) / 2`, rather than `(12 choose 2)` to allow for some
 coincidences in the distances.  This is in fact unnecessary for the given input.
 -/
-def quickCheck (g h : Std.HashSet vol) : Bool := Id.run do
+def quickCheck (g h : Scanner) : Bool := Id.run do
   let mut allDists := #[]
-  for s in [g, h] do
+  for s in [g.beacons, h.beacons] do
     let mut dists : Std.HashSet Int := ∅
     let mut left := s
     for a in s do
@@ -355,7 +362,7 @@ If this is the case, then it returns `some newH shift`, where
   coincide with vectors in `g`;
 * `shift` is the position of the scanner that produced `h`, in the coordinate system used by `g`.
 -/
-def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol × vol) := Id.run do
+def sync (g h : Scanner) : Option Scanner := Id.run do
   if ! quickCheck g h then return none else
   let mut pair := #[]
   -- a frame is an ordered pair `(f1, f2)` of two vectors, the first in `g` and the second in `h`,
@@ -363,11 +370,13 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol × vol) := Id.run do
   -- share at least 12 common values.
   let mut frame : vol × vol := default
   let mut con := 0
-  for a0 in g do
+  for a0 in g.beacons do
     if 2 ≤ pair.size then continue
-    let diffs : Std.HashSet Int := g.fold (init := ∅) fun h a => h.insert <| sc (a - a0) (a - a0)
-    for v in h do
-      let tr : Std.HashSet Int := h.fold (init := ∅) fun h a => h.insert <| sc (a - v) (a - v)
+    let diffs : Std.HashSet Int :=
+      g.beacons.fold (init := ∅) fun h a => h.insert <| sc (a - a0) (a - a0)
+    for v in h.beacons do
+      let tr : Std.HashSet Int :=
+        h.beacons.fold (init := ∅) fun h a => h.insert <| sc (a - v) (a - v)
       let overlap := (diffs.filter (tr.contains)).size
       if 12 ≤ overlap then
         con := con + 1
@@ -380,9 +389,9 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol × vol) := Id.run do
   let (a0, v) := pair[0]!
   let (a1, v1) := pair[1]!
   let zero := (0, 0, 0)
-  let rearrangeUniv (old : Std.HashSet vol) : Std.HashSet vol :=
+  let rearrangeUniv (old : Scanner) : Scanner :=
     translateToZero (rotateAndSignBeacons (translateToZero old v) (a1 - a0) (v1 - v)) (zero - a0)
-  return some <| (rearrangeUniv h, (rearrangeUniv {zero}).toArray[0]!)
+  return some <| rearrangeUniv h
 
 /--
 `beaconsAndScanners` converts the input data to the pair consisting of
@@ -391,37 +400,37 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol × vol) := Id.run do
 -/
 def beaconsAndScanners (dat : Array String) : Std.HashSet vol × Std.HashSet vol := Id.run do
   let scs := inputToData dat
-  let mut beacs := scs[0]!
-  let mut scanners : Std.HashSet vol := {(0, 0, 0)}
+  let first := scs[0]!
+  let mut completed := #[scs[0]!]
+  --let mut scanners : Std.HashSet vol := {(0, 0, 0)}
   let mut aligned := #[]
   let mut left := #[]
-  for n in scs.erase beacs do
-    match sync beacs n with
+  for n in scs.erase first do
+    match sync first n with
       | none => left := left.push n
-      | some (n', scanner) =>
+      | some n' =>
         aligned := aligned.push n'
-        scanners := scanners.insert scanner
   let mut con := 0
   while !left.isEmpty do
     con := con + 1
     --dbg_trace "\n{con} Before: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
     let mut newAligned := #[]
     let mut newLeft := #[]
-    beacs := aligned.foldl (init := beacs) (·.union ·)
+    completed := completed ++ aligned
     for al in aligned do
       for n in left do
         match sync al n with
           | none => if !newLeft.contains n then newLeft := newLeft.push n
-          | some (n', scanner) =>
+          | some n' =>
             if !newAligned.contains n' then
               newAligned := newAligned.push n'
               newLeft := newLeft.erase n
-              scanners := scanners.insert scanner
       aligned := newAligned
       left := newLeft
-      beacs := aligned.foldl (init := beacs) (·.union ·)
+      completed := completed ++ aligned
       --dbg_trace "  After: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
-  return (beacs, scanners)
+  return  ( completed.foldl (init := ∅) (·.union ·.beacons),
+            completed.foldl (init := ∅) (·.insert ·.position) )
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := (beaconsAndScanners dat).1.size
@@ -448,6 +457,7 @@ def part2 (dat : Array String) : Nat := Id.run do
         Mdist := newM
   return Mdist
 
+#eval part2 atest3 --== 3621
 #assert part2 atest3 == 3621
 
 set_option trace.profiler true in solve 2 12306  -- takes approximately 5s
