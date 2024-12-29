@@ -250,6 +250,23 @@ elab "solve " part:num nn:(ppSpace term:max)? f:(&" file")?: command => do
       let ans := ($nn).getD answer
       guard (answer == ans) <|> throwError "Computed {answer}\nExpected {ans}"))
 
+elab "solve " part:num " file" : command => do
+  let nn ← `((none))
+  let p1 := mkIdent <| match part with
+    | `(1) => `part1
+    | `(2) => `part2
+    | _ => default
+  let inp := mkIdent `input
+  let rf := mkIdent `IO.FS.readFile
+  elabCommand (← `(command|
+    #eval show MetaM _ from do
+      let year := ((System.FilePath.toString $inp).getNats)[0]!
+      let day := ((System.FilePath.toString $inp).getNats)[1]!
+      let answer := $p1 <| ← $rf $inp
+      IO.println <| f!"Day {day}, {year}, part {$part}: {answer}"
+      let ans := ($nn).getD answer
+      guard (answer == ans) <|> throwError "Computed {answer}\nExpected {ans}"))
+
 end meta
 
 /-- a utility function to display arrays of strings.
