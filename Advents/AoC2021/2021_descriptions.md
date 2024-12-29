@@ -17,3 +17,4 @@
 | [15](2021_descriptions_with_tests.md#day-15) | Navigating the ocean floor, minimizing the risk of hitting a chiton.                                         |
 | [16](2021_descriptions_with_tests.md#day-16) | A single hexadecimal number, providing instructions to construct a "packet".                                 |
 | [17](2021_descriptions_with_tests.md#day-17) | The input is a rectangular range: we should aim for it!                                                      |
+| [19](2021_descriptions_with_tests.md#day-19) | Aligning beacons and scanners in space.                                                                      |

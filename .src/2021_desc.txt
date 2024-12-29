@@ -239,3 +239,18 @@ Find the highest `y`-coordinate that a probe the passes through the given rectan
 #### Part 2
 
 Now find all the possible initial velocities that allow a probe to reach the rectangular range.
+-- Day 19
+Aligning beacons and scanners in space.
+
+### Description
+
+#### Part 1
+
+The input contains the coordinates of the beacons that each scanner detects.
+In part 1, we should find how many beacons there are, taking into account that beacons seen by
+each scanner may overlap with the other beacons.
+
+#### Part 2
+
+Now we should determine the largest Manhattan distance between any two *scanners*
+(not the beacons!).
