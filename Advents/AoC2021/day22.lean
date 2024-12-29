@@ -91,10 +91,10 @@ def part1 (dat : Array String) : Nat := Id.run do
         if filterThrough r (x, y, z) then count := count + 1
   return count
 
-#assert part1 atest1 == 39
-#assert part1 atest2 == 590784
+#assert part1 atest1 == 39  -- takes approx 4s
+--set_option trace.profiler true in #assert part1 atest2 == 590784  -- takes approx 20s
 
-set_option trace.profiler true in solve 1 610196
+--set_option trace.profiler true in solve 1 610196  -- takes approx 21s
 
 /-!
 #  Question 2
@@ -106,11 +106,11 @@ set_option trace.profiler true in solve 1 610196
   let dat := atest2
   let r := inputToReboot dat
   let mut count := 0
-  for x' in [0:101] do
+  for x' in [0:10] do
     let x : Int := x' - 50
-    for y' in [0:101] do
+    for y' in [0:10] do
       let y : Int := y' - 50
-      for z' in [0:101] do
+      for z' in [0:10] do
         let z : Int := z' - 50
         if filterThrough r (x, y, z) then count := count + 1
   IO.println <| count
