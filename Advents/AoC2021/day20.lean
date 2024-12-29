@@ -37,6 +37,17 @@ def inputToImage (dat : String) : Image :=
         light := sparseGrid (im.splitOn "\n").toArray (· == '#') }
     | _ => panic "Malformed input!"
 
+def showImage (i : Image) : IO Unit := do
+  let (mx, my) := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (max mx x, max my y)
+  draw <| drawSparse i.light mx.natAbs.succ my.natAbs.succ
+  IO.println i.iea
+
+#eval do
+  let dat := test
+  let dat ← IO.FS.readFile input
+  let i := inputToImage dat
+  showImage i
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
