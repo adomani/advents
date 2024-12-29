@@ -398,22 +398,21 @@ def sync (g h : Scanner) : Option Scanner := Id.run do
 * configuration of beacons and
 * configuration of scanners.
 -/
-def beaconsAndScanners (dat : Array String) : Std.HashSet vol × Std.HashSet vol := Id.run do
+def beaconsAndScanners (dat : Array String) : Array Scanner := Id.run do
   let scs := inputToData dat
   let first := scs[0]!
+  -- `completed` are the `Scanner`s that have been moved and used to find all overlaps.
   let mut completed := #[scs[0]!]
-  --let mut scanners : Std.HashSet vol := {(0, 0, 0)}
+  -- `aligned` are the `Scanner`s that have been moved, but not yet used to find all overlaps.
   let mut aligned := #[]
+  -- `left` are the `Scanner`s that have not yet been matched or moved.
   let mut left := #[]
   for n in scs.erase first do
     match sync first n with
       | none => left := left.push n
       | some n' =>
         aligned := aligned.push n'
-  let mut con := 0
   while !left.isEmpty do
-    con := con + 1
-    --dbg_trace "\n{con} Before: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
     let mut newAligned := #[]
     let mut newLeft := #[]
     completed := completed ++ aligned
@@ -428,12 +427,12 @@ def beaconsAndScanners (dat : Array String) : Std.HashSet vol × Std.HashSet vol
       aligned := newAligned
       left := newLeft
       completed := completed ++ aligned
-      --dbg_trace "  After: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
-  return  ( completed.foldl (init := ∅) (·.union ·.beacons),
-            completed.foldl (init := ∅) (·.insert ·.position) )
+  return completed
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := (beaconsAndScanners dat).1.size
+def part1 (dat : Array String) : Nat :=
+  let beacons := beaconsAndScanners dat
+  beacons.foldl (init := (∅ : Std.HashSet vol)) (·.union ·.beacons) |>.size
 
 #assert part1 atest3 == 79
 
@@ -445,7 +444,8 @@ set_option trace.profiler true in solve 1 405  -- takes approximately 5s
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
-  let (_, scanners) := beaconsAndScanners dat
+  let beacons := beaconsAndScanners dat
+  let scanners := beacons.foldl (init := (∅ : Std.HashSet vol)) (·.insert ·.position)
   let mut Mdist := 0
   let mut leftF := scanners
   for a in scanners do
@@ -457,7 +457,6 @@ def part2 (dat : Array String) : Nat := Id.run do
         Mdist := newM
   return Mdist
 
-#eval part2 atest3 --== 3621
 #assert part2 atest3 == 3621
 
 set_option trace.profiler true in solve 2 12306  -- takes approximately 5s
