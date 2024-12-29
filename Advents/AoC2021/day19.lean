@@ -211,15 +211,18 @@ def test3 := "--- scanner 0 ---
 /-- `atest3` is the third test for the problem, split into rows. -/
 def atest3 := (test3.splitOn "\n").toArray
 
+/-- `vol` is the 3-dimensional space of integer vectors. -/
 abbrev vol := Int × Int × Int
 
+/-- A custom printing of vectors: it saves on the number of parentheses. -/
 instance : ToString vol where toString := fun (a, b, c) => s!"({a}, {b}, {c})"
 
 /-- The scalar product of two integer vectors. -/
 def sc (v w : vol) : Int := v.1 * w.1 + v.2.1 * w.2.1 + v.2.2 * w.2.2
 
+/-- Converts the input data into an array of beacon positions. -/
 def inputToData (dat : Array String) : Array (Std.HashSet vol) :=
-  let (scanners, _current) := dat.foldl (init := (#[], {})) fun (scanners, curr) d =>
+  let (scanners, final) := dat.foldl (init := (#[], {})) fun (scanners, curr) d =>
     if d.startsWith "--- scanner" then
       if ! curr.isEmpty then
         (scanners.push curr, ∅)
@@ -233,10 +236,10 @@ def inputToData (dat : Array String) : Array (Std.HashSet vol) :=
             panic s!"{l} should have had 3 entries!"
           else
             (scanners, curr)
-  scanners.push _current
+  scanners.push final
 
-/-- A utility function to draw configurations of scanners. -/
-def drawScanners (scs : Array (Std.HashSet vol)) : IO Unit := do
+/-- A utility function to display configurations of scanners. -/
+def showScanners (scs : Array (Std.HashSet vol)) : IO Unit := do
   if scs.isEmpty then IO.println "There are no scanners!"
   let mut con := 0
   let lex : vol → vol → Bool := fun (x1, y1, z1) (x2, y2, z2) =>
@@ -248,20 +251,23 @@ def drawScanners (scs : Array (Std.HashSet vol)) : IO Unit := do
     con := con + 1
 
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest2
   let scs := inputToData dat
-  drawScanners scs
+  showScanners scs
 
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest3
   let scs := inputToData dat
-  drawScanners scs
+  showScanners scs
 
+/-- Translates the positions of all the scanners in `g` by subtracting the vector `v`. -/
 def translateToZero (g : Std.HashSet vol) (v : vol) : Std.HashSet vol :=
   g.fold (·.insert <| · - v) ∅
 
+/--
+`workable` is a predicate on pairs of vectors.
+It asserts that the
+-/
 def workable (p q : vol) : Bool :=
   let (p1, p2, p3) := p
   let (q1, q2, q3) := q
@@ -306,7 +312,20 @@ def rotateAndSign (p q t : vol) : vol :=
 def completeAlignment (g : Std.HashSet vol) (ref actual : vol) : Std.HashSet vol :=
   g.fold (·.insert <| rotateAndSign ref actual ·) ∅
 
+def quickCheck (g h : Std.HashSet vol) : Bool := Id.run do
+  let mut allDists := #[]
+  for s in [g, h] do
+    let mut dists : Std.HashSet Int := ∅
+    let mut left := s
+    for a in s do
+      left := left.erase a
+      for b in left do
+        dists := dists.insert (sc (a - b) (a - b))
+    allDists := allDists.push dists
+  return (12 * 11) / 2 ≤ (allDists[0]!.filter allDists[1]!.contains).size
+
 def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol × vol) := Id.run do
+  if ! quickCheck g h then return none else
   let mut pair := #[]
   let mut translation := default
   let mut con := 0
@@ -375,7 +394,7 @@ def part1 (dat : Array String) : Nat := (beaconsAndScanners dat).1.size
 
 #assert part1 atest3 == 79
 
---set_option trace.profiler true in solve 1 405  -- takes approximately 85s
+set_option trace.profiler true in solve 1 405  -- takes approximately 5s
 
 /-!
 #  Question 2
@@ -389,15 +408,14 @@ def part2 (dat : Array String) : Nat := Id.run do
   for a in scanners do
     leftF := leftF.erase a
     for b in leftF do
-      let d@(d1, d2, d3) := a - b
+      let (d1, d2, d3) := a - b
       let newM := max Mdist (d1.natAbs + d2.natAbs + d3.natAbs)
       if newM != Mdist then
-        dbg_trace s!"{newM}: {a} - {b} = {d}"
         Mdist := newM
   return Mdist
 
 #assert part2 atest3 == 3621
 
---set_option trace.profiler true in solve 2 12306  -- takes approximately 85s
+set_option trace.profiler true in solve 2 12306  -- takes approximately 5s
 
 end Day19
