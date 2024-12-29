@@ -404,39 +404,41 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
   --    msg := msg ++ s!"{if (sync i j).isSome then 1 else 0} "
   --IO.println msg
   let first := scs[0]!
-  let mut fixed := #[first]
+  let mut beacs := first
   let mut aligned := #[]
+  let mut notAligned := #[]
   let mut left := #[]
   --let mut reallyLeft := #[]
   for n in scs.erase first do
     match sync first n with
       | none => left := left.push n
-      | some n' => aligned := aligned.push n'
+      | some n' => aligned := aligned.push n'; notAligned := notAligned.push n
   --let news : Array _ := (scs.erase first).foldl (fun h n => match sync first n with | none => h.push n | some n' => h.push n') #[]
   let mut con := 0
-  while !left.isEmpty && con < 1 do
+  while !left.isEmpty && con < 6 do
     con := con + 1
-    dbg_trace "\n{con} Before: fixed: {fixed.size} aligned: {aligned.size} left: {left.size}"
+    dbg_trace "\n{con} Before: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
     let mut newAligned := #[]
+    --let mut newNotAligned := #[]
     let mut newLeft := #[]
-    fixed := fixed ++ aligned
+    beacs := aligned.foldl (init := beacs) (·.union ·)
     for al in aligned do
       --fixed := fixed.push al
       for n in left do
         match sync al n with
           | none => if !newLeft.contains n then newLeft := newLeft.push n
-          | some n' => if !newAligned.contains n' then newAligned := newAligned.push n'
+          | some n' => if !newAligned.contains n' then newAligned := newAligned.push n'; newLeft := newLeft.erase n
       aligned := newAligned
       --if aligned.isEmpty then reallyLeft := reallyLeft ++ left
       left := newLeft
-      fixed := fixed ++ aligned
-      dbg_trace "  After: fixed: {fixed.size} aligned: {aligned.size} left: {left.size}"
+      beacs := aligned.foldl (init := beacs) (·.union ·)
+      dbg_trace "  After: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
 
   --drawScanners (fixed ++ aligned ++ left)
   --for f in fixed do
   --  IO.println (sync f reallyLeft[0]!).isSome
   --drawScanners reallyLeft
-  let beacs : Std.HashSet vol := fixed.foldl (init := ∅) (·.union ·)
+  --let beacs : Std.HashSet vol := fixed.foldl (init := ∅) (·.union ·)
   IO.println <| beacs.size
   --drawScanners fixed
   --IO.println s!"03: {(sync scs[0]! scs[3]!).isSome}"
