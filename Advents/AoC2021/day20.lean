@@ -79,23 +79,38 @@ def enhance (i : Image) (sz shift : Nat) : Image :=
             newImage := newImage.insert p
       return newImage}
 
+def parts (dat : String) (reps : Nat) : Nat := Id.run do
+  let mut i := inputToImage dat
+  for _ in [0:reps / 2] do
+    let (szx, szy) : pos := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (max mx x, max my y)
+    let sz := (max szx szy).natAbs + 1
+    i := enhance (enhance i sz 3) sz 3
+    let mins := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (min mx x, min my y)
+    i :=  {i with light := i.light.erase mins}
+    let mins := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (min mx x, min my y)
+    i :=  {i with light := i.light.fold (init := ∅) (·.insert <| · - mins)}
+  i.light.size
+
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 --def part1 (dat : Array String) : Nat := sorry
-def part1 (dat : String) : Nat :=
-  let i := inputToImage dat
-  let (szx, szy) : pos := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (max mx x, max my y)
-  let sz := (max szx szy).natAbs + 1
-  let i2 := enhance (enhance i sz 3) sz 3
-  if szx < 50 then
-    i2.light.size
-  else
-  let (mx, my) : pos := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (min mx x, min my y)
-  i2.light.erase (mx, my) |>.size
+def part1 (dat : String) : Nat := parts dat 2
 
 #assert part1 test == 35
 
 set_option trace.profiler true in solve 1 5486 file
 
+/-!
+#  Question 2
+-/
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : String) : Nat := parts dat 50
+
+#assert part2 test == 3351
+
+set_option trace.profiler true in solve 2 20210 file
+#exit
 #eval do
   let dat := test
   let dat ← IO.FS.readFile input
@@ -131,17 +146,5 @@ set_option trace.profiler true in solve 1 5486 file
 -- 5487 -- too high
 
 -- 5713
-
-/-!
-#  Question 2
--/
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
 
 end Day20
