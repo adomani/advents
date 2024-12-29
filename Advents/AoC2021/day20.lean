@@ -38,8 +38,9 @@ def inputToImage (dat : String) : Image :=
     | _ => panic "Malformed input!"
 
 def showImage (i : Image) : IO Unit := do
-  let (mx, my) := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (max mx x, max my y)
-  draw <| drawSparse i.light mx.natAbs.succ my.natAbs.succ
+  let ((Mx, My), (mx, my)) := i.light.fold (init := ((0, 0), (1000, 1000)))
+    fun ((Mx, My), (mx, my)) (x, y) => ((max Mx x, max My y), (min mx x, min my y))
+  draw <| drawSparse (i.light.fold (init := ∅) (fun h p => h.insert (p - (mx, my)))) (Mx + 1 - mx).natAbs.succ (My + 1 - my).natAbs.succ
   IO.println i.iea
 
 #eval do
@@ -66,29 +67,36 @@ def newChar (i : Image) (p : pos) : Char :=
   let newCount : Nat := binToNat <| checkNbs i p
   i.iea.get ⟨newCount⟩
 
-def enhance (i : Image) : Image :=
+def enhance (i : Image) (sz shift : Nat) : Image :=
   {i with
     light := Id.run do
       let mut newImage : Std.HashSet pos := ∅
-      for p in i.light do
-        if newChar i p == '#' then
-          newImage := newImage.insert p
+      for x in [0:sz + 2 * shift + 1] do
+        for y in [0:sz + 2 * shift + 1] do
+          let p : pos := (x-shift, y-shift)
+          --p in i.light do
+          if newChar i p == '#' then
+            newImage := newImage.insert p
       return newImage}
 
 
 #eval do
-  let dat ← IO.FS.readFile input
   let dat := test
+  let dat ← IO.FS.readFile input
   let i := inputToImage dat
-  let i2 := enhance (enhance i)
+  showImage (enhance i 100 5)
+  let i2 := enhance (enhance i 100 5) 100 5
   --let mut newImage : Std.HashSet pos := ∅
   --for p in i.light do
   --  if newChar i p == '#' then newImage := newImage.insert p
   IO.println i2.light.size
-  IO.println i2.light.toArray
+  --IO.println i2.light.toArray
 
   showImage i2
 
+/-!
+-/
+-- 5487 -- too high
 
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
