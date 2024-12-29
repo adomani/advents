@@ -46,6 +46,55 @@ on x=967..23432,y=45373..81175,z=27513..53682"
 /-- `atest2` is the second test string for the problem, split into rows. -/
 def atest2 := (test2.splitOn "\n").toArray
 
+abbrev vol := Int × Int × Int
+
+instance : ToString vol where toString v := s!"({v.1}, {v.2.1}, {v.2.2})"
+
+structure Reboot where
+  grid : vol × vol
+  ineqs : Array (Bool × vol × vol)
+
+def inputToReboot (dat : Array String) (small? : Bool := true) : Reboot :=
+  let init : vol := (50, 50, 50)
+  { grid := (default - init, init)
+    ineqs := dat.foldl (init := ∅) fun h s =>
+      let new := match s.getInts with
+        | [x1, x2, y1, y2, z1, z2] => ((x1, y1, z1), (x2, y2, z2))
+        | _ => panic "Malformed input!"
+      if small? && 50 < new.1.1.natAbs then h else h.push (s.startsWith "on", new)
+  }
+
+#eval do
+  let dat := atest1
+  let r := inputToReboot dat
+  IO.println <| "\n".intercalate <| s!"{r.grid}" :: r.ineqs.foldl (init := []) (· ++ [s!"{·}"])
+
+def filterThrough (r : Reboot) (v : vol) : Bool := Id.run do
+  let (x, y, z) := v
+  let mut cond := false
+  for (on?, (x1, y1, z1), (x2, y2, z2)) in r.ineqs do
+    if  x1 ≤ x && x ≤ x2 &&
+        y1 ≤ y && y ≤ y2 &&
+        z1 ≤ z && z ≤ z2 then cond := on?
+  return cond
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest2
+  let r := inputToReboot dat
+  let mut count := 0
+  for x' in [0:101] do
+    let x : Int := x' - 50
+    for y' in [0:101] do
+      let y : Int := y' - 50
+      for z' in [0:101] do
+        let z : Int := z' - 50
+        if filterThrough r (x, y, z) then count := count + 1
+  IO.println <| count
+
+/-!
+-/
+-- 610196
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
