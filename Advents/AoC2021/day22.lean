@@ -78,6 +78,29 @@ def filterThrough (r : Reboot) (v : vol) : Bool := Id.run do
         z1 ≤ z && z ≤ z2 then cond := on?
   return cond
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := Id.run do
+  let r := inputToReboot dat
+  let mut count := 0
+  for x' in [0:101] do
+    let x : Int := x' - 50
+    for y' in [0:101] do
+      let y : Int := y' - 50
+      for z' in [0:101] do
+        let z : Int := z' - 50
+        if filterThrough r (x, y, z) then count := count + 1
+  return count
+
+#assert part1 atest1 == 39
+#assert part1 atest2 == 590784
+
+set_option trace.profiler true in solve 1 610196
+
+/-!
+#  Question 2
+-/
+
+
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest2
@@ -93,18 +116,6 @@ def filterThrough (r : Reboot) (v : vol) : Bool := Id.run do
   IO.println <| count
 
 /-!
--/
--- 610196
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
-
-/-!
-#  Question 2
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
