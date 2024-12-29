@@ -265,24 +265,34 @@ def translateToZero (g : Std.HashSet vol) (v : vol) : Std.HashSet vol :=
   g.fold (·.insert <| · - v) ∅
 
 /--
-`workable` is a predicate on pairs of vectors.
-It asserts that the
+`generalPosition p q` is a predicate on pairs of vectors.
+It asserts that
+* the set of absolute values of the coordinates of `p` equals
+  the set of absolute values of the coordinates of `q` and
+* the absolute values of the coordinates of `p` are all distinct.
+
+If `p` and `q` satisfy `generalPosition p q`, then the rotation and sign-change of the coordinates
+that converts `p` to `q` is the same as the rotation and sign-change that converts the
+whole scanner.
 -/
-def workable (p q : vol) : Bool :=
+def generalPosition (p q : vol) : Bool :=
   let (p1, p2, p3) := p
   let (q1, q2, q3) := q
   let fst : Std.HashSet Nat := {p1.natAbs, p2.natAbs, p3.natAbs}
   let snd : Std.HashSet Nat := {q1.natAbs, q2.natAbs, q3.natAbs}
-  fst != snd || fst.size != 3
+  fst == snd && fst.size == 3
 
+/--
+`rotateAndSign p q` is a function `vol → vol` that is a rotation and sign-change of the coordinates.
+
+The algorithm assumes that `p` and `q` are in general position (i.e., their coordinates are the
+same up to permutation and sign-changes) and returns the rotation and sign-change of the
+coordinates that converts `p` to `q`.
+-/
 def rotateAndSign (p q t : vol) : vol :=
   let (p1, p2, p3) := p
   let (q1, q2, q3) := q
   let (t1, t2, t3) := t
-  let fst : Std.HashSet Nat := {p1.natAbs, p2.natAbs, p3.natAbs}
-  let snd : Std.HashSet Nat := {q1.natAbs, q2.natAbs, q3.natAbs}
-  if fst != snd || fst.size != 3 then
-    panic s!"{p} or {q}: should have 3 different absolute values!" else
   let u1 := match p1.natAbs == q1.natAbs, p1.natAbs == q2.natAbs, p1.natAbs == q3.natAbs with
     | true, _, _ => p1.sign * q1.sign * t1
     | _, true, _ => p1.sign * q2.sign * t2
@@ -309,9 +319,20 @@ def rotateAndSign (p q t : vol) : vol :=
   let t := (4, 5, 6)
   rotateAndSign p q t == (6, -4, 5)
 
-def completeAlignment (g : Std.HashSet vol) (ref actual : vol) : Std.HashSet vol :=
+/--
+`rotateAndSignBeacons` permutes and sign-changes the coordinates of the set of beacons `g`,
+assuming the `ref` and `actual` satisfy `generalPosition ref actual`.
+-/
+def rotateAndSignBeacons (g : Std.HashSet vol) (ref actual : vol) : Std.HashSet vol :=
   g.fold (·.insert <| rotateAndSign ref actual ·) ∅
 
+/--
+A quick test to discard the possibility that two collections of beacons might have an
+overlap of 12 coordinates.
+
+We use `(12 * 11) / 4 = (12 choose 2) / 2`, rather than `(12 choose 2)` to allow for some
+coincidences in the distances.  This is in fact unnecessary for the given input.
+-/
 def quickCheck (g h : Std.HashSet vol) : Bool := Id.run do
   let mut allDists := #[]
   for s in [g, h] do
@@ -322,12 +343,25 @@ def quickCheck (g h : Std.HashSet vol) : Bool := Id.run do
       for b in left do
         dists := dists.insert (sc (a - b) (a - b))
     allDists := allDists.push dists
-  return (12 * 11) / 2 ≤ (allDists[0]!.filter allDists[1]!.contains).size
+  return (12 * 11) / 4 ≤ (allDists[0]!.filter allDists[1]!.contains).size
 
+/--
+`sync g h` takes as input two sets of beacon coordinates.
+It checks whether `g` and `h` could be translated, rotated and sign-changed so that they would
+overlap in at least `12` vectors.
+
+If this is the case, then it returns `some newH shift`, where
+* `newH` are the vectors of `h` after the change, so that at least `12` vectors in `newH`
+  coincide with vectors in `g`;
+* `shift` is the position of the scanner that produced `h`, in the coordinate system used by `g`.
+-/
 def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol × vol) := Id.run do
   if ! quickCheck g h then return none else
   let mut pair := #[]
-  let mut translation := default
+  -- a frame is an ordered pair `(f1, f2)` of two vectors, the first in `g` and the second in `h`,
+  -- such that the distances from `f1` in `g` and the distances from `f2` in `h`
+  -- share at least 12 common values.
+  let mut frame : vol × vol := default
   let mut con := 0
   for a0 in g do
     if 2 ≤ pair.size then continue
@@ -337,24 +371,24 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol × vol) := Id.run do
       let overlap := (diffs.filter (tr.contains)).size
       if 12 ≤ overlap then
         con := con + 1
-        --IO.println s!"{con} match: {a0} and {v}"
-        --dbg_trace pair.size ≤ 2 && workable translation a0
-        if pair.size ≤ 2 && workable translation a0 then
+        if pair.size ≤ 2 && generalPosition (a0 - frame.1) (v - frame.2) then
           pair := pair.push (a0, v)
         if pair.isEmpty then
-          translation := a0
-          pair := pair.push (a0, v)
+          frame := (a0, v)
+          pair := pair.push frame
   if pair.size ≤ 1 then return none
   let (a0, v) := pair[0]!
   let (a1, v1) := pair[1]!
-  --IO.println s!"{a1 - a0} and {v1 - v}"
-  --dbg_trace "{a0}, {a1}, {a1 - a0}, {v - v1 + a1 - a0}"
-  --let h0 := translateToZero h (a1 - a0)
+  let zero := (0, 0, 0)
   let rearrangeUniv (old : Std.HashSet vol) : Std.HashSet vol :=
-    translateToZero (completeAlignment (translateToZero old v) (a1 - a0) (v1 - v)) ((0, 0, 0) - a0)
-  return some <| (rearrangeUniv h, (rearrangeUniv {(0, 0, 0)}).toArray[0]!)
-  --drawScanners #[translateToZero sc0 a0, completeAlignment (translateToZero sc1 v) (a1 - a0) (v1 - v)]
+    translateToZero (rotateAndSignBeacons (translateToZero old v) (a1 - a0) (v1 - v)) (zero - a0)
+  return some <| (rearrangeUniv h, (rearrangeUniv {zero}).toArray[0]!)
 
+/--
+`beaconsAndScanners` converts the input data to the pair consisting of
+* configuration of beacons and
+* configuration of scanners.
+-/
 def beaconsAndScanners (dat : Array String) : Std.HashSet vol × Std.HashSet vol := Id.run do
   let scs := inputToData dat
   let mut beacs := scs[0]!
@@ -370,7 +404,7 @@ def beaconsAndScanners (dat : Array String) : Std.HashSet vol × Std.HashSet vol
   let mut con := 0
   while !left.isEmpty do
     con := con + 1
-    dbg_trace "\n{con} Before: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
+    --dbg_trace "\n{con} Before: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
     let mut newAligned := #[]
     let mut newLeft := #[]
     beacs := aligned.foldl (init := beacs) (·.union ·)
@@ -386,7 +420,7 @@ def beaconsAndScanners (dat : Array String) : Std.HashSet vol × Std.HashSet vol
       aligned := newAligned
       left := newLeft
       beacs := aligned.foldl (init := beacs) (·.union ·)
-      dbg_trace "  After: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
+      --dbg_trace "  After: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
   return (beacs, scanners)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
