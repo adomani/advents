@@ -444,7 +444,7 @@ def part1 (dat : Array String) : Nat :=
 
 #assert part1 atest3 == 79
 
-set_option trace.profiler true in solve 1 405  -- takes approximately 5s
+solve 1 405  -- takes approximately 5s
 
 /-!
 #  Question 2
@@ -467,6 +467,6 @@ def part2 (dat : Array String) : Nat := Id.run do
 
 #assert part2 atest3 == 3621
 
-set_option trace.profiler true in solve 2 12306  -- takes approximately 5s
+solve 2 12306  -- takes approximately 5s
 
 end Day19
