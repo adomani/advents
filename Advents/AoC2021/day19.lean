@@ -210,7 +210,7 @@ def test3 := "--- scanner 0 ---
 
 /-- `atest3` is the test3 string for the problem, split into rows. -/
 def atest3 := (test3.splitOn "\n").toArray
-
+#eval IO.println atest3
 abbrev vol := Int × Int × Int
 
 instance : ToString vol where toString := fun (a, b, c) => s!"({a}, {b}, {c})"
@@ -221,21 +221,24 @@ def sc (v w : vol) : Int := v.1 * w.1 + v.2.1 * w.2.1 + v.2.2 * w.2.2
 def inputToData (dat : Array String) : Array (Std.HashSet vol) :=
   let (scanners, _current) := dat.foldl (init := (#[], {})) fun (scanners, curr) d =>
     if d.startsWith "--- scanner" then
+      --dbg_trace d
       if ! curr.isEmpty then
         (scanners.push curr, ∅)
       else
+        --dbg_trace "{d} again"
         (scanners, ∅)
     else
       match d.getInts with
         | [a, b, c] => (scanners, curr.insert (a, b, c))
         | l => if !d.isEmpty then panic s!"{l} should have had 3 entries!" else (scanners, curr)
-  scanners
+  scanners.push _current
 
 def lex : vol → vol → Bool := fun (x1, y1, z1) (x2, y2, z2) =>
       x1 < x2 || (x1 == x2 && y1 < y2) || (x1 == x2 && y1 == y2 && z1 < z2)
 
 /-- A utility function to draw configurations of scanners. -/
 def drawScanners (scs : Array (Std.HashSet vol)) : IO Unit := do
+  if scs.isEmpty then IO.println "There are no scanners!"
   let mut con := 0
   for s in scs do
     IO.println s!"\nScanner {con}"
@@ -246,6 +249,12 @@ def drawScanners (scs : Array (Std.HashSet vol)) : IO Unit := do
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest2
+  let scs := inputToData dat
+  drawScanners scs
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest3
   let scs := inputToData dat
   drawScanners scs
 
@@ -369,6 +378,7 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
       if 12 ≤ overlap then
         con := con + 1
         --IO.println s!"{con} match: {a0} and {v}"
+        --dbg_trace pair.size ≤ 2 && workable translation a0
         if pair.size ≤ 2 && workable translation a0 then
           pair := pair.push (a0, v)
         if pair.isEmpty then
@@ -384,35 +394,64 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
   --drawScanners #[translateToZero sc0 a0, completeAlignment (translateToZero sc1 v) (a1 - a0) (v1 - v)]
 
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest3
+  let dat ← IO.FS.lines input
   let scs := inputToData dat
+  --let mut msg := s!"{scs.size} scanners"
+  --for i in scs do
+  --  msg := msg.push '\n'
+  --  for j in scs do
+  --    msg := msg ++ s!"{if (sync i j).isSome then 1 else 0} "
+  --IO.println msg
   let first := scs[0]!
   let mut fixed := #[first]
   let mut aligned := #[]
   let mut left := #[]
+  --let mut reallyLeft := #[]
   for n in scs.erase first do
     match sync first n with
       | none => left := left.push n
       | some n' => aligned := aligned.push n'
   --let news : Array _ := (scs.erase first).foldl (fun h n => match sync first n with | none => h.push n | some n' => h.push n') #[]
-  while !left.isEmpty do
+  let mut con := 0
+  while !left.isEmpty && con < 1 do
+    con := con + 1
+    dbg_trace "\n{con} Before: fixed: {fixed.size} aligned: {aligned.size} left: {left.size}"
     let mut newAligned := #[]
     let mut newLeft := #[]
+    fixed := fixed ++ aligned
     for al in aligned do
-      fixed := fixed.push al
+      --fixed := fixed.push al
       for n in left do
         match sync al n with
-          | none => newLeft := newLeft.push n
-          | some n' => newAligned := newAligned.push n'
-    aligned := newAligned
-    left := newLeft
+          | none => if !newLeft.contains n then newLeft := newLeft.push n
+          | some n' => if !newAligned.contains n' then newAligned := newAligned.push n'
+      aligned := newAligned
+      --if aligned.isEmpty then reallyLeft := reallyLeft ++ left
+      left := newLeft
+      fixed := fixed ++ aligned
+      dbg_trace "  After: fixed: {fixed.size} aligned: {aligned.size} left: {left.size}"
 
-  drawScanners fixed
-  drawScanners left
+  --drawScanners (fixed ++ aligned ++ left)
+  --for f in fixed do
+  --  IO.println (sync f reallyLeft[0]!).isSome
+  --drawScanners reallyLeft
+  let beacs : Std.HashSet vol := fixed.foldl (init := ∅) (·.union ·)
+  IO.println <| beacs.size
+  --drawScanners fixed
+  --IO.println s!"03: {(sync scs[0]! scs[3]!).isSome}"
+  --IO.println s!"13: {(sync scs[1]! scs[3]!).isSome}"
+  --IO.println s!"23: {(sync scs[2]! scs[3]!).isSome}"
+--
+  --IO.println s!"02: {(sync scs[0]! scs[2]!).isSome}"
+  --IO.println s!"12: {(sync scs[1]! scs[2]!).isSome}"
+--
+  --IO.println s!"01: {(sync scs[0]! scs[1]!).isSome}"
   --drawScanners #[sc0, (sync sc0 sc1).get!]
 
+/-!-/
 
+#exit
 
 #eval do
   let dat := atest3
