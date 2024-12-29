@@ -40,7 +40,7 @@ def inputToImage (dat : String) : Image :=
 def showImage (i : Image) : IO Unit := do
   let ((Mx, My), (mx, my)) := i.light.fold (init := ((0, 0), (1000, 1000)))
     fun ((Mx, My), (mx, my)) (x, y) => ((max Mx x, max My y), (min mx x, min my y))
-  draw <| drawSparse (i.light.fold (init := ∅) (fun h p => h.insert (p - (mx, my)))) (Mx + 1 - mx).natAbs.succ (My + 1 - my).natAbs.succ
+  draw <| drawSparse (i.light.fold (init := ∅) (fun h p => h.insert (p - (mx, my)))) (Mx + 1 - mx).natAbs (My + 1 - my).natAbs
   IO.println i.iea
 
 #eval do
@@ -79,33 +79,47 @@ def enhance (i : Image) (sz shift : Nat) : Image :=
             newImage := newImage.insert p
       return newImage}
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+--def part1 (dat : Array String) : Nat := sorry
+def part1 (dat : String) : Nat :=
+  let i := inputToImage dat
+  let (szx, szy) : pos := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (max mx x, max my y)
+  let sz := (max szx szy).natAbs + 1
+  let i2 := enhance (enhance i sz 3) sz 3
+  if szx < 50 then
+    i2.light.size
+  else
+  let (mx, my) : pos := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (min mx x, min my y)
+  i2.light.erase (mx, my) |>.size
+
+#assert part1 test == 35
+
+set_option trace.profiler true in solve 1 5486 file
 
 #eval do
   let dat := test
   let dat ← IO.FS.readFile input
-  let i := inputToImage dat
-  showImage (enhance i 100 5)
-  let i2 := enhance (enhance i 100 5) 100 5
+  let mut i := inputToImage dat
+  --showImage (enhance i 100 2)
+  for j in [0:2] do
+    let j' := j / 2 + 3
+    i := (enhance (enhance i (100 + 2 * j') (2 * j' + 3)) (100 + 2 * j') (2 * j' + 3))
+  let (mx, my) : pos := i.light.fold (init := (1000, 1000)) fun (mx, my) (x, y) => (min mx x, min my y)
+    --i := {i with light := i.light.erase (-3, -3)}
   --let mut newImage : Std.HashSet pos := ∅
   --for p in i.light do
   --  if newChar i p == '#' then newImage := newImage.insert p
-  IO.println i2.light.size
+  IO.println (mx, my)
+  IO.println i.light.size
   --IO.println i2.light.toArray
 
-  showImage i2
+  showImage i
 
 /-!
 -/
 -- 5487 -- too high
 
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
+-- 5713
 
 /-!
 #  Question 2
