@@ -100,6 +100,20 @@ def part1 (dat : Array String) : Nat := Id.run do
 #  Question 2
 -/
 
+#eval do
+  let dat ← IO.FS.lines input
+  let r := inputToReboot dat
+  let mut s : Std.HashMap Int Nat := ∅
+  for ((_, (v1, v2, v3), (w1, w2, w3)) : Bool × vol × vol) in r.ineqs do
+    s := s  |>.alter v1 (some <| ·.getD 0 + 1)
+            |>.alter v2 (some <| ·.getD 0 + 1)
+            |>.alter v3 (some <| ·.getD 0 + 1)
+            |>.alter w1 (some <| ·.getD 0 + 1)
+            |>.alter w2 (some <| ·.getD 0 + 1)
+            |>.alter w3 (some <| ·.getD 0 + 1)
+  for (v, m) in s do
+    if m != 1 then IO.println (v, m)
+
 def overlap (v w : vol × vol) : Bool :=
   let ((a1, a2, a3), (b1, b2, b3)) := v
   let ((c1, c2, c3), (d1, d2, d3)) := w
@@ -114,19 +128,74 @@ def separateOne (l r l' r' : Int) : Array (Int × Int) :=
   if r' < l then #[(l, r)] else
   if r < l' then #[(l, r)] else
   -- l ≤ r' && l' ≤ r + implicit l ≤ r && l' ≤ r'
-  if l ≤ l' && r' ≤ r then -- l ≤ l' ≤ r' ≤ r
+  if l < l' && r' < r then -- l ≤ l' ≤ r' ≤ r
     #[(l, l' - 1), (l', r'), (r' + 1, r)] else
-  if l ≤ l' && r < r' then -- l ≤ l' ≤ r < r'
+  if l < l' && r' == r then -- l ≤ l' ≤ r' ≤ r
+    #[(l, l' - 1), (l', r)] else
+  if l < l' && r < r' then -- l ≤ l' ≤ r < r'
     #[(l, l' - 1), (l', r)]
   else
-  if l' < l && r' ≤ r then -- l' < l ≤ r' ≤ r
+  if l == l' && r' == r then -- l ≤ l' ≤ r' ≤ r
+    #[(l, r)] else
+  if l == l' && r' < r then -- l ≤ l' ≤ r' ≤ r
     #[(l, r'), (r' + 1, r)] else
-  if l' < l && r < r' then -- l' ≤ l ≤ r < r'
+  if l == l' && r < r' then -- l ≤ l' ≤ r < r'
+    #[(l, r)]
+  else
+  if l' < l && r' < r then -- l' < l ≤ r' ≤ r
+    #[(l, r'), (r' + 1, r)] else
+  if l' < l && r ≤ r' then -- l' ≤ l ≤ r < r'
     #[(l, r)]
   else
     default
 
+-- `[0..{1..3}]`
+/-- info: #[(1, 3)] -/
+#guard_msgs in
+#eval do
+  let (l, r)   := (1, 3)
+  let (l', r') := (0, 3)
+  IO.println <| separateOne l r l' r'
 
+-- `[{0..1}..4]`
+/-- info: #[(0, 1)] -/
+#guard_msgs in
+#eval do
+  let (l, r)   := (0, 1)
+  let (l', r') := (0, 4)
+  IO.println <| separateOne l r l' r'
+
+-- `[0..{1..3]..4}`
+/-- info: #[(1, 3), (4, 4)] -/
+#guard_msgs in
+#eval do
+  let (l, r)   := (1, 4)
+  let (l', r') := (0, 3)
+  IO.println <| separateOne l r l' r'
+
+-- `[0..{1..3}..4]`
+/-- info: #[(1, 3)] -/
+#guard_msgs in
+#eval do
+  let (l, r)   := (1, 3)
+  let (l', r') := (0, 4)
+  IO.println <| separateOne l r l' r'
+
+-- `[0..1]..{3..4}`
+/-- info: #[(3, 4)] -/
+#guard_msgs in
+#eval do
+  let (l, r)   := (3, 4)
+  let (l', r') := (0, 1)
+  IO.println <| separateOne l r l' r'
+
+-- `{0..1}..[3..4]`
+/-- info: #[(0, 1)] -/
+#guard_msgs in
+#eval do
+  let (l, r)   := (0, 1)
+  let (l', r') := (3, 4)
+  IO.println <| separateOne l r l' r'
 
 def separateX (v w : vol × vol) : Array (vol × vol) :=
   let ((a1, a2, a3), (b1, b2, b3)) := v
