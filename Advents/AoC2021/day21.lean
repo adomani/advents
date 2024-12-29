@@ -45,16 +45,9 @@ def deterministicRoll (s : State) : State :=
   let die := 3 * s.round - 2
   let dieRolls := red die + red (die + 1) + red (die + 2)
   let (p1, p2) :=
-    if s.round % 2 == 1 then
-      (red (s.p1 + dieRolls), s.p2)
-    else
-      (s.p1, red (s.p2 + dieRolls))
+    if s.round % 2 == 1 then (red (s.p1 + dieRolls), s.p2) else (s.p1, red (s.p2 + dieRolls))
   let (score1, score2) :=
-    if s.round % 2 == 1
-  then
-    (s.score1 + red p1, s.score2)
-  else
-    (s.score1, s.score2 + red p2)
+    if s.round % 2 == 1 then (s.score1 + red p1, s.score2) else (s.score1, s.score2 + red p2)
   {s with
     p1 := p1
     p2 := p2
@@ -95,28 +88,19 @@ def inputToQuantumState (dat : String) : QuantumState :=
 def showQuantumState (s : QuantumState) : IO Unit := do
   IO.println s!"next roll: {if s.p1? then "P1" else "P2"}\nP1: pos, score: ({s.p1}, {s.score1})\nP2: pos, score: ({s.p2}, {s.score2})\n"
 
-def quantumRoll (s : QuantumState) : Array QuantumState := Id.run do
-  let mut qs := #[]
-  for dieRolls in #[1, 2, 3] do
+def quantumRoll (s : QuantumState) : Array QuantumState :=
+  #[1, 2, 3].foldl (init := ∅) fun qs dieRolls =>
     --dbg_trace "rolled {dieRolls}"
     let (p1, p2) :=
-      if s.p1? then
-        (red (s.p1 + dieRolls), s.p2)
-      else
-        (s.p1, red (s.p2 + dieRolls))
+      if s.p1? then (red (s.p1 + dieRolls), s.p2) else (s.p1, red (s.p2 + dieRolls))
     let (score1, score2) :=
-      if s.p1?
-    then
-      (s.score1 + red p1, s.score2)
-    else
-      (s.score1, s.score2 + red p2)
-    qs := qs.push {
+      if s.p1? then (s.score1 + red p1, s.score2) else (s.score1, s.score2 + red p2)
+    qs.push {
       p1 := p1
       p2 := p2
       score1 := score1
       score2 := score2
       p1? := !s.p1?}
-  return qs
 
 instance : HMul Nat (Nat × Nat) (Nat × Nat) where hMul a p := (a * p.1, a * p.2)
 
