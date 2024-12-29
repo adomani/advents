@@ -149,6 +149,35 @@ def separateOne (l r l' r' : Int) : Array (Int × Int) :=
   else
     default
 
+def separateVolX (v w : vol × vol) : Array (vol × vol) := Id.run do
+  let ((a1, a), (b1, b)) := v
+  let ((c1, _c), (d1, _d)) := w
+  let arr := separateOne a1 b1 c1 d1
+  let mut fin := #[]
+  for (l, r) in arr do
+    fin := fin.push ((l, a), (r, b))
+  return fin
+
+def swap12 (v : vol) : vol := (v.2.1, v.1, v.2.2)
+def swap13 (v : vol) : vol := (v.2.2, v.2.1, v.1)
+
+def separateVolY (v w : vol × vol) : Array (vol × vol) :=
+  let (vl, vr) := v
+  let (wl, wr) := w
+  let sw := separateVolX (swap12 vl, swap12 vr) (swap12 wl, swap12 wr)
+  sw.map fun (l, r) => (swap12 l, swap12 r)
+
+def separateVolZ (v w : vol × vol) : Array (vol × vol) :=
+  let (vl, vr) := v
+  let (wl, wr) := w
+  let sw := separateVolX (swap13 vl, swap13 vr) (swap13 wl, swap13 wr)
+  sw.map fun (l, r) => (swap13 l, swap13 r)
+
+def separateAll (v w : vol) : Array (vol × vol) :=
+  let ((a1, a2, a3), (b1, b2, b3)) := v
+  let ((c1, c2, c3), (d1, d2, d3)) := w
+
+
 -- `[0..{1..3}]`
 /-- info: #[(1, 3)] -/
 #guard_msgs in
