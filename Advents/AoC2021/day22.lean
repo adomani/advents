@@ -100,6 +100,73 @@ def part1 (dat : Array String) : Nat := Id.run do
 #  Question 2
 -/
 
+def overlap (v w : vol × vol) : Bool :=
+  let ((a1, a2, a3), (b1, b2, b3)) := v
+  let ((c1, c2, c3), (d1, d2, d3)) := w
+  c1 ≤ b1 && a1 ≤ d1 && c2 ≤ b2 && a2 ≤ d2 && c3 ≤ b3 && a3 ≤ d3
+
+def nonOverlap (v w : vol × vol) : Bool :=
+  let ((a1, a2, a3), (b1, b2, b3)) := v
+  let ((c1, c2, c3), (d1, d2, d3)) := w
+  b1 < c1 || d1 < a1 || b2 < c2 || d2 < a2 || b3 < c3 || d3 < a3
+
+def separateOne (l r l' r' : Int) : Array (Int × Int) :=
+  if r' < l then #[(l, r)] else
+  if r < l' then #[(l, r)] else
+  -- l ≤ r' && l' ≤ r + implicit l ≤ r && l' ≤ r'
+  if l ≤ l' && r' ≤ r then -- l ≤ l' ≤ r' ≤ r
+    #[(l, l' - 1), (l', r'), (r' + 1, r)] else
+  if l ≤ l' && r < r' then -- l ≤ l' ≤ r < r'
+    #[(l, l' - 1), (l', r)]
+  else
+  if l' < l && r' ≤ r then -- l' < l ≤ r' ≤ r
+    #[(l, r'), (r' + 1, r)] else
+  if l' < l && r < r' then -- l' ≤ l ≤ r < r'
+    #[(l, r)]
+  else
+    default
+
+
+
+def separateX (v w : vol × vol) : Array (vol × vol) :=
+  let ((a1, a2, a3), (b1, b2, b3)) := v
+  let ((c1, c2, c3), (d1, d2, d3)) := w
+  if d1 < a1 then #[v, w] else
+  if b1 < c1 then #[v, w] else
+  -- a1 ≤ d1 && c1 ≤ b1 + implicit a1 ≤ b1 && c1 ≤ d1
+  if a1 ≤ c1 && d1 ≤ b1 then -- a1 ≤ c1 ≤ d1 ≤ b1
+    #[((a1, a2, a3), (c1 - 1, b2, b3)), ((c1, a2, a3), (d1 - 1, b2, b3)), ((d1, a2, a3), (b1, b2, b3))]
+  else -- a1 ≤ c1 && b1 < d1 then -- a1 ≤ c1 ≤ b1 ≤ d1
+    #[((a1, a2, a3), (c1 - 1, b2, b3)), ((c1, a2, a3), (b1, b2, b3))]
+
+#eval do
+  let dat := atest2
+  let dat ← IO.FS.lines input
+  let r := inputToReboot dat false
+  IO.println r.ineqs.size
+  --let mut prev : Bool × vol × vol := default
+  for i in [0:r.ineqs.size] do
+    let (c, curr) := r.ineqs[i]!
+    if !c then
+      for j in [i + 1:r.ineqs.size] do
+        let cj := r.ineqs[j]!
+        if cj.1 && overlap curr cj.2 then
+          IO.println s!"{(i, j)}:\n{(c, curr)}\n{cj}\n"
+--    if overlap prev.2 curr.2 then
+--      IO.println s!"\n{prev}\n{curr}"
+--    prev := curr
+
+#eval do
+  let dat := atest2
+  let dat ← IO.FS.lines input
+  let r := inputToReboot dat false
+  IO.println r.ineqs.size
+  let mut prev : Bool × vol × vol := default
+  for curr in r.ineqs do
+    if overlap prev.2 curr.2 then
+      IO.println s!"\n{prev}\n{curr}"
+    prev := curr
+
 
 #eval do
   let dat ← IO.FS.lines input
