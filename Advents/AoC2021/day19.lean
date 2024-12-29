@@ -395,16 +395,18 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol × vol) := Id.run do
   return some <| (rearrangeUniv h, (rearrangeUniv {(0, 0, 0)}).toArray[0]!)
   --drawScanners #[translateToZero sc0 a0, completeAlignment (translateToZero sc1 v) (a1 - a0) (v1 - v)]
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := Id.run do
+def beaconsAndScanners (dat : Array String) : Std.HashSet vol × Std.HashSet vol := Id.run do
   let scs := inputToData dat
   let mut beacs := scs[0]!
+  let mut scanners : Std.HashSet vol := {(0, 0, 0)}
   let mut aligned := #[]
   let mut left := #[]
   for n in scs.erase beacs do
     match sync beacs n with
       | none => left := left.push n
-      | some (n', _scanner) => aligned := aligned.push n'
+      | some (n', scanner) =>
+        aligned := aligned.push n'
+        scanners := scanners.insert scanner
   let mut con := 0
   while !left.isEmpty do
     con := con + 1
@@ -416,23 +418,48 @@ def part1 (dat : Array String) : Nat := Id.run do
       for n in left do
         match sync al n with
           | none => if !newLeft.contains n then newLeft := newLeft.push n
-          | some (n', _scanner) => if !newAligned.contains n' then newAligned := newAligned.push n'; newLeft := newLeft.erase n
+          | some (n', scanner) =>
+            if !newAligned.contains n' then
+              newAligned := newAligned.push n'
+              newLeft := newLeft.erase n
+              scanners := scanners.insert scanner
       aligned := newAligned
       left := newLeft
       beacs := aligned.foldl (init := beacs) (·.union ·)
       dbg_trace "  After: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
-
-  --drawScanners (fixed ++ aligned ++ left)
-  --for f in fixed do
-  --  IO.println (sync f reallyLeft[0]!).isSome
-  --drawScanners reallyLeft
-  --let beacs : Std.HashSet vol := fixed.foldl (init := ∅) (·.union ·)
-  beacs.size
+  return (beacs, scanners)
+--#exit
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := (beaconsAndScanners dat).1.size
 
 #assert part1 atest3 == 79
 
 --set_option trace.profiler true in solve 1 405  -- takes approximately 85s
 
+/-!
+#  Question 2
+-/
+
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat := Id.run do
+  let (_, scanners) := beaconsAndScanners dat
+  let mut Mdist := 0
+  let mut leftF := scanners
+  for a in scanners do
+    leftF := leftF.erase a
+    for b in leftF do
+      let d@(d1, d2, d3) := a - b
+      let newM := max Mdist (d1.natAbs + d2.natAbs + d3.natAbs)
+      if newM != Mdist then
+        dbg_trace s!"{newM}: {a} - {b} = {d}"
+        Mdist := newM
+  return Mdist
+
+#assert part2 atest3 == 3621
+
+set_option trace.profiler true in solve 2 12306
+
+#exit
 set_option trace.profiler true in
 #eval do
   let dat := atest3
@@ -514,6 +541,7 @@ set_option trace.profiler true in
 /-!-/
 
 --  9375 -- too low
+-- 12306
 -- 16098 -- too high
 #exit
 
@@ -652,17 +680,5 @@ set_option trace.profiler true in
 --    let vals := s.getInts
 --    vals.erase vals[0]!
 
-
-/-!
-#  Question 2
--/
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---solve 2
 
 end Day19
