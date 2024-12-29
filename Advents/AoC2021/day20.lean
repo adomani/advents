@@ -100,20 +100,31 @@ set_option trace.profiler true in solve 1 5486 file
   let dat := test
   let dat ← IO.FS.readFile input
   let mut i := inputToImage dat
+  let mut mins : pos := (0, 0)
   --showImage (enhance i 100 2)
-  for j in [0:2] do
-    let j' := j / 2 + 3
-    i := (enhance (enhance i (100 + 2 * j') (2 * j' + 3)) (100 + 2 * j') (2 * j' + 3))
-  let (mx, my) : pos := i.light.fold (init := (1000, 1000)) fun (mx, my) (x, y) => (min mx x, min my y)
+  for j in [0:25] do
+    --let j' := j / 2 + 3
+    --i := (enhance (enhance i (100 + 2 * j') (2 * j' + 3)) (100 + 2 * j') (2 * j' + 3))
+
+    let (szx, szy) : pos := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (max mx x, max my y)
+    let sz := (max szx szy).natAbs + 1
+    i := enhance (enhance i sz 3) sz 3
+    mins := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (min mx x, min my y)
+    i :=  {i with light := i.light.erase mins}
+    mins := i.light.fold (init := (0, 0)) fun (mx, my) (x, y) => (min mx x, min my y)
+    i :=  {i with light := i.light.fold (init := ∅) (·.insert <| · - mins)}
+  IO.println i.light.size
+  IO.println mins
+  showImage i --.light.erase (mx, my) |>.size
+
     --i := {i with light := i.light.erase (-3, -3)}
   --let mut newImage : Std.HashSet pos := ∅
   --for p in i.light do
   --  if newChar i p == '#' then newImage := newImage.insert p
-  IO.println (mx, my)
-  IO.println i.light.size
+  --IO.println (mx, my)
   --IO.println i2.light.toArray
 
-  showImage i
+  --showImage i
 
 /-!
 -/
