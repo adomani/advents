@@ -17,19 +17,35 @@ Player 2 starting position: 8"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+The state of a game.
+* `p1` is the current position of player 1.
+* `score1` is the current score of player 1.
+* `p2` is the current position of player 2.
+* `score2` is the current score of player 2.
+* `round` is the current round -- increases by `1` with each "triple" roll, starts at 1.
+
+-/
 structure State where
+  /-- `p1` is the current position of player 1. -/
   p1 : Nat
+  /-- `score1` is the current score of player 1. -/
   score1 : Nat := 0
+  /-- `p2` is the current position of player 2. -/
   p2 : Nat
+  /-- `score2` is the current score of player 2. -/
   score2 : Nat := 0
+  /-- `round` is the current round -- increases by `1` with each "triple" roll, starts at 1. -/
   round : Nat := 1
   deriving Inhabited
 
+/-- Converts the input string into a `State`. -/
 def inputToState (dat : String) : State :=
   match dat.getNats with
     | [1, p1, 2, p2] => {p1 := p1, p2 := p2}
     | _ => panic "Malformed input!"
 
+/-- A utility function to display the information contained in a `State`. -/
 def showState (s : State) : IO Unit := do
   IO.println s!"next roll: {s.round}\nP1: pos, score: ({s.p1}, {s.score1})\nP2: pos, score: ({s.p2}, {s.score2})\n"
 
@@ -39,8 +55,10 @@ def showState (s : State) : IO Unit := do
   let s := inputToState dat
   showState s
 
+/-- `red`uces the input `n` in the range `[1..10]`. -/
 def red (n : Nat) : Nat := (n - 1) % 10 + 1
 
+/-- The effect on the `State` of a deterministic roll of the die. -/
 def deterministicRoll (s : State) : State :=
   let die := 3 * s.round - 2
   let dieRolls := red die + red (die + 1) + red (die + 2)
@@ -55,14 +73,28 @@ def deterministicRoll (s : State) : State :=
     score2 := score2
     round := s.round + 1}
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : String) : Nat := Id.run do
-  let mut s := inputToState dat
-  while max s.score1 s.score2 < 1000 do
-    s := deterministicRoll s
+/--
+Assuming that the `State` `s` is a "final" state, `reportScore` returns the value of the game.
+-/
+def reportScore (s : State) : Nat :=
   let losingScore := if s.round % 2 == 1 then s.score1 else s.score2
   let dieRolls := (s.round - 1) * 3
   losingScore * dieRolls
+
+/--
+A "functional" version of part 1: the `fuel` parameter is guaranteed to decrease.
+Indeed, at each round, the player who rolls the dice advances at least `1` position.
+This means that any game lasts at most `2000` rounds.
+-/
+def part1aux (s : State) (fuel : Nat := 2000) : Nat :=
+  match fuel with
+    | 0 => reportScore s
+    | fuel + 1 =>
+      if 1000 ≤ max s.score1 s.score2 then reportScore s else
+      part1aux (deterministicRoll s) fuel
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : String) : Nat := part1aux (inputToState dat)
 
 #assert part1 test == 739785
 
