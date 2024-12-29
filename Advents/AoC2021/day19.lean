@@ -393,9 +393,48 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
   return some <| translateToZero (completeAlignment (translateToZero h v) (a1 - a0) (v1 - v)) ((0, 0, 0) - a0)
   --drawScanners #[translateToZero sc0 a0, completeAlignment (translateToZero sc1 v) (a1 - a0) (v1 - v)]
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := Id.run do
+  let scs := inputToData dat
+  let mut beacs := scs[0]!
+  let mut aligned := #[]
+  let mut left := #[]
+  for n in scs.erase beacs do
+    match sync beacs n with
+      | none => left := left.push n
+      | some n' => aligned := aligned.push n'
+  let mut con := 0
+  while !left.isEmpty do
+    con := con + 1
+    dbg_trace "\n{con} Before: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
+    let mut newAligned := #[]
+    let mut newLeft := #[]
+    beacs := aligned.foldl (init := beacs) (·.union ·)
+    for al in aligned do
+      for n in left do
+        match sync al n with
+          | none => if !newLeft.contains n then newLeft := newLeft.push n
+          | some n' => if !newAligned.contains n' then newAligned := newAligned.push n'; newLeft := newLeft.erase n
+      aligned := newAligned
+      left := newLeft
+      beacs := aligned.foldl (init := beacs) (·.union ·)
+      dbg_trace "  After: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
+
+  --drawScanners (fixed ++ aligned ++ left)
+  --for f in fixed do
+  --  IO.println (sync f reallyLeft[0]!).isSome
+  --drawScanners reallyLeft
+  --let beacs : Std.HashSet vol := fixed.foldl (init := ∅) (·.union ·)
+  beacs.size
+
+#assert part1 atest3 == 79
+
+--set_option trace.profiler true in solve 1 405  -- takes approximately 85s
+
+set_option trace.profiler true in
 #eval do
-  let dat := atest3
   let dat ← IO.FS.lines input
+  let dat := atest3
   let scs := inputToData dat
   --let mut msg := s!"{scs.size} scanners"
   --for i in scs do
@@ -403,6 +442,7 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
   --  for j in scs do
   --    msg := msg ++ s!"{if (sync i j).isSome then 1 else 0} "
   --IO.println msg
+  --if false then
   let first := scs[0]!
   let mut beacs := first
   let mut aligned := #[]
@@ -415,7 +455,7 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
       | some n' => aligned := aligned.push n'; notAligned := notAligned.push n
   --let news : Array _ := (scs.erase first).foldl (fun h n => match sync first n with | none => h.push n | some n' => h.push n') #[]
   let mut con := 0
-  while !left.isEmpty && con < 6 do
+  while !left.isEmpty do
     con := con + 1
     dbg_trace "\n{con} Before: beacs: {beacs.size} aligned: {aligned.size} left: {left.size}"
     let mut newAligned := #[]
@@ -439,7 +479,19 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
   --  IO.println (sync f reallyLeft[0]!).isSome
   --drawScanners reallyLeft
   --let beacs : Std.HashSet vol := fixed.foldl (init := ∅) (·.union ·)
-  IO.println <| beacs.size
+  IO.println <| s!"Number of beacons: {beacs.size}"
+  let mut Mdist := 0
+  let mut leftF := beacs
+  for a in beacs do
+    leftF := leftF.erase a
+    for b in leftF do
+      let d@(d1, d2, d3) := a - b
+      let newM := max Mdist (d1.natAbs + d2.natAbs + d3.natAbs)
+      if newM != Mdist then
+        IO.println s!"{newM}: {a} - {b} = {d}"
+        Mdist := newM
+
+  IO.println <| s!"Maximum distance: {Mdist}"
   --drawScanners fixed
   --IO.println s!"03: {(sync scs[0]! scs[3]!).isSome}"
   --IO.println s!"13: {(sync scs[1]! scs[3]!).isSome}"
@@ -453,6 +505,8 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
 
 /-!-/
 
+--  9375 -- too low
+-- 16098 -- too high
 #exit
 
 #eval do
@@ -590,14 +644,6 @@ def sync (g h : Std.HashSet vol) : Option (Std.HashSet vol) := Id.run do
 --    let vals := s.getInts
 --    vals.erase vals[0]!
 
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---solve 1
 
 /-!
 #  Question 2
