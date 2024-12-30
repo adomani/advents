@@ -69,14 +69,22 @@ def inputToReboot (dat : Array String) (small? : Bool := true) : Reboot :=
   let r := inputToReboot dat
   IO.println <| "\n".intercalate <| s!"{r.grid}" :: r.ineqs.foldl (init := []) (· ++ [s!"{·}"])
 
-def filterThrough (r : Reboot) (v : vol) : Bool := Id.run do
+/-- Returns whether or not `v` satisfies the inequalities encoded in `cs`. -/
+def insideBox (cs : pos × pos × pos) (v : vol) : Bool :=
   let (x, y, z) := v
-  let mut cond := false
-  for (on?, ((x1, x2), (y1, y2), (z1, z2))) in r.ineqs do
-    if  x1 ≤ x && x ≤ x2 &&
-        y1 ≤ y && y ≤ y2 &&
-        z1 ≤ z && z ≤ z2 then cond := on?
-  return cond
+  let ((x1, x2), (y1, y2), (z1, z2)) := cs
+  x1 ≤ x && x ≤ x2 &&
+  y1 ≤ y && y ≤ y2 &&
+  z1 ≤ z && z ≤ z2
+
+/--
+Assumes that the `ineqs` field of `Reboot` is in *reverse order*!
+Returns the first `Bool`ean value that it finds in the record that contains `v`.
+-/
+def filterThrough (r : Reboot) (v : vol) : Bool := Id.run do
+  for (on?, cs) in r.ineqs do
+    if insideBox cs v then return on?
+  return false
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
@@ -88,13 +96,15 @@ def part1 (dat : Array String) : Nat := Id.run do
       let y : Int := y' - 50
       for z' in [0:101] do
         let z : Int := z' - 50
-        if filterThrough r (x, y, z) then count := count + 1
+        if filterThrough {r with ineqs := r.ineqs.reverse} (x, y, z)
+        then
+          count := count + 1
   return count
 
-#assert part1 atest1 == 39  -- takes approx 4s
---set_option trace.profiler true in #assert part1 atest2 == 590784  -- takes approx 20s
+--set_option trace.profiler true in #assert part1 atest1 == 39  -- takes approx 5s
+--set_option trace.profiler true in #assert part1 atest2 == 590784  -- takes approx 12s
 
---set_option trace.profiler true in solve 1 610196  -- takes approx 20s
+--set_option trace.profiler true in solve 1 610196  -- takes approx 12s
 
 /-!
 #  Question 2
