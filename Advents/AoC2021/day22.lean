@@ -544,7 +544,10 @@ def splitUpToExcluding1 (p : pos) (h : Int) : Array pos :=
 -/
 #eval v ((1, 2), (3, 4), (5, 6))
 
-instance [ToString α] [ToString β] [ToString γ] : ToString (α × β × γ) where
+--instance [ToString α] [ToString β] [ToString γ] : ToString (α × β × γ) where
+--  toString x := s!"({x.1}, {x.2.1}, {x.2.2})"
+
+instance : ToString (pos × pos × pos) where
   toString x := s!"({x.1}, {x.2.1}, {x.2.2})"
 
 def updateMesh (m : mesh) (h : Bool × pos × pos × pos) : mesh := Id.run do
@@ -556,14 +559,14 @@ def updateMesh (m : mesh) (h : Bool × pos × pos × pos) : mesh := Id.run do
   let overlappingBoxes := m.screen.filter (overlap box)
   let mut newTot := m.tot
   let mut split := #[box]
-  for i in [0:1] do
+  for _i in [0:1] do
     for r in overlappingBoxes do
       let mut newSplit := #[]
       for s in split do
         newSplit := newSplit ++ (splitBox s r |>.filter (! contains r ·))
         --for s in m.screen do
         --  newSplit := newSplit.filter (! contains s ·)
-      if split == newSplit then break
+      --if split == newSplit then break
       split := newSplit.sortDedup
     --newScreen := newScreen.insertMany split
   let mut accVol : Int := 0
@@ -588,6 +591,7 @@ def updateMesh (m : mesh) (h : Bool × pos × pos × pos) : mesh := Id.run do
   --let mut screenOverlap := m.screen.filter (overlap h.2)
   --dbg_trace screenOverlap.toArray
   --dbg_trace newScreen.size
+  if accVol != 0 then dbg_trace "Correction:\n{accVol}\nBox\n{h}\nVolume\n{v box}\n"
   return {m' with tot := newTot - accVol}
 
 def checkNoOverlap (h : Std.HashSet (pos × pos × pos)) : Bool := Id.run do
@@ -611,6 +615,7 @@ def part2partial (dat : Array String) (short? : Bool := true) : Int := Id.run do
 -- 2758514936282235 -- actual
 
 -- 1282165614524517 -- too low
+-- 1282401587270826
 #eval do
   let dat := atest1
   let dat := atest2
