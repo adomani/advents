@@ -20,6 +20,22 @@ def test := "#############
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+structure AP where
+  grid : Std.HashSet pos
+  A : Std.HashSet pos
+  B : Std.HashSet pos
+  C : Std.HashSet pos
+  D : Std.HashSet pos
+  energy : Nat
+
+def inputToAP (dat : Array String) : AP where
+  grid := sparseGrid dat ("ABCD.".toList.contains ·)
+  A := sparseGrid dat ("A".toList.contains ·)
+  B := sparseGrid dat ("B".toList.contains ·)
+  C := sparseGrid dat ("C".toList.contains ·)
+  D := sparseGrid dat ("D".toList.contains ·)
+  energy := 0
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
