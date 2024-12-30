@@ -89,6 +89,7 @@ def filterThrough (r : Reboot) (v : vol) : Bool := Id.run do
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
   let r := inputToReboot dat
+  let r := {r with ineqs := r.ineqs.reverse}
   let mut count := 0
   for x' in [0:101] do
     let x : Int := x' - 50
@@ -96,7 +97,7 @@ def part1 (dat : Array String) : Nat := Id.run do
       let y : Int := y' - 50
       for z' in [0:101] do
         let z : Int := z' - 50
-        if filterThrough {r with ineqs := r.ineqs.reverse} (x, y, z)
+        if filterThrough r (x, y, z)
         then
           count := count + 1
   return count
@@ -261,7 +262,7 @@ def contains (f g : pos × pos × pos) : Bool :=
 
 def v (f : pos × pos × pos) : Int :=
   let ((f1, f2), (f3, f4), (f5, f6)) := f
-  #[f2 - f1, f4 - f3, f6 - f5].prod
+  #[f2 - f1 + 1, f4 - f3 + 1, f6 - f5 + 1].prod
 
 /-!-/
 instance [Ord α] [Ord β] : Ord (α × β) where
@@ -292,7 +293,233 @@ def updateCount [BEq α] [Hashable α] [BEq R] [Hashable R] [Add R] [Zero R] [Of
     (h : Std.HashMap α R) (a : α) (f : α → R := fun _ => 1) :
     Std.HashMap α R :=
   h.alter a (some <| ·.getD 0 + f a)
+
+#check Array.binSearch
+
+/--
+Performs a binary search on the predicate `cond` in the range `[st, fin]`.
+The underlying assumption is that `cond` as soon as `cond` becomes `false`, it stays `false`
+after that (at least in the given range).
+
+With this constraint, the function returns
+* `none`, if `con` is constantly equal to `true` in `[st, fin]`;
+* `some n`, if `con n` is `false` and `cond (n - 1)` is `true`.
+
+Note. If `n` is `0` in the above, then `cond` is contantly `false` in `[st, fin]`
+-/
+partial
+def firstTrue? (fin : Nat) (cond : Nat → Bool) (st : Nat := 0) : Option Nat :=
+  if st != fin then (if cond st then none else some st) else
+  let mid := (st + fin) / 2
+  if !cond mid then firstTrue? fin cond (mid + 1) else firstTrue? mid cond st
+
+structure mesh where
+  screen : Std.HashSet (pos × pos × pos)
+  --xs : Std.HashSet Int
+  --ys : Std.HashSet Int
+  --zs : Std.HashSet Int
+  tot : Int
+  deriving BEq
+
+def splitFromIncluding1 (p : pos) (h : Int) : Array pos :=
+  let (p1, p2) := p
+  if h ≤ p1 then #[p] else
+  if p2 < h then #[p] else
+  #[(p.1, h - 1), (h, p.2)]
+
+/-- info: #[(0, 1)] -/
+#guard_msgs in
+#eval
+  splitFromIncluding1 (0, 1) 0
+
+/-- info: #[(0, 0), (1, 2)] -/
+#guard_msgs in
+#eval
+  splitFromIncluding1 (0, 2) 1
+
+/-- info: #[(0, 0), (1, 1)] -/
+#guard_msgs in
+#eval
+  splitFromIncluding1 (0, 1) 1
+
+/-- info: #[(0, 1)] -/
+#guard_msgs in
+#eval
+  splitFromIncluding1 (0, 1) (- 1)
+
+/-- info: #[(9, 9), (10, 11)] -/
+#guard_msgs in
+#eval
+  splitFromIncluding1 (9, 11) (10)
+
+/-- info: #[(10, 10), (11, 11)] -/
+#guard_msgs in
+#eval
+  splitFromIncluding1 (10, 11) (10+1)
+
+
+#eval
+  splitFromIncluding1 (1, 3) (2)
+
+def splitBox (v w : pos × pos × pos) : Array (pos × pos × pos) :=
+  let (x, y, z) := v
+  let (s, t, u) := w
+  let a1 := splitFromIncluding1 x s.1
+  let a1 := a1.flatMap (splitFromIncluding1 · (s.2 + 1))
+
+  let a2 := splitFromIncluding1 y t.1
+  let a2 := a2.flatMap (splitFromIncluding1 · (t.2 + 1))
+
+  let a3 := splitFromIncluding1 z u.1
+  let a3 := a3.flatMap (splitFromIncluding1 · (u.2 + 1))
+  Id.run do
+  let mut fin := #[]
+  for a in a1 do
+    for b in a2 do
+      for c in a3 do
+        fin := fin.push (a, b, c)
+  return fin
+
+/-- info: #[((1, 3), (2, 4), 3, 5)] -/
+#guard_msgs in
+#eval
+  let v := ((9, 11), (9, 11), (9, 11))
+  let w := ((10, 10), (10, 10), (10, 10))
+  splitBox v w
+
+/-- info: #[((1, 3), (2, 4), 3, 5)] -/
+#guard_msgs in
+#eval
+  let v := ((1, 3), (2, 4), (3, 5))
+  let w := ((1, 3), (2, 4), (3, 5))
+  splitBox v w
+
+/-- info: #[((1, 2), (2, 4), 3, 5), ((3, 3), (2, 4), 3, 5)] -/
+#guard_msgs in
+#eval
+  let v := ((1, 3), (2, 4), (3, 5))
+  let w := ((1, 2), (2, 4), (3, 5))
+  splitBox v w
+
+/-- info: #[((1, 3), (2, 4), 3, 5)] -/
+#guard_msgs in
+#eval
+  let v := ((1, 3), (2, 4), (3, 5))
+  let w := ((3, 4), (2, 4), (3, 5))
+  splitBox v w
+
+/--
+info:
+#[((1, 2), (2, 3), 3, 4),
+((1, 2), (2, 3), 5, 5),
+((1, 2), (4, 4), 3, 4),
+((1, 2), (4, 4), 5, 5),
+  ((3, 3), (2, 3), 3, 4),
+((3, 3), (2, 3), 5, 5),
+((3, 3), (4, 4), 3, 4),
+((3, 3), (4, 4), 5, 5)]
+-/
+#guard_msgs in
+#eval
+  let v := ((1, 3), (2, 4), (3, 5))
+  let w := ((2, 4), (3, 4), (3, 4))
+  splitBox v w
+
+#guard_msgs in
+#eval do
+  let v := ((1, 3), (2, 4), (3, 5))
+  let w := ((2, 4), (3, 4), (3, 4))
+  let mut left := splitBox v w
+  for a in splitBox v w do
+    left := left.erase a
+    for b in left do
+      if overlap a b then IO.println <| "Error!"
+
+/-
+--def splitUpToExcluding1 (p : pos) (h : Int) : Array pos :=
+--  let spLeft := splitFromIncluding1 ((0, 0) - p) (- h) (0)
+--  spLeft.foldl (init := #[]) fun h n => h.push ((0, 0) - n)
+
+def splitUpToExcluding1 (p : pos) (h : Int) : Array pos :=
+  splitFromIncluding1 p (h + 1)
+
+/-- info: #[(0, 1)] -/
+#guard_msgs in
+#eval
+  splitUpToExcluding1 (0, 1) 0
+
+/-- info: #[(0, 2)] -/
+#guard_msgs in
+#eval
+  splitUpToExcluding1 (0, 2) 1
+
+/-- info: #[(0, 1)] -/
+#guard_msgs in
+#eval
+  splitUpToExcluding1 (0, 1) 1
+
+/-- info: #[(0, 1)] -/
+#guard_msgs in
+#eval
+  splitUpToExcluding1 (0, 1) (- 1)
+-/
+#eval v ((1, 2), (3, 4), (5, 6))
+
+def updateMesh (m : mesh) (h : Bool × pos × pos × pos) : mesh := Id.run do
+  let (c, box) := h
+  let mut newScreen := m.screen.filter (overlap box)
+  let mut newTot := m.tot
+  if newScreen.isEmpty then
+    return {screen := m.screen.insert box, tot := newTot + if c then v box else 0}
+  --let mut left : Std.HashSet (pos × pos × pos) := ∅
+  let mut split := #[]
+  for r in newScreen do
+    split := split ++ splitBox box r |>.filter (! contains r ·)
+    newScreen := newScreen.insertMany split
+  if c then
+    --dbg_trace "increasing volume by {(split.map v).sum} from {split.size} boxes."
+    newTot := newTot + (split.map v).sum
+  --let mut screenOverlap := m.screen.filter (overlap h.2)
+  --dbg_trace screenOverlap.toArray
+  dbg_trace newScreen.size
+  return {screen := m.screen.union newScreen, tot := newTot}
+
+def checkNoOverlap (h : Std.HashSet (pos × pos × pos)) : Bool := Id.run do
+  let mut left := h
+  for a in h do
+    left := left.erase a
+    for b in left do
+      if overlap a b then return false
+  return true
+
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest1
+  let r := inputToReboot dat true
+  let mut m : mesh := {screen := {}, tot := 0}
+  --for bi in [0:16] do --r.ineqs.reverse] do
+  --  let b := r.ineqs.reverse[bi]!
+  for b in r.ineqs.reverse do
+    --IO.println s!"New box: {b}"
+    m := updateMesh m b
+    IO.println s!"New total: {m.tot}"
+  --let m := updateMesh m (true, (1, 2), (5, 6), (5, 6))
+  IO.println s!"Total volume: {m.tot}"
+  IO.println s!"Screen size:  {m.screen.size}"
+  --IO.println s!"No overlap?   {checkNoOverlap m.screen}"
+  --for s in m.screen.toArray.qsort (·.1 < ·.1) do IO.println s
+  --if m == updateMesh m (true, (1, 2), (5, 6), (5, 6)) then IO.println "equal"
+
+#eval do
+  let m : mesh := {screen := {((1, 3), (3, 5), (5, 6))}}
+  if m == updateMesh m (true, (1, 2), (5, 6), (5, 6)) then IO.println "equal"
+
+
 #eval 797 * 795 --* 796
+
+#exit
+
 -- cuboids that overlap with none of their followers or are both "on" or both "off"
 #eval do
   let dat := atest2
@@ -308,19 +535,20 @@ def updateCount [BEq α] [Hashable α] [BEq R] [Hashable R] [Add R] [Zero R] [Of
     let (ci, ri) := r.ineqs[i]!
     if ri.1.1.natAbs ≤ 50 then continue
     --IO.println s!"{i}, {v ri}"
-    for r in [ri.1.1, ri.1.2] do
+    for r in [ri.1.1, ri.1.2 + 1] do
       xs := updateCount xs r
-    for r in [ri.2.1.1, ri.2.1.2] do
+    for r in [ri.2.1.1, ri.2.1.2 + 1] do
       ys := updateCount ys r
-    for r in [ri.2.2.1, ri.2.2.2] do
+    for r in [ri.2.2.1, ri.2.2.2 + 1] do
       zs := updateCount zs r
     for r in [ri.1.1, ri.1.2, ri.2.1.1, ri.2.1.2, ri.2.2.1, ri.2.2.2] do
       ends := updateCount ends r
   let mut con := 0
-  for (x, _) in xs do
-    for (y, _) in ys do
+  for (x, mx) in xs do
+    for (y, my) in ys do
+      if mx != 1 || my != 1 then IO.println (mx, my)
       --for (z, _) in zs do
-        con := con + x + y
+        con := con + x + y + mx + my
   IO.println con
   IO.println <| (xs.size, ys.size, zs.size) --xs.toArray.qsort (·.2 < ·.2)
   --IO.println <| ends.toArray.qsort (·.2 < ·.2)
