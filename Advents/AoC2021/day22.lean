@@ -509,7 +509,8 @@ def updateMesh (m : mesh) (h : Bool × pos × pos × pos) : mesh := Id.run do
           let splitAgain := splitBox s r
           let onlyOverlap := splitAgain.filter (contains r)
           accVol := accVol + v onlyOverlap[0]!
-          dbg_trace "oh no!\nInitial box:\n{box}\n\n\
+          if false then
+            dbg_trace "oh no!\nInitial box:\n{box}\n\n\
                     Overlapping pair after splits:\n\n  \
                     let box := {s}  -- <-- split from input\n  \
                     let r   := {r}  -- <-- in the screen\n\n\
@@ -545,7 +546,26 @@ def checkNoOverlap (h : Std.HashSet (pos × pos × pos)) : Bool := Id.run do
 -- correct values: `590784` and `610196`
 -- 2758514936282235 -- actual value
 -- 39769202357890
-#eval 611864 - 1668
+
+def part2partial (dat : Array String) : Int := Id.run do
+  let r := inputToReboot dat
+  let mut m : mesh := {screen := {}, tot := 0}
+  for b in r.ineqs.reverse do
+    m := updateMesh m b
+  return m.tot
+
+/-- info: Total volume: 39 -/
+#guard_msgs in
+#eval IO.println s!"Total volume: {part2partial atest1}"
+
+/-- info: Total volume: 590784 -/
+#guard_msgs in
+#eval IO.println s!"Total volume: {part2partial atest2}"
+
+/-- info: Total volume: 610196 -/
+#guard_msgs in
+#eval do IO.println s!"Total volume: {part2partial (← IO.FS.lines input)}"
+
 #eval do
   let dat := atest1
   let dat ← IO.FS.lines input
@@ -561,7 +581,7 @@ def checkNoOverlap (h : Std.HashSet (pos × pos × pos)) : Bool := Id.run do
   --let m := updateMesh m (true, (1, 2), (5, 6), (5, 6))
   IO.println s!"Screen size:  {m.screen.size}"
   IO.println s!"\nTotal volume: {m.tot}"
-  IO.println s!"\nTotal volume - 120: {m.tot - 120}"
+  --IO.println s!"\nTotal volume - 120: {m.tot - 120}"
   --IO.println s!"No overlap?   {checkNoOverlap m.screen}"
   --for s in m.screen.toArray.qsort (·.1 < ·.1) do IO.println s
   --if m == updateMesh m (true, (1, 2), (5, 6), (5, 6)) then IO.println "equal"
