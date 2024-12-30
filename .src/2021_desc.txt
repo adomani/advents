@@ -267,4 +267,17 @@ In part 1, we should run the `iea` twice and find out how many pixels are lit as
 
 #### Part 2
 
-In part 1, we should run the `iea` 50 times and find out how many pixels are lit as a result.
+In part 2, we should run the `iea` 50 times and find out how many pixels are lit as a result.
+-- Day 22
+Switching on and off overlapping cuboids.
+
+### Description
+
+#### Part 1
+
+The input is a list of ranges of cuboids and whether they are `on` or `off`.
+Part 1 asks how many are on in the cube `[-50..50] ^ 3`.
+
+#### Part 2
+
+In part 2, we should perform the computation on *all* the cubes.
