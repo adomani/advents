@@ -135,6 +135,9 @@ def nonOverlap (v w : pos × pos × pos) : Bool :=
   let ((c1, d1), (c2, d2), (c3, d3)) := w
   b1 < c1 || d1 < a1 || b2 < c2 || d2 < a2 || b3 < c3 || d3 < a3
 
+example (v w : pos × pos × pos) : overlap v w ↔ !(nonOverlap v w) := by
+  simp [overlap, nonOverlap, Int.not_lt]
+
 def separateOne (l r l' r' : Int) : Array (Int × Int) :=
   if r' < l then #[(l, r)] else
   if r < l' then #[(l, r)] else
@@ -380,12 +383,12 @@ def splitBox (v w : pos × pos × pos) : Array (pos × pos × pos) :=
         fin := fin.push (a, b, c)
   return fin
 
-/-- info: #[((1, 3), (2, 4), 3, 5)] -/
+/-- info: 27 -/
 #guard_msgs in
 #eval
   let v := ((9, 11), (9, 11), (9, 11))
   let w := ((10, 10), (10, 10), (10, 10))
-  splitBox v w
+  splitBox v w |>.size
 
 /-- info: #[((1, 3), (2, 4), 3, 5)] -/
 #guard_msgs in
@@ -401,10 +404,17 @@ def splitBox (v w : pos × pos × pos) : Array (pos × pos × pos) :=
   let w := ((1, 2), (2, 4), (3, 5))
   splitBox v w
 
-/-- info: #[((1, 3), (2, 4), 3, 5)] -/
+/-- info: #[((1, 2), (2, 4), 3, 5), ((3, 3), (2, 4), 3, 5)] -/
 #guard_msgs in
 #eval
   let v := ((1, 3), (2, 4), (3, 5))
+  let w := ((3, 4), (2, 4), (3, 5))
+  splitBox v w
+
+/-- info: #[((1, 2), (2, 4), 3, 5), ((3, 4), (2, 4), 3, 5), ((5, 5), (2, 4), 3, 5)] -/
+#guard_msgs in
+#eval
+  let v := ((1, 5), (2, 4), (3, 5))
   let w := ((3, 4), (2, 4), (3, 5))
   splitBox v w
 
@@ -467,22 +477,40 @@ def splitUpToExcluding1 (p : pos) (h : Int) : Array pos :=
 
 def updateMesh (m : mesh) (h : Bool × pos × pos × pos) : mesh := Id.run do
   let (c, box) := h
-  let mut newScreen := m.screen.filter (overlap box)
+  let m' := {m with screen := m.screen.insert box}
+  if !c then
+    return m'
+  let overlappingBoxes := m.screen.filter (overlap box)
   let mut newTot := m.tot
-  if newScreen.isEmpty then
-    return {screen := m.screen.insert box, tot := newTot + if c then v box else 0}
-  --let mut left : Std.HashSet (pos × pos × pos) := ∅
-  let mut split := #[]
-  for r in newScreen do
-    split := split ++ splitBox box r |>.filter (! contains r ·)
-    newScreen := newScreen.insertMany split
+  if overlappingBoxes.isEmpty then
+    return {m' with tot := newTot + if c then v box else 0}
+  let mut split := #[box]
+  for r in overlappingBoxes do
+    let mut newSplit := #[]
+    for s in split do
+      newSplit := newSplit ++ (splitBox s r |>.filter (! contains r ·))
+      --for s in m.screen do
+      --  newSplit := newSplit.filter (! contains s ·)
+    if split == newSplit then break
+    split := newSplit
+    --newScreen := newScreen.insertMany split
   if c then
-    --dbg_trace "increasing volume by {(split.map v).sum} from {split.size} boxes."
+    --dbg_trace "increasing volume by {(split.map v).sum} from {split.size} boxes.\n{split.map v}\n"
     newTot := newTot + (split.map v).sum
   --let mut screenOverlap := m.screen.filter (overlap h.2)
   --dbg_trace screenOverlap.toArray
-  dbg_trace newScreen.size
-  return {screen := m.screen.union newScreen, tot := newTot}
+  --dbg_trace newScreen.size
+  return {m' with tot := newTot}
+
+/-- info: Total volume: 39 -/
+#guard_msgs in
+#eval do
+  let dat := atest1
+  let r := inputToReboot dat false
+  let mut m : mesh := {screen := {}, tot := 0}
+  for b in r.ineqs.reverse do
+    m := updateMesh m b
+  IO.println s!"\nTotal volume: {m.tot}"
 
 def checkNoOverlap (h : Std.HashSet (pos × pos × pos)) : Bool := Id.run do
   let mut left := h
@@ -491,12 +519,14 @@ def checkNoOverlap (h : Std.HashSet (pos × pos × pos)) : Bool := Id.run do
     for b in left do
       if overlap a b then return false
   return true
-
-
+-- correct values: `590784` and `610196`
+-- 2758514936282235 -- actual value
+-- 39769202357890
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest1
-  let r := inputToReboot dat true
+  let dat := atest2
+  let dat ← IO.FS.lines input
+  let r := inputToReboot dat --false
   let mut m : mesh := {screen := {}, tot := 0}
   --for bi in [0:16] do --r.ineqs.reverse] do
   --  let b := r.ineqs.reverse[bi]!
@@ -505,16 +535,11 @@ def checkNoOverlap (h : Std.HashSet (pos × pos × pos)) : Bool := Id.run do
     m := updateMesh m b
     IO.println s!"New total: {m.tot}"
   --let m := updateMesh m (true, (1, 2), (5, 6), (5, 6))
-  IO.println s!"Total volume: {m.tot}"
   IO.println s!"Screen size:  {m.screen.size}"
+  IO.println s!"\nTotal volume: {m.tot}"
   --IO.println s!"No overlap?   {checkNoOverlap m.screen}"
   --for s in m.screen.toArray.qsort (·.1 < ·.1) do IO.println s
   --if m == updateMesh m (true, (1, 2), (5, 6), (5, 6)) then IO.println "equal"
-
-#eval do
-  let m : mesh := {screen := {((1, 3), (3, 5), (5, 6))}}
-  if m == updateMesh m (true, (1, 2), (5, 6), (5, 6)) then IO.println "equal"
-
 
 #eval 797 * 795 --* 796
 
