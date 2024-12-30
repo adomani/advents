@@ -46,7 +46,7 @@ on x=967..23432,y=45373..81175,z=27513..53682"
 /-- `atest2` is the second test string for the problem, split into rows. -/
 def atest2 := (test2.splitOn "\n").toArray
 
-/-- `test3` is the first test string for the problem. -/
+/-- `test3` is the third test string for the problem. -/
 def test3 := "on x=-5..47,y=-31..22,z=-19..33
 on x=-44..5,y=-27..21,z=-14..35
 on x=-49..-1,y=-11..42,z=-10..38
@@ -108,29 +108,30 @@ off x=-70369..-16548,y=22648..78696,z=-1892..86821
 on x=-53470..21291,y=-120233..-33476,z=-44150..38147
 off x=-93533..-4276,y=-16170..68771,z=-104985..-24507"
 
-/-- `atest3` is the first test string for the problem, split into rows. -/
+/-- `atest3` is the third test string for the problem, split into rows. -/
 def atest3 := (test3.splitOn "\n").toArray
 
-abbrev vol := Int × Int × Int
-
-instance : ToString vol where toString v := s!"({v.1}, {v.2.1}, {v.2.2})"
-
-structure Reboot where
-  ineqs : Array (Bool × pos × pos × pos)
-
-def inputToReboot (dat : Array String) (small? : Bool := true) : Reboot where
-  ineqs := dat.foldl (init := ∅) fun h s =>
+/--
+Converts the input an array of
+* a `Bool`ean that is `true` if the cuboid is `on` and `false` if the cuboid is `off`;
+* 3 `pos`, namely 3 pairs of integers, where each pair records the beginning and ending of
+  a cuboid, one `pos` per coordinate.
+-/
+def inputToInequalities (dat : Array String) (small? : Bool) :
+    Array (Bool × pos × pos × pos) :=
+  dat.foldl (init := ∅) fun h s =>
     let new := match s.getInts with
       | [x1, x2, y1, y2, z1, z2] => ((x1, x2), (y1, y2), (z1, z2))
       | _ => panic "Malformed input!"
     if small? && 50 < new.1.1.natAbs then h else h.push (s.startsWith "on", new)
 
-
+/-- Tests whether two cuboids overlap. -/
 def overlap (v w : pos × pos × pos) : Bool :=
   let ((a1, b1), (a2, b2), (a3, b3)) := v
   let ((c1, d1), (c2, d2), (c3, d3)) := w
   c1 ≤ b1 && a1 ≤ d1 && c2 ≤ b2 && a2 ≤ d2 && c3 ≤ b3 && a3 ≤ d3
 
+/-- Tests whether the first input cuboid contains the second one. -/
 def contains (f g : pos × pos × pos) : Bool :=
   let ((f1, f2), (f3, f4), (f5, f6)) := f
   let ((g1, g2), (g3, g4), (g5, g6)) := g
@@ -138,16 +139,17 @@ def contains (f g : pos × pos × pos) : Bool :=
   f3 ≤ g3 && g4 ≤ f4 &&
   f5 ≤ g5 && g6 ≤ f6
 
+/-- Computes the volume of a cuboid. -/
 def volume (f : pos × pos × pos) : Int :=
   let ((f1, f2), (f3, f4), (f5, f6)) := f
   #[f2 - f1 + 1, f4 - f3 + 1, f6 - f5 + 1].prod
 
-structure mesh where
-  screen : Std.HashSet (pos × pos × pos)
-  tot : Int
-  deriving BEq
+/--
+Decomposes a `pos`ition, thought of as an interval, with respect to the integer `h`.
 
-def splitFromIncluding1 (p : pos) (h : Int) : Array pos :=
+It is very important to get the edge cases right, hence the myriads of tests!
+-/
+def splitFromIncluding (p : pos) (h : Int) : Array pos :=
   let (p1, p2) := p
   if h ≤ p1 then #[p] else
   if p2 < h then #[p] else
@@ -156,44 +158,49 @@ def splitFromIncluding1 (p : pos) (h : Int) : Array pos :=
 /-- info: #[(0, 1)] -/
 #guard_msgs in
 #eval
-  splitFromIncluding1 (0, 1) 0
+  splitFromIncluding (0, 1) 0
 
 /-- info: #[(0, 0), (1, 2)] -/
 #guard_msgs in
 #eval
-  splitFromIncluding1 (0, 2) 1
+  splitFromIncluding (0, 2) 1
 
 /-- info: #[(0, 0), (1, 1)] -/
 #guard_msgs in
 #eval
-  splitFromIncluding1 (0, 1) 1
+  splitFromIncluding (0, 1) 1
 
 /-- info: #[(0, 1)] -/
 #guard_msgs in
 #eval
-  splitFromIncluding1 (0, 1) (- 1)
+  splitFromIncluding (0, 1) (- 1)
 
 /-- info: #[(9, 9), (10, 11)] -/
 #guard_msgs in
 #eval
-  splitFromIncluding1 (9, 11) (10)
+  splitFromIncluding (9, 11) (10)
 
 /-- info: #[(10, 10), (11, 11)] -/
 #guard_msgs in
 #eval
-  splitFromIncluding1 (10, 11) (10+1)
+  splitFromIncluding (10, 11) (10+1)
 
+/--
+Partitions the first box into boxes such that at most one overlaps with the second box.
+
+Uses `splitFromIncluding` on each coordinate.
+-/
 def splitBox (v w : pos × pos × pos) : Array (pos × pos × pos) :=
   let (x, y, z) := v
   let (s, t, u) := w
-  let a1 := splitFromIncluding1 x s.1
-  let a1 := a1.flatMap (splitFromIncluding1 · (s.2 + 1))
+  let a1 := splitFromIncluding x s.1
+  let a1 := a1.flatMap (splitFromIncluding · (s.2 + 1))
 
-  let a2 := splitFromIncluding1 y t.1
-  let a2 := a2.flatMap (splitFromIncluding1 · (t.2 + 1))
+  let a2 := splitFromIncluding y t.1
+  let a2 := a2.flatMap (splitFromIncluding · (t.2 + 1))
 
-  let a3 := splitFromIncluding1 z u.1
-  let a3 := a3.flatMap (splitFromIncluding1 · (u.2 + 1))
+  let a3 := splitFromIncluding z u.1
+  let a3 := a3.flatMap (splitFromIncluding · (u.2 + 1))
   Id.run do
   let mut fin := #[]
   for a in a1 do
@@ -265,14 +272,33 @@ def splitBox (v w : pos × pos × pos) : Array (pos × pos × pos) :=
     for b in left do
       if overlap a b then IO.println <| "Error!"
 
+/--
+A `mesh` records the state of finding the number of lit leds, as we walk through the cuboids
+in reverse order.
+* `visited` is the collection of already visited cuboids.
+* `totalVolume` is the number of lit leds so far.
+-/
+structure mesh where
+  /-- `visited` is the collection of already visited cuboids. -/
+  visited : Std.HashSet (pos × pos × pos)
+  /-- `totalVolume` is the number of lit leds so far. -/
+  totalVolume : Int
+  deriving BEq
+
+/--
+Given a `mesh` and the "next" cuboid `h`, update the mesh by
+* inserting the new cuboid into the `mesh`,
+* figuring out how to decompose the new cuboid into parts to determine the contribution to
+  the volume of the lit leds.
+-/
 def updateMesh (m : mesh) (h : Bool × pos × pos × pos) : mesh := Id.run do
   let (c, box) := h
-  let m' := {m with screen := m.screen.insert box}
+  let m' := {m with visited := m.visited.insert box}
   -- the new box is behind the previous ones, it is unlit, so we just add it to the `screen`.
   if !c then
     return m'
-  let overlappingBoxes := m.screen.filter (overlap box)
-  let mut newTot := m.tot
+  let overlappingBoxes := m.visited.filter (overlap box)
+  let mut newTot := m.totalVolume
   let mut split := #[box]
   for r in overlappingBoxes do
     let mut newSplit := #[]
@@ -280,14 +306,18 @@ def updateMesh (m : mesh) (h : Bool × pos × pos × pos) : mesh := Id.run do
       newSplit := newSplit ++ (splitBox s r |>.filter (! contains r ·))
     split := newSplit
   newTot := newTot + (split.map volume).sum
-  return {m' with tot := newTot}
+  return {m' with totalVolume := newTot}
 
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def parts (dat : Array String) (short : Bool) : Int :=
-  let r := inputToReboot dat short
-  let m : mesh := r.ineqs.reverse.foldl (init := {screen := {}, tot := 0}) fun m b =>
+/-- `parts dat short?` takes as input the input of the problem and returns the common
+part of the two solutions.  The `Bool`ean `short?` decides whether
+* to just use the cuboids contained in `[-50..50] ^ 3` (`short? = true`), or
+* to use them all (`short? = true`).
+-/
+def parts (dat : Array String) (short? : Bool) : Int :=
+  let r := inputToInequalities dat short?
+  let m : mesh := r.reverse.foldl (init := {visited := {}, totalVolume := 0}) fun m b =>
     updateMesh m b
-  m.tot
+  m.totalVolume
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Int := parts dat true
