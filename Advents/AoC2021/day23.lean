@@ -82,11 +82,19 @@ Energy: 0
 /-- The L¹-distance in the plane. -/
 def dist (p : pos) : Nat := p.1.natAbs + p.2.natAbs
 
-def AP.times : AP → Nat
-  | .A => 1
-  | .B => 10
-  | .C => 100
-  | .D => 1000
+def AP.index : AP → Nat
+  | .A => 0
+  | .B => 1
+  | .C => 2
+  | .D => 3
+
+def AP.roomColumn (ap : AP) : Nat := ap.index * 2 + 3
+
+#assert #[AP.A, AP.B, AP.C, AP.D].map (·.roomColumn) == #[3, 5, 7, 9]
+
+def AP.times (ap : AP) : Nat := 10 ^ ap.index
+
+#assert #[AP.A, AP.B, AP.C, AP.D].map (·.times) == #[1, 10, 100, 1000]
 
 def unsafeMove (br : Burrow) (p q : pos) : Option Burrow :=
   let newPos := p + q
@@ -99,11 +107,8 @@ def _root_.pos.inHall (p : pos) : Bool := p.1 == 1
 def _root_.pos.inRoom (p : pos) : Bool := p.1 == 2 || p.1 == 3
 def _root_.pos.aboveRoom (p : pos) : Bool := p.inHall && #[3, 5, 7, 9].contains p.2
 
-def AP.inOwnRoom : AP → pos → Bool
-  | .A, p => p.inRoom && p.2 == 3
-  | .B, p => p.inRoom && p.2 == 5
-  | .C, p => p.inRoom && p.2 == 7
-  | .D, p => p.inRoom && p.2 == 9
+def AP.inOwnRoom (ap : AP) (p : pos) : Bool :=
+  p.inRoom && p.2 == ap.roomColumn
 
 def checkOr (c : Bool) (s : String) (v? : Bool) :=
   if v? then
@@ -140,13 +145,29 @@ def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
       checkOr (!br.unmovable.contains q) s!"The amphipod {ap} at {p} is back into its room" v? &&
       -- amphipods only move from a room that is not their own to the hall or
       -- from the hall to a room that is their own
-      ( if !((p.inRoom && newPos.inHall) || (p.inHall && newPos.inRoom && ap.inOwnRoom newPos)) then
+      ( if !((p.inRoom && newPos.inHall) || (p.inHall && newPos.inRoom && ap.inOwnRoom newPos))
+        then
           checkOr
             (p.inRoom && newPos.inHall) -- && !ap.inOwnRoom p)
             "Amphipods only move from a room that is not their own to the hall" v? ||
           checkOr (p.inHall && newPos.inRoom && ap.inOwnRoom newPos)
             "Amphipods only move from the hall to a room that is their own" v?
-        else true)
+        else true) &&
+      ( let posOneBelow := newPos + (1, 0)
+        match br.grid.contains posOneBelow, br.ap[posOneBelow]? with
+          | false, _ => true
+          | true, none => checkOr false s!"The room position {posOneBelow} would be empty." v?
+          | _, some apBelow =>
+            checkOr
+              (apBelow.inOwnRoom posOneBelow)
+              s!"Amphipod {apBelow} at {posOneBelow} would be trapped by this move!" v? )
+
+def mightAsWellMove (br : Burrow) : Array (pos × pos) := Id.run do
+  let mut fin := #[]
+  for (p, ap) in br.ap do
+    if p.inRoom then continue
+    let roomCol : pos :=
+  return fin
 
 #eval do
   let dat := atest
@@ -168,6 +189,35 @@ def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
   --IO.println <| canWalkthrough br (3, 3) (- 2, 0)
   drawBurrow br
 
+/-- info:
+Amphipod A at (3, 9) would be trapped by this move! false
+The amphipod A at (3, 9) can move to (1, 11)
+The amphipod A at (3, 9) can move to (1, 10)
+The amphipod C at (2, 5) can move to (1, 2)
+The amphipod C at (2, 5) can move to (1, 4)
+The amphipod C at (2, 5) can move to (1, 6)
+The amphipod C at (2, 5) can move to (1, 1)
+The amphipod B at (2, 3) can move to (1, 2)
+The amphipod B at (2, 3) can move to (1, 4)
+The amphipod B at (2, 3) can move to (1, 6)
+The amphipod B at (2, 3) can move to (1, 1)
+The amphipod B at (2, 7) can move to (1, 2)
+The amphipod B at (2, 7) can move to (1, 4)
+The amphipod B at (2, 7) can move to (1, 6)
+The amphipod B at (2, 7) can move to (1, 1)
+The starting position (2, 9) must contain an amphipod
+false
+--0123456789012-
+0|#############|
+1|#.......D...#|
+2|###B#C#B#.###|
+3|  #A#D#C#A#  |
+4|  #########  |
+--0123456789012-
+
+Energy: 2000
+-/
+#guard_msgs in
 #eval do
   let dat := atest
   let br := inputToBurrow dat
@@ -212,7 +262,7 @@ def isFinal (br : Burrow) : Bool :=
   let mut final := #[]
   drawBurrow br
   let mut con := 0
-  while con ≤ 1 do
+  while con ≤ 3 do
     let (final', brs') := (brs.flatMap validMoves).partition isFinal
     final := final ++ final'
     brs := brs'
