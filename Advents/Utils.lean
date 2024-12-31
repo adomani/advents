@@ -183,16 +183,30 @@ def loadGrid (dat : Array String) : Std.HashMap pos Char :=
   (Array.range dat.size).foldl (fun i => ·.union (loadString dat[i]! i)) ∅
 -/
 
-/-- Converts the input strings into a `HashMap`. -/
-def loadGrid {α} (dat : Array String) (toEntry : Char → α) : Std.HashMap pos α := Id.run do
+/--
+Converts the input strings into a `HashMap`.
+Only the characters on which `toEntry` is `some` appear as keys.
+-/
+def sparseMap (dat : Array String) (toEntry : Char → Option α) : Std.HashMap pos α := Id.run do
   let mut h := {}
   for d in [0:dat.size] do
     let row := dat[d]!
     for c in [0:row.length] do
-      h := h.insert (d, c) (toEntry (row.get ⟨c⟩))
+      match toEntry (row.get ⟨c⟩) with
+        | none => continue
+        | some a => h := h.insert (d, c) a
   return h
 
-/-- Converts the input strings into a `HashMap`, assuming that the entries are natural number value. -/
+/--
+Converts the input strings into a `HashMap`.
+Uses *every* character in every string of `dat : Array String`.
+-/
+def loadGrid {α} (dat : Array String) (toEntry : Char → α) : Std.HashMap pos α :=
+  sparseMap dat (some ∘ toEntry)
+
+/--
+Converts the input strings into a `HashMap`, assuming that the entries are natural numbers.
+-/
 def loadGridNats (dat : Array String) : Std.HashMap pos Nat := loadGrid dat (String.toNat! ⟨[·]⟩)
 
 def sparseGrid (dat : Array String) (toEntry : Char → Bool) : Std.HashSet pos := Id.run do
@@ -315,7 +329,7 @@ def drawHash {α} [ToString α] (h : Std.HashMap pos α) (Nx Ny : Nat) : Array S
     fin := fin.push str
   return fin
 
-/-- A function to draw `HashMap`s. -/
+/-- A function to draw `HashSet`s. -/
 def drawSparseWith (h : Std.HashSet pos) (Nx Ny : Nat)
     (yes : pos → String := fun _ => "#") (no : pos → String := fun _ => ".") :
     Array String := Id.run do
@@ -329,7 +343,7 @@ def drawSparseWith (h : Std.HashSet pos) (Nx Ny : Nat)
     fin := fin.push str
   return fin
 
-/-- A function to draw `HashMap`s. -/
+/-- A function to draw `HashSet`s. -/
 def drawSparse (h : Std.HashSet pos) (Nx Ny : Nat) (yes : String := "#") (no : String := "·") :
     Array String := Id.run do
   let mut fin := #[]
