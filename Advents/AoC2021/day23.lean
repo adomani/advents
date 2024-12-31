@@ -37,14 +37,14 @@ structure Burrow where
   all : Std.HashMap pos Char
   grid : Std.HashSet pos
   ap : Std.HashMap pos AP
-  energy : Nat
+  unmovable : Std.HashSet pos := ∅
+  energy : Nat := 0
   deriving Inhabited
 
 def inputToBurrow (dat : Array String) : Burrow where
   all  := loadGrid dat (fun c => if "ABCD".toList.contains c then '.' else c)
   grid := sparseGrid dat ("ABCD.".toList.contains ·)
   ap   := sparseMap dat CharToAP
-  energy := 0
 
 #eval draw <| drawHash (inputToBurrow atest).all 5 13
 
@@ -95,49 +95,63 @@ def AP.inOwnRoom : AP → pos → Bool
   | .C, p => p.inRoom && p.2 == 7
   | .D, p => p.inRoom && p.2 == 9
 
-def checkOr (c : Bool) (s : String) :=
-  if c then c else dbg_trace s; c
+def checkOr (c : Bool) (s : String) (v? : Bool) :=
+  if v? then
+    if c then c else dbg_trace s; c
+  else c
 
-def canWalkthrough (br : Burrow) (p q : pos) : Bool :=
+def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
   let newPos := p + q
   -- the new position is in the grid
-  checkOr (br.grid.contains newPos) s!"The new position {newPos} is not in the grid" &&
+  checkOr (br.grid.contains newPos) s!"The new position {newPos} is not in the grid" v? &&
   -- the new position does not already contain an amphipod
-  checkOr (!br.ap.contains newPos) s!"The new position {newPos} already contains an amphipod" &&
+  checkOr (!br.ap.contains newPos) s!"The new position {newPos} already contains an amphipod" v? &&
   -- the hallway and room are clear
   ( let hall := (Array.range q.2.natAbs).filterMap fun v =>
         let x : pos := (1, p.2 + q.2.sign * v.cast)
         if br.ap.contains x then some x else none
     checkOr
       hall.isEmpty
-      s!"The amphipod cannot walk through the hall: {hall.getD 0 default} is occupied" &&
+      s!"The amphipod cannot walk through the hall: {hall.getD 0 default} is occupied" v? &&
 
     let room := (Array.range q.1.natAbs).filterMap fun v =>
       let x : pos := (p.1 + q.1.sign * (1 + v.cast), p.2)
       if br.ap.contains x then some x else none
     checkOr
       room.isEmpty
-      s!"The amphipod cannot walk through the room: {room.getD 0 default} is occupied" ) &&
+      s!"The amphipod cannot walk through the room: {room.getD 0 default} is occupied" v?) &&
   match br.ap[p]? with
     -- the starting position must contain an amphipod
-    | none => checkOr false s!"The starting position {p} must contain an amphipod"
+    | none => checkOr false s!"The starting position {p} must contain an amphipod" v?
     | some ap =>
       -- amphipods never stop in the hall directly above a room
-      checkOr (!newPos.aboveRoom) "Amphipods never stop in the hall directly above a room" &&
+      checkOr (!newPos.aboveRoom) "Amphipods never stop in the hall directly above a room" v? &&
       -- amphipods only move from a room that is not their own to the hall or
       -- from the hall to a room that is their own
       ( checkOr
           (p.inRoom && newPos.inHall && !ap.inOwnRoom p)
-          "Amphipods only move from a room that is not their own to the hall" ||
+          "Amphipods only move from a room that is not their own to the hall" v? ||
         checkOr (p.inHall && newPos.inRoom && ap.inOwnRoom newPos)
-          "Amphipods only move from the hall to a room that is their own")
+          "Amphipods only move from the hall to a room that is their own" v?)
 
 #eval do
   let dat := atest
   let br := inputToBurrow dat
   let br := unsafeMove br (3, 5) (- 2, 0) |>.get!
-  IO.println <| canWalkthrough br (2, 7) (- 1, -3)
-  IO.println <| canWalkthrough br (3, 3) (- 2, 0)
+  IO.println <| canWalkthrough br (2, 7) (- 1, -3) true
+  IO.println <| canWalkthrough br (3, 3) (- 2, 0) true
+  drawBurrow br
+
+#eval do
+  let dat := atest
+  let br := inputToBurrow dat
+  let br := unsafeMove br (3, 5) (- 2, 0) |>.get!
+  for (p, ap) in br.ap do
+    for newP in br.grid do
+      if canWalkthrough br p (newP - p) then
+        IO.println s!"The amphipod {ap} at {p} can move to {newP}"
+  IO.println <| canWalkthrough br (2, 9) (- 1, 1) true
+  --IO.println <| canWalkthrough br (3, 3) (- 2, 0)
   drawBurrow br
 
 def move (br : Burrow) (p q : pos) : Option Burrow :=
