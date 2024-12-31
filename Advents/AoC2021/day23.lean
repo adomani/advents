@@ -118,14 +118,14 @@ def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
   checkOr (!br.ap.contains newPos) s!"The new position {newPos} already contains an amphipod" v? &&
   -- the hallway and room are clear
   ( let hall := (Array.range q.2.natAbs).filterMap fun v =>
-        let x : pos := (1, p.2 + q.2.sign * v.cast)
+        let x : pos := (1, p.2 + q.2.sign * (v.cast + 1))
         if br.ap.contains x then some x else none
     checkOr
       hall.isEmpty
       s!"The amphipod cannot walk through the hall: {hall.getD 0 default} is occupied" v? &&
 
     let room := (Array.range q.1.natAbs).filterMap fun v =>
-      let x : pos := (p.1 + q.1.sign * (1 + v.cast), p.2)
+      let x : pos := (p.1 + q.1.sign * (v.cast + 1), p.2)
       if br.ap.contains x then some x else none
     checkOr
       room.isEmpty
@@ -140,11 +140,13 @@ def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
       checkOr (!br.unmovable.contains q) s!"The amphipod {ap} at {p} is back into its room" v? &&
       -- amphipods only move from a room that is not their own to the hall or
       -- from the hall to a room that is their own
-      ( checkOr
-          (p.inRoom && newPos.inHall) -- && !ap.inOwnRoom p)
-          "Amphipods only move from a room that is not their own to the hall" v? ||
-        checkOr (p.inHall && newPos.inRoom && ap.inOwnRoom newPos)
-          "Amphipods only move from the hall to a room that is their own" v?)
+      ( if !((p.inRoom && newPos.inHall) || (p.inHall && newPos.inRoom && ap.inOwnRoom newPos)) then
+          checkOr
+            (p.inRoom && newPos.inHall) -- && !ap.inOwnRoom p)
+            "Amphipods only move from a room that is not their own to the hall" v? ||
+          checkOr (p.inHall && newPos.inRoom && ap.inOwnRoom newPos)
+            "Amphipods only move from the hall to a room that is their own" v?
+        else true)
 
 #eval do
   let dat := atest
@@ -158,6 +160,19 @@ def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
   let dat := atest
   let br := inputToBurrow dat
   let br := unsafeMove br (3, 5) (- 2, 0) |>.get!
+  for (p, ap) in br.ap do
+    for newP in br.grid do
+      if canWalkthrough br p (newP - p) then
+        IO.println s!"The amphipod {ap} at {p} can move to {newP}"
+  IO.println <| canWalkthrough br (2, 9) (- 1, 1) true
+  --IO.println <| canWalkthrough br (3, 3) (- 2, 0)
+  drawBurrow br
+
+#eval do
+  let dat := atest
+  let br := inputToBurrow dat
+  let br := unsafeMove br (2, 9) (- 1, - 1) |>.get!
+  IO.println <| canWalkthrough br (1, 8) (1, 1) true
   for (p, ap) in br.ap do
     for newP in br.grid do
       if canWalkthrough br p (newP - p) then
@@ -185,7 +200,7 @@ def validMoves (br : Burrow) : Array Burrow := Id.run do
   return fin
 
 def isFinal (br : Burrow) : Bool :=
-  br.ap.filter (fun p ap => (!ap.inOwnRoom p)) |>.isEmpty
+  13000 ≤ br.energy || (br.ap.filter (fun p ap => (!ap.inOwnRoom p))).isEmpty
 
 #assert isFinal (inputToBurrow atestFinal)
 #assert !isFinal (inputToBurrow atest)
@@ -197,11 +212,18 @@ def isFinal (br : Burrow) : Bool :=
   let mut final := #[]
   drawBurrow br
   let mut con := 0
-  while con ≤ 7 do
-    (final, brs) := (brs.flatMap validMoves).partition isFinal
+  while con ≤ 1 do
+    let (final', brs') := (brs.flatMap validMoves).partition isFinal
+    final := final ++ final'
+    brs := brs'
     IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final"
     con := con + 1
-  --for b in brs do drawBurrow b
+  for b in brs ++ final do
+    if !b.unmovable.isEmpty then drawBurrow b
+  IO.println "Now low energy"
+  for b in final do
+    if b.energy < 13000 then IO.println b.energy
+    drawBurrow b
 
 
 #eval do
