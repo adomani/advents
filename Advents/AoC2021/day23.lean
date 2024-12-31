@@ -31,7 +31,7 @@ def testFinal := "#############
 def atestFinal := (testFinal.splitOn "\n").toArray
 
 inductive AP where | A | B | C | D
-  deriving BEq, Hashable
+  deriving BEq, DecidableEq, Hashable
 
 instance : ToString AP where toString
   | .A => "A" | .B => "B" | .C => "C" | .D => "D"
@@ -44,6 +44,12 @@ def CharToAP : Char → Option AP
   | _ => none
 
 structure Burrow where
+  ap : Std.HashMap pos AP
+  unmovable : Std.HashSet pos := ∅
+  energy : Nat := 0
+  deriving Inhabited
+
+structure FBurrow where
   all : Std.HashMap pos Char
   grid : Std.HashSet pos
   ap : Std.HashMap pos AP
@@ -51,17 +57,19 @@ structure Burrow where
   energy : Nat := 0
   deriving Inhabited
 
+def Burrow.all := loadGrid atest (fun c => if "ABCD".toList.contains c then '.' else c)
+#eval draw <| drawHash Burrow.all 5 13
+
+def Burrow.grid := sparseGrid atest ("ABCD.".toList.contains ·)
+#eval draw <| drawSparse Burrow.grid 5 13 "." "#"
+
 def inputToBurrow (dat : Array String) : Burrow where
-  all  := loadGrid dat (fun c => if "ABCD".toList.contains c then '.' else c)
-  grid := sparseGrid dat ("ABCD.".toList.contains ·)
   ap   := sparseMap dat CharToAP
 
-#eval draw <| drawHash (inputToBurrow atest).all 5 13
-
 def drawBurrow (br : Burrow) : IO Unit := do
-  let all := br.all
+  let all := Burrow.all
   let bur := br.ap.fold (init := all) fun (h : Std.HashMap _ _) p c => h.insert p <| s!"{c}".get 0
-  let (mx, my) := br.all.fold (fun (mx, my) (x, y) _ => (max mx x.natAbs, max my y.natAbs)) (0, 0)
+  let (mx, my) := Burrow.all.fold (fun (mx, my) (x, y) _ => (max mx x.natAbs, max my y.natAbs)) (0, 0)
   draw <| drawHash bur (mx + 1) (my + 1)
   IO.println s!"Energy: {br.energy}"
 
@@ -98,7 +106,7 @@ def AP.times (ap : AP) : Nat := 10 ^ ap.index
 
 def unsafeMove (br : Burrow) (p q : pos) : Option Burrow :=
   let newPos := p + q
-  match br.grid.contains newPos, br.ap[p]? with
+  match Burrow.grid.contains newPos, br.ap[p]? with
     | true, some ap => some { br with ap := (br.ap.erase p).insert newPos ap
                                       energy := br.energy + ap.times * dist q }
     | _, _ => none
@@ -118,7 +126,7 @@ def checkOr (c : Bool) (s : String) (v? : Bool) :=
 def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
   let newPos := p + q
   -- the new position is in the grid
-  checkOr (br.grid.contains newPos) s!"The new position {newPos} is not in the grid" v? &&
+  checkOr (Burrow.grid.contains newPos) s!"The new position {newPos} is not in the grid" v? &&
   -- the new position does not already contain an amphipod
   checkOr (!br.ap.contains newPos) s!"The new position {newPos} already contains an amphipod" v? &&
   -- the hallway and room are clear
@@ -154,7 +162,7 @@ def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
             "Amphipods only move from the hall to a room that is their own" v?
         else true) &&
       ( let posOneBelow := newPos + (1, 0)
-        match br.grid.contains posOneBelow, br.ap[posOneBelow]? with
+        match Burrow.grid.contains posOneBelow, br.ap[posOneBelow]? with
           | false, _ => true
           | true, none => checkOr false s!"The room position {posOneBelow} would be empty." v?
           | _, some apBelow =>
@@ -162,12 +170,14 @@ def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
               (apBelow.inOwnRoom posOneBelow)
               s!"Amphipod {apBelow} at {posOneBelow} would be trapped by this move!" v? )
 
+/-
 def mightAsWellMove (br : Burrow) : Array (pos × pos) := Id.run do
   let mut fin := #[]
   for (p, ap) in br.ap do
     if p.inRoom then continue
     let roomCol : pos :=
   return fin
+-/
 
 #eval do
   let dat := atest
@@ -182,7 +192,7 @@ def mightAsWellMove (br : Burrow) : Array (pos × pos) := Id.run do
   let br := inputToBurrow dat
   let br := unsafeMove br (3, 5) (- 2, 0) |>.get!
   for (p, ap) in br.ap do
-    for newP in br.grid do
+    for newP in Burrow.grid do
       if canWalkthrough br p (newP - p) then
         IO.println s!"The amphipod {ap} at {p} can move to {newP}"
   IO.println <| canWalkthrough br (2, 9) (- 1, 1) true
@@ -224,7 +234,7 @@ Energy: 2000
   let br := unsafeMove br (2, 9) (- 1, - 1) |>.get!
   IO.println <| canWalkthrough br (1, 8) (1, 1) true
   for (p, ap) in br.ap do
-    for newP in br.grid do
+    for newP in Burrow.grid do
       if canWalkthrough br p (newP - p) then
         IO.println s!"The amphipod {ap} at {p} can move to {newP}"
   IO.println <| canWalkthrough br (2, 9) (- 1, 1) true
@@ -234,7 +244,7 @@ Energy: 2000
 def move (br : Burrow) (p q : pos) : Option Burrow :=
   if !canWalkthrough br p q true then none else
   let newPos := p + q
-  match br.grid.contains newPos, br.ap[p]? with
+  match Burrow.grid.contains newPos, br.ap[p]? with
     | true, some ap => some { br with
       ap        := (br.ap.erase p).insert newPos ap
       unmovable := if newPos.inRoom then br.unmovable.insert newPos else br.unmovable
@@ -244,7 +254,7 @@ def move (br : Burrow) (p q : pos) : Option Burrow :=
 def validMoves (br : Burrow) : Array Burrow := Id.run do
   let mut fin := #[]
   for (p, _) in br.ap do
-    for newP in br.grid do
+    for newP in Burrow.grid do
       if canWalkthrough br p (newP - p) then
         fin := fin.push <| (move br p (newP - p)).get!
   return fin
@@ -255,6 +265,32 @@ def isFinal (br : Burrow) : Bool :=
 #assert isFinal (inputToBurrow atestFinal)
 #assert !isFinal (inputToBurrow atest)
 
+def uniquify (brs : Array Burrow) : Array Burrow := Id.run do
+  let mut brs' := brs
+  let mut brs := #[]
+  let mut left : Std.HashSet Nat := .ofArray <| Array.range brs'.size
+  let mut used : Std.HashSet Nat := ∅
+  while !left.isEmpty do
+  --for ai in left do
+    let ai := left.toArray[0]!
+    if used.contains ai then continue
+    let mut cand := brs'[ai]!
+    left := left.erase ai
+    let mut currFound : Std.HashSet Nat := ∅
+    for bi in left do
+      match brs[bi]? with
+        | none => continue
+        | some b =>
+          left := left.erase bi
+          if cand.ap.toArray.qsort (·.1 < ·.1) == b.ap.toArray.qsort (·.1 < ·.1) then
+            currFound := currFound.insert bi
+            cand := {cand with energy := min cand.energy b.energy}
+    if !used.contains ai then
+      brs := brs.push cand
+    used := used.union currFound
+  return brs
+
+
 #eval do
   let dat := atest
   let br := inputToBurrow dat
@@ -262,18 +298,23 @@ def isFinal (br : Burrow) : Bool :=
   let mut final := #[]
   drawBurrow br
   let mut con := 0
-  while con ≤ 3 do
+  while con ≤ 2 do
     let (final', brs') := (brs.flatMap validMoves).partition isFinal
     final := final ++ final'
+    --brs := uniquify brs'
     brs := brs'
     IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final"
     con := con + 1
+  IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final"
+
   for b in brs ++ final do
     if !b.unmovable.isEmpty then drawBurrow b
   IO.println "Now low energy"
   for b in final do
     if b.energy < 13000 then IO.println b.energy
     drawBurrow b
+      --else
+
 
 
 #eval do
