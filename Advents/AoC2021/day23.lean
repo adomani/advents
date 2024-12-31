@@ -20,21 +20,52 @@ def test := "#############
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-structure AP where
+inductive AP where | A | B | C | D
+  deriving BEq, Hashable
+
+instance : ToString AP where toString
+  | .A => "A" | .B => "B" | .C => "C" | .D => "D"
+
+def CharToAP : Char → Option AP
+  | 'A' => some .A
+  | 'B' => some .B
+  | 'C' => some .C
+  | 'D' => some .D
+  | _ => none
+
+structure Burrow where
+  all : Std.HashMap pos Char
   grid : Std.HashSet pos
-  A : Std.HashSet pos
-  B : Std.HashSet pos
-  C : Std.HashSet pos
-  D : Std.HashSet pos
+  ap : Std.HashMap pos AP
   energy : Nat
 
-def inputToAP (dat : Array String) : AP where
+def inputToBurrow (dat : Array String) : Burrow where
+  all := loadGrid dat id
   grid := sparseGrid dat ("ABCD.".toList.contains ·)
-  A := sparseGrid dat ("A".toList.contains ·)
-  B := sparseGrid dat ("B".toList.contains ·)
-  C := sparseGrid dat ("C".toList.contains ·)
-  D := sparseGrid dat ("D".toList.contains ·)
+  ap := sparseMap dat CharToAP
   energy := 0
+
+def drawBurrow (br : Burrow) : IO Unit := do
+  let all := br.all.fold (init := br.all) fun (h : Std.HashMap _ _) p c =>
+    if "ABCD".toList.contains c then h.insert p '.' else h
+  let bur := br.ap.fold (init := all) fun (h : Std.HashMap _ _) p c => h.insert p <| s!"{c}".get 0
+  let (mx, my) := br.all.fold (fun (mx, my) (x, y) _ => (max mx x.natAbs, max my y.natAbs)) (0, 0)
+  draw <| drawHash bur (mx + 1) (my + 1)
+  IO.println s!"Energy: {br.energy}"
+
+/-- info:
+--0123456789012-
+0|#############|
+1|#...........#|
+2|###B#C#B#D###|
+3|  #A#D#C#A#  |
+4|  #########  |
+--0123456789012-
+
+Energy: 0
+-/
+#guard_msgs in
+#eval drawBurrow (inputToBurrow atest)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
