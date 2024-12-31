@@ -201,17 +201,11 @@ def sparseMap (dat : Array String) (toEntry : Char → Option α) : Std.HashMap 
 Converts the input strings into a `HashMap`.
 Uses *every* character in every string of `dat : Array String`.
 -/
-def loadGrid {α} (dat : Array String) (toEntry : Char → α) : Std.HashMap pos α := Id.run do
-  let mut h := {}
-  for d in [0:dat.size] do
-    let row := dat[d]!
-    for c in [0:row.length] do
-      h := h.insert (d, c) (toEntry (row.get ⟨c⟩))
-  return h
+def loadGrid {α} (dat : Array String) (toEntry : Char → α) : Std.HashMap pos α :=
+  sparseMap dat (some ∘ toEntry)
 
 /--
-Converts the input strings into a `HashMap`,
-assuming that the entries are natural number values.
+Converts the input strings into a `HashMap`, assuming that the entries are natural numbers.
 -/
 def loadGridNats (dat : Array String) : Std.HashMap pos Nat := loadGrid dat (String.toNat! ⟨[·]⟩)
 
