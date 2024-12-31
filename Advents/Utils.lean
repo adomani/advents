@@ -329,7 +329,7 @@ def drawHash {α} [ToString α] (h : Std.HashMap pos α) (Nx Ny : Nat) : Array S
     fin := fin.push str
   return fin
 
-/-- A function to draw `HashMap`s. -/
+/-- A function to draw `HashSet`s. -/
 def drawSparseWith (h : Std.HashSet pos) (Nx Ny : Nat)
     (yes : pos → String := fun _ => "#") (no : pos → String := fun _ => ".") :
     Array String := Id.run do
@@ -343,7 +343,7 @@ def drawSparseWith (h : Std.HashSet pos) (Nx Ny : Nat)
     fin := fin.push str
   return fin
 
-/-- A function to draw `HashMap`s. -/
+/-- A function to draw `HashSet`s. -/
 def drawSparse (h : Std.HashSet pos) (Nx Ny : Nat) (yes : String := "#") (no : String := "·") :
     Array String := Id.run do
   let mut fin := #[]
