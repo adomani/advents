@@ -381,7 +381,7 @@ Step 16
 4|  #########  |
 --0123456789012-
 
-Energy: 14728
+Energy: 14348
 -/
 #guard_msgs in
 #eval do
