@@ -74,9 +74,29 @@ structure FBurrow where
   deriving Inhabited
 
 def Burrow.all := loadGrid atest (fun c => if "ABCD".toList.contains c then '.' else c)
+/--
+info: --0123456789012-
+0|#############|
+1|#...........#|
+2|###.#.#.#.###|
+3|  #.#.#.#.#  |
+4|  #########  |
+--0123456789012-
+-/
+#guard_msgs in
 #eval draw <| drawHash Burrow.all 5 13
 
 def Burrow.grid := sparseGrid atest ("ABCD.".toList.contains ·)
+/--
+info: --0123456789012-
+0|#############|
+1|#...........#|
+2|###.#.#.#.###|
+3|###.#.#.#.###|
+4|#############|
+--0123456789012-
+-/
+#guard_msgs in
 #eval draw <| drawSparse Burrow.grid 5 13 "." "#"
 
 def Alt (b c : AP) : Bool := b.index < c.index
@@ -187,6 +207,22 @@ def mightAsWellMove (br : Burrow) : Array (pos × pos) := Id.run do
   return fin
 -/
 
+/--
+info: The amphipod cannot walk through the hall: ((1, 5), D) is occupied
+false
+The amphipod cannot walk through the room: ((2, 3), B) is occupied
+false
+--0123456789012-
+0|#############|
+1|#....D......#|
+2|###B#C#B#D###|
+3|  #A#.#C#A#  |
+4|  #########  |
+--0123456789012-
+
+Energy: 2000
+-/
+#guard_msgs in
 #eval do
   let dat := atest
   let br := inputToBurrow dat
@@ -195,6 +231,30 @@ def mightAsWellMove (br : Burrow) : Array (pos × pos) := Id.run do
   IO.println <| canWalkthrough br (3, 3) (- 2, 0) true
   drawBurrow br
 
+/--
+info: The amphipod B at (2, 3) can move to (1, 2)
+The amphipod B at (2, 3) can move to (1, 4)
+The amphipod B at (2, 3) can move to (1, 1)
+The amphipod B at (2, 7) can move to (1, 6)
+The amphipod B at (2, 7) can move to (1, 11)
+The amphipod B at (2, 7) can move to (1, 10)
+The amphipod B at (2, 7) can move to (1, 8)
+The amphipod D at (2, 9) can move to (1, 6)
+The amphipod D at (2, 9) can move to (1, 11)
+The amphipod D at (2, 9) can move to (1, 10)
+The amphipod D at (2, 9) can move to (1, 8)
+true
+--0123456789012-
+0|#############|
+1|#....D......#|
+2|###B#C#B#D###|
+3|  #A#.#C#A#  |
+4|  #########  |
+--0123456789012-
+
+Energy: 2000
+-/
+#guard_msgs in
 #eval do
   let dat := atest
   let br := inputToBurrow dat
@@ -267,8 +327,9 @@ def validMoves (br : Burrow) : Std.HashSet Burrow := Id.run do
         fin := fin.insert <| (move br p (newP - p)).get!
   return fin
 
-def isFinal (br : Burrow) : Bool :=
-  13000 ≤ br.energy || (br.ap.filter (fun (p, ap) => (!ap.inOwnRoom p))).isEmpty
+def isFinal (br : Burrow) (bd : Option Nat := some 13000) : Bool :=
+  (if let some bd := bd then bd ≤ br.energy else false) ||
+    (br.ap.filter (fun (p, ap) => (!ap.inOwnRoom p))).isEmpty
 
 #assert isFinal (inputToBurrow atestFinal)
 #assert !isFinal (inputToBurrow atest)
@@ -300,6 +361,36 @@ def uniquify (brs : Array Burrow) : Array Burrow := Id.run do
   return brs
 -/
 
+#eval do
+  let dat ← IO.FS.lines input
+  let mut br := inputToBurrow dat
+  drawBurrow br
+  let mvs : Array (pos × pos) := #[
+      ((2,  5), (-1, -3)), -- A
+      ((3,  5), (-2, -1)), -- C
+      ((2,  9), (-1,  2)), -- C
+      ((3,  9), (-2,  1)), -- A
+      ((2,  7), (-1,  1)), -- D
+      ((1,  8), ( 2,  1)), -- D
+      ((3,  7), (-2, -1)), -- B
+      ((1,  6), ( 2, -1)), -- B
+      ((1,  4), ( 2,  3)), -- C
+      ((2,  3), (-1,  1)), -- D
+      ((1,  4), ( 1,  5)), -- D
+      ((3,  3), (-2,  1)), -- B
+      ((1,  4), ( 1,  1)), -- B
+      ((1,  2), ( 2,  1)), -- A
+      ((1, 10), ( 1, -7)), -- A
+      ((1, 11), ( 1, -4))  -- C
+    ]
+  for (p, q) in mvs do
+    match move br p q with
+      | none => IO.println s!"Invalid move {p} {q}!"
+      | some b => br := b
+  IO.println s!"Step {mvs.size}\n"
+  drawBurrow br
+
+#exit
 
 #eval do
   let dat := atest
@@ -308,15 +399,18 @@ def uniquify (brs : Array Burrow) : Array Burrow := Id.run do
   let mut final : Std.HashSet Burrow := ∅
   drawBurrow br
   let mut con := 0
-  while con ≤ 5 do
+  let mut fin' := 13000
+  while con ≤ 0 do
+    fin' := final.fold (init := fin') (min · <| Burrow.energy ·)
     let (final', brs') :=
-      (brs.fold (init := ∅) fun (h : Std.HashSet Burrow) n => h.union (validMoves n)).partition isFinal
+      (brs.fold (init := ∅) fun (h : Std.HashSet Burrow) n =>
+        h.union (validMoves n)).partition (isFinal · fin')
     final := final.union final'
     --brs := uniquify brs'
     brs := brs'
-    IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final"
+    IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final, fin': {fin'}"
     con := con + 1
-  IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final"
+  IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final, fin': {fin'}"
 #exit
   for b in brs.union final do
     if !b.unmovable.isEmpty then drawBurrow b
