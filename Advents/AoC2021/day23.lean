@@ -129,14 +129,17 @@ Energy: 0
 #guard_msgs in
 #eval drawBurrow (inputToBurrow atest)
 
+/-- The length of a vector in the plane with respect to the L¹-distance. -/
+def lth (p : pos) : Nat := p.1.natAbs + p.2.natAbs
+
 /-- The L¹-distance in the plane. -/
-def dist (p : pos) : Nat := p.1.natAbs + p.2.natAbs
+def dist (p q : pos) : Nat := lth (p - q)
 
 def unsafeMove (br : Burrow) (p q : pos) : Option Burrow :=
   let newPos := p + q
   match Burrow.grid.contains newPos, br.ap.find? (·.1 == p) with
     | true, some f@(_, ap) => some { br with  ap := ((br.ap.erase f).push (newPos, ap)).qsort Blt
-                                              energy := br.energy + ap.times * dist q }
+                                              energy := br.energy + ap.times * lth q }
     | _, _ => none
 
 def _root_.pos.inHall (p : pos) : Bool := p.1 == 1
@@ -316,7 +319,7 @@ def move (br : Burrow) (p q : pos) : Option Burrow :=
     | true, some f@(_, ap) => some { br with
       ap        := (br.ap.erase f).push (newPos, ap) |>.qsort Blt
       unmovable := if newPos.inRoom then (br.unmovable.push newPos).qsort (· < ·) else br.unmovable
-      energy    := br.energy + ap.times * dist q }
+      energy    := br.energy + ap.times * lth q }
     | _, _ => none
 
 def validMoves (br : Burrow) : Std.HashSet Burrow := Id.run do
@@ -412,6 +415,33 @@ Energy: 14348
       | some b => br := b
   IO.println s!"Step {mvs.size}\n"
   drawBurrow br
+
+def baseline (b : Burrow) : Nat :=
+  b.ap.foldl (init := (Array.sum <| #[.A, .B, .C, .D].map AP.times)) fun t (p, ap) =>
+    t + ap.times * (1 + dist p (1, ap.roomColumn))
+
+#eval baseline (inputToBurrow atest)
+#eval do IO.println <| baseline (inputToBurrow (← IO.FS.lines input))
+
+def swap (b : Burrow) (a b : pos × AP) : Nat :=
+  let (p1, a1) := a
+  let (p2, a2) := b
+  if p1 == p2 then 0 else
+  if p2.2 < p1.2 then 0 else
+  if p1.2 == p2.2 then 0 else
+
+  default
+
+def swaps (b : Burrow) : Array (AP × AP) := Id.run do
+  let mut fin := #[]
+  for (p, a) in b.ap do
+    let x := 0
+  --b.ap.foldl (init := ∅) fun h
+  return fin
+
+#eval do
+  let dat ← IO.FS.lines input
+  IO.println <| baseline (inputToBurrow dat)
 
 #exit
 set_option trace.profiler true in
