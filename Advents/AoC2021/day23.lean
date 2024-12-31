@@ -20,6 +20,16 @@ def test := "#############
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- `testFinal` is the test string for the final configuration of the problem. -/
+def testFinal := "#############
+#...........#
+###A#B#C#D###
+  #A#B#C#D#
+  #########"
+
+/-- `atestFinal` is the final test string for the problem, split into rows. -/
+def atestFinal := (testFinal.splitOn "\n").toArray
+
 inductive AP where | A | B | C | D
   deriving BEq, Hashable
 
@@ -126,10 +136,12 @@ def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
     | some ap =>
       -- amphipods never stop in the hall directly above a room
       checkOr (!newPos.aboveRoom) "Amphipods never stop in the hall directly above a room" v? &&
+      -- amphipods do not move out of their own room, once they get back
+      checkOr (!br.unmovable.contains q) s!"The amphipod {ap} at {p} is back into its room" v? &&
       -- amphipods only move from a room that is not their own to the hall or
       -- from the hall to a room that is their own
       ( checkOr
-          (p.inRoom && newPos.inHall && !ap.inOwnRoom p)
+          (p.inRoom && newPos.inHall) -- && !ap.inOwnRoom p)
           "Amphipods only move from a room that is not their own to the hall" v? ||
         checkOr (p.inHall && newPos.inRoom && ap.inOwnRoom newPos)
           "Amphipods only move from the hall to a room that is their own" v?)
@@ -155,16 +167,47 @@ def canWalkthrough (br : Burrow) (p q : pos) (v? : Bool := false) : Bool :=
   drawBurrow br
 
 def move (br : Burrow) (p q : pos) : Option Burrow :=
+  if !canWalkthrough br p q true then none else
   let newPos := p + q
   match br.grid.contains newPos, br.ap[p]? with
-    | true, some ap => some { br with ap := (br.ap.erase p).insert newPos ap
-                                      energy := br.energy + ap.times * dist q }
+    | true, some ap => some { br with
+      ap        := (br.ap.erase p).insert newPos ap
+      unmovable := if newPos.inRoom then br.unmovable.insert newPos else br.unmovable
+      energy    := br.energy + ap.times * dist q }
     | _, _ => none
+
+def validMoves (br : Burrow) : Array Burrow := Id.run do
+  let mut fin := #[]
+  for (p, _) in br.ap do
+    for newP in br.grid do
+      if canWalkthrough br p (newP - p) then
+        fin := fin.push <| (move br p (newP - p)).get!
+  return fin
+
+def isFinal (br : Burrow) : Bool :=
+  br.ap.filter (fun p ap => (!ap.inOwnRoom p)) |>.isEmpty
+
+#assert isFinal (inputToBurrow atestFinal)
+#assert !isFinal (inputToBurrow atest)
 
 #eval do
   let dat := atest
   let br := inputToBurrow dat
-  let br := move br (2, 3) (-1, 0)
+  let mut brs := #[br]
+  let mut final := #[]
+  drawBurrow br
+  let mut con := 0
+  while con ≤ 7 do
+    (final, brs) := (brs.flatMap validMoves).partition isFinal
+    IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final"
+    con := con + 1
+  --for b in brs do drawBurrow b
+
+
+#eval do
+  let dat := atest
+  let br := inputToBurrow dat
+  let br := move br (2, 3) (-1, 1)
   drawBurrow br.get!
 
 
