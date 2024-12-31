@@ -423,14 +423,41 @@ def baseline (b : Burrow) : Nat :=
 #eval baseline (inputToBurrow atest)
 #eval do IO.println <| baseline (inputToBurrow (← IO.FS.lines input))
 
-def swap (b : Burrow) (a b : pos × AP) : Nat :=
-  let (p1, a1) := a
-  let (p2, a2) := b
-  if p1 == p2 then 0 else
-  if p2.2 < p1.2 then 0 else
-  if p1.2 == p2.2 then 0 else
+def swap (a b : pos × AP) : Nat :=
+  let ((row1, col1), a1) := a
+  let ((row2, col2), a2) := b
+  if -- two amphipods have swapped columns
+    (col1 != col2 && col1 == a2.roomColumn && col2 == a1.roomColumn) ||
+    -- an amphipod in its correct column is on top of an amphipod not in its column
+    (col1 == col2 && col1 == a1.roomColumn && col1 != a2.roomColumn && row1 < row2)
+  then
+    min a1.times a2.times
+  else
+    0
 
-  default
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
+  let b := inputToBurrow dat
+  b.ap.foldl (init := baseline b) fun tot i => tot + b.ap.foldl (init := 0) (· + swap i ·)
+
+#eval part1 atest --== ???
+#assert part1 atest == ???
+
+solve 1 14348
+
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest
+  let b := inputToBurrow dat
+  let mut tot := baseline b
+  IO.println <| tot
+  for i in b.ap do
+    for j in b.ap do
+      tot := tot + swap i j
+      IO.println s!"{i}, {j}, swap: {swap i j}"
+  IO.println s!"Total: {tot}"
+
 
 def swaps (b : Burrow) : Array (AP × AP) := Id.run do
   let mut fin := #[]
@@ -518,14 +545,6 @@ Step 5: 15275, of which 792 final, fin': 13000
   let br := move br (2, 3) (-1, 1)
   drawBurrow br.get!
 
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
 
 /-!
 #  Question 2
