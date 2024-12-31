@@ -361,27 +361,50 @@ def uniquify (brs : Array Burrow) : Array Burrow := Id.run do
   return brs
 -/
 
+/--
+info: --0123456789012-
+0|#############|
+1|#...........#|
+2|###D#A#D#C###|
+3|  #B#C#B#A#  |
+4|  #########  |
+--0123456789012-
+
+Energy: 0
+Step 16
+
+--0123456789012-
+0|#############|
+1|#...........#|
+2|###A#B#C#D###|
+3|  #A#B#C#D#  |
+4|  #########  |
+--0123456789012-
+
+Energy: 14728
+-/
+#guard_msgs in
 #eval do
   let dat ← IO.FS.lines input
   let mut br := inputToBurrow dat
   drawBurrow br
   let mvs : Array (pos × pos) := #[
-      ((2,  5), (-1, -3)), -- A
-      ((3,  5), (-2, -1)), -- C
-      ((2,  9), (-1,  2)), -- C
-      ((3,  9), (-2,  1)), -- A
-      ((2,  7), (-1,  1)), -- D
-      ((1,  8), ( 2,  1)), -- D
-      ((3,  7), (-2, -1)), -- B
-      ((1,  6), ( 2, -1)), -- B
-      ((1,  4), ( 2,  3)), -- C
-      ((2,  3), (-1,  1)), -- D
-      ((1,  4), ( 1,  5)), -- D
-      ((3,  3), (-2,  1)), -- B
-      ((1,  4), ( 1,  1)), -- B
-      ((1,  2), ( 2,  1)), -- A
-      ((1, 10), ( 1, -7)), -- A
-      ((1, 11), ( 1, -4))  -- C
+       ((2,  5), (-1, -3)) -- A
+      ,((2,  9), (-1, -3)) -- C
+      ,((3,  9), (-2,  1)) -- A
+      ,((2,  7), (-1,  1)) -- D
+      ,((1,  8), ( 2,  1)) -- D
+      ,((3,  7), (-2,  1)) -- B
+      ,((1,  6), ( 2,  1))  -- C
+      ,((3,  5), (-2,  1)) -- C
+      ,((1,  6), ( 1,  1)) -- C
+      ,((1,  8), ( 2, -3)) -- B
+      ,((2,  3), (-1,  1)) -- D
+      ,((1,  4), ( 1,  5)) -- D
+      ,((3,  3), (-2,  1)) -- B
+      ,((1,  4), ( 1,  1)) -- B
+      ,((1,  2), ( 2,  1)) -- A
+      ,((1, 10), ( 1, -7)) -- A
     ]
   for (p, q) in mvs do
     match move br p q with
@@ -391,7 +414,30 @@ def uniquify (brs : Array Burrow) : Array Burrow := Id.run do
   drawBurrow br
 
 #exit
+set_option trace.profiler true in
+/-
+--0123456789012-
+0|#############|
+1|#...........#|
+2|###B#C#B#D###|
+3|  #A#D#C#A#  |
+4|  #########  |
+--0123456789012-
 
+Energy: 0
+Step 0: 28, of which 0 final, fin': 13000
+Step 1 (after pruning): 28, of which 0 final, fin': 13000
+Step 1: 371, of which 0 final, fin': 13000
+Step 2 (after pruning): 355, of which 0 final, fin': 13000
+Step 2: 2521, of which 33 final, fin': 13000
+Step 3 (after pruning): 2227, of which 33 final, fin': 13000
+Step 3: 9597, of which 246 final, fin': 13000
+Step 4 (after pruning): 7646, of which 246 final, fin': 13000
+Step 4: 22052, of which 792 final, fin': 13000
+Step 5 (after pruning): 15275, of which 792 final, fin': 13000
+Step 5: 15275, of which 792 final, fin': 13000
+
+-/
 #eval do
   let dat := atest
   let br := inputToBurrow dat
@@ -400,7 +446,7 @@ def uniquify (brs : Array Burrow) : Array Burrow := Id.run do
   drawBurrow br
   let mut con := 0
   let mut fin' := 13000
-  while con ≤ 0 do
+  while con ≤ 4 do
     fin' := final.fold (init := fin') (min · <| Burrow.energy ·)
     let (final', brs') :=
       (brs.fold (init := ∅) fun (h : Std.HashSet Burrow) n =>
@@ -410,7 +456,21 @@ def uniquify (brs : Array Burrow) : Array Burrow := Id.run do
     brs := brs'
     IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final, fin': {fin'}"
     con := con + 1
+    let mut left := brs
+    for a in brs do
+      left := left.erase a
+      for b in left do
+        if a.ap == b.ap then
+          if a.energy ≤ b.energy then brs := brs.erase b else brs := brs.erase a
+    IO.println s!"Step {con} (after pruning): {brs.size + final.size}, of which {final.size} final, fin': {fin'}"
+      --let mut cand := a
+      --left := left.erase a
+      --let fd := left.filter fun n : Burrow => (n.ap == a.ap && n.energy ≤ a.energy)
+      --
+      --if !fd.isEmpty then
+      --  IO.println s!"Found {fd.size}"
   IO.println s!"Step {con}: {brs.size + final.size}, of which {final.size} final, fin': {fin'}"
+
 #exit
   for b in brs.union final do
     if !b.unmovable.isEmpty then drawBurrow b
