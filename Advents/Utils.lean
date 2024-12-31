@@ -183,7 +183,24 @@ def loadGrid (dat : Array String) : Std.HashMap pos Char :=
   (Array.range dat.size).foldl (fun i => ·.union (loadString dat[i]! i)) ∅
 -/
 
-/-- Converts the input strings into a `HashMap`. -/
+/--
+Converts the input strings into a `HashMap`.
+Only the characters on which `toEntry` is `some` appear as keys.
+-/
+def sparseMap (dat : Array String) (toEntry : Char → Option α) : Std.HashMap pos α := Id.run do
+  let mut h := {}
+  for d in [0:dat.size] do
+    let row := dat[d]!
+    for c in [0:row.length] do
+      match toEntry (row.get ⟨c⟩) with
+        | none => continue
+        | some a => h := h.insert (d, c) a
+  return h
+
+/--
+Converts the input strings into a `HashMap`.
+Uses *every* character in every string of `dat : Array String`.
+-/
 def loadGrid {α} (dat : Array String) (toEntry : Char → α) : Std.HashMap pos α := Id.run do
   let mut h := {}
   for d in [0:dat.size] do
@@ -192,7 +209,10 @@ def loadGrid {α} (dat : Array String) (toEntry : Char → α) : Std.HashMap pos
       h := h.insert (d, c) (toEntry (row.get ⟨c⟩))
   return h
 
-/-- Converts the input strings into a `HashMap`, assuming that the entries are natural number value. -/
+/--
+Converts the input strings into a `HashMap`,
+assuming that the entries are natural number values.
+-/
 def loadGridNats (dat : Array String) : Std.HashMap pos Nat := loadGrid dat (String.toNat! ⟨[·]⟩)
 
 def sparseGrid (dat : Array String) (toEntry : Char → Bool) : Std.HashSet pos := Id.run do
