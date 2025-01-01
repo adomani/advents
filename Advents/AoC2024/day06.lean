@@ -218,6 +218,6 @@ def part2 (dat : Array String) : Nat :=
 
 #assert part2 atest == 6
 
-set_option trace.profiler true in solve 2 1770  -- takes approx 21s
+set_option trace.profiler true in solve 2 1770  -- takes approx 24s
 
 end Day06
