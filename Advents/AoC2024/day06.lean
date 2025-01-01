@@ -62,24 +62,12 @@ def addNewWall (grid mz : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges :
       match edgs.e[(p, rot (rot del))]? with
         | none => continue
         | some tgt =>
-          let newTgt := (findNext grid mz tgt.1 tgt.2)
           let negDel := rot (rot del)
-          --dbg_trace "from the edge {(p, negDel)}--{tgt} to {(p, negDel)} and {(wall + del, rot negDel)}"
           e := e.insert (p, negDel) (wall + del, rot negDel)
 
           let secTgt := findNext grid mz (wall + del) (rot negDel)
-          --dbg_trace "also insert {(wall + del, rot negDel)}--{(secTgt.1, if secTgt.2 then del else (0, 0))}"
           e := e.insert (wall + del, rot negDel) ((secTgt.1, if secTgt.2 then del else (0, 0)))
-    --let pths := edgs.e.filter fun (p, d) next => p.1 == wall.1
-    --edgs.e[(p, rot (rot del))]?
   return {edgs with e := e}
-  --let (finPos, inGrid) := findNext grid mz p d
-  --let newEdges := edgs.e.insert (p, d) (finPos, if inGrid then rot d else (0, 0))
---
-  --let newEdges := if inGrid then
-  --  dbg_trace "also inserting {(finPos, rot (rot d))} to {(p+ d, rot (rot (rot d)))}"
-  --  newEdges.insert (finPos, rot (rot d)) (p, rot (rot (rot d))) else newEdges
-  --{edgs with e := newEdges}
 
 def addEdgeAllDirs (grid mz : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
   [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun h' d =>
@@ -89,19 +77,6 @@ def addEdgeAllDirs (grid mz : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges 
 def addEdges (grid mz new : Std.HashSet pos) (edgs : Edges) : Edges :=
   new.fold (init := edgs) fun h p =>
     [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := h) fun h' d => addEdge grid mz h' (p - d) (rot d)
-
-/-
-partial
-def length (e : Edges) (p d : pos) (tot : Nat) : Nat :=
-  if d == (0, 0) then tot else
-  match e.e[(p, d)]? with
-      | none => tot
-      | some (p', d', t) => length e p' d' (tot + t)
--/
-
-partial
-def next (e : Edges) (p d : pos) : pos × pos :=
-  e.e.getD (p, d) default
 
 def nextCache (memo : Std.HashSet (pos × pos)) (e : Edges) (p d : pos) :
     pos × pos × Std.HashSet (pos × pos) :=
@@ -114,102 +89,9 @@ def loops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet pos)
   let (firstWall, _) := findNext grid hashes p d
   let mut memo := memo
   let mut (p1, d1) := (firstWall, rot d)
-  let mut con := 0
   while d1 != (0, 0) && !memo.contains (p1, d1) do
-    --dbg_trace (p1, d1)
     (p1, d1, memo) := nextCache memo e p1 d1
-    con := con + 1
-  --dbg_trace "went around {con} times\nd1 != (0, 0): {d1 != (0, 0)}\n!memo.contains {(p1, d1)}: {!memo.contains (p1, d1)}"
   return d1 != (0, 0)
-
-def addAndLoops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet pos)
-    (e : Edges) (wall p d : pos) : Bool :=
-  let hashes := hashes.insert wall
-  --dbg_trace "edges before: {e.e.size}"
-  let e := addEdgeAllDirs grid hashes e wall
-    --[(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := e) fun h' d' => addEdge grid hashes h' (wall - d') (rot d')
-  dbg_trace "edges after: {e.e.size}, {e.e.contains ((6, 4), (-1, 0))}"
-  loops? memo grid hashes e p d
-
-#eval do
-  let dat := atest
-  let szx := atest.size
-  let szy := atest[0]!.length
-  let grid := sparseGrid dat (fun _ => true)
-  let Spos := sparseGrid dat (· == '^') |>.toArray[0]!
-  let S : pos × pos := (Spos, (-1, 0))
-  let hashes := sparseGrid dat (· == '#') --|>.insert (S.1 + (0, -1))
-  let edgs := addEdges grid hashes hashes ⟨∅⟩
-  let del := (-1, 0)
-  let wl := (6, 3)
-  --let s := findNextAll grid hashes wl del
-  --dbg_trace "adding a total of {s.size} broken paths"
-  --dbg_trace "breaking {s.fold (init := #[]) fun (h : Array _) p => h.push (edgs.e[(p, rot (rot del))]?)} broken paths"
-  draw <| drawSparse hashes szx szy
-  let newEdges := addNewWall grid hashes edgs wl
-  IO.println <| loops? ∅ grid (hashes.insert wl) newEdges S.1 S.2
-  IO.println <| loops? ∅ grid hashes edgs S.1 S.2
-  --dbg_trace "putting a wall at {S.1 + (0, -1)}"
-  --IO.println <| addAndLoops? ∅ grid (hashes.insert (S.1 + (0, -1))) edgs (S.1 + (0, -1)) S.1 S.2
-  --let mut (p1, d1) := ((1, 4), (0, 1))
---#exit
-  let (firstWall, _) := findNext grid hashes S.1 S.2
-  let mut curr := (firstWall, rot S.2)
-  let mut (p1, d1) := curr
-  while d1 != (0, 0) do
-    IO.println <| curr
-    (p1, d1) := next edgs p1 d1
-    curr := (p1, d1)
-  IO.println <| curr
-  --IO.println <| edgs.e.toArray
---#exit
-#eval do
-  let dat := atest
-  let szx := atest.size
-  let szy := atest[0]!.length
-  let grid := sparseGrid dat (fun _ => true)
-  let hashes := sparseGrid dat (· == '#')
-  let edgs := (addEdges grid hashes hashes ⟨∅⟩).e
-  let removeDir := edgs.fold (init := ∅)
-    fun (h : Std.HashMap pos (pos × pos)) p ((d, e, _) : pos × pos × Nat) => h.insert (Prod.fst p) (d, e)
-  let _ : ToString (pos × pos) :=
-    ⟨fun s : pos × pos => match s.2 with
-      | ( 1,  0) => "↓"
-      | (-1,  0) => "↑"
-      | ( 0,  1) => "→"
-      | ( 0, -1) => "←"
-      | _ => "·"
-       ⟩
-  draw <| drawSparse hashes szx szy
-  draw <| drawHash removeDir szx szy
-  IO.println <| edgs.toArray
-  let S : pos × pos := ((1, 1), (0, 1))
-  IO.println <| findNext grid hashes (1, 1) (0, 1)
-  IO.println <| findNext grid hashes (9, 1) (-1, 0)
-  IO.println <| hashes.contains (6, 1)
-  let next := edgs.filter
-
-def mkEdges (mz : Std.HashSet pos) (szx szy : Int) : Std.HashMap (pos × pos) (pos × pos) := Id.run do
-  let mut fin := ∅
-  for p@(mx, my) in mz do
-    let (mxsmalls, mxbigs) := mz.partition (·.1 < mx)
-    let (mysmalls, mybigs) := mz.partition (·.2 < my)
-
-    let mxsmall   : pos := mxsmalls.toArray.qsort (· > ·) |>.getD 0 (0, my)
-    let dirxsmall : pos := ( 1,  0)
-    let mxbig     : pos := mxbigs.toArray.qsort (· < ·)   |>.getD 1 (szx, my)
-    let dirxbig   : pos := (-1,  0)
-    let mysmall   : pos := mysmalls.toArray.qsort (· > ·) |>.getD 0 (mx, 0)
-    let dirysmall : pos := ( 0,  1)
-    let mybig     : pos := mybigs.toArray.qsort (· < ·)   |>.getD 1 (mx, szy)
-    let dirybig   : pos := ( 0, -1)
-
-    fin := fin  |>.insert (p - dirxsmall, dirxsmall) (mxsmall + dirxsmall, rot dirxsmall)
-                |>.insert (p - dirysmall, dirysmall) (mysmall + dirysmall, rot dirysmall)
-                |>.insert (p - dirxbig,   dirxbig)   (mxbig   + dirxbig,   rot dirxbig)
-                |>.insert (p - dirybig,   dirybig)   (mybig   + dirybig,   rot dirybig)
-
-  return fin
 
 /--
 The state for the grid.
