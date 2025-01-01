@@ -102,13 +102,115 @@ solve 1 5086
 #  Question 2
 -/
 
+/--
+Moves from `p` by increments of `d` until it either finds an element of `hashes` (the position of
+a character `#` in the input) or leaves `grid`.
+
+It returns the pair consisting of the final position and,
+* if it reached a `hash`, then the rotation of `d`;
+* if it exited `grid`, then `(0, 0)`.
+-/
+def findNext (grid hashes : Std.HashSet pos) (p d : pos) : pos × pos := Id.run do
+  let mut curr := p
+  while grid.contains curr && !hashes.contains curr do
+    curr := curr + d
+  return (curr - d, if hashes.contains curr then rot d else (0, 0))
+
+/--
+Moves from `p` by increments of `d` until it either finds an element of `hashes` (the position of
+a character `#` in the input) or leaves `grid`.
+Meanwhile, it keeps track of all the elements of `hashes` that are to the right of the steps that
+it takes.
+
+It returns the collection of all positions that have a `hash` to their right.
+
+These are the paths that need to break, if we add `p` as a `hash`.
+-/
+def findNextAll (grid hashes : Std.HashSet pos) (p d : pos) : Std.HashSet pos := Id.run do
+  let mut curr := p
+  let mut sides : Std.HashSet pos := ∅
+  while grid.contains curr && !hashes.contains curr do
+    curr := curr + d
+    if hashes.contains (curr + rot d) then
+      sides := sides.insert curr
+  return sides
+
+/--
+`Edges` maps each position-with-direction to the following position-with-direction.
+
+If `(p, d)` maps to `(p', d')`, then this means that `p'` is the latest position, starting
+from `p` and going in the direction `d` that is not a hash (`#`), and is contained in the grid.
+* If `p'` is followed by a hash (`#`), then `d'` is the 90⁰ clockwise rotation of `d`.
+* If `p` is on the edge of the grid, then the returned direction `d'` is `(0, 0)`.
+-/
+abbrev Edges := Std.HashMap (pos × pos) (pos × pos)
+
+/-- Adds an edge from `(p, d)` to the input `Edges`, using the provided information. -/
+def addEdge (grid hashes : Std.HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
+  edgs.insert (p, d) (findNext grid hashes p d)
+
+/-- Similar to `addEdge`, except that it adds all edges from `p`, pointing in all directions. -/
+def addEdgeAllDirs (grid hashes : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
+  [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun h' d =>
+    addEdge grid (hashes.insert p) h' (p - d) (rot d)
+
+/--
+Similar to `addEdge` and `addEdgeAllDirs`, except that it adds all edges from all positions
+in `new`.
+-/
+def addEdges (grid hashes new : Std.HashSet pos) (edgs : Edges) : Edges :=
+  new.fold (init := edgs) (addEdgeAllDirs grid hashes)
+
+/--
+Breaks the edges that are already present in `edgs`, according to what they should be
+after we add the extra `wall`.
+-/
+def addNewWall (grid hashes : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges :=
+  [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun e del =>
+    let toBreak := findNextAll grid hashes wall del
+    toBreak.fold (init := e) fun e p =>
+      let negDel := rot (rot del)
+      e |>.insert (p, negDel) (wall + del, rot negDel)
+        |>.insert (wall + del, rot negDel) (findNext grid hashes (wall + del) (rot negDel))
+
+/--
+Moves one step from `(p, d)` following the `Edges`.  The input `memo` records the visited pairs
+position-and-direction, so that we can detect loops.
+-/
+def nextWithMemo (memo : Std.HashSet (pos × pos)) (e : Edges) (p d : pos) :
+    pos × pos × Std.HashSet (pos × pos) :=
+  match e[(p, d)]? with
+      | none => ((0, 0), (0, 0), memo)
+      | some (p', d') => (p', d', memo.insert (p, d))
+/--
+Determines if starting from `p` and moving with direction `d` along the `Edges` in `e`
+we ever enter a loop.
+
+The input `memo` is expected to be `∅` at the start and increases by the visited positions at each
+step.
+-/
+def loops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet pos)
+    (e : Edges) (p d : pos) : Bool := Id.run do
+  let (firstWall, _) := findNext grid hashes p d
+  let mut memo := memo
+  let mut (p1, d1) := (firstWall, rot d)
+  while d1 != (0, 0) && !memo.contains (p1, d1) do
+    (p1, d1, memo) := nextWithMemo memo e p1 d1
+  return d1 != (0, 0)
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
   let gm := mkGuardMoves dat
   let path : Std.HashSet pos := (moveUntil gm).1.erase gm.S
+  let grid := sparseGrid dat (fun _ => true)
+  let Spos := sparseGrid dat (· == '^') |>.toArray[0]!
+  let S : pos × pos := (Spos, (-1, 0))
+  let hashes := sparseGrid dat (· == '#')
+  let edgs := addEdges grid hashes hashes ⟨∅⟩
+
   let obsts : Std.HashSet pos := path.fold (init := ∅) fun h obst =>
-    let gmo := {gm with mz := gm.mz.insert obst}
-    let (_, loop?) := moveUntil gmo
+    let newEdges := addNewWall grid hashes edgs obst
+    let loop? := loops? ∅ grid (hashes.insert obst) newEdges S.1 S.2
     if loop? then
       h.insert obst
     else h
@@ -116,6 +218,6 @@ def part2 (dat : Array String) : Nat :=
 
 #assert part2 atest == 6
 
---set_option trace.profiler true in solve 2 1770  -- takes almost 10 minutes
+set_option trace.profiler true in solve 2 1770  -- takes approx 24s
 
 end Day06
