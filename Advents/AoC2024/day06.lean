@@ -161,29 +161,41 @@ in `new`.
 def addEdges (grid mz new : Std.HashSet pos) (edgs : Edges) : Edges :=
   new.fold (init := edgs) (addEdgeAllDirs grid mz)
 
-def addNewWall (grid mz : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges := Id.run do
-  let mut e := edgs
-  for del in [(0, 1), (0, -1), (1, 0), (-1, 0)] do
+/--
+Breaks the edges that are already present in `edgs`, according to what they should be
+after we add the extra `wall`.
+-/
+def addNewWall (grid mz : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges :=
+  [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun e del =>
     let toBreak := findNextAll grid mz wall del
-    for p in toBreak do
+    toBreak.fold (init := e) fun e p =>
       let negDel := rot (rot del)
-      e := e.insert (p, negDel) (wall + del, rot negDel)
-      e := e.insert (wall + del, rot negDel) (findNext grid mz (wall + del) (rot negDel))
-  return e
+      e |>.insert (p, negDel) (wall + del, rot negDel)
+        |>.insert (wall + del, rot negDel) (findNext grid mz (wall + del) (rot negDel))
 
-def nextCache (memo : Std.HashSet (pos × pos)) (e : Edges) (p d : pos) :
+/--
+Moves one step from `(p, d)` following the `Edges`.  The input `memo` records the visited pairs
+position-and-direction, so that we can detect loops.
+-/
+def nextWithMemo (memo : Std.HashSet (pos × pos)) (e : Edges) (p d : pos) :
     pos × pos × Std.HashSet (pos × pos) :=
   match e[(p, d)]? with
       | none => ((0, 0), (0, 0), memo)
       | some (p', d') => (p', d', memo.insert (p, d))
+/--
+Determines if starting from `p` and moving with direction `d` along the `Edges` in `e`
+we ever enter a loop.
 
+The input `memo` is expected to be `∅` at the start and increases by the visited positions at each
+step.
+-/
 def loops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet pos)
     (e : Edges) (p d : pos) : Bool := Id.run do
   let (firstWall, _) := findNext grid hashes p d
   let mut memo := memo
   let mut (p1, d1) := (firstWall, rot d)
   while d1 != (0, 0) && !memo.contains (p1, d1) do
-    (p1, d1, memo) := nextCache memo e p1 d1
+    (p1, d1, memo) := nextWithMemo memo e p1 d1
   return d1 != (0, 0)
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
