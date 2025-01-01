@@ -112,14 +112,14 @@ def addAndLoops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet po
   let szx := atest.size
   let szy := atest[0]!.length
   let grid := sparseGrid dat (fun _ => true)
-  let hashes := sparseGrid dat (· == '#')
-  let edgs := addEdges grid hashes hashes ⟨∅⟩
-  draw <| drawSparse hashes szx szy
   let Spos := sparseGrid dat (· == '^') |>.toArray[0]!
   let S : pos × pos := (Spos, (-1, 0))
-  --IO.println <| loops? ∅ grid hashes edgs S.1 S.2
-  dbg_trace "putting a wall at {S.1 + (0, -1)}"
-  IO.println <| addAndLoops? ∅ grid (hashes.insert (S.1 + (0, -1))) edgs (S.1 + (0, -1)) S.1 S.2
+  let hashes := sparseGrid dat (· == '#') --|>.insert (S.1 + (0, -1))
+  let edgs := addEdges grid hashes hashes ⟨∅⟩
+  draw <| drawSparse hashes szx szy
+  IO.println <| loops? ∅ grid hashes edgs S.1 S.2
+  --dbg_trace "putting a wall at {S.1 + (0, -1)}"
+  --IO.println <| addAndLoops? ∅ grid (hashes.insert (S.1 + (0, -1))) edgs (S.1 + (0, -1)) S.1 S.2
   --let mut (p1, d1) := ((1, 4), (0, 1))
 #exit
   let (firstWall, _) := findNext grid hashes S.1 S.2
