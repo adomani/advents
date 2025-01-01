@@ -119,7 +119,7 @@ def part2 (dat : Array String) (param : Nat := 37) : String :=
     h.filter (((allNbs.find? (·.1 == v)).get!.2).insert v).contains
   showHash clique
 
-#assert part2 atest 9 == "co,de,ka,ta" -- this should be `"co,de,ka,ta"`!
+#assert part2 atest 9 == "co,de,ka,ta"
 
 solve 2 "cf,ct,cv,cz,fi,lq,my,pa,sl,tt,vw,wz,yd" -- takes approximately 11s
 
