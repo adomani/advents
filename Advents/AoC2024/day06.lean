@@ -126,12 +126,12 @@ It returns the collection of all positions that have a `hash` to their right.
 
 These are the paths that need to break, if we add `p` as a `hash`.
 -/
-def findNextAll (gr mz : Std.HashSet pos) (p d : pos) : Std.HashSet pos := Id.run do
+def findNextAll (grid hashes : Std.HashSet pos) (p d : pos) : Std.HashSet pos := Id.run do
   let mut curr := p
   let mut sides : Std.HashSet pos := ∅
-  while gr.contains curr && !mz.contains curr do
+  while grid.contains curr && !hashes.contains curr do
     curr := curr + d
-    if mz.contains (curr + rot d) then
+    if hashes.contains (curr + rot d) then
       sides := sides.insert curr
   return sides
 
@@ -146,32 +146,32 @@ from `p` and going in the direction `d` that is not a hash (`#`), and is contain
 abbrev Edges := Std.HashMap (pos × pos) (pos × pos)
 
 /-- Adds an edge from `(p, d)` to the input `Edges`, using the provided information. -/
-def addEdge (grid mz : Std.HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
-  edgs.insert (p, d) (findNext grid mz p d)
+def addEdge (grid hashes : Std.HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
+  edgs.insert (p, d) (findNext grid hashes p d)
 
 /-- Similar to `addEdge`, except that it adds all edges from `p`, pointing in all directions. -/
-def addEdgeAllDirs (grid mz : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
+def addEdgeAllDirs (grid hashes : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
   [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun h' d =>
-    addEdge grid (mz.insert p) h' (p - d) (rot d)
+    addEdge grid (hashes.insert p) h' (p - d) (rot d)
 
 /--
 Similar to `addEdge` and `addEdgeAllDirs`, except that it adds all edges from all positions
 in `new`.
 -/
-def addEdges (grid mz new : Std.HashSet pos) (edgs : Edges) : Edges :=
-  new.fold (init := edgs) (addEdgeAllDirs grid mz)
+def addEdges (grid hashes new : Std.HashSet pos) (edgs : Edges) : Edges :=
+  new.fold (init := edgs) (addEdgeAllDirs grid hashes)
 
 /--
 Breaks the edges that are already present in `edgs`, according to what they should be
 after we add the extra `wall`.
 -/
-def addNewWall (grid mz : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges :=
+def addNewWall (grid hashes : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges :=
   [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun e del =>
-    let toBreak := findNextAll grid mz wall del
+    let toBreak := findNextAll grid hashes wall del
     toBreak.fold (init := e) fun e p =>
       let negDel := rot (rot del)
       e |>.insert (p, negDel) (wall + del, rot negDel)
-        |>.insert (wall + del, rot negDel) (findNext grid mz (wall + del) (rot negDel))
+        |>.insert (wall + del, rot negDel) (findNext grid hashes (wall + del) (rot negDel))
 
 /--
 Moves one step from `(p, d)` following the `Edges`.  The input `memo` records the visited pairs
