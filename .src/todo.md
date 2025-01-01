@@ -34,5 +34,3 @@
   multiple times)
 * Day 22, part 2 is slow (minimizing price windows to obtain bananas -- bitwise operations,
   approximately 3m -- try to streamline the generation of the bits for speed up?)
-* Day 23, part 2 takes approximately 11s!
-* Day 24, part 2 is not automated: there is code to help find the transpositions, but not in a systematic way.
