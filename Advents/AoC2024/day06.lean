@@ -28,71 +28,6 @@ def atest := (test.splitOn "\n").toArray
 /-- Rotation by 90⁰ clockwise. -/
 def rot (p : pos) : pos := (p.2, - p.1)
 
-def findNext (gr mz : Std.HashSet pos) (p d : pos) : pos × Bool := Id.run do
-  let mut curr := p
-  while gr.contains curr && !mz.contains curr do
-    curr := curr + d
-  return (curr - d, mz.contains curr)
-
-def findNextAll (gr mz : Std.HashSet pos) (p d : pos) : Std.HashSet pos := Id.run do
-  let mut curr := p
-  let mut sides : Std.HashSet pos := ∅
-  while gr.contains curr && !mz.contains curr do
-    curr := curr + d
-    if mz.contains (curr + rot d) then
-      --dbg_trace "found {curr}, going from {p} in the direction {d}"
-      sides := sides.insert curr
-  return sides
-
-structure Edges where
-  /-- The returned direction is `(0, 0)`, when the position is on the edge of the grid, pointing
-  outwards. -/
-  e : Std.HashMap (pos × pos) (pos × pos)
-
-
-def addEdge (grid mz : Std.HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
-  let (finPos, inGrid) := findNext grid mz p d
-  {edgs with e := edgs.e.insert (p, d) (finPos, if inGrid then rot d else (0, 0))}
-
-def addNewWall (grid mz : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges := Id.run do
-  let mut e := edgs.e
-  for del in [(0, 1), (0, -1), (1, 0), (-1, 0)] do
-    let toBreak := findNextAll grid mz wall del
-    for p in toBreak do
-      match edgs.e[(p, rot (rot del))]? with
-        | none => continue
-        | some tgt =>
-          let negDel := rot (rot del)
-          e := e.insert (p, negDel) (wall + del, rot negDel)
-
-          let secTgt := findNext grid mz (wall + del) (rot negDel)
-          e := e.insert (wall + del, rot negDel) ((secTgt.1, if secTgt.2 then del else (0, 0)))
-  return {edgs with e := e}
-
-def addEdgeAllDirs (grid mz : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
-  [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun h' d =>
-    let e' := addEdge grid (mz.insert p) h' (p - d) (rot d)
-    e'
-
-def addEdges (grid mz new : Std.HashSet pos) (edgs : Edges) : Edges :=
-  new.fold (init := edgs) fun h p =>
-    [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := h) fun h' d => addEdge grid mz h' (p - d) (rot d)
-
-def nextCache (memo : Std.HashSet (pos × pos)) (e : Edges) (p d : pos) :
-    pos × pos × Std.HashSet (pos × pos) :=
-  match e.e[(p, d)]? with
-      | none => (default, default, memo)
-      | some (p', d') => (p', d', memo.insert (p, d))
-
-def loops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet pos)
-    (e : Edges) (p d : pos) : Bool := Id.run do
-  let (firstWall, _) := findNext grid hashes p d
-  let mut memo := memo
-  let mut (p1, d1) := (firstWall, rot d)
-  while d1 != (0, 0) && !memo.contains (p1, d1) do
-    (p1, d1, memo) := nextCache memo e p1 d1
-  return d1 != (0, 0)
-
 /--
 The state for the grid.
 * `mz` is the location of the obstacles.
@@ -166,6 +101,69 @@ solve 1 5086
 /-!
 #  Question 2
 -/
+
+/--
+Moves from `p` by increments of `d` until it either finds an element of `hashes` or leaves `grid`.
+-/
+def findNext (grid hashes : Std.HashSet pos) (p d : pos) : pos × Bool := Id.run do
+  let mut curr := p
+  while grid.contains curr && !hashes.contains curr do
+    curr := curr + d
+  return (curr - d, hashes.contains curr)
+
+def findNextAll (gr mz : Std.HashSet pos) (p d : pos) : Std.HashSet pos := Id.run do
+  let mut curr := p
+  let mut sides : Std.HashSet pos := ∅
+  while gr.contains curr && !mz.contains curr do
+    curr := curr + d
+    if mz.contains (curr + rot d) then
+      --dbg_trace "found {curr}, going from {p} in the direction {d}"
+      sides := sides.insert curr
+  return sides
+
+structure Edges where
+  /-- The returned direction is `(0, 0)`, when the position is on the edge of the grid, pointing
+  outwards. -/
+  e : Std.HashMap (pos × pos) (pos × pos)
+
+def addEdge (grid mz : Std.HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
+  let (finPos, inGrid) := findNext grid mz p d
+  {edgs with e := edgs.e.insert (p, d) (finPos, if inGrid then rot d else (0, 0))}
+
+def addNewWall (grid mz : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges := Id.run do
+  let mut e := edgs.e
+  for del in [(0, 1), (0, -1), (1, 0), (-1, 0)] do
+    let toBreak := findNextAll grid mz wall del
+    for p in toBreak do
+      let negDel := rot (rot del)
+      e := e.insert (p, negDel) (wall + del, rot negDel)
+      let (secTgt, inside?) := findNext grid mz (wall + del) (rot negDel)
+      e := e.insert (wall + del, rot negDel) (secTgt, if inside? then del else (0, 0))
+  return {edgs with e := e}
+
+def addEdgeAllDirs (grid mz : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
+  [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun h' d =>
+    let e' := addEdge grid (mz.insert p) h' (p - d) (rot d)
+    e'
+
+def addEdges (grid mz new : Std.HashSet pos) (edgs : Edges) : Edges :=
+  new.fold (init := edgs) fun h p =>
+    [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := h) fun h' d => addEdge grid mz h' (p - d) (rot d)
+
+def nextCache (memo : Std.HashSet (pos × pos)) (e : Edges) (p d : pos) :
+    pos × pos × Std.HashSet (pos × pos) :=
+  match e.e[(p, d)]? with
+      | none => (default, default, memo)
+      | some (p', d') => (p', d', memo.insert (p, d))
+
+def loops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet pos)
+    (e : Edges) (p d : pos) : Bool := Id.run do
+  let (firstWall, _) := findNext grid hashes p d
+  let mut memo := memo
+  let mut (p1, d1) := (firstWall, rot d)
+  while d1 != (0, 0) && !memo.contains (p1, d1) do
+    (p1, d1, memo) := nextCache memo e p1 d1
+  return d1 != (0, 0)
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
