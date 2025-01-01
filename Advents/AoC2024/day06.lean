@@ -28,6 +28,148 @@ def atest := (test.splitOn "\n").toArray
 /-- Rotation by 90⁰ clockwise. -/
 def rot (p : pos) : pos := (p.2, - p.1)
 
+def findNext (gr mz : Std.HashSet pos) (p d : pos) : pos × Bool × Nat := Id.run do
+  let mut con := 0
+  let mut curr := p
+  while gr.contains curr && !mz.contains curr do
+    curr := curr + d
+    con := con + 1
+    --dbg_trace "next {curr}"
+  if mz.contains curr
+  then
+    return (curr - d, true, con)
+  else
+    return (curr - d, false, con)
+
+structure Edges where
+  /-- The returned direction is `(0, 0)`, when the position is on the edge of the grid, pointing
+  outwards. -/
+  e : Std.HashMap (pos × pos) (pos × pos × Nat)
+
+
+def addEdge (grid mz : Std.HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
+  let (finPos, inGrid, length) := findNext grid mz p d
+  {edgs with e := edgs.e.insert (p, d) (finPos, if inGrid then rot d else (0, 0), length)}
+
+def addEdges (grid mz new : Std.HashSet pos) (edgs : Edges) : Edges :=
+  new.fold (init := edgs) fun h p =>
+    [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := h) fun h' d => addEdge grid mz h' (p - d) (rot d)
+
+partial
+def length (e : Edges) (p d : pos) (tot : Nat) : Nat :=
+  if d == (0, 0) then tot else
+  match e.e[(p, d)]? with
+      | none => tot
+      | some (p', d', t) => length e p' d' (tot + t)
+
+partial
+def next (e : Edges) (p d : pos) : pos × pos :=
+  match e.e[(p, d)]? with
+      | none => default
+      | some (p', d', _t) => (p', d')
+
+def run (memo : Std.HashSet (pos × pos)) (e : Edges) (p d : pos) :
+    pos × pos × Std.HashSet (pos × pos) :=
+  match e.e[(p, d)]? with
+      | none => (default, default, memo)
+      | some (p', d', _t) => (p', d', memo.insert (p', d'))
+
+#eval do
+  let dat := atest
+  let szx := atest.size
+  let szy := atest[0]!.length
+  let grid := sparseGrid dat (fun _ => true)
+  let hashes := sparseGrid dat (· == '#')
+  let edgs := addEdges grid hashes hashes ⟨∅⟩
+  draw <| drawSparse hashes szx szy
+  let Spos := sparseGrid dat (· == '^') |>.toArray[0]!
+  let S : pos × pos := (Spos, (-1, 0))
+  --let mut (p1, d1) := ((1, 4), (0, 1))
+  let (firstWall, _, _) := findNext grid hashes S.1 S.2
+  let mut curr := (firstWall, rot S.2)
+  let mut (p1, d1) := curr
+  while d1 != (0, 0) do
+    IO.println <| curr
+    (p1, d1) := next edgs p1 d1
+    curr := (p1, d1)
+  IO.println <| curr
+  --IO.println <| edgs.e.toArray
+
+#eval do
+  let dat := atest
+  let szx := atest.size
+  let szy := atest[0]!.length
+  let grid := sparseGrid dat (fun _ => true)
+  let hashes := sparseGrid dat (· == '#')
+  let edgs := (addEdges grid hashes hashes ⟨∅⟩).e
+  let removeDir := edgs.fold (init := ∅)
+    fun (h : Std.HashMap pos (pos × pos)) p ((d, e, _) : pos × pos × Nat) => h.insert (Prod.fst p) (d, e)
+  let _ : ToString (pos × pos) :=
+    ⟨fun s : pos × pos => match s.2 with
+      | ( 1,  0) => "↓"
+      | (-1,  0) => "↑"
+      | ( 0,  1) => "→"
+      | ( 0, -1) => "←"
+      | _ => "·"
+       ⟩
+  draw <| drawSparse hashes szx szy
+  draw <| drawHash removeDir szx szy
+  IO.println <| edgs.toArray
+  let S : pos × pos := ((1, 1), (0, 1))
+  IO.println <| findNext grid hashes (1, 1) (0, 1)
+  IO.println <| findNext grid hashes (9, 1) (-1, 0)
+  IO.println <| hashes.contains (6, 1)
+  let next := edgs.filter
+
+def mkEdges (mz : Std.HashSet pos) (szx szy : Int) : Std.HashMap (pos × pos) (pos × pos) := Id.run do
+  let mut fin := ∅
+  for p@(mx, my) in mz do
+    let (mxsmalls, mxbigs) := mz.partition (·.1 < mx)
+    let (mysmalls, mybigs) := mz.partition (·.2 < my)
+
+    let mxsmall   : pos := mxsmalls.toArray.qsort (· > ·) |>.getD 0 (0, my)
+    let dirxsmall : pos := ( 1,  0)
+    let mxbig     : pos := mxbigs.toArray.qsort (· < ·)   |>.getD 1 (szx, my)
+    let dirxbig   : pos := (-1,  0)
+    let mysmall   : pos := mysmalls.toArray.qsort (· > ·) |>.getD 0 (mx, 0)
+    let dirysmall : pos := ( 0,  1)
+    let mybig     : pos := mybigs.toArray.qsort (· < ·)   |>.getD 1 (mx, szy)
+    let dirybig   : pos := ( 0, -1)
+
+    fin := fin  |>.insert (p - dirxsmall, dirxsmall) (mxsmall + dirxsmall, rot dirxsmall)
+                |>.insert (p - dirysmall, dirysmall) (mysmall + dirysmall, rot dirysmall)
+                |>.insert (p - dirxbig,   dirxbig)   (mxbig   + dirxbig,   rot dirxbig)
+                |>.insert (p - dirybig,   dirybig)   (mybig   + dirybig,   rot dirybig)
+
+  return fin
+
+#eval do
+  let dat := atest
+  let szx := atest.size
+  let szy := atest[0]!.length
+  let grid := sparseGrid dat (fun _ => true)
+  let hashes := sparseGrid dat (· == '#')
+  let edgs := mkEdges hashes szx szy
+  let edgs := (addEdges grid hashes hashes ⟨∅⟩).e
+  let removeDir := edgs.fold (init := ∅)
+    fun (h : Std.HashMap pos (pos × pos)) p ((d, e, _) : pos × pos × Nat) => h.insert (Prod.fst p) (d, e)
+  let _ : ToString (pos × pos) :=
+    ⟨fun s : pos × pos => match s.2 with
+      | ( 1,  0) => "↓"
+      | (-1,  0) => "↑"
+      | ( 0,  1) => "→"
+      | ( 0, -1) => "←"
+      | _ => "·"
+       ⟩
+  draw <| drawSparse hashes szx szy
+  draw <| drawHash removeDir szx szy
+  IO.println <| edgs.toArray
+  let S : pos × pos := ((1, 1), (0, 1))
+  IO.println <| findNext grid hashes (1, 1) (0, 1)
+  IO.println <| findNext grid hashes (9, 1) (-1, 0)
+  IO.println <| hashes.contains (6, 1)
+  let next := edgs.filter
+
 /--
 The state for the grid.
 * `mz` is the location of the obstacles.
