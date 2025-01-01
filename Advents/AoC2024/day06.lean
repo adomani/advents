@@ -104,20 +104,32 @@ solve 1 5086
 
 /--
 Moves from `p` by increments of `d` until it either finds an element of `hashes` or leaves `grid`.
+
+It returns the pair consisting of the final position and,
+* if it reached a `hash`, then the rotation of `d`;
+* if it exited `grid`, then `(0, 0)`.
 -/
-def findNext (grid hashes : Std.HashSet pos) (p d : pos) : pos × Bool := Id.run do
+def findNext (grid hashes : Std.HashSet pos) (p d : pos) : pos × pos := Id.run do
   let mut curr := p
   while grid.contains curr && !hashes.contains curr do
     curr := curr + d
-  return (curr - d, hashes.contains curr)
+  return (curr - d, if hashes.contains curr then rot d else (0, 0))
 
+/--
+Moves from `p` by increments of `d` until it either finds an element of `hashes` or leaves `grid`.
+Meanwhile, it keeps track of all the elements of `hashes` that are to the right of the steps that
+it takes.
+
+It returns the collection of all positions that have a `hash` to their right.
+
+These are the paths that need to break, if we add `p` as a `hash`.
+-/
 def findNextAll (gr mz : Std.HashSet pos) (p d : pos) : Std.HashSet pos := Id.run do
   let mut curr := p
   let mut sides : Std.HashSet pos := ∅
   while gr.contains curr && !mz.contains curr do
     curr := curr + d
     if mz.contains (curr + rot d) then
-      --dbg_trace "found {curr}, going from {p} in the direction {d}"
       sides := sides.insert curr
   return sides
 
@@ -127,8 +139,7 @@ structure Edges where
   e : Std.HashMap (pos × pos) (pos × pos)
 
 def addEdge (grid mz : Std.HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
-  let (finPos, inGrid) := findNext grid mz p d
-  {edgs with e := edgs.e.insert (p, d) (finPos, if inGrid then rot d else (0, 0))}
+  {edgs with e := edgs.e.insert (p, d) (findNext grid mz p d)}
 
 def addNewWall (grid mz : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges := Id.run do
   let mut e := edgs.e
@@ -137,8 +148,7 @@ def addNewWall (grid mz : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges :
     for p in toBreak do
       let negDel := rot (rot del)
       e := e.insert (p, negDel) (wall + del, rot negDel)
-      let (secTgt, inside?) := findNext grid mz (wall + del) (rot negDel)
-      e := e.insert (wall + del, rot negDel) (secTgt, if inside? then del else (0, 0))
+      e := e.insert (wall + del, rot negDel) (findNext grid mz (wall + del) (rot negDel))
   return {edgs with e := e}
 
 def addEdgeAllDirs (grid mz : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
