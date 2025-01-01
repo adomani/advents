@@ -21,7 +21,7 @@
 
 ### 2024
 
-* Day 6, part 2 is slow (moving guard in a maze, finding locations of obstacles to create loops, almost 10 minutes)
+* Day 6, part 2 is somewhat slow (moving guard in a maze, finding locations of obstacles to create loops, approx 22s)
 * Day 7, part 2 is slow (filling in binary operations, trying to achieve a fixed total -- approx 1m30)
 * Day 9, part 2 is slow (defragmenting a file-system, takes approximately 1 minute)
 * Day 12, part 1 and 2 are slow (connected components, perimeters and corners, approx 1m each answer)
