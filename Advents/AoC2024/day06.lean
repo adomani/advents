@@ -103,7 +103,8 @@ solve 1 5086
 -/
 
 /--
-Moves from `p` by increments of `d` until it either finds an element of `hashes` or leaves `grid`.
+Moves from `p` by increments of `d` until it either finds an element of `hashes` (the position of
+a character `#` in the input) or leaves `grid`.
 
 It returns the pair consisting of the final position and,
 * if it reached a `hash`, then the rotation of `d`;
@@ -116,7 +117,8 @@ def findNext (grid hashes : Std.HashSet pos) (p d : pos) : pos × pos := Id.run 
   return (curr - d, if hashes.contains curr then rot d else (0, 0))
 
 /--
-Moves from `p` by increments of `d` until it either finds an element of `hashes` or leaves `grid`.
+Moves from `p` by increments of `d` until it either finds an element of `hashes` (the position of
+a character `#` in the input) or leaves `grid`.
 Meanwhile, it keeps track of all the elements of `hashes` that are to the right of the steps that
 it takes.
 
@@ -133,37 +135,46 @@ def findNextAll (gr mz : Std.HashSet pos) (p d : pos) : Std.HashSet pos := Id.ru
       sides := sides.insert curr
   return sides
 
-structure Edges where
-  /-- The returned direction is `(0, 0)`, when the position is on the edge of the grid, pointing
-  outwards. -/
-  e : Std.HashMap (pos × pos) (pos × pos)
+/--
+`Edges` maps each position-with-direction to the following position-with-direction.
 
+If `(p, d)` maps to `(p', d')`, then this means that `p'` is the latest position, starting
+from `p` and going in the direction `d` that is not a hash (`#`), and is contained in the grid.
+* If `p'` is followed by a hash (`#`), then `d'` is the 90⁰ clockwise rotation of `d`.
+* If `p` is on the edge of the grid, then the returned direction `d'` is `(0, 0)`.
+-/
+abbrev Edges := Std.HashMap (pos × pos) (pos × pos)
+
+/-- Adds an edge from `(p, d)` to the input `Edges`, using the provided information. -/
 def addEdge (grid mz : Std.HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
-  {edgs with e := edgs.e.insert (p, d) (findNext grid mz p d)}
+  edgs.insert (p, d) (findNext grid mz p d)
+
+/-- Similar to `addEdge`, except that it adds all edges from `p`, pointing in all directions. -/
+def addEdgeAllDirs (grid mz : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
+  [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun h' d =>
+    addEdge grid (mz.insert p) h' (p - d) (rot d)
+
+/--
+Similar to `addEdge` and `addEdgeAllDirs`, except that it adds all edges from all positions
+in `new`.
+-/
+def addEdges (grid mz new : Std.HashSet pos) (edgs : Edges) : Edges :=
+  new.fold (init := edgs) (addEdgeAllDirs grid mz)
 
 def addNewWall (grid mz : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges := Id.run do
-  let mut e := edgs.e
+  let mut e := edgs
   for del in [(0, 1), (0, -1), (1, 0), (-1, 0)] do
     let toBreak := findNextAll grid mz wall del
     for p in toBreak do
       let negDel := rot (rot del)
       e := e.insert (p, negDel) (wall + del, rot negDel)
       e := e.insert (wall + del, rot negDel) (findNext grid mz (wall + del) (rot negDel))
-  return {edgs with e := e}
-
-def addEdgeAllDirs (grid mz : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
-  [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun h' d =>
-    let e' := addEdge grid (mz.insert p) h' (p - d) (rot d)
-    e'
-
-def addEdges (grid mz new : Std.HashSet pos) (edgs : Edges) : Edges :=
-  new.fold (init := edgs) fun h p =>
-    [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := h) fun h' d => addEdge grid mz h' (p - d) (rot d)
+  return e
 
 def nextCache (memo : Std.HashSet (pos × pos)) (e : Edges) (p d : pos) :
     pos × pos × Std.HashSet (pos × pos) :=
-  match e.e[(p, d)]? with
-      | none => (default, default, memo)
+  match e[(p, d)]? with
+      | none => ((0, 0), (0, 0), memo)
       | some (p', d') => (p', d', memo.insert (p, d))
 
 def loops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet pos)
