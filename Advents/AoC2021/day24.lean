@@ -171,10 +171,26 @@ def oneDigit (div? : Bool) (i j w z : Int) : Int :=
   --a := modifyEntry a "z" newZ
   --for i in [0:100] do
     --let n1 := newZ % 26 + 4
-    let n1 := 11111111111111 + i
+    let n1 := 11111111111111 --+ i
     let anew := run a n1
     IO.println s!"{(anew.var[0]!, anew.var[3]!)}"
     --IO.println <| s!"{(n1)}: {finalZ a n1}, {oneDigit false 12 4 n1 0}"
+
+def _root_.Array.drop (as : Array α) (n : Nat) : Array α :=
+  as.reverse.take (as.size - n) |>.reverse
+
+#assert #[1, 2, 3, 4].drop 1 == #[2, 3, 4]
+#assert #[1, 2, 3, 4].drop 0 == #[1, 2, 3, 4]
+#assert #[1, 2, 3, 4].drop 4 == #[]
+#assert #[1, 2, 3, 4].drop 5 == #[]
+
+def _root_.Array.takeRight (as : Array α) (n : Nat) : Array α :=
+  as.reverse.take n |>.reverse
+
+#assert #[1, 2, 3, 4].takeRight 1 == #[4]
+#assert #[1, 2, 3, 4].takeRight 0 == #[]
+#assert #[1, 2, 3, 4].takeRight 4 == #[1, 2, 3, 4]
+#assert #[1, 2, 3, 4].takeRight 5 == #[1, 2, 3, 4]
 
 #check List.findIdxs
 
@@ -195,7 +211,8 @@ def solveALU (a : ALU) (xs : Std.HashMap Int (Array Int)) :
       for newX' in [0:26] do
         let newX := 26 ^ prevDigs.size * newX' + oldX
         let a := modifyEntry a "z" newX
-        if oldX == (finalZ a d) then
+        let fiz := finalZ a d
+        if oldX == fiz then
           sols := sols.insert newX (#[d.cast] ++ prevDigs)
   return sols
 
@@ -209,24 +226,27 @@ def solveOneLayer (as : Array ALU) (xs : Std.HashMap Int (Array Int)) :
   (as.pop, solveALU as.back! xs)
 
 #eval do
-  let dat ← IO.FS.lines input
+  --let dat ← IO.FS.lines input
   let pts := makeParts (← IO.FS.readFile input)
-  let a := inputToALU (pts.pop.pop.pop.pop.back! ++ pts.pop.pop.pop.back! ++ pts.pop.pop.back! ++ pts.pop.back! ++ pts.back!)
+  let a := inputToALU (pts.takeRight 5).flatten
   --let a := modifyEntry a "z" 7733
   --IO.println <| finalZ a 176
   --let a := modifyEntry a "z" 8436
   --IO.println <| finalZ a 287
   for nd in [0:26] do
-    let a := modifyEntry a "z" (219348 + nd * 26^4)
+    let a := modifyEntry a "z" (201069 + nd * 26^4)
     for w in [1:9] do --for w' in [0:9] do
-      let res := finalZ a (w * 10000 + 7287)
+      let res := finalZ a (w * 10000 + 6176)
       if res < 100 then
         IO.println <| s!"{w} & {nd} ↦ {res}"
   --for i in [2:9] do
   --  for j in [2:9] do
   --    IO.println <| s!"2{j}{i}: {finalZ a (200 + j * 10 + i)}"
 
-#eval toDs (219348 + 12 * 26 ^ 4)
+#eval toDs 219348
+#eval toDs 201069
+#eval toDs 8436
+#eval toDs 7733
 
 --#exit
 #eval do
@@ -252,8 +272,8 @@ def solveOneLayer (as : Array ALU) (xs : Std.HashMap Int (Array Int)) :
     for j in [0:mp.size] do
       row := row.push mp[j]![i]!
     if row.sortDedup.size != 1 then
+      IO.println s!"{i}"
       IO.println <| row.sortDedup
-      IO.println ""
 
 #eval do
   --let dat := atest1
