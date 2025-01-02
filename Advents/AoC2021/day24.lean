@@ -187,15 +187,16 @@ def makeALUs (dat : String) : Array ALU :=
   let parts := (dat.drop "inp w\n".length).splitOn "inp w\n" |>.foldl (·.push <| "inp w\n" ++ ·) #[]
   parts.map (inputToALU <| ·.trim.splitOn "\n" |>.toArray)
 
-def solveALU (a : ALU) (xs : Std.HashSet Int) (exp : Nat) : Std.HashSet (Int × Int) := Id.run do
-  let mut sols : Std.HashSet (Int × Int) := ∅
+def solveALU (a : ALU) (xs : Std.HashMap Int (Array Int)) :
+    Std.HashMap Int (Array Int) := Id.run do
+  let mut sols : Std.HashMap Int (Array Int) := ∅
   for d in [1:9] do
-   for oldX in xs do
-    for newX' in [0:26] do
-      let newX := 26 ^ exp * newX' + oldX
-      let a := modifyEntry a "z" newX
-      if oldX == (finalZ a d) then
-        sols := sols.insert (d, newX)
+    for (oldX, prevDigs) in xs do
+      for newX' in [0:26] do
+        let newX := 26 ^ prevDigs.size * newX' + oldX
+        let a := modifyEntry a "z" newX
+        if oldX == (finalZ a d) then
+          sols := sols.insert newX (#[d.cast] ++ prevDigs)
   return sols
 
 partial
@@ -203,37 +204,44 @@ def toDs (n : Nat) : Array Nat :=
   if n == 0 then #[] else
   (toDs (n / 26)).push (n % 26)
 
-def solveOneLayer (as : Array ALU) (xs : Std.HashSet Int) (exp : Nat) :
-    Array ALU × Std.HashSet (Int × Int) :=
-  (as.pop, solveALU as.back! xs exp)
+def solveOneLayer (as : Array ALU) (xs : Std.HashMap Int (Array Int)) :
+    Array ALU × Std.HashMap Int (Array Int) :=
+  (as.pop, solveALU as.back! xs)
 
 #eval do
   let dat ← IO.FS.lines input
   let pts := makeParts (← IO.FS.readFile input)
-  let a := inputToALU (pts.pop.pop.back! ++ pts.pop.back! ++ pts.back!)
-  let a := modifyEntry a "z" 7733
-  IO.println <| finalZ a 176
-  let a := modifyEntry a "z" 8436
-  IO.println <| finalZ a 287
+  let a := inputToALU (pts.pop.pop.pop.pop.back! ++ pts.pop.pop.pop.back! ++ pts.pop.pop.back! ++ pts.pop.back! ++ pts.back!)
+  --let a := modifyEntry a "z" 7733
+  --IO.println <| finalZ a 176
+  --let a := modifyEntry a "z" 8436
+  --IO.println <| finalZ a 287
+  for nd in [0:26] do
+    let a := modifyEntry a "z" (219348 + nd * 26^4)
+    for w in [1:9] do --for w' in [0:9] do
+      let res := finalZ a (w * 10000 + 7287)
+      if res < 100 then
+        IO.println <| s!"{w} & {nd} ↦ {res}"
   --for i in [2:9] do
   --  for j in [2:9] do
   --    IO.println <| s!"2{j}{i}: {finalZ a (200 + j * 10 + i)}"
 
-#eval toDs 162
+#eval toDs (219348 + 12 * 26 ^ 4)
 
 --#exit
 #eval do
   let dat ← IO.FS.readFile input
   let mut mps := makeALUs dat
-  let mut xs : Std.HashSet Int := {0}
+  let mut xs : Std.HashMap Int (Array Int) := {(0, #[])}
   let mut con := 1
   while !mps.isEmpty do
     dbg_trace xs.size
-    let (mps', sols) := solveOneLayer mps xs (min (con-1) (14 - con))
+    let (mps', sols) := solveOneLayer mps xs --(con - 1) --(min (con-1) (14 - con))
     con := con + 1
     mps := mps'
-    IO.println <| sols.toArray.qsort (· < ·)
-    xs := sols.fold (init := ∅) fun h p => h.insert (Prod.snd p)
+    IO.println <| sols.toArray.qsort (·.1 < ·.1)
+    xs := sols
+    --xs := sols.fold (init := ∅) fun h p => h.insert (Prod.snd p)
   --IO.println <| solveALU mp.back! {0} |>.toArray
 --#exit
 #eval do
