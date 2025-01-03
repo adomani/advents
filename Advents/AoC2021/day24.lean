@@ -1,6 +1,6 @@
 import Advents.Utils
 import Advents.AoC2024.day18
-open Lean
+open Std
 
 namespace Day24
 
@@ -115,11 +115,11 @@ def finalZ (a : ALU) (n : Nat) : Int :=
 --    a := oneOp a
 --  a.input[3]!
 
-#eval show Elab.Term.TermElabM _ from do
+#eval show Lean.Elab.Term.TermElabM _ from do
   let a := run (inputToALU atest1) 4
   guard <| a.var[1]! == ("x", -4)
 
-#eval show Elab.Term.TermElabM _ from do
+#eval show Lean.Elab.Term.TermElabM _ from do
   let a := run (inputToALU atest2) 39
   guard <| a.var[3]! == ("z", 1)
 
@@ -203,16 +203,15 @@ def makeALUs (dat : String) : Array ALU :=
   let parts := (dat.drop "inp w\n".length).splitOn "inp w\n" |>.foldl (·.push <| "inp w\n" ++ ·) #[]
   parts.map (inputToALU <| ·.trim.splitOn "\n" |>.toArray)
 
-def solveALU (a : ALU) (xs : Std.HashMap Int (Array Int)) :
-    Std.HashMap Int (Array Int) := Id.run do
-  let mut sols : Std.HashMap Int (Array Int) := ∅
+def solveALU (a : ALU) (xs : HashMap Int (Array Int)) : HashMap Int (Array Int) := Id.run do
+  let mut sols : HashMap Int (Array Int) := ∅
   for d in [1:9] do
     for (oldX, prevDigs) in xs do
       for newX' in [0:26] do
         let newX := 26 ^ prevDigs.size * newX' + oldX
         let a := modifyEntry a "z" newX
         let fiz := finalZ a d
-        if oldX == fiz then
+        if oldX == fiz || (3 ≤ prevDigs.size && fiz == newX) then
           sols := sols.insert newX (#[d.cast] ++ prevDigs)
   return sols
 
@@ -221,8 +220,8 @@ def toDs (n : Nat) : Array Nat :=
   if n == 0 then #[] else
   (toDs (n / 26)).push (n % 26)
 
-def solveOneLayer (as : Array ALU) (xs : Std.HashMap Int (Array Int)) :
-    Array ALU × Std.HashMap Int (Array Int) :=
+def solveOneLayer (as : Array ALU) (xs : HashMap Int (Array Int)) :
+    Array ALU × HashMap Int (Array Int) :=
   (as.pop, solveALU as.back! xs)
 
 #eval do
@@ -252,7 +251,7 @@ def solveOneLayer (as : Array ALU) (xs : Std.HashMap Int (Array Int)) :
 #eval do
   let dat ← IO.FS.readFile input
   let mut mps := makeALUs dat
-  let mut xs : Std.HashMap Int (Array Int) := {(0, #[])}
+  let mut xs : HashMap Int (Array Int) := {(0, #[])}
   let mut con := 1
   while !mps.isEmpty do
     dbg_trace xs.size
