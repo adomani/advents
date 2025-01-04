@@ -36,9 +36,9 @@ def inputToSC (dat : Array String) : SC where
   w := dat[0]!.length
   h := dat.size
 
-instance : ToString pos where toString | (0, 1) => ">"  | (1, 0) => "v" | _ => "."
-
-def drawSC (sc : SC) : IO Unit := draw <| drawHash sc.cc sc.h sc.w
+def drawSC (sc : SC) : IO Unit :=
+  let _ : ToString pos := ⟨(match · with | (0, 1) => ">" | (1, 0) => "v" | _ => ".")⟩
+  draw <| drawHash sc.cc sc.h sc.w
 
 #eval do
   let dat := atest
@@ -56,22 +56,29 @@ def move (sc : SC) (d : pos) : SC := Id.run do
     let mv := add sc p m
     if sc.cc.contains mv then
       newCC := newCC.insert p m
-      --toMove := toMove.erase p
     else
       newCC := newCC.insert mv m
   return {sc with cc := newCC}
 
-def flip (p : pos) : pos := (p.2, p.1)
+def step (sc : SC) : SC :=
+  move (move sc (0, 1)) (1, 0)
 
-def moveN (sc : SC) (n : Nat) (d : pos := (0, 1)) : SC :=
-  match n with
-    | 0 => sc
-    | n + 1 => moveN (move sc d) n (flip d)
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := Id.run do
+  let mut sc := inputToSC dat
+  let mut con := 0
+  let mut old := ∅
+  let mut new := sc.cc.toArray.qsort (·.1 < ·.1)
+  while old != new do
+    sc := step sc
+    con := con + 1
+    old := new
+    new := sc.cc.toArray.qsort (·.1 < ·.1)
+  return con
 
-def step (sc : SC) (n : Nat) : SC :=
-  match n with
-    | 0 => sc
-    | n + 1 => step (moveN sc 2) n
+#assert part1 atest == 58
+
+--set_option trace.profiler true in solve 1 384  -- takes approx 160s
 
 #eval do
   let dat := atest
@@ -79,19 +86,18 @@ def step (sc : SC) (n : Nat) : SC :=
   drawSC sc
   drawSC (move sc (0, 1))
   drawSC (move (move sc (0, 1)) (1, 0))
-  --let sc := moveN sc 158 --(0, 1)
-  let sc := step sc 58
+  let sc := (Array.range 58).foldl (init := sc) (fun _ => step ·)
   drawSC sc
 
 set_option trace.profiler true in
 #eval do
-  let dat := atest
   let dat ← IO.FS.lines input
+  let dat := atest
   let mut sc := inputToSC dat
   let mut old := ∅
   let mut con := 0
   while true do
-    sc := step sc 1
+    sc := step sc
     con := con + 1
     let sort := sc.cc.toArray.qsort (·.1 < ·.1)
     if old == sort then
@@ -99,26 +105,5 @@ set_option trace.profiler true in
       break
     old := sort
   drawSC sc
-
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
-
-/-!
-#  Question 2
--/
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
 
 end Day25
