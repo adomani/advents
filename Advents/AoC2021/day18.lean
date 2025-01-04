@@ -32,6 +32,12 @@ inductive snail where
   | cat : snail → snail → snail
   deriving BEq
 
+def snail.toString : snail → String
+    | .i n => s!"{n}"
+    | .cat s t => s!"[{s.toString}, {t.toString}]"
+
+instance : ToString snail where toString := snail.toString
+
 variable (n : Nat) in
 instance : OfNat snail n where
   ofNat := .i n
@@ -59,12 +65,34 @@ def level : snail → Nat
   | .i _ => 0
   | .cat a b => max (level a) (level b) + 1
 
+def split : snail → snail
+  | .i n@(_ + 10) => .cat (.i (n / 2)) (.i ((n + 1) / 2))
+  | .i n => .i n
+  | .cat a b =>
+    let sa := split a
+    if sa != a then .cat sa b
+    else .cat sa (split b)
+
+
+--def split : snail → snail
+--  | .i n => .i n
+--  | .cat (.i a) (.i b) => .cat (.i (a / 2)) (.i ((b + 1) / 2))
+--  | .cat a b =>
+--    let sa := split a
+--    if sa != a then .cat sa b
+--    else .cat sa (split b)
+#assert ([[[[4,3],4],4],[7,[[8,4],9]]] : snail) + ([1,1] : snail) == ([[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] : snail)
+#assert split [[[[0,7],4],[15,[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
+#assert split [[[[0,7],4],[[7,8],[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
+
 #eval level [[[[[9,8],1],2],3],4]
 
 def explode : snail → snail
   | n@(.i _) => n
   | .cat a b =>
+    dbg_trace "left: {a}, right: {b}"
     if level a == 4 then
+      dbg_trace "{a} has level 4"
       0 + b
     else if level b == 4
     then
@@ -79,6 +107,7 @@ def explode : snail → snail
       else
         a + b
 
+#eval explode [[[[[9,8],1],2],3],4]
 #reduce explode [[[[[9,8],1],2],3],4]
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
