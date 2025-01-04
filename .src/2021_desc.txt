@@ -239,3 +239,58 @@ Find the highest `y`-coordinate that a probe the passes through the given rectan
 #### Part 2
 
 Now find all the possible initial velocities that allow a probe to reach the rectangular range.
+-- Day 19
+Aligning beacons and scanners in space.
+
+### Description
+
+#### Part 1
+
+The input contains the coordinates of the beacons that each scanner detects.
+In part 1, we should find how many beacons there are, taking into account that beacons seen by
+each scanner may overlap with the other beacons.
+
+#### Part 2
+
+Now we should determine the largest Manhattan distance between any two *scanners*
+(not the beacons!).
+-- Day 20
+Repeatedly enhancing an image.
+
+### Description
+
+#### Part 1
+
+The input contains a string of length 512, enconding an `i`mage `e`nhancing `a`lgorithm, and
+an initial image (a grid of `#` and `.`).
+In part 1, we should run the `iea` twice and find out how many pixels are lit as a result.
+
+#### Part 2
+
+In part 2, we should run the `iea` 50 times and find out how many pixels are lit as a result.
+-- Day 22
+Switching on and off overlapping cuboids.
+
+### Description
+
+#### Part 1
+
+The input is a list of ranges of cuboids and whether they are `on` or `off`.
+Part 1 asks how many are on in the cube `[-50..50] ^ 3`.
+
+#### Part 2
+
+In part 2, we should perform the computation on *all* the cubes.
+-- Day 25
+Seacucumbers moving right and down.
+
+### Description
+
+#### Part 1
+
+The input is a configuration of two herds of seacucumbers: some move right, other move down.
+Part 1 asks after how many steps, the seacucumbers run out of moves.
+
+#### Part 2
+
+Obtain all the stars!

@@ -38,6 +38,7 @@ newday () {
     sed "s=_newDay_=${ind0}=; s=YYYY=${yr}=g" .src/template.lean >> "${fname}.lean"
     printf 'import %s\n' "${fname//\//.}" >> Advents.lean
     brown 'Used day '; printf '%s' "${ind}"; brown ' year '; printf '%s\n' "${yr}"
+    printf 'git checkout -b %s_day%s\n' "${yr}" "${ind}"
 #    wget "https://adventofcode.com/${yr}/day/${ind}/input" -O "${AoCyear}/day"$( printf '%02d' "${ind}")".input"
   )
 }
@@ -57,7 +58,7 @@ desc_tests () {
     desc="$(
       awk -v day="${dig}" 'BEGIN{ con=0 }
         !/^-- Day [0-9]*$/ && (con == day) { print $0 }
-        /^-- Day [0-9]*$/ { con++ }' "${baseDir}/${descFile}"
+        /^-- Day [0-9]*$/ { con=$0; gsub(/[^[0-9]]*/, "", con) }' "${baseDir}/${descFile}"
       )"
     printf '#  [Day %s](https://adventofcode.com/%s/day/%s)\n\n%s\n\n' "${dig}" "${yr}" "${dig}" "$(
       printf '%s' "${desc}" | head -1
@@ -94,18 +95,19 @@ desc () {
   AoCyear="${rootDir}${yr}"
   croot
   awk -v fil="${yr}_descriptions_with_tests.md" 'BEGIN {
-      con=1
+      day=1
       acc=""
       print "|Day|Description|\n|:-:|-|"
       link=sprintf("(%s#day-", fil)
     }
     2 <= NR && /^-- Day [0-9]*$/ {
-      printf("|[%s]%s%s)|%s|\n", con, link, con, acc)
-      con++
+      printf("|[%s]%s%s)|%s|\n", day, link, day, acc)
+      day=$0
+      gsub(/[^[0-9]]*/, "", day)
       acc=""
     }
     !/^-- Day [0-9]*$/ && (acc == "") { acc=$0 }
-    END { printf("|[%s]%s%s)|%s|\n", con, link, con, acc) }' .src/"${yr}"_desc.txt |
+    END { printf("|[%s]%s%s)|%s|\n", day, link, day, acc) }' .src/"${yr}"_desc.txt |
       column -s'|' -o'|' -t | sed 's=|= | =g; s=^ ==; s= $=='
 )
 }

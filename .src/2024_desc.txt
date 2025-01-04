@@ -78,3 +78,374 @@ Add the number of pages that appear in the middle of each *correctly ordered* li
 #### Part 2
 
 Add the number of pages that appear in the middle of each *incorrectly ordered* list of pages.
+-- Day 6
+The input is a map with locations of obstacles and the location of a guard.
+
+### Description
+
+#### Part 1
+
+The guard moves in a fixed direction, until it reaches an obstacle.
+At that point, it rotates by 90⁰ clockwise and continues.
+The first question is to determine how many locations on the map the guard occupies, before exiting the map.
+
+#### Part 2
+
+For the second part, we should find all positions on the grid such that placing one further an obstacle in that position, makes the guard enter into a loop.
+-- Day 7
+Lists of total and possible operands, but missing operations!
+
+### Description
+
+#### Part 1
+
+Each row starts with a "target" value and a list of possible summands.
+Inserting `*` and `+` in all possible ways (and *always* associate to the left),
+sum the values of the rows that *can* represent a correct operation, with an appropriate
+choice of `*` and `+`.
+
+#### Part 2
+
+Similar to part 1, except that there is a third operation that is allowed:
+concatenation of natural numbers, written in decimal.
+This extra operation maps `12` and `345` to `12345`.
+-- Day 8
+Find the resonant harmonics in a grid of antenna locations.
+
+### Description
+
+#### Part 1
+
+The input consists of a map with the positions of antennas.
+For each pair `(p, q)` of locations of distinct antennas of the same kind,
+we determine the location `p + (p - q)` of a resonant antinode.
+We count how many such resonant antinodes there are that are contained in the initial grid.
+
+#### Part 2
+
+Similar to part 1, except that instead of just the location `p + (p - q)`, we want to count all
+locations `p + n * (p - q)`, for all `n ≠ 0`, again only counting the positions that end up in the
+initial grid.
+-- Day 9
+Fragment and defragment a disk, based on blocks that are free or occupied by files.
+
+### Description
+
+#### Part 1
+
+The input is a long number in decimal notation.
+The digit encode the location of consecutive free blocks and file blocks of a file-system.
+The goal of the first part is to compress as much as possible the files,
+by moving individual occupied blocks from the right to the left-most available free space.
+
+#### Part 2
+
+Similar to part 1, except that now we move all the blocks of a file together, rather than fragmenting.
+If there is no consecutive sequence of free blocks at least as long as the current file to the left of the file,
+then we skip the file and move to the next one to its left.
+-- Day 10
+The input is a height map.
+
+### Description
+
+#### Part 1
+
+A valid path starts at any `0`, ends at any `9` and increases by exactly one at each step.
+Steps are only allowed in the four "grid" directions: up, down, left, right.
+Determine the number of pairs `(start, end)`, where
+* `start` is the position of a `0`;
+* `end` is the position of a `9`;
+* there is a path paths from `start` to `end`.
+
+#### Part 2
+
+Similar to part 1, except that now we should determine the total number of valid paths,
+not just their existence.
+-- Day 11
+The input is a sequence of numbers written on stones.
+
+### Description
+
+#### Part 1
+
+Each time you blink, each stones changes, by either modifying its value or splitting into two stones.
+Determine the total sum of the values of the configuration of the stone after you blink 25 times.
+
+#### Part 2
+
+Similar to part 1, except that now you blink 75 times.
+-- Day 12
+The input is a grid with locations of where different kinds of plants have been planted.
+
+### Description
+
+#### Part 1
+
+We should find the sum of `area * perimeter` for each connected component of the garden containing
+plants of a single variety.
+
+#### Part 2
+
+Similar to part one, except that we should find the sum of `area * corners` for each connected
+component of the garden containing plants of a single variety.
+-- Day 13
+The input is a description of various games with the claw.
+
+### Description
+
+#### Part 1
+
+We should determine the intersection points between two lines.
+All the lines are non-parallel, the intersection points are required to be integers and
+non-negative.
+
+Once we found these intersection points, we tally them using `3` and `1` as weights
+for their coordinates.
+
+#### Part 2
+
+Similar to part one, except that the target positions are now increased by `10000000000000`.
+-- Day 14
+The input is a list of positions and velocities of robots in a periodic grid.
+
+### Description
+
+#### Part 1
+
+We should determine the product of the numbers of robots in each of the four quadrants of the grid,
+after the robots moved 100 times.
+
+#### Part 2
+
+There is an Easter Egg: once in every period, a subset of the robots draws a Christmas tree in one of the quadrats.
+We should determine the first time that this happens.
+```
+············#······································
+·#···················#·····························
+···················································
+···················································
+·#········###############################··········
+··········#·····························#··········
+··········#·····························#··········
+··········#·····························#··········
+··········#·····························#··········
+··········#··············#··············#··········
+··········#·············###·············#··········
+··········#············#####············#··········
+····#·····#···········#######···········#··········
+··········#··········#########··········#····#·····
+#·········#············#####············#··········
+··········#···········#######···········#··········
+··········#··········#########··········#··········
+#·········#·········###########·········#··········
+··········#········#############········#··········
+··········#··········#########··········#··········
+··········#·········###########·········#··········
+··········#········#############········#··········
+··········#·······###############·······#·····#····
+··········#······#################······#··········
+··········#········#############········#··········
+··········#·······###############·······#····#·····
+··········#······#################······#··········
+··········#·····###################·····#····#·····
+··········#····#####################····#··········
+··········#·············###·············#··········
+·#········#·············###·············#··········
+··········#·············###·············#··········
+··········#·····························#··········
+··········#·····························#·····#····
+··········#·····························#··········
+··········#·····························#·#········
+··········###############################··········
+···················································
+··················································#
+·····················#···#·························
+```
+-- Day 15
+The lanternfish maze: a robot pushing boxes around.
+
+### Description
+
+#### Part 1
+
+As the robot moves around the grid, it pushes the boxes around.
+We should determine the GPS value of the final configuration,
+adding the appropriately weighted `x` and `y` coordinates.
+
+#### Part 2
+
+It turns out that the grid and everything inside except for the bot should be stretched in the
+horizontal direction by a factor of 2.
+The boxes, in particular, can now be stacked and pushed also when they overlap in a single position.
+-- Day 16
+The Reindeer maze: most steps are forced, sometimes you have to rotate.
+
+### Description
+
+#### Part 1
+
+We should determine the smallest score to go from `S` to `E`:
+continuing in the current direction costs 1 point, rotating costs 1000.
+
+#### Part 2
+
+Now we should determine the number of the tiles that are contained in some path of minimum score
+between `S` and `E`.
+-- Day 17
+The state machine and its list of instructions.
+
+### Description
+
+#### Part 1
+
+Run the machine until it halts and report the answer.
+Note that the answer is a *comma-separated* list of digits, not necessarily a single number!
+
+#### Part 2
+
+For the second part we should determine the smallest initial state of the machine that reproduces
+a copy of its own program.
+-- Day 18
+Historians making their way in memory, avoiding corrupted bytes.
+
+### Description
+
+#### Part 1
+
+Find the smallest number of steps in the memory space going between start and finish.
+
+#### Part 2
+
+For the second part, we should determine the position of the first corrupted byte that prevents
+a path for the historians.
+Effectively, I started two processes:
+* one looking for a path for the historians and
+* one looking for a blocking path for the corrupted memory blocks.
+
+The first one to finish decides who wins.
+Bisecting on the line at which each corrupted byte appears, we find the location of the first byte
+that seals off the start from the finish.
+-- Day 19
+Creating designs by concatenating towels.
+
+### Description
+
+#### Part 1
+
+The input contains some towels (a few strings) and designs (more strings, but longer!).
+We should determine how many of the designs can be written as concatenations of towels, with
+repetitions of towels allowed.
+
+#### Part 2
+
+Similar to part 1, but now we should determine in how many ways each design can be written as a
+concatenation of towels.
+
+I ended up storing previous value to compute later ones: this produced a speed up by a factor of
+approximately 6.
+-- Day 20
+Racing programs that are allowed to cheat.
+
+### Description
+
+#### Part 1
+
+The input is a maze with a unique path from `S` to `E`.
+Part 1 asks to find the cumulative savings on the distance between `S` and `E` if you are allowed
+to contain at most 1 position that is not on the unique path.
+
+#### Part 2
+
+Similar to part 1, except that now you are allowed to cross through walls for up to 20 consecutive
+steps, before resuming on the main course.
+-- Day 21
+Robots controlling robots controlling robots...
+
+### Description
+
+#### Part 1
+
+The input consists of which buttons to push on a numeric keyboard.
+However, we can only push the buttons by controlling the robot on the numeric keyboard through
+two layers of robots operated by directional keyboards.
+We should determine the minimum number of buttons that we should push to make the last robot type the input codes on its numeric keyboard.
+
+#### Part 2
+
+Similar to part 1, except that now there are 25 intervening layers of robots pushing directional keyboards,
+before the one at the numeric keyboard.
+
+Even though it feels like I had all the pieces to solve part 2, I ended up using
+[this tutorial](https://www.reddit.com/r/adventofcode/comments/1hjx0x4/2024_day_21_quick_tutorial_to_solve_part_2_in/) to actually solve the puzzle.
+-- Day 22
+Trading bananas with the monkeys.
+
+### Description
+
+#### Part 1
+
+The input is a list of integer "seeds".
+The monkeys use each seed to generate 2000 new seeds.
+Part 1 asks to compute the sum of all the 2000th generation secrets.
+
+#### Part 2
+
+In part 2, we need to determine the largest number of bananas that we can buy if we can choose to
+buy by just specifying a fixed window of 4 consecutive price differences and buying the bananas
+the first time that window is realized.
+
+This part is slow in my solution.
+This is maybe not too surprising, since I went for a brute-force approach!
+-- Day 23
+LAN party: finding maximal cliques in graphs.
+
+### Description
+
+#### Part 1
+
+The input is a list of edges of a graph, whose vertices are 2-letter strings.
+We should determine the number of triangles in the graph, such that at least one of the vertices
+in the triangle starts with `t`.
+
+#### Part 2
+
+Now we should find a maximal clique.
+The input that I received is a regular graph of valence 13 (and the example graph is also regular,
+but of valence 6).
+In the input graph, there is a maximal clique on 13 vertices, with the property that the
+"external" edges (each vertex in the clique has exactly one neighbour outside) are 13 distinct
+vertices.
+We find the clique by scanning all vertices, isolating the ones for which the set of neighbours
+of the neighbours is (at most) 37.
+Intersecting the neighbourhoods of the resulting vertices, we find the maximal clique.
+
+There must be some further property of this graph that I missed,
+since this approach fails on the test.
+-- Day 24
+A machine with gates to compute additions.
+
+### Description
+
+#### Part 1
+
+The input contains the initial values and the bitwise operations that a machine can perform.
+In part 1, we should determine the value of the machine with the given initial values.
+
+#### Part 2
+
+In part 2, the instructions tell us that there are 4 pairs of cables in the machine that are transposed.
+Undoing these transpositions, if we set the input to be the binary digits of two numbers, then the machine would compute the sum of these numbers.
+The solution is the sorted, comma-separated list of transpositions that should be performed.
+-- Day 25
+Match locks and keys.
+
+### Description
+
+#### Part 1
+
+The input consists of 250 locks and 250 keys.
+We should determine how many pairs of fitting lock-and-key combinations there are.
+
+#### Part 2
+
+We need to collect all the previous stars!
