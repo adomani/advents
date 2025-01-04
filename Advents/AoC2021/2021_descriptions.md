@@ -20,3 +20,4 @@
 | [19](2021_descriptions_with_tests.md#day-19) | Aligning beacons and scanners in space.                                                                      |
 | [20](2021_descriptions_with_tests.md#day-20) | Repeatedly enhancing an image.                                                                               |
 | [22](2021_descriptions_with_tests.md#day-22) | Switching on and off overlapping cuboids.                                                                    |
+| [25](2021_descriptions_with_tests.md#day-25) | Seacucumbers moving right and down.                                                                          |

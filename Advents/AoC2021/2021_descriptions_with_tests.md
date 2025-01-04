@@ -1022,3 +1022,36 @@ In part 2, we should perform the computation on *all* the cubes.
 [Solution in Lean](day22.lean)
 
 ---
+
+#  [Day 25](https://adventofcode.com/2021/day/25)
+
+Seacucumbers moving right and down.
+
+####  Test
+
+<pre>
+v...>>.vv>
+.vv>>.vv..
+>>.>v>...v
+>>v>>.>.v.
+v>v.vv.v..
+>.>>..v...
+.vv..>.>v.
+v.v..>>v.v
+....v..v.>
+</pre>
+
+### Description
+
+#### Part 1
+
+The input is a configuration of two herds of seacucumbers: some move right, other move down.
+Part 1 asks after how many steps, the seacucumbers run out of moves.
+
+#### Part 2
+
+Obtain all the stars!
+
+[Solution in Lean](day25.lean)
+
+---
