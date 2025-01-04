@@ -281,3 +281,16 @@ Part 1 asks how many are on in the cube `[-50..50] ^ 3`.
 #### Part 2
 
 In part 2, we should perform the computation on *all* the cubes.
+-- Day 25
+Seacucumbers moving right and down.
+
+### Description
+
+#### Part 1
+
+The input is a configuration of two herds of seacucumbers: some move right, other move down.
+Part 1 asks after how many steps, the seacucumbers run out of moves.
+
+#### Part 2
+
+Obtain all the stars!
