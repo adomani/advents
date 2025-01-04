@@ -88,14 +88,16 @@ set_option trace.profiler true in
   let dat := atest
   let dat ← IO.FS.lines input
   let mut sc := inputToSC dat
+  let mut old := ∅
   let mut con := 0
   while true do
-    let scn := step sc 1
+    sc := step sc 1
     con := con + 1
-    if scn.cc.toArray.qsort (·.1 < ·.1) == sc.cc.toArray.qsort (·.1 < ·.1) then
+    let sort := sc.cc.toArray.qsort (·.1 < ·.1)
+    if old == sort then
       IO.println con
       break
-    sc := scn
+    old := sort
   drawSC sc
 
 
