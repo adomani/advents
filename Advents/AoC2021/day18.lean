@@ -24,25 +24,35 @@ def test := "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-/-- A `Snail` -/
+/-- A `Snail` is a binary tree whole leaves are natural numbers. -/
 inductive Snail where
+  /-- `i` is a "leaf `Snail`", namely, a natural number. -/
   | i   : Nat → Snail
+  /-- `cat` is the `Snail` obtained by joining together two `Snail`s -- the left and right tree. -/
   | cat : Snail → Snail → Snail
   deriving Inhabited, BEq
 
+/--
+To print a `Snail`, we use the brackets `[` and `]` as delimiters.
+For instance `[3, [4, 5]]` denotes a `Snail`.
+-/
 def Snail.toString : Snail → String
     | .i n => s!"{n}"
     | .cat s t => s!"[{s.toString}, {t.toString}]"
 
+/-- We make `Snail.toString` an instance for convenience. -/
 instance : ToString Snail where toString := Snail.toString
 
 variable (n : Nat) in
+/-- Another convenience instance: natural number literals are automatically `Snail` leaves. -/
 instance : OfNat Snail n where
   ofNat := .i n
 
+/-- The notation `[s, t]` denotes the `Snail` with left tree `s` and right tree `t`. -/
 @[match_pattern]
 notation "[" s ", " t "]" => Snail.cat s t
 
+/-- The `magnitude` of a `Snail` used in the puzzle. -/
 def magnitude : Snail → Nat
   | .i d => d
   | [a, b] => 3 * magnitude a + 2 * magnitude b
@@ -50,11 +60,13 @@ def magnitude : Snail → Nat
 #assert magnitude [[1,2],[[3,4],5]] == 143
 #assert magnitude [[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] == 3488
 
+/-- Another convenience instance: addition of `Snail`s is simply concatenation. -/
 instance : Add Snail where
   add := .cat
 
 #assert ([1, 2] : Snail) + [2, [3, 4]] == [[1, 2], [2, [3, 4]]]
 
+/-- The `split` function for the puzzle: decompose a "large" literal into two smaller ones. -/
 def split : Snail → Snail
   | .i n@(_ + 10) => [.i (n / 2), .i ((n + 1) / 2)]
   | .i n => .i n
@@ -62,33 +74,59 @@ def split : Snail → Snail
     let sa := split a
     if sa != a then [sa, b] else [sa, (split b)]
 
-#assert ([[[[4,3],4],4],[7,[[8,4],9]]] : Snail) + ([1,1] : Snail) == ([[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] : Snail)
-#assert split [[[[0,7],4],[15,[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
-#assert split [[[[0,7],4],[[7,8],[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
+#assert ([[[[4,3],4],4],[7,[[8,4],9]]] : Snail) + ([1,1] : Snail) ==
+        ([[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] : Snail)
+#assert split [[[[0,7],4],[15,[0,13]]],[1,1]] ==
+        [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
+#assert split [[[[0,7],4],[[7,8],[0,13]]],[1,1]] ==
+        [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
 
+/--
+`addLeftmost n s` returns the result of adding `n` to the left-most leaf of `s`.
+-/
 def addLeftmost (n : Nat) : Snail → Snail
   | .i x => .i (x + n)
-  | [a, b] => [(addLeftmost n a), b]
+  | [a, b] => [addLeftmost n a, b]
 
 #assert addLeftmost 4 ([1, [2, [3, 4]]] : Snail) == ([5, [2, [3, 4]]] : Snail)
 #assert addLeftmost 4 ([[1, 5], [2, [3, 4]]] : Snail) == ([[5, 5], [2, [3, 4]]] : Snail)
 
+/--
+`addRightmost n s` returns the result of adding `n` to the right-most leaf of `s`.
+-/
 def addRightmost (n : Nat) : Snail → Snail
-  | .i x =>
-    --dbg_trace "Radding {n} to {x} = {n + x}"
-    .i (x + n)
---  | .cat a (.i b) =>
---    .cat a (.i (b + n))
-  | .cat a b => .cat a (addRightmost n b)
+  | .i x => .i (x + n)
+  | .cat a b => [a, addRightmost n b]
 
-inductive loc where | l | r
+/--
+A `loc`ation is either `l`eft or `r`ight.  This is used to locate sub-`Snail`s inside a `Snail`.
+-/
+inductive loc where
+  /-- `loc.l` denotes taking the left branch of a `Snail`. -/
+  | l
+  /-- `loc.r` denotes taking the right branch of a `Snail`. -/
+  | r
   deriving Inhabited, DecidableEq
 
+/-- A convenience printing instance: `loc.l` and `loc.r` print as `l` and `r` respectively. -/
 instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
 
 variable (cond : Array loc → Bool) in
--- consider making `leftMostNestedPair` `Option (Array loc)`-valued to distinguish between the
--- "head" `snail` and a never-satisfied condition.
+/--
+`leftMostNestedPair cond s locs` takes as input
+* a predicate `Array loc → Bool` to screen out arrays of `loc`ations;
+* a `Snail` `s` and
+* an array `locs` of `loc`ations.
+
+It scans `s` searching for pairs of leaves `[.i l, .i r]`, recording in `locs` the steps that it
+took.
+It keeps only the left-most such pair whose array of steps satisfies `cond`, returning `none`
+if there is no such pair.
+If it found one such pair, then it returns
+* the array `locs`;
+* the `Snail` obtained by replacing the found pair by `.i 0`, leaving everything else unchanged;
+* the left and right leaves that have been found.
+-/
 def leftMostNestedPair : Snail → (locs : Array loc := ∅) → Option (Array loc × Snail × Nat × Nat)
   | [(.i l), (.i r)], locs => if cond locs then (some (locs, 0, l, r)) else none
   | [a, b], locs =>
@@ -109,13 +147,15 @@ def leftMostNestedPair : Snail → (locs : Array loc := ∅) → Option (Array l
             else none
   | .i _, _ => none
 
-def addRightmostBefore (s : Snail) (locs : Array loc) (n : Nat) : Snail :=
-  match locs[0]?, s with
-    | none, s => addRightmost n s
-    | some loc.r, [a, b] => [a, addRightmostBefore b (locs.erase .r) n]
-    | some loc.l, [a, b] => [addRightmostBefore a (locs.erase .l) n, b]
-    | some _, .i a => .i (a + n)
+#assert leftMostNestedPair (5 ≤ ·.size) [[[[[9,8],1],2],3],4] == none
 
+/--
+Given a `Snail` `s`, an array `locs` of `loc`s and a natural number `n`,
+`addLeftmostAfter s locs n` enters `s` following the path laid out by `locs`, until it runs out
+of `locs`.
+When that happens, then is continues always choosing `l`eft.
+If it reaches a leaf, then it adds `n` to that leaf, otherwise it does nothing.
+-/
 def addLeftmostAfter (s : Snail) (locs : Array loc) (n : Nat) : Snail :=
   match locs[0]?, s with
     | none, s => addLeftmost n s
@@ -123,14 +163,28 @@ def addLeftmostAfter (s : Snail) (locs : Array loc) (n : Nat) : Snail :=
     | some loc.r, [a, b] => [a, addLeftmostAfter b (locs.erase .r) n]
     | some _, .i a => .i (a + n)
 
-#assert leftMostNestedPair (5 ≤ ·.size) [[[[[9,8],1],2],3],4] == none
+/--
+Given a `Snail` `s`, an array `locs` of `loc`s and a natural number `n`,
+`addRightmostBefore s locs n` enters `s` following the path laid out by `locs`, until it runs out
+of `locs`.
+When that happens, then is continues always choosing `r`ight.
+If it reaches a leaf, then it adds `n` to that leaf, otherwise it does nothing.
+-/
+def addRightmostBefore (s : Snail) (locs : Array loc) (n : Nat) : Snail :=
+  match locs[0]?, s with
+    | none, s => addRightmost n s
+    | some loc.r, [a, b] => [a, addRightmostBefore b (locs.erase .r) n]
+    | some loc.l, [a, b] => [addRightmostBefore a (locs.erase .l) n, b]
+    | some _, .i a => .i (a + n)
 
+/-- `explode s` takes as input a `Snail` `s` and computes the `explode` function of the puzzle. -/
 def explode (s : Snail) : Snail :=
   match leftMostNestedPair (4 ≤ ·.size) s with
     | none => s
     | some (locs, with0, l, r) =>
       let locsLeft := locs.popWhile (· == loc.l)
-      let with0Left := if locsLeft.isEmpty then with0 else addRightmostBefore with0 (locsLeft.pop.push .l) l
+      let with0Left :=
+        if locsLeft.isEmpty then with0 else addRightmostBefore with0 (locsLeft.pop.push .l) l
       let locsRight := locs.popWhile (· == loc.r)
       if locsRight.isEmpty then with0Left else addLeftmostAfter with0Left (locsRight.pop.push .r) r
 
@@ -143,6 +197,11 @@ def explode (s : Snail) : Snail :=
 #assert explode [[[[0,7],4],[7,[[8,4],9]]],[1,1]] == [[[[0,7],4],[15,[0,13]]],[1,1]]
 #assert explode [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] == [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
 
+/--
+`reduce s` takes as input a `Snail` `s` and iteratively applies `explode` and `split` until neither
+changes the input.
+It returns the final result.
+-/
 def reduce (s : Snail) : Snail := Id.run do
   let mut old : Snail := 0
   let mut s := s
@@ -176,6 +235,11 @@ def reduce (s : Snail) : Snail := Id.run do
   let tot := (dat.erase f).foldl (init := f) fun t n => reduce (t + n)
   tot == ([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] : Snail)
 
+/--
+Scans the input string `s`, keeping track of how many pairs open/closed brackets `[`-`]` it finds.
+The first time that the number of open brackets matches the number of closed brackets, it returns
+the string enclosed in a `[`-`]` pair and everything else.
+-/
 def takeUntilClosedBrackets (s : String) : String × String := Id.run do
   let mut con := 0
   let mut first := ""
@@ -190,6 +254,7 @@ def takeUntilClosedBrackets (s : String) : String × String := Id.run do
 #assert takeUntilClosedBrackets "[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]" ==
   ("[[0,[5,8]],[[1,7],[9,6]]]", ",[[4,[1,2]],[[1,4],2]]")
 
+/-- Takes as input a string that represents a `Snail` and returns the corresponding `Snail`. -/
 partial
 def parseSnail (s : String) : Snail :=
   let digs := s.takeWhile (·.isDigit)
