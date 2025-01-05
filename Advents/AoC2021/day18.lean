@@ -113,27 +113,32 @@ def addRightmost (n : Nat) : snail → snail
 
 def explodeCore : snail → snail
   | .cat (.cat goR (.cat (.i a) (.i b))) goL => --| .cat goR (.cat (.cat (.i a) (.i b)) goL) =>
-    dbg_trace "focus on: {(.cat (.i a) (.i b) : snail)}"
+    dbg_trace "pattern [[goR, [{a}, {b}]], goL]: {(.cat (.i a) (.i b) : snail)}"
     .cat (.cat (addRightmost a goR) 0) (addLeftmost b goL)
 
   | .cat (.cat (.i a) (.i b)) goL =>
-    dbg_trace "focus on: {(.cat (.i a) (.i b) : snail)}"
+    dbg_trace "pattern [[{a}, {b}], goL]: {(.cat (.i a) (.i b) : snail)}"
     .cat 0 (addLeftmost b goL)
 
   | .cat goR (.cat (.i a) (.i b)) =>
-    dbg_trace "focus on: {(.cat (.i a) (.i b) : snail)}"
+    dbg_trace "pattern [goR, [{a}, {b}]]: {(.cat (.i a) (.i b) : snail)}"
     .cat (addRightmost a goR) 0
 
   | .cat a b => .cat (explodeCore a) b
   | d => d
 
+inductive loc where | l | r
+
 def explode : snail → snail
-  | .cat a b =>
+  | s@(.cat a b) =>
     let ea := explodeCore a
     if ea != a then .cat ea b
     else
       let Ea := explode a
       if Ea != a then .cat Ea b
+      else
+      let es := explodeCore s
+      if es != s then es
       else
         dbg_trace "ignoring {a}-branch, entering {b}, hence computing {explodeCore b}"
         .cat a <| explode b
