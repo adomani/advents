@@ -117,6 +117,8 @@ inductive loc where | l | r
 instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
 
 variable (cond : Array loc → Bool) in
+-- consider making `leftMostNestedPair` `Option (Array loc)`-valued to distinguish between the
+-- "head" `snail` and a never-satisfied condition.
 def leftMostNestedPair : snail → (locs : Array loc := ∅) → Array loc
   | .cat (.i _) (.i _), locs => if cond locs then locs else ∅
   | .cat a b, locs =>
@@ -128,6 +130,7 @@ def leftMostNestedPair : snail → (locs : Array loc := ∅) → Array loc
     else ∅
   | .i _, _ => ∅
 
+#assert leftMostNestedPair (5 ≤ ·.size) [[[[[9,8],1],2],3],4] == #[]
 #assert leftMostNestedPair (4 ≤ ·.size) [[[[[9,8],1],2],3],4] == #[.l, .l, .l, .l]
 #assert leftMostNestedPair (4 ≤ ·.size) [7,[6,[5,[4,[3,2]]]]] == #[.r, .r, .r, .r]
 #assert leftMostNestedPair (4 ≤ ·.size) [[6,[5,[4,[3,2]]]],1] == #[.l, .r, .r, .r]
@@ -136,6 +139,8 @@ def leftMostNestedPair : snail → (locs : Array loc := ∅) → Array loc
 #assert leftMostNestedPair (4 ≤ ·.size) [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] == #[.l, .l, .l, .l]
 #assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[7,[[8,4],9]]],[1,1]] == #[.l, .r, .r, .l]
 #assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] == #[.l, .r, .r, .r]
+
+
 
 def explodeCore : snail → Array loc → snail × Array loc
   | .cat (.cat goR (.cat (.i a) (.i b))) goL, locs => --| .cat goR (.cat (.cat (.i a) (.i b)) goL) =>
