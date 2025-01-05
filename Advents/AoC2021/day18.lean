@@ -1,5 +1,4 @@
 import Advents.Utils
-open Std
 
 namespace Day18
 
@@ -9,8 +8,6 @@ def input : System.FilePath := "Advents/AoC2021/day18.input"
 /-!
 #  Question 1
 -/
-
---#eval do IO.println (← IO.FS.readFile input)
 
 /-- `test` is the test string for the problem. -/
 def test := "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
@@ -27,55 +24,56 @@ def test := "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-inductive snail where
-  | i   : Nat → snail
-  | cat : snail → snail → snail
+/-- A `Snail` -/
+inductive Snail where
+  | i   : Nat → Snail
+  | cat : Snail → Snail → Snail
   deriving Inhabited, BEq
 
-def snail.toString : snail → String
+def Snail.toString : Snail → String
     | .i n => s!"{n}"
     | .cat s t => s!"[{s.toString}, {t.toString}]"
 
-instance : ToString snail where toString := snail.toString
+instance : ToString Snail where toString := Snail.toString
 
 variable (n : Nat) in
-instance : OfNat snail n where
+instance : OfNat Snail n where
   ofNat := .i n
 
 @[match_pattern]
-notation "[" s ", " t "]" => snail.cat s t
+notation "[" s ", " t "]" => Snail.cat s t
 
-def magnitude : snail → Nat
+def magnitude : Snail → Nat
   | .i d => d
   | [a, b] => 3 * magnitude a + 2 * magnitude b
 
 #assert magnitude [[1,2],[[3,4],5]] == 143
 #assert magnitude [[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] == 3488
 
-instance : Add snail where
+instance : Add Snail where
   add := .cat
 
-#assert ([1, 2] : snail) + [2, [3, 4]] == [[1, 2], [2, [3, 4]]]
+#assert ([1, 2] : Snail) + [2, [3, 4]] == [[1, 2], [2, [3, 4]]]
 
-def split : snail → snail
+def split : Snail → Snail
   | .i n@(_ + 10) => [.i (n / 2), .i ((n + 1) / 2)]
   | .i n => .i n
   | [a, b] =>
     let sa := split a
     if sa != a then [sa, b] else [sa, (split b)]
 
-#assert ([[[[4,3],4],4],[7,[[8,4],9]]] : snail) + ([1,1] : snail) == ([[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] : snail)
+#assert ([[[[4,3],4],4],[7,[[8,4],9]]] : Snail) + ([1,1] : Snail) == ([[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] : Snail)
 #assert split [[[[0,7],4],[15,[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
 #assert split [[[[0,7],4],[[7,8],[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
 
-def addLeftmost (n : Nat) : snail → snail
+def addLeftmost (n : Nat) : Snail → Snail
   | .i x => .i (x + n)
   | [a, b] => [(addLeftmost n a), b]
 
-#assert addLeftmost 4 ([1, [2, [3, 4]]] : snail) == ([5, [2, [3, 4]]] : snail)
-#assert addLeftmost 4 ([[1, 5], [2, [3, 4]]] : snail) == ([[5, 5], [2, [3, 4]]] : snail)
+#assert addLeftmost 4 ([1, [2, [3, 4]]] : Snail) == ([5, [2, [3, 4]]] : Snail)
+#assert addLeftmost 4 ([[1, 5], [2, [3, 4]]] : Snail) == ([[5, 5], [2, [3, 4]]] : Snail)
 
-def addRightmost (n : Nat) : snail → snail
+def addRightmost (n : Nat) : Snail → Snail
   | .i x =>
     --dbg_trace "Radding {n} to {x} = {n + x}"
     .i (x + n)
@@ -91,7 +89,7 @@ instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
 variable (cond : Array loc → Bool) in
 -- consider making `leftMostNestedPair` `Option (Array loc)`-valued to distinguish between the
 -- "head" `snail` and a never-satisfied condition.
-def leftMostNestedPair : snail → (locs : Array loc := ∅) → Option (Array loc × snail × Nat × Nat)
+def leftMostNestedPair : Snail → (locs : Array loc := ∅) → Option (Array loc × Snail × Nat × Nat)
   | [(.i l), (.i r)], locs => if cond locs then (some (locs, 0, l, r)) else none
   | [a, b], locs =>
     match leftMostNestedPair a (locs.push .l) with
@@ -99,26 +97,26 @@ def leftMostNestedPair : snail → (locs : Array loc := ∅) → Option (Array l
         match leftMostNestedPair b (locs.push .r) with
           | none => none
           | some (lb, s, l, r) =>
-            if cond lb then (lb, ([a, s] : snail), l, r)
+            if cond lb then (lb, ([a, s] : Snail), l, r)
             else none
       | some (la, s, l, r) =>
-        if cond la then (la, ([s, b] : snail), l, r)
+        if cond la then (la, ([s, b] : Snail), l, r)
         else
         match leftMostNestedPair b (locs.push .r) with
           | none => none
           | some (lb, s, l, r) =>
-            if cond lb then (lb, ([a, s] : snail), l, r)
+            if cond lb then (lb, ([a, s] : Snail), l, r)
             else none
   | .i _, _ => none
 
-def addRightmostBefore (s : snail) (locs : Array loc) (n : Nat) : snail :=
+def addRightmostBefore (s : Snail) (locs : Array loc) (n : Nat) : Snail :=
   match locs[0]?, s with
     | none, s => addRightmost n s
     | some loc.r, [a, b] => [a, addRightmostBefore b (locs.erase .r) n]
     | some loc.l, [a, b] => [addRightmostBefore a (locs.erase .l) n, b]
     | some _, .i a => .i (a + n)
 
-def addLeftmostAfter (s : snail) (locs : Array loc) (n : Nat) : snail :=
+def addLeftmostAfter (s : Snail) (locs : Array loc) (n : Nat) : Snail :=
   match locs[0]?, s with
     | none, s => addLeftmost n s
     | some loc.l, [a, b] => [addLeftmostAfter a (locs.erase .l) n, b]
@@ -127,7 +125,7 @@ def addLeftmostAfter (s : snail) (locs : Array loc) (n : Nat) : snail :=
 
 #assert leftMostNestedPair (5 ≤ ·.size) [[[[[9,8],1],2],3],4] == none
 
-def explode (s : snail) : snail :=
+def explode (s : Snail) : Snail :=
   match leftMostNestedPair (4 ≤ ·.size) s with
     | none => s
     | some (locs, with0, l, r) =>
@@ -145,8 +143,8 @@ def explode (s : snail) : snail :=
 #assert explode [[[[0,7],4],[7,[[8,4],9]]],[1,1]] == [[[[0,7],4],[15,[0,13]]],[1,1]]
 #assert explode [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] == [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
 
-def reduce (s : snail) : snail := Id.run do
-  let mut old : snail := 0
+def reduce (s : Snail) : Snail := Id.run do
+  let mut old : Snail := 0
   let mut s := s
   while s != old do
     old := s
@@ -157,17 +155,12 @@ def reduce (s : snail) : snail := Id.run do
       s := split s
   return s
 
--- up to here
-
 #assert
-  let dat : snail := [[[[4,3],4],4],[7,[[8,4],9]]] + ([1,1] : snail)
+  let dat : Snail := [[[[4,3],4],4],[7,[[8,4],9]]] + ([1,1] : Snail)
   reduce dat == [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
-#eval do
-  let dat := atest
-  IO.println <| reduce [[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
 
 #assert
-  let dat : Array snail := #[
+  let dat : Array Snail := #[
     [[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],
     [7,[[[3,7],[4,3]],[[6,3],[8,8]]]],
     [[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]],
@@ -181,7 +174,7 @@ def reduce (s : snail) : snail := Id.run do
   ]
   let f := reduce dat[0]
   let tot := (dat.erase f).foldl (init := f) fun t n => reduce (t + n)
-  tot == ([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] : snail)
+  tot == ([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] : Snail)
 
 def takeUntilClosedBrackets (s : String) : String × String := Id.run do
   let mut con := 0
@@ -194,11 +187,11 @@ def takeUntilClosedBrackets (s : String) : String × String := Id.run do
       break
   return (first, s.drop first.length)
 
-#eval takeUntilClosedBrackets "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]"
-#eval takeUntilClosedBrackets "[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]"
+#assert takeUntilClosedBrackets "[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]" ==
+  ("[[0,[5,8]],[[1,7],[9,6]]]", ",[[4,[1,2]],[[1,4],2]]")
 
 partial
-def parseSnail (s : String) : snail :=
+def parseSnail (s : String) : Snail :=
   let digs := s.takeWhile (·.isDigit)
   if !digs.isEmpty then .i digs.toNat! else
   let (l, r) := takeUntilClosedBrackets ((s.drop 1).dropRight 1)
