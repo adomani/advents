@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day18
 
@@ -30,7 +30,7 @@ def atest := (test.splitOn "\n").toArray
 inductive snail where
   | i   : Nat → snail
   | cat : snail → snail → snail
-  deriving BEq
+  deriving Inhabited, BEq
 
 def snail.toString : snail → String
     | .i n => s!"{n}"
@@ -47,19 +47,21 @@ open snail
 @[match_pattern]
 notation "[" s ", " t "]" => snail.cat s t
 
-#check ([1,2] : snail)
-#check [[9, 3], [[9, 9], [6, [4, 9]]]]
+--#check ([1,2] : snail)
+--#check [[9, 3], [[9, 9], [6, [4, 9]]]]
 
 def magnitude : snail → Nat
   | .i d => d
   | [a, b] => 3 * magnitude a + 2 * magnitude b
 
-#eval magnitude [[1,2],[[3,4],5]]
-#eval magnitude [[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]
+#assert magnitude [[1,2],[[3,4],5]] == 143
+#assert magnitude [[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] == 3488
 
 instance : Add snail where
   add := .cat
 
+/-- info: [[1, 2], [2, [3, 4]]] -/
+#guard_msgs in
 #eval ([1, 2] : snail) + [2, [3, 4]]
 
 def level : snail → Nat
@@ -85,6 +87,8 @@ def split : snail → snail
 #assert split [[[[0,7],4],[15,[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
 #assert split [[[[0,7],4],[[7,8],[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
 
+/-- info: 5 -/
+#guard_msgs in
 #eval level [[[[[9,8],1],2],3],4]
 
 variable (f : snail → snail) in
@@ -195,6 +199,7 @@ def reduce (s : snail) : snail := Id.run do
       s := split s
   return s
 
+-- up to here
 
 #assert
   let dat : snail := [[[[4,3],4],4],[7,[[8,4],9]]] + ([1,1] : snail)
@@ -220,6 +225,39 @@ def reduce (s : snail) : snail := Id.run do
   let tot := (dat.erase f).foldl (init := f) fun t n => reduce (t + n)
   tot == ([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] : snail)
 
+def takeUntilClosedBrackets (s : String) : String × String := Id.run do
+  let mut con := 0
+  let mut first := ""
+  for c in s.toList do
+    first := first.push c
+    if c == '[' then con := con + 1
+    if c == ']' then con := con - 1
+    if con == 0 then
+      break
+  return (first, s.drop first.length)
+
+#eval takeUntilClosedBrackets "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]"
+#eval takeUntilClosedBrackets "[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]"
+
+partial
+def parseSnail (s : String) : snail :=
+  let digs := s.takeWhile (·.isDigit)
+  if !digs.isEmpty then .i digs.toNat! else
+  let (l, r) := takeUntilClosedBrackets ((s.drop 1).dropRight 1)
+  let r := r.drop 1
+  [parseSnail l, parseSnail r]
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat : Array _ := dat.foldl (init := ∅) fun h s => h.push (parseSnail s)
+  let f := dat[0]!
+  let tot := (dat.erase f).foldl (init := f) fun t n => reduce (t + n)
+  IO.println tot
+  IO.println <| magnitude tot
+
+
+
+#exit
 #eval do
   let dat : Array snail := #[
     [[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]],
@@ -237,7 +275,29 @@ def reduce (s : snail) : snail := Id.run do
   let tot := (dat.erase f).foldl (init := f) fun t n => reduce (t + n)
   IO.println tot
   IO.println <| magnitude tot
+open Lean
+#check Elab.runFrontend
+run_cmd
+  let fil ← IO.FS.readFile "Advents/AoC2021/day18.lean"
+  let parsed := (fil.splitOn "-- up to here")[0]!
+  let withSnails := "\n".intercalate <| parsed :: ["def snails : Array snail := #["] ++
+    ",\n".intercalate ((← IO.FS.lines input).toList.map (s!"({·} : snail)")) :: ["]", "def totMagnitude : Nat :=
+  let dat : Array snail := snails
+  let f := reduce dat[0]
+  let tot := (dat.erase f).foldl (init := f) fun t n => reduce (t + n)
+  magnitude tot
+#eval totMagnitude
+"]
+  IO.println withSnails
+  let (env, ers) ← Elab.runFrontend parsed (← getOptions) input.toString `Hello
+  let d := (env.find? `Day18.totMagnitude).getD default
+  IO.println d.type
+  IO.println d.value?
 
+run_cmd
+  let (env, _) ← Elab.runFrontend #[{module := `Advents.AoC2021.day18}] (← getOptions)
+
+#exit
 set_option trace.profiler true in
 #eval do
   let dat : Array snail := #[
