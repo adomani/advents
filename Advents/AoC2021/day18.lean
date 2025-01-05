@@ -115,21 +115,23 @@ inductive loc where | l | r
 
 instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
 
-def explodeCore : snail → Array loc → snail
+def explodeCore : snail → Array loc → snail × Array loc
   | .cat (.cat goR (.cat (.i a) (.i b))) goL, locs => --| .cat goR (.cat (.cat (.i a) (.i b)) goL) =>
     dbg_trace "pattern [[goR, [{a}, {b}]], goL]: {(.cat (.i a) (.i b) : snail)}"
-    .cat (.cat (addRightmost a goR) 0) (addLeftmost b goL)
+    (.cat (.cat (addRightmost a goR) 0) (addLeftmost b goL), locs.push .l |>.push .r)
 
   | .cat (.cat (.i a) (.i b)) goL, locs =>
     dbg_trace "pattern [[{a}, {b}], goL]: {(.cat (.i a) (.i b) : snail)}"
-    .cat 0 (addLeftmost b goL)
+    (.cat 0 (addLeftmost b goL), locs.push .l |>.push .l)
 
   | .cat goR (.cat (.i a) (.i b)), locs =>
     dbg_trace "pattern [goR, [{a}, {b}]]: {(.cat (.i a) (.i b) : snail)}"
-    .cat (addRightmost a goR) 0
+    (.cat (addRightmost a goR) 0, locs.push .r)
 
-  | .cat a b, locs => .cat (explodeCore a (locs.push .r)) b
-  | d, locs => d
+  | .cat a b, locs =>
+    let (newA, locsA) := explodeCore a (locs.push .r)
+    (.cat newA b, locsA)
+  | d, locs => (d, locs)
 
 --variable (patt : snail) in
 --def snail.locateLIn : (s : snail) → Array loc
@@ -137,14 +139,14 @@ def explodeCore : snail → Array loc → snail
 
 def explode : snail → Array loc → snail × Array loc
   | s@(.cat a b), locs =>
-    let ea := explodeCore a locs
-    if ea != a then (.cat ea b, locs.push .l)
+    let (ea, lea) := explodeCore a (locs.push .l)
+    if ea != a then (.cat ea b, lea)
     else
       let (Ea, lE) := explode a (locs.push .l)
       if Ea != a then (.cat Ea b, lE)
       else
-      let es := explodeCore s locs
-      if es != s then (es, locs.push .l)
+      let (es, les) := explodeCore s (locs.push .l)
+      if es != s then (es, les)
       else
         dbg_trace "ignoring {a}-branch, entering {b}, hence computing {explodeCore b locs}"
         let (lb, locB) := explode b (locs.push .r)
