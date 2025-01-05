@@ -111,25 +111,25 @@ def addRightmost (n : Nat) : snail → snail
 --    .cat a (.i (b + n))
   | .cat a b => .cat a (addRightmost n b)
 
-def explodeCore : snail → snail
-  | .cat (.cat goR (.cat (.i a) (.i b))) goL => --| .cat goR (.cat (.cat (.i a) (.i b)) goL) =>
-    dbg_trace "pattern [[goR, [{a}, {b}]], goL]: {(.cat (.i a) (.i b) : snail)}"
-    .cat (.cat (addRightmost a goR) 0) (addLeftmost b goL)
-
-  | .cat (.cat (.i a) (.i b)) goL =>
-    dbg_trace "pattern [[{a}, {b}], goL]: {(.cat (.i a) (.i b) : snail)}"
-    .cat 0 (addLeftmost b goL)
-
-  | .cat goR (.cat (.i a) (.i b)) =>
-    dbg_trace "pattern [goR, [{a}, {b}]]: {(.cat (.i a) (.i b) : snail)}"
-    .cat (addRightmost a goR) 0
-
-  | .cat a b => .cat (explodeCore a) b
-  | d => d
-
 inductive loc where | l | r
 
 instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
+
+def explodeCore : snail → Array loc → snail
+  | .cat (.cat goR (.cat (.i a) (.i b))) goL, locs => --| .cat goR (.cat (.cat (.i a) (.i b)) goL) =>
+    dbg_trace "pattern [[goR, [{a}, {b}]], goL]: {(.cat (.i a) (.i b) : snail)}"
+    .cat (.cat (addRightmost a goR) 0) (addLeftmost b goL)
+
+  | .cat (.cat (.i a) (.i b)) goL, locs =>
+    dbg_trace "pattern [[{a}, {b}], goL]: {(.cat (.i a) (.i b) : snail)}"
+    .cat 0 (addLeftmost b goL)
+
+  | .cat goR (.cat (.i a) (.i b)), locs =>
+    dbg_trace "pattern [goR, [{a}, {b}]]: {(.cat (.i a) (.i b) : snail)}"
+    .cat (addRightmost a goR) 0
+
+  | .cat a b, locs => .cat (explodeCore a (locs.push .r)) b
+  | d, locs => d
 
 --variable (patt : snail) in
 --def snail.locateLIn : (s : snail) → Array loc
@@ -137,16 +137,16 @@ instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
 
 def explode : snail → Array loc → snail × Array loc
   | s@(.cat a b), locs =>
-    let ea := explodeCore a
+    let ea := explodeCore a locs
     if ea != a then (.cat ea b, locs.push .l)
     else
       let (Ea, lE) := explode a (locs.push .l)
       if Ea != a then (.cat Ea b, lE)
       else
-      let es := explodeCore s
+      let es := explodeCore s locs
       if es != s then (es, locs.push .l)
       else
-        dbg_trace "ignoring {a}-branch, entering {b}, hence computing {explodeCore b}"
+        dbg_trace "ignoring {a}-branch, entering {b}, hence computing {explodeCore b locs}"
         let (lb, locB) := explode b (locs.push .r)
         (.cat a lb, locB)
   | d, locs => (d, locs)
@@ -156,7 +156,7 @@ def explode : snail → Array loc → snail × Array loc
 #eval (explode [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] ∅)
 --== [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
 #assert (explode [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] ∅).1 == [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
-#eval explodeCore [4,[3,2]]
+#eval explodeCore [4,[3,2]] ∅
 #eval explode [4,[3,2]] ∅
 #eval (explode [[6,[5,[4,[3,2]]]],1] ∅).1
 
