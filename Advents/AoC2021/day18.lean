@@ -91,9 +91,11 @@ variable (f : snail → snail) in
 def modifyLeftmost : snail → snail
   | .cat a b =>
     let ea := f a
-    if ea != a then .cat ea b
+    if ea != a
+    then
+      [ea, b]
     else
-      .cat a <| f b
+      [a, f b]
   | d => f d
 
 def addLeftmost (n : Nat) : snail → snail
@@ -112,7 +114,17 @@ def addRightmost (n : Nat) : snail → snail
 def explodeCore : snail → snail
   | .cat (.cat goR (.cat (.i a) (.i b))) goL => --| .cat goR (.cat (.cat (.i a) (.i b)) goL) =>
     dbg_trace "focus on: {(.cat (.i a) (.i b) : snail)}"
-    .cat (addRightmost 17 goR) (addLeftmost 179 goL)
+    .cat (.cat (addRightmost a goR) 0) (addLeftmost b goL)
+
+  | .cat (.cat (.i a) (.i b)) goL =>
+    dbg_trace "focus on: {(.cat (.i a) (.i b) : snail)}"
+    .cat 0 (addLeftmost b goL)
+
+  | .cat goR (.cat (.i a) (.i b)) =>
+    dbg_trace "focus on: {(.cat (.i a) (.i b) : snail)}"
+    .cat (addRightmost a goR) 0
+
+  | .cat a b => .cat (explodeCore a) b
   | d => d
 
 def explode : snail → snail
@@ -120,9 +132,28 @@ def explode : snail → snail
     let ea := explodeCore a
     if ea != a then .cat ea b
     else
-      .cat a <| explodeCore b
+      let Ea := explode a
+      if Ea != a then .cat Ea b
+      else
+        dbg_trace "ignoring {a}-branch, entering {b}, hence computing {explodeCore b}"
+        .cat a <| explode b
   | d => d
 
+#assert explode [[[[[9,8],1],2],3],4] == [[[[0,9],2],3],4]
+#eval explode [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
+--== [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
+#assert explode [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] == [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
+#eval explodeCore [4,[3,2]]
+#eval explode [[6,[5,[4,[3,2]]]],1]
+
+/--
+info: [[[1, [2, 3]], [4, 5]], 6]
+focus on: [2, 3]
+Radding 2 to 1 = 3
+Ladding 3 to 4 = 7
+[[3, [7, 5]], 6]
+-/
+#guard_msgs in
 #eval do
   let s : snail := .cat (.cat (.cat 1 (.cat (.i 2) (.i 3))) (.cat 4 5)) 6 --.cat 6 (.cat ((.cat (.cat 5 62) (.cat 3 4))) <| .cat 7 5)
   IO.println s
