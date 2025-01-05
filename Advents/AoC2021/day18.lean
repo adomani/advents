@@ -44,6 +44,7 @@ instance : OfNat snail n where
 
 open snail
 
+@[match_pattern]
 notation "[" s ", " t "]" => snail.cat s t
 
 #check ([1,2] : snail)
@@ -63,12 +64,12 @@ instance : Add snail where
 
 def level : snail → Nat
   | .i _ => 0
-  | .cat a b => max (level a) (level b) + 1
+  | [a, b] => max (level a) (level b) + 1
 
 def split : snail → snail
   | .i n@(_ + 10) => .cat (.i (n / 2)) (.i ((n + 1) / 2))
   | .i n => .i n
-  | .cat a b =>
+  | [a, b] =>
     let sa := split a
     if sa != a then .cat sa b
     else .cat sa (split b)
@@ -120,8 +121,8 @@ variable (cond : Array loc → Bool) in
 -- consider making `leftMostNestedPair` `Option (Array loc)`-valued to distinguish between the
 -- "head" `snail` and a never-satisfied condition.
 def leftMostNestedPair : snail → (locs : Array loc := ∅) → Array loc
-  | .cat (.i _) (.i _), locs => if cond locs then locs else ∅
-  | .cat a b, locs =>
+  | [(.i _), (.i _)], locs => if cond locs then locs else ∅
+  | [a, b], locs =>
     let la := leftMostNestedPair a (locs.push .l)
     if cond la then la
     else
@@ -142,7 +143,7 @@ def leftMostNestedPair : snail → (locs : Array loc := ∅) → Array loc
 
 def goTo : snail → Array loc → Option snail
   | s, #[] => s
-  | .cat a b, l => if l[0]! == .l then goTo a (l.erase .l) else goTo b (l.erase .r)
+  | [a, b], l => if l[0]! == .l then goTo a (l.erase .l) else goTo b (l.erase .r)
   | .i _, _ => none
 
 #assert goTo [[[[[9,8],1],2],3],4] #[] == ([[[[[9,8],1],2],3],4] : snail)
