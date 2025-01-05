@@ -87,28 +87,75 @@ def split : snail → snail
 
 #eval level [[[[[9,8],1],2],3],4]
 
-def explode : snail → snail
-  | n@(.i _) => n
+variable (f : snail → snail) in
+def modifyLeftmost : snail → snail
   | .cat a b =>
-    dbg_trace "left: {a}, right: {b}"
-    if level a == 4 then
-      dbg_trace "{a} has level 4"
-      0 + b
-    else if level b == 4
-    then
-      a + 0
+    let ea := f a
+    if ea != a then .cat ea b
     else
-      let ca := explode a
-      if ca != a then
-        ca + b
-      else
-        let cb := explode b
-        if cb != b then a + cb
-      else
-        a + b
+      .cat a <| f b
+  | d => f d
+
+def addLeftmost (n : Nat) : snail → snail
+  | .i x => dbg_trace "Ladding {n} to {x} = {n + x}"; .i (x + n)
+  | .cat a b => .cat (addLeftmost n a) b
+
+#assert addLeftmost 4 ([1, [2, [3, 4]]] : snail) == ([5, [2, [3, 4]]] : snail)
+#assert addLeftmost 4 ([[1, 5], [2, [3, 4]]] : snail) == ([[5, 5], [2, [3, 4]]] : snail)
+
+def addRightmost (n : Nat) : snail → snail
+  | .i x => dbg_trace "Radding {n} to {x} = {n + x}"; .i (x + n)
+--  | .cat a (.i b) =>
+--    .cat a (.i (b + n))
+  | .cat a b => .cat a (addRightmost n b)
+
+def explodeCore : snail → snail
+  | .cat (.cat goR (.cat (.i a) (.i b))) goL => --| .cat goR (.cat (.cat (.i a) (.i b)) goL) =>
+    dbg_trace "focus on: {(.cat (.i a) (.i b) : snail)}"
+    .cat (addRightmost 17 goR) (addLeftmost 179 goL)
+  | d => d
+
+def explode : snail → snail
+  | .cat a b =>
+    let ea := explodeCore a
+    if ea != a then .cat ea b
+    else
+      .cat a <| explodeCore b
+  | d => d
+
+#eval do
+  let s : snail := .cat (.cat (.cat 1 (.cat (.i 2) (.i 3))) (.cat 4 5)) 6 --.cat 6 (.cat ((.cat (.cat 5 62) (.cat 3 4))) <| .cat 7 5)
+  IO.println s
+  IO.println <| explode s
+
+def explode' : snail → snail
+  --| n@(.i _) => n
+  | .cat (.cat goR (.cat (.i a) (.i b))) goL => --| .cat goR (.cat (.cat (.i a) (.i b)) goL) =>
+    dbg_trace "focus on: {(.cat (.i a) (.i b) : snail)}"
+    --dbg_trace "left: {a} {level a}, right: {b} {level b}"
+    --if level a == 4 then
+    --  dbg_trace "{a} has level 4"
+    .cat ( (addRightmost 17 goR) /-(.cat a b)-/) (addLeftmost 179 goL)
+      --0 + b
+    --else if level b == 4
+    --then
+    --  a + 0
+    --else
+    --  let ca := explode a
+    --  if ca != a then
+    --    ca + b
+    --  else
+    --    let cb := explode b
+    --    if cb != b then a + cb
+    --  else
+    --    a + b
+  | d => d
 
 #eval explode [[[[[9,8],1],2],3],4]
 #reduce explode [[[[[9,8],1],2],3],4]
+
+#eval explode [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
+#eval explode [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
