@@ -120,41 +120,120 @@ instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
 variable (cond : Array loc → Bool) in
 -- consider making `leftMostNestedPair` `Option (Array loc)`-valued to distinguish between the
 -- "head" `snail` and a never-satisfied condition.
-def leftMostNestedPair : snail → (locs : Array loc := ∅) → Array loc
-  | [(.i _), (.i _)], locs => if cond locs then locs else ∅
+def leftMostNestedPair : snail → (locs : Array loc := ∅) → Option (Array loc)
+  | [(.i _), (.i _)], locs => if cond locs then locs else none
   | [a, b], locs =>
-    let la := leftMostNestedPair a (locs.push .l)
-    if cond la then la
-    else
-    let lb := leftMostNestedPair b (locs.push .r)
-    if cond lb then lb
-    else ∅
-  | .i _, _ => ∅
+    match leftMostNestedPair a (locs.push .l) with
+      | none =>
+        match leftMostNestedPair b (locs.push .r) with
+          | none => none
+          | some lb =>
+            if cond lb then lb
+            else none
+      | some la =>
+        if cond la then la
+        else
+        match leftMostNestedPair b (locs.push .r) with
+          | none => none
+          | some lb =>
+            if cond lb then lb
+            else none
+  | .i _, _ => none --if cond locs then locs else none
 
-#assert leftMostNestedPair (5 ≤ ·.size) [[[[[9,8],1],2],3],4] == #[]
-#assert leftMostNestedPair (4 ≤ ·.size) [[[[[9,8],1],2],3],4] == #[.l, .l, .l, .l]
-#assert leftMostNestedPair (4 ≤ ·.size) [7,[6,[5,[4,[3,2]]]]] == #[.r, .r, .r, .r]
-#assert leftMostNestedPair (4 ≤ ·.size) [[6,[5,[4,[3,2]]]],1] == #[.l, .r, .r, .r]
-#assert leftMostNestedPair (4 ≤ ·.size) [[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]] == #[.l, .r, .r, .r]
-#assert leftMostNestedPair (4 ≤ ·.size) [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]] == #[.r, .r, .r, .r]
-#assert leftMostNestedPair (4 ≤ ·.size) [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] == #[.l, .l, .l, .l]
-#assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[7,[[8,4],9]]],[1,1]] == #[.l, .r, .r, .l]
-#assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] == #[.l, .r, .r, .r]
+#assert leftMostNestedPair (5 ≤ ·.size) [[[[[9,8],1],2],3],4] == none
+#assert leftMostNestedPair (4 ≤ ·.size) [[[[[9,8],1],2],3],4] == some #[.l, .l, .l, .l]
+#assert leftMostNestedPair (4 ≤ ·.size) [7,[6,[5,[4,[3,2]]]]] == some #[.r, .r, .r, .r]
+#assert leftMostNestedPair (4 ≤ ·.size) [[6,[5,[4,[3,2]]]],1] == some #[.l, .r, .r, .r]
+#assert leftMostNestedPair (4 ≤ ·.size) [[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]] == some #[.l, .r, .r, .r]
+#assert leftMostNestedPair (4 ≤ ·.size) [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]] == some #[.r, .r, .r, .r]
+#assert leftMostNestedPair (4 ≤ ·.size) [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] == some #[.l, .l, .l, .l]
+#assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[7,[[8,4],9]]],[1,1]] == some #[.l, .r, .r, .l]
+#assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] == some #[.l, .r, .r, .r]
 
-def goTo : snail → Array loc → Option snail
-  | s, #[] => s
-  | [a, b], l => if l[0]! == .l then goTo a (l.erase .l) else goTo b (l.erase .r)
+def goTo : snail → Option (Array loc) → Option snail
+  | _, none => none
+  | s, some #[] => s
+  | [a, b], some l => if l[0]! == .l then goTo a (l.erase .l) else goTo b (l.erase .r)
   | .i _, _ => none
 
-#assert goTo [[[[[9,8],1],2],3],4] #[] == ([[[[[9,8],1],2],3],4] : snail)
-#assert goTo [[[[[9,8],1],2],3],4] #[.l, .l, .l, .l] == ([9, 8] : snail)
-#assert goTo [7,[6,[5,[4,[3,2]]]]] #[.r, .r, .r, .r] == ([3, 2] : snail)
-#assert goTo [[6,[5,[4,[3,2]]]],1] #[.l, .r, .r, .r] == ([3, 2] : snail)
-#assert goTo [[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]] #[.l, .r, .r, .r] == ([7, 3] : snail)
-#assert goTo [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]] #[.r, .r, .r, .r] == ([3, 2] : snail)
-#assert goTo [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] #[.l, .l, .l, .l] == ([4, 3] : snail)
-#assert goTo [[[[0,7],4],[7,[[8,4],9]]],[1,1]] #[.l, .r, .r, .l] == ([8, 4] : snail)
-#assert goTo [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] #[.l, .r, .r, .r] == ([6, 7] : snail)
+#assert goTo [[[[[9,8],1],2],3],4] none == none
+#assert goTo [[[[[9,8],1],2],3],4] (some #[]) == some ([[[[[9,8],1],2],3],4] : snail)
+#assert goTo [[[[[9,8],1],2],3],4] (some #[.l, .l, .l, .l]) == some ([9, 8] : snail)
+#assert goTo [7,[6,[5,[4,[3,2]]]]] (some #[.r, .r, .r, .r]) == some ([3, 2] : snail)
+#assert goTo [[6,[5,[4,[3,2]]]],1] (some #[.l, .r, .r, .r]) == some ([3, 2] : snail)
+#assert goTo [[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]] (some #[.l, .r, .r, .r]) == some ([7, 3] : snail)
+#assert goTo [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]] (some #[.r, .r, .r, .r]) == some ([3, 2] : snail)
+#assert goTo [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] (some #[.l, .l, .l, .l]) == some ([4, 3] : snail)
+#assert goTo [[[[0,7],4],[7,[[8,4],9]]],[1,1]] (some #[.l, .r, .r, .l]) == some ([8, 4] : snail)
+#assert goTo [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] (some #[.l, .r, .r, .r]) == some ([6, 7] : snail)
+
+partial
+def leftmostSnailBefore (s : snail) (locs : Option (Array loc)) : Option snail :=
+  match locs with
+    | none => none
+    | some locs =>
+      match locs.back? with
+        | none => s
+        | some .l => leftmostSnailBefore s (some locs.pop)
+        | some .r =>
+          let attempt := goTo s (locs.pop.push .l)
+          if attempt.isSome then attempt else leftmostSnailBefore s locs.pop.pop
+
+def takeRighmost : (s : snail) → Nat
+  | [_a, b] => takeRighmost b
+  | .i n => n
+
+#eval show Elab.Term.TermElabM _ from do
+  let s : snail := [[[[[9,8],1],2],3],4] --(some #[]) == ([[[[[9,8],1],2],3],4] : snail)
+  guard <| leftmostSnailBefore s (some #[]) == some s
+  guard <| leftmostSnailBefore s none == none
+
+#eval do
+  let s : snail := [[[[[9,8],1],2],3],4]
+  let lmb := leftmostSnailBefore s (some #[.l, .l, .l, .l]) --== ([9, 8] : snail)
+  IO.println <| lmb.map takeRighmost
+
+#eval do
+  let s : snail := [7,[6,[5,[4,[3,2]]]]]
+  let lmb := leftmostSnailBefore s (some #[.r, .r, .r, .r]) --== ([3, 2] : snail)
+  IO.println lmb
+  IO.println <| lmb.map takeRighmost
+
+#eval do
+  let s : snail := [[6,[5,[4,[3,2]]]],1]
+  let lmb := leftmostSnailBefore s (some #[.l, .r, .r, .r]) --== ([3, 2] : snail)
+  IO.println lmb
+  IO.println <| lmb.map takeRighmost
+
+#eval do
+  let s : snail := [[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]
+  let lmb := leftmostSnailBefore s (some #[.l, .r, .r, .r]) --== ([7, 3] : snail)
+  IO.println lmb
+  IO.println <| lmb.map takeRighmost
+
+#eval do
+  let s : snail := [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]
+  let lmb := leftmostSnailBefore s (some #[.r, .r, .r, .r]) --== ([3, 2] : snail)
+  IO.println lmb
+  IO.println <| lmb.map takeRighmost
+
+#eval do
+  let s : snail := [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
+  let lmb := leftmostSnailBefore s (some #[.l, .l, .l, .l]) --== ([4, 3] : snail)
+  IO.println lmb
+  IO.println <| lmb.map takeRighmost
+
+#eval do
+  let s : snail := [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
+  let lmb := leftmostSnailBefore s (some #[.l, .r, .r, .l]) --== ([8, 4] : snail)
+  IO.println lmb
+  IO.println <| lmb.map takeRighmost
+
+#eval do
+  let s : snail := [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
+  let lmb := leftmostSnailBefore s #[.l, .r, .r, .r] --== ([6, 7] : snail)
+  IO.println lmb
+  IO.println <| lmb.map takeRighmost
 
 
 def explodeCore : snail → Array loc → snail × Array loc
