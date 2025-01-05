@@ -42,13 +42,8 @@ variable (n : Nat) in
 instance : OfNat snail n where
   ofNat := .i n
 
-open snail
-
 @[match_pattern]
 notation "[" s ", " t "]" => snail.cat s t
-
---#check ([1,2] : snail)
---#check [[9, 3], [[9, 9], [6, [4, 9]]]]
 
 def magnitude : snail → Nat
   | .i d => d
@@ -60,13 +55,7 @@ def magnitude : snail → Nat
 instance : Add snail where
   add := .cat
 
-/-- info: [[1, 2], [2, [3, 4]]] -/
-#guard_msgs in
-#eval ([1, 2] : snail) + [2, [3, 4]]
-
-def level : snail → Nat
-  | .i _ => 0
-  | [a, b] => max (level a) (level b) + 1
+#assert ([1, 2] : snail) + [2, [3, 4]] == [[1, 2], [2, [3, 4]]]
 
 def split : snail → snail
   | .i n@(_ + 10) => [.i (n / 2), .i ((n + 1) / 2)]
@@ -75,38 +64,13 @@ def split : snail → snail
     let sa := split a
     if sa != a then [sa, b] else [sa, (split b)]
 
-
---def split : snail → snail
---  | .i n => .i n
---  | .cat (.i a) (.i b) => .cat (.i (a / 2)) (.i ((b + 1) / 2))
---  | .cat a b =>
---    let sa := split a
---    if sa != a then .cat sa b
---    else .cat sa (split b)
 #assert ([[[[4,3],4],4],[7,[[8,4],9]]] : snail) + ([1,1] : snail) == ([[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] : snail)
 #assert split [[[[0,7],4],[15,[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
 #assert split [[[[0,7],4],[[7,8],[0,13]]],[1,1]] == [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
 
-/-- info: 5 -/
-#guard_msgs in
-#eval level [[[[[9,8],1],2],3],4]
-
-variable (f : snail → snail) in
-def modifyLeftmost : snail → snail
-  | .cat a b =>
-    let ea := f a
-    if ea != a
-    then
-      [ea, b]
-    else
-      [a, f b]
-  | d => f d
-
 def addLeftmost (n : Nat) : snail → snail
-  | .i x =>
-    --dbg_trace "Ladding {n} to {x} = {n + x}"
-    .i (x + n)
-  | .cat a b => .cat (addLeftmost n a) b
+  | .i x => .i (x + n)
+  | [a, b] => [(addLeftmost n a), b]
 
 #assert addLeftmost 4 ([1, [2, [3, 4]]] : snail) == ([5, [2, [3, 4]]] : snail)
 #assert addLeftmost 4 ([[1, 5], [2, [3, 4]]] : snail) == ([[5, 5], [2, [3, 4]]] : snail)
@@ -145,10 +109,9 @@ def leftMostNestedPair : snail → (locs : Array loc := ∅) → Option (Array l
           | some (lb, s, l, r) =>
             if cond lb then (lb, ([a, s] : snail), l, r)
             else none
-  | .i _, _ => none --if cond locs then locs else none
+  | .i _, _ => none
 
 def addRightmostBefore (s : snail) (locs : Array loc) (n : Nat) : snail :=
-  --let locs := locs.popWhile (· == .l)
   match locs[0]?, s with
     | none, s => addRightmost n s
     | some loc.r, [a, b] => [a, addRightmostBefore b (locs.erase .r) n]
@@ -156,15 +119,13 @@ def addRightmostBefore (s : snail) (locs : Array loc) (n : Nat) : snail :=
     | some _, .i a => .i (a + n)
 
 def addLeftmostAfter (s : snail) (locs : Array loc) (n : Nat) : snail :=
-  --let locs := locs.popWhile (· == .r)
   match locs[0]?, s with
     | none, s => addLeftmost n s
     | some loc.l, [a, b] => [addLeftmostAfter a (locs.erase .l) n, b]
     | some loc.r, [a, b] => [a, addLeftmostAfter b (locs.erase .r) n]
     | some _, .i a => .i (a + n)
 
-#assert leftMostNestedPair (5 ≤ ·.size) [[[[[9,8],1],2],3],4] ==
-  none
+#assert leftMostNestedPair (5 ≤ ·.size) [[[[[9,8],1],2],3],4] == none
 
 def explode (s : snail) : snail :=
   match leftMostNestedPair (4 ≤ ·.size) s with
@@ -174,7 +135,6 @@ def explode (s : snail) : snail :=
       let with0Left := if locsLeft.isEmpty then with0 else addRightmostBefore with0 (locsLeft.pop.push .l) l
       let locsRight := locs.popWhile (· == loc.r)
       if locsRight.isEmpty then with0Left else addLeftmostAfter with0Left (locsRight.pop.push .r) r
-
 
 #assert explode [[[[[9,8],1],2],3],4] == [[[[0,9],2],3],4]
 #assert explode [7,[6,[5,[4,[3,2]]]]] == [7,[6,[5,[7,0]]]]
@@ -192,10 +152,8 @@ def reduce (s : snail) : snail := Id.run do
     old := s
     let ex := explode s
     if ex != s then
-      --dbg_trace "exp {ex}"
       s := ex
     else
-      --dbg_trace "spl {split s}"
       s := split s
   return s
 
