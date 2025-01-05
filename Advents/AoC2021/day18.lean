@@ -173,11 +173,23 @@ def leftmostSnailBefore (s : snail) (locs : Option (Array loc)) : Option snail :
     | none => none
     | some locs =>
       match locs.back? with
-        | none => s
+        | none => none
         | some .l => leftmostSnailBefore s (some locs.pop)
         | some .r =>
           let attempt := goTo s (locs.pop.push .l)
           if attempt.isSome then attempt else leftmostSnailBefore s locs.pop.pop
+
+partial
+def rightmostSnailAfter (s : snail) (locs : Option (Array loc)) : Option snail :=
+  match locs with
+    | none => none
+    | some locs =>
+      match locs.back? with
+        | none => none
+        | some .r => rightmostSnailAfter s (some locs.pop)
+        | some .l =>
+          let attempt := goTo s (locs.pop.push .r)
+          if attempt.isSome then attempt else rightmostSnailAfter s locs.pop.pop
 
 def takeRighmost : (s : snail) → Nat
   | [_a, b] => takeRighmost b
@@ -185,55 +197,63 @@ def takeRighmost : (s : snail) → Nat
 
 #eval show Elab.Term.TermElabM _ from do
   let s : snail := [[[[[9,8],1],2],3],4] --(some #[]) == ([[[[[9,8],1],2],3],4] : snail)
-  guard <| leftmostSnailBefore s (some #[]) == some s
+  guard <| leftmostSnailBefore s (some #[]) == none --some s
   guard <| leftmostSnailBefore s none == none
+  guard <| rightmostSnailAfter s (some #[]) == none --some s
+  guard <| rightmostSnailAfter s none == none
 
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let s : snail := [[[[[9,8],1],2],3],4]
   let lmb := leftmostSnailBefore s (some #[.l, .l, .l, .l]) --== ([9, 8] : snail)
-  IO.println <| lmb.map takeRighmost
+  guard <| lmb.map takeRighmost == none
 
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let s : snail := [7,[6,[5,[4,[3,2]]]]]
   let lmb := leftmostSnailBefore s (some #[.r, .r, .r, .r]) --== ([3, 2] : snail)
-  IO.println lmb
-  IO.println <| lmb.map takeRighmost
+  guard <| lmb == some 4
+  guard <| rightmostSnailAfter s (some #[.r, .r, .r, .r]) == none
 
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let s : snail := [[6,[5,[4,[3,2]]]],1]
   let lmb := leftmostSnailBefore s (some #[.l, .r, .r, .r]) --== ([3, 2] : snail)
-  IO.println lmb
-  IO.println <| lmb.map takeRighmost
+  guard <| lmb == some 4
+  guard <| rightmostSnailAfter s (some #[.l, .r, .r, .r]) == (1 : snail)
 
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let s : snail := [[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]
   let lmb := leftmostSnailBefore s (some #[.l, .r, .r, .r]) --== ([7, 3] : snail)
-  IO.println lmb
-  IO.println <| lmb.map takeRighmost
+  guard <| lmb == some 1
+  guard <| rightmostSnailAfter s (some #[.l, .r, .r, .r]) == ([6,[5,[4,[3,2]]]] : snail)
 
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let s : snail := [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]
   let lmb := leftmostSnailBefore s (some #[.r, .r, .r, .r]) --== ([3, 2] : snail)
-  IO.println lmb
-  IO.println <| lmb.map takeRighmost
+  guard <| lmb == some 4
+  guard <| rightmostSnailAfter s (some #[.r, .r, .r, .r]) == none
 
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let s : snail := [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
   let lmb := leftmostSnailBefore s (some #[.l, .l, .l, .l]) --== ([4, 3] : snail)
-  IO.println lmb
-  IO.println <| lmb.map takeRighmost
+  guard <| lmb == none
+  guard <| rightmostSnailAfter s (some #[.l, .l, .l, .l]) == some 4
 
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let s : snail := [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
   let lmb := leftmostSnailBefore s (some #[.l, .r, .r, .l]) --== ([8, 4] : snail)
-  IO.println lmb
-  IO.println <| lmb.map takeRighmost
+  guard <| lmb == some 7
+  guard <| rightmostSnailAfter s (some #[.l, .r, .r, .l]) == some 9
 
-#eval do
+#eval show Elab.Term.TermElabM _ from do
   let s : snail := [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
-  let lmb := leftmostSnailBefore s #[.l, .r, .r, .r] --== ([6, 7] : snail)
-  IO.println lmb
-  IO.println <| lmb.map takeRighmost
+  let lmb := leftmostSnailBefore s (some #[.l, .r, .r, .r]) --== ([6, 7] : snail)
+  guard <| lmb == some 0
+  guard <| rightmostSnailAfter s (some #[.l, .r, .r, .r]) == ([1, 1] : snail)
+
+#eval show Elab.Term.TermElabM _ from do
+  let s : snail := [[[[0,7],4],[[7,8],[[0, 1],[6,7]]]],[1,1]]
+  let lmb := leftmostSnailBefore s (some #[.l, .r, .r, .r]) --== ([6, 7] : snail)
+  guard <| lmb == some ([0, 1] : snail)
+  guard <| rightmostSnailAfter s (some #[.l, .r, .r, .r]) == ([1, 1] : snail)
 
 
 def explodeCore : snail → Array loc → snail × Array loc
