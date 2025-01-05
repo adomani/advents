@@ -112,7 +112,7 @@ def addRightmost (n : Nat) : snail → snail
   | .cat a b => .cat a (addRightmost n b)
 
 inductive loc where | l | r
-  deriving DecidableEq
+  deriving Inhabited, DecidableEq
 
 instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
 
@@ -140,6 +140,20 @@ def leftMostNestedPair : snail → (locs : Array loc := ∅) → Array loc
 #assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[7,[[8,4],9]]],[1,1]] == #[.l, .r, .r, .l]
 #assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] == #[.l, .r, .r, .r]
 
+def goTo : snail → Array loc → Option snail
+  | s, #[] => s
+  | .cat a b, l => if l[0]! == .l then goTo a (l.erase .l) else goTo b (l.erase .r)
+  | .i _, _ => none
+
+#assert goTo [[[[[9,8],1],2],3],4] #[] == ([[[[[9,8],1],2],3],4] : snail)
+#assert goTo [[[[[9,8],1],2],3],4] #[.l, .l, .l, .l] == ([9, 8] : snail)
+#assert goTo [7,[6,[5,[4,[3,2]]]]] #[.r, .r, .r, .r] == ([3, 2] : snail)
+#assert goTo [[6,[5,[4,[3,2]]]],1] #[.l, .r, .r, .r] == ([3, 2] : snail)
+#assert goTo [[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]] #[.l, .r, .r, .r] == ([7, 3] : snail)
+#assert goTo [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]] #[.r, .r, .r, .r] == ([3, 2] : snail)
+#assert goTo [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] #[.l, .l, .l, .l] == ([4, 3] : snail)
+#assert goTo [[[[0,7],4],[7,[[8,4],9]]],[1,1]] #[.l, .r, .r, .l] == ([8, 4] : snail)
+#assert goTo [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] #[.l, .r, .r, .r] == ([6, 7] : snail)
 
 
 def explodeCore : snail → Array loc → snail × Array loc
