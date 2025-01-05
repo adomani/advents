@@ -129,27 +129,36 @@ def explodeCore : snail → snail
 
 inductive loc where | l | r
 
-def explode : snail → snail
-  | s@(.cat a b) =>
+instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
+
+--variable (patt : snail) in
+--def snail.locateLIn : (s : snail) → Array loc
+--  |
+
+def explode : snail → Array loc → Array loc × snail
+  | s@(.cat a b), locs =>
     let ea := explodeCore a
-    if ea != a then .cat ea b
+    if ea != a then (locs.push .l, .cat ea b)
     else
-      let Ea := explode a
-      if Ea != a then .cat Ea b
+      let (lE, Ea) := explode a (locs.push .l)
+      if Ea != a then (lE, .cat Ea b)
       else
       let es := explodeCore s
-      if es != s then es
+      if es != s then (locs.push .l, es)
       else
         dbg_trace "ignoring {a}-branch, entering {b}, hence computing {explodeCore b}"
-        .cat a <| explode b
-  | d => d
+        let (locB, lb) := explode b (locs.push .r)
+        (locB, .cat a lb)
+  | d, locs => (locs, d)
 
-#assert explode [[[[[9,8],1],2],3],4] == [[[[0,9],2],3],4]
-#eval explode [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
+--#assert explode [[[[[9,8],1],2],3],4] == [[[[0,9],2],3],4]
+#assert (explode [[[[[9,8],1],2],3],4] ∅).2 == [[[[0,9],2],3],4]
+#eval (explode [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] ∅)
 --== [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
-#assert explode [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] == [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
+#assert (explode [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] ∅).2 == [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
 #eval explodeCore [4,[3,2]]
-#eval explode [[6,[5,[4,[3,2]]]],1]
+#eval explode [4,[3,2]] ∅
+#eval (explode [[6,[5,[4,[3,2]]]],1] ∅).2
 
 /--
 info: [[[1, [2, 3]], [4, 5]], 6]
