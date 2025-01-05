@@ -112,8 +112,30 @@ def addRightmost (n : Nat) : snail → snail
   | .cat a b => .cat a (addRightmost n b)
 
 inductive loc where | l | r
+  deriving DecidableEq
 
 instance : ToString loc where toString := (match · with | .l => "l"| .r => "r")
+
+variable (cond : Array loc → Bool) in
+def leftMostNestedPair : snail → (locs : Array loc := ∅) → Array loc
+  | .cat (.i _) (.i _), locs => if cond locs then locs else ∅
+  | .cat a b, locs =>
+    let la := leftMostNestedPair a (locs.push .l)
+    if cond la then la
+    else
+    let lb := leftMostNestedPair b (locs.push .r)
+    if cond lb then lb
+    else ∅
+  | .i _, _ => ∅
+
+#assert leftMostNestedPair (4 ≤ ·.size) [[[[[9,8],1],2],3],4] == #[.l, .l, .l, .l]
+#assert leftMostNestedPair (4 ≤ ·.size) [7,[6,[5,[4,[3,2]]]]] == #[.r, .r, .r, .r]
+#assert leftMostNestedPair (4 ≤ ·.size) [[6,[5,[4,[3,2]]]],1] == #[.l, .r, .r, .r]
+#assert leftMostNestedPair (4 ≤ ·.size) [[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]] == #[.l, .r, .r, .r]
+#assert leftMostNestedPair (4 ≤ ·.size) [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]] == #[.r, .r, .r, .r]
+#assert leftMostNestedPair (4 ≤ ·.size) [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] == #[.l, .l, .l, .l]
+#assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[7,[[8,4],9]]],[1,1]] == #[.l, .r, .r, .l]
+#assert leftMostNestedPair (4 ≤ ·.size) [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]] == #[.l, .r, .r, .r]
 
 def explodeCore : snail → Array loc → snail × Array loc
   | .cat (.cat goR (.cat (.i a) (.i b))) goL, locs => --| .cat goR (.cat (.cat (.i a) (.i b)) goL) =>
