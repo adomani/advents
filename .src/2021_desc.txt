@@ -239,6 +239,19 @@ Find the highest `y`-coordinate that a probe the passes through the given rectan
 #### Part 2
 
 Now find all the possible initial velocities that allow a probe to reach the rectangular range.
+-- Day 18
+The input is a list of snailfish number: nested sequences of pairs of natural numbers.
+
+### Description
+
+#### Part 1
+
+We should determine the `magnitude` of the total sum of the input snailfish numbers, using the
+appropriate reduction rules.
+
+#### Part 2
+
+Now we should find the largest `magnitude` of the sum of any pair of input snailfish numbers.
 -- Day 19
 Aligning beacons and scanners in space.
 

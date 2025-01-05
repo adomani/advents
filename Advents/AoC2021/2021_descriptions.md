@@ -17,6 +17,7 @@
 | [15](2021_descriptions_with_tests.md#day-15) | Navigating the ocean floor, minimizing the risk of hitting a chiton.                                         |
 | [16](2021_descriptions_with_tests.md#day-16) | A single hexadecimal number, providing instructions to construct a "packet".                                 |
 | [17](2021_descriptions_with_tests.md#day-17) | The input is a rectangular range: we should aim for it!                                                      |
+| [18](2021_descriptions_with_tests.md#day-18) | The input is a list of snailfish number: nested sequences of pairs of natural numbers.                       |
 | [19](2021_descriptions_with_tests.md#day-19) | Aligning beacons and scanners in space.                                                                      |
 | [20](2021_descriptions_with_tests.md#day-20) | Repeatedly enhancing an image.                                                                               |
 | [22](2021_descriptions_with_tests.md#day-22) | Switching on and off overlapping cuboids.                                                                    |
