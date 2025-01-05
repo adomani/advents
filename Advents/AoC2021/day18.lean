@@ -238,6 +238,7 @@ def reduce (s : snail) : snail := Id.run do
   IO.println tot
   IO.println <| magnitude tot
 
+set_option trace.profiler true in
 #eval do
   let dat : Array snail := #[
 [[[7,1],2],3],
@@ -345,6 +346,14 @@ def reduce (s : snail) : snail := Id.run do
   let tot := (dat.erase f).foldl (init := f) fun t n => reduce (t + n)
   IO.println tot
   IO.println <| magnitude tot
+  let mut maxMag := 0
+  for i in dat do
+    for j in dat do
+      let newMag := magnitude (reduce (i + j))
+      if maxMag < newMag then
+        IO.println s!"{(i, j)}: {newMag}"
+        maxMag := max maxMag newMag
+  IO.println <| maxMag
 
 def tall (dat : Array String) : snail :=
   let f := dat[0]!
