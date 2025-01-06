@@ -4,6 +4,7 @@
   allowing the repetition of one small cave)
 * Day 15, part 2 is slow (find quickest way through a maze)
 * Day 20, part 2 is slow (iterate 50 times the image enhancing algorithm -- the test takes ~11s, the solution ~65s)
+* Day 25, part 1 is slow (moving seacucumbers -- takes approximately 1m40s)
 
 ### 2023
 

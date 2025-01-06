@@ -54,17 +54,17 @@ where each entry is the natural number corresponding to each consecutive
 sequence of digits in `l`, in their order. -/
 partial
 def String.getNats (l : String) : List Nat :=
-  let l1 := l.dropWhile (!Char.isDigit ·)
+  let l1 := l.dropWhile (! ·.isDigit)
   if l1.isEmpty then [] else
-    let d1 := String.toNat! ⟨l1.toList.takeWhile (Char.isDigit ·)⟩
-    let fin := getNats (l1.dropWhile (Char.isDigit ·))
+    let d1 := String.toNat! ⟨l1.toList.takeWhile (·.isDigit)⟩
+    let fin := getNats (l1.dropWhile (·.isDigit))
   d1 :: fin
 
 /-- `String.getInts l` takes as input a string `l`, removes everything that is neither a digit,
 not a minus sign (`-`) and interprets the rest as a list of integers. -/
 partial
 def String.getInts (l : String) : List Int :=
-  let cond : Char → Bool := fun c => (Char.isDigit c) || (c == '-')
+  let cond : Char → Bool := fun c => c.isDigit || (c == '-')
   let l1 := l.dropWhile (!cond ·)
   if l1.isEmpty then [] else
     let d1 := String.toInt! (l1.takeWhile cond)
@@ -81,16 +81,10 @@ def Nat.factors (n : Nat) (p : Nat := 2) : Array Nat :=
     | 0 => #[0]
     | 1 => #[]
     | n =>
-      have : n / p < n := by
-        apply Nat.div_lt_self (Nat.pos_of_ne_zero ?_)
-        · apply Nat.lt_of_le_of_ne ?_ (Ne.symm p1)
-          exact Nat.succ_le.mpr <| Nat.pos_of_ne_zero p0
-        · apply Nat.ne_zero_iff_zero_lt.mpr
-          exact Nat.lt_of_le_of_lt p.zero_le (Nat.not_le.mp pn)
+      have : n / p < n := Nat.div_lt_self (Nat.pos_of_ne_zero (by omega)) (by omega)
       if n % p = 0 then ((n / p).factors p).push p
       else if n.sqrt < p then #[n]
       else
-        have : n - p.succ < n - p := Nat.sub_lt_sub_left (Nat.not_le.mp pn) p.lt_succ_self
         n.factors p.succ
   termination_by (n, n - p)
 
@@ -241,8 +235,8 @@ Example usage:
 solve 1 15    -- parses the input as an array of strings, errors if answer does not match `15`
 solve 2 629   -- parses the input as an array of strings, errors if answer does not match `629`
 
-solve 1 15  file  -- parses the input as a string, errors if answer does not match `15`
-solve 2 file      -- parses the input as a string, no error
+solve 1 15 file  -- parses the input as a string, errors if answer does not match `15`
+solve 2 file     -- parses the input as a string, no error
 ```
 -/
 elab "solve " part:num nn:(ppSpace term:max)? f:(&" file")?: command => do

@@ -645,6 +645,40 @@ Now find all the possible initial velocities that allow a probe to reach the rec
 
 ---
 
+#  [Day 18](https://adventofcode.com/2021/day/18)
+
+The input is a list of snailfish number: nested sequences of pairs of natural numbers.
+
+####  Test
+
+<pre>
+[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
+[[[5,[2,8]],4],[5,[[9,9],0]]]
+[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]
+[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]
+[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]
+[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]
+[[[[5,4],[7,7]],8],[[8,3],8]]
+[[9,3],[[9,9],[6,[4,9]]]]
+[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]
+[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]
+</pre>
+
+### Description
+
+#### Part 1
+
+We should determine the `magnitude` of the total sum of the input snailfish numbers, using the
+appropriate reduction rules.
+
+#### Part 2
+
+Now we should find the largest `magnitude` of the sum of any pair of input snailfish numbers.
+
+[Solution in Lean](day18.lean)
+
+---
+
 #  [Day 19](https://adventofcode.com/2021/day/19)
 
 Aligning beacons and scanners in space.
@@ -1020,5 +1054,38 @@ Part 1 asks how many are on in the cube `[-50..50] ^ 3`.
 In part 2, we should perform the computation on *all* the cubes.
 
 [Solution in Lean](day22.lean)
+
+---
+
+#  [Day 25](https://adventofcode.com/2021/day/25)
+
+Seacucumbers moving right and down.
+
+####  Test
+
+<pre>
+v...>>.vv>
+.vv>>.vv..
+>>.>v>...v
+>>v>>.>.v.
+v>v.vv.v..
+>.>>..v...
+.vv..>.>v.
+v.v..>>v.v
+....v..v.>
+</pre>
+
+### Description
+
+#### Part 1
+
+The input is a configuration of two herds of seacucumbers: some move right, other move down.
+Part 1 asks after how many steps, the seacucumbers run out of moves.
+
+#### Part 2
+
+Obtain all the stars!
+
+[Solution in Lean](day25.lean)
 
 ---
