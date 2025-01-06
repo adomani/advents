@@ -197,16 +197,16 @@ def firstFalse? (fin : Nat) (cond : Nat → Bool) (st : Nat := 0) : Option Nat :
   if cond mid then firstFalse? fin cond (mid + 1) else firstFalse? mid cond st
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : pos :=
+def part2 (dat : Array String) : String :=
   let (maxX, maxY) := dat.foldl (init := (0, 0)) fun (mx, my) s =>
     let ns := s.getNats
     (max mx ns[0]!, max my ns[1]!)
   let low := (firstFalse? (maxX * maxY + 1) (historiansEscape? dat ·)).get!
   let cs := dat[low - 1]!.getNats
-  (cs[0]!, cs[1]!)
+  ",".intercalate <| cs.map (s!"{·}")
 
-#assert part2 atest == (6, 1)
+#assert part2 atest == "6,1"
 
-solve 2 (26, 50)  -- takes approximately 4s
+solve 2 "26,50"  -- takes approximately 4s
 
 end Day18

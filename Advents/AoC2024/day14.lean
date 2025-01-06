@@ -1,5 +1,4 @@
 import Advents.Utils
-open Lean
 
 namespace Day14
 
@@ -128,7 +127,8 @@ def part2 (dat : Array String) : Nat :=
         | #[ind] =>
           let xmas := drawSparse
             ((move rs ind).ps.fold (fun h ((p, _) : pos × pos) => h.insert p) {}) sz.2 sz.1
-          dbg_trace String.intercalate "\n" <| s!"Look in quadrant number {corner}" :: xmas.toList
+          dbg_trace String.intercalate "\n" <|
+            s!"Day 14, 2024, part 2: {ind} -- look in quadrant number {corner}" :: xmas.toList
           ind
         | e => dbg_trace "{e} should contain exactly one element!"; 0
     | _ => dbg_trace "Expecting 2 results, but found {results.size}!"; 0

@@ -239,23 +239,28 @@ solve 1 15 file  -- parses the input as a string, errors if answer does not matc
 solve 2 file     -- parses the input as a string, no error
 ```
 -/
-elab "solve " part:num nn:(ppSpace term:max)? f:(&" file")?: command => do
-  let nn ← match nn with
-    | some stx =>  `((some $stx))
-    | none =>  `((none))
-  let p1 := mkIdent <| match part with
-    | `(1) => `part1
-    | `(2) => `part2
+elab "solve " part:num ans:(ppSpace term:max)? f:(&" file")?: command => do
+  let ans ← match ans with
+    | some stx => `(some $stx)
+    | none => `(none)
+  let part1or2 := mkIdent <| match part.getNat with
+    | 1 => `part1
+    | 2 => `part2
     | _ => default
+  let inputName ← liftTermElabM do realizeGlobalConstNoOverloadCore `input
+  let inputFileName := match (← getEnv).find? inputName |>.getD default |>.value? with
+      | some (.app _ (.lit (.strVal s))) => s
+      | _ => ""
+  let (year, day) := match inputFileName.getNats with
+    | [y, d] => (Syntax.mkNumLit s!"{y}", Syntax.mkNumLit s!"{d}")
+    | _ => (Syntax.mkNumLit "YYYY", Syntax.mkNumLit "DD")
   let inp := mkIdent `input
-  let rf := mkIdent <| if f.isSome then `IO.FS.readFile else `IO.FS.lines
+  let readFile := mkIdent <| if f.isSome then `IO.FS.readFile else `IO.FS.lines
   elabCommand (← `(command|
-    #eval show MetaM _ from do
-      let year := ((System.FilePath.toString $inp).getNats)[0]!
-      let day := ((System.FilePath.toString $inp).getNats)[1]!
-      let answer := $p1 <| ← $rf $inp
-      IO.println <| f!"Day {day}, {year}, part {$part}: {answer}"
-      let ans := ($nn).getD answer
+    #eval show TermElabM _ from do
+      let answer := $part1or2 <| ← $readFile $inp
+      IO.println <| f!"Day {$day}, {$year}, part {$part}: {answer}"
+      let ans := ($ans).getD answer
       guard (answer == ans) <|> throwError "Computed {answer}\nExpected {ans}"))
 
 end meta
