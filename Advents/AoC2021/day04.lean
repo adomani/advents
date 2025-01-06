@@ -1,4 +1,5 @@
 import Advents.Utils
+import Batteries.Data.Array.Basic
 open Lean
 
 namespace Day04

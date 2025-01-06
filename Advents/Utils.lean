@@ -1,4 +1,8 @@
-import Batteries
+import Lean.Elab.Command
+
+-- copied from `Batteries/Lean/HashSet.lean`
+instance [BEq α] [Hashable α] : BEq (Std.HashSet α) where
+  beq s t := s.all (t.contains ·) && t.all (s.contains ·)
 
 section sums
 variable {α}
@@ -83,7 +87,7 @@ def Nat.factors (n : Nat) (p : Nat := 2) : Array Nat :=
     | n =>
       have : n / p < n := Nat.div_lt_self (Nat.pos_of_ne_zero (by omega)) (by omega)
       if n % p = 0 then ((n / p).factors p).push p
-      else if n.sqrt < p then #[n]
+      else if n < p * p then #[n]
       else
         n.factors p.succ
   termination_by (n, n - p)
