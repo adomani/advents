@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day16
 
@@ -66,16 +66,16 @@ def atest2 := (test2.splitOn "\n").toArray
 structure ReindeerMap where
   /-- `tiles` is the `HashSet` of tiles that the Reindeer can take -- the entries labeled with
   `.`, `S` or `E`. -/
-  tiles : Std.HashSet pos
+  tiles : HashSet pos
   /-- `S` is the pair consisting of the starting position and direction of the Reindeer. -/
   S : pos × pos
   /-- `growing` is `HashMap` recording which tiles have already been visited and what is their
   relative distance along the chosen path.
   This information is used to update `visited`, which tracks the minima of these values. -/
-  growing : Std.HashMap (pos × pos) Nat := {(S, 0)}
+  growing : HashMap (pos × pos) Nat := {(S, 0)}
   /-- `visited` is the current minimum score to go from `S` to the given tile:
   this value is updated dynamically, as `growing` grows. -/
-  visited : Std.HashMap (pos × pos) Nat := {(S, 0)}
+  visited : HashMap (pos × pos) Nat := {(S, 0)}
 
 /-- Converts the input data into the corresponding `ReindeerMap`. -/
 def inputToRMp (s : Array String) : ReindeerMap :=
@@ -92,8 +92,8 @@ The main function to update `ReindeerMap.visiting`: checks whether the new value
 smaller than what is already stored and, if so, returns `some updatedHashMap`.
 Otherwise, it returns `none`.
 -/
-def update (v : Std.HashMap (pos × pos) Nat) (p d : pos) (val : Nat) :
-    Option (Std.HashMap (pos × pos) Nat) :=
+def update (v : HashMap (pos × pos) Nat) (p d : pos) (val : Nat) :
+    Option (HashMap (pos × pos) Nat) :=
   match v.get? (p, d) with
     | none => some (v.insert (p, d) val)
     | some oldVal => if oldVal ≤ val then none else some (v.insert (p, d) val)
@@ -146,9 +146,9 @@ It returns
   (i.e. allowing any direction at `E`, unlike what happens at `S`).
 -/
 def getMinDists (rm : ReindeerMap) (tgt : pos) :
-    Std.HashMap (pos × pos) Nat × Std.HashMap (pos × pos) Nat × Nat := Id.run do
+    HashMap (pos × pos) Nat × HashMap (pos × pos) Nat × Nat := Id.run do
   let mut rm := rm
-  let mut oldGrow : Std.HashMap (pos × pos) Nat := ∅
+  let mut oldGrow : HashMap (pos × pos) Nat := ∅
   while (oldGrow.toArray != rm.growing.toArray) do
     oldGrow := rm.growing
     rm := increase rm
@@ -174,7 +174,7 @@ def part1 (dat : Array String) : Nat :=
 -/
 
 /-- Returns all the tiles through which there is a paths of minimum score. -/
-def getMinPaths (rm : ReindeerMap) (tgt : pos) : Std.HashSet pos :=
+def getMinPaths (rm : ReindeerMap) (tgt : pos) : HashSet pos :=
   let (rmToE, es, oldMin) := getMinDists rm tgt
   let (rmToS, _, newMin) := getMinDists {rm with growing := es, visited := es} rm.S.1
   let target := (newMin + oldMin) / 2 + 500 -- add 500 to average the extra rotation, I think!

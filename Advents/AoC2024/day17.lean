@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day17
 
@@ -125,7 +125,7 @@ def oneOp (s : State) : State :=
           panic s!"opcode was {o}, but should be at most 7"
 
 -- Tests to make sure that the program works as intended.
-#eval show Elab.Term.TermElabM _ from do
+#eval show Lean.Elab.Term.TermElabM _ from do
   let inps : Array (String × (State → Bool)) := #[
     ("0\n0\n9\n2,6", (·.B == 1)),
     ("10\n7880\n9233\n5,0,5,1,5,4", (·.out == #[0,1,2])),
@@ -203,7 +203,7 @@ def reprogramOne (s : State) (a : Array Nat) : Array Nat × Nat :=
 Returns all the 10-digit binary numbers that yield first digit `i` when used in the program.
 The output is stored in *reverse* order, so that the most significant digits are last.
 -/
-def inits (s : State) (i : Nat) : Std.HashSet (Array Nat) :=
+def inits (s : State) (i : Nat) : HashSet (Array Nat) :=
   --  we use 10, since these should be the relevant digits for guaranteeing the first digit
   (Array.range (2 ^ 10)).foldl (fun h A =>
     let a : Array Nat := (Nat.toDigits 2 (2 ^ 11 + A)).map ("".push · |>.toNat!) |>.toArray
@@ -221,7 +221,7 @@ The output is the result of merging the arrays of `sts1` with the arrays of `sts
 
 then we store `#[a, b, c] ++ common ++ rest`.
 -/
-def merge2 (sts1 sts2 : Std.HashSet (Array Nat)) : Std.HashSet (Array Nat) :=
+def merge2 (sts1 sts2 : HashSet (Array Nat)) : HashSet (Array Nat) :=
   sts2.fold (init := ∅) fun next a4 =>
     let a4d := a4.pop.pop.pop
     let cands := sts1.filter fun a2 : Array _ =>

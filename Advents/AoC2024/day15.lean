@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day15
 
@@ -77,9 +77,9 @@ def atest3 := (test3.splitOn "\n").toArray
 -/
 structure Boxes where
   /-- `w` is the location of the walls `#`. -/
-  w : Std.HashSet pos
+  w : HashSet pos
   /-- `b` is the location of the boxes `O`. -/
-  b : Std.HashSet pos
+  b : HashSet pos
   /-- `S` is the current position `@`. -/
   S : pos
   /-- `m` is what is left of the string of instructions. -/
@@ -89,8 +89,8 @@ structure Boxes where
   deriving Inhabited
 
 /-- Converts a state of `Boxes` into a `HashMap` that is easier to print. -/
-def rev (b : Boxes) : Std.HashMap pos Char :=
-  let t : Std.HashMap pos Char := (b.w.fold (fun h p => h.insert p '#') ∅)
+def rev (b : Boxes) : HashMap pos Char :=
+  let t : HashMap pos Char := (b.w.fold (fun h p => h.insert p '#') ∅)
   let t := (b.b.fold (fun h p => h.insert p 'O') t)
   t.insert b.S '@'
 
@@ -204,9 +204,9 @@ than a `HashSet` of `pos`itions.
 -/
 structure Boxes2 where
   /-- `w` is the location of the walls `#`. -/
-  w : Std.HashSet pos
+  w : HashSet pos
   /-- `b` is the location of the boxes `O`. -/
-  b : Std.HashSet box
+  b : HashSet box
   /-- `S` is the current position `@`. -/
   S : pos
   /-- `m` is what is left of the string of instructions. -/
@@ -232,13 +232,13 @@ def resize (b : Boxes) : Boxes2 where
 -/
 structure ContBoxes where
   /-- `walls` is the set of walls `#`. -/
-  walls : Std.HashSet pos
+  walls : HashSet pos
   /-- `boxes` is the set of boxes `O`. -/
-  boxes : Std.HashSet box
+  boxes : HashSet box
   /-- `front` is the set of fronts of the expansion: the positions that were just added. -/
-  front : Std.HashSet pos
+  front : HashSet pos
   /-- `growing` is the set of boxes accumulated so far. -/
-  growing : Std.HashSet box
+  growing : HashSet box
   deriving Inhabited
 
 /--
@@ -246,7 +246,7 @@ Increases the contiguous boxes to the input `b` by one layer in the direction sp
 the string input `s`.
 -/
 def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
-  let shift : Std.HashSet pos := b.front.fold (fun h p => h.insert (p + toDir s)) b.front
+  let shift : HashSet pos := b.front.fold (fun h p => h.insert (p + toDir s)) b.front
   --dbg_trace "first shift: {shift.toArray}"
   let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
   --dbg_trace "shift: {shift.toArray}"
@@ -256,7 +256,7 @@ def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
     (default, false)
   else
   let metBoxes := b.boxes.filter (fun b => ((nbs b).map shift.contains).any id)
-  let shift := metBoxes.fold (fun h b => h.insertMany (nbs b)) ({} : Std.HashSet pos)
+  let shift := metBoxes.fold (fun h b => h.insertMany (nbs b)) ({} : HashSet pos)
   --dbg_trace "intermediate shift: {shift.toArray}"
   let shift := shift.filter (fun p => ! shift.contains (p + toDir s))
   --dbg_trace "no wall -- metBoxes: {metBoxes.toArray}\nagain shift: {shift.toArray}\n"
@@ -269,7 +269,7 @@ def growBoxes (b : ContBoxes) (s : String) : ContBoxes × Bool :=
 Iteratively applies `growBoxes` until either no more boxes can be added or a wall is reached.
 The `Bool`ean output tracks whether the move should be made or not.
 -/
-def adjacentBoxes (b : Boxes2) (s : String) : Std.HashSet box × Bool := Id.run do
+def adjacentBoxes (b : Boxes2) (s : String) : HashSet box × Bool := Id.run do
   let mut (temp, continue?) : ContBoxes × Bool :=
     ({walls := b.w, boxes := b.b, front := {b.S}, growing := {}}, true)
   while ! temp.front.isEmpty do

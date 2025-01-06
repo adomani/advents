@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day20
 
@@ -37,21 +37,21 @@ The main data for the puzzle.
 -/
 structure Race where
   /-- `grid` is the collection of positions that a program can occupy. -/
-  grid : Std.HashSet pos
+  grid : HashSet pos
   /-- `E` is the final position. -/
   E : pos
 
 /-- Returns all positions with L¹-distance at most `n` from the origin. -/
-def posAtMost (n : Nat) : Std.HashSet pos :=
+def posAtMost (n : Nat) : HashSet pos :=
   (Array.range (n + 1)).foldl (init := ∅) fun tot p =>
     tot.insertMany <|
-      (Array.range (n + 1 - p)).foldl (init := (∅ : Std.HashSet pos)) fun tot' q =>
+      (Array.range (n + 1 - p)).foldl (init := (∅ : HashSet pos)) fun tot' q =>
         let p : Int := p.cast
         let q : Int := q.cast
         tot'.union ({(p, q), (p, - q), (- p, q), (- p, - q)})
 
 /-- Returns the distances to `E` along the unique path that programs can follow without cheating. -/
-def path (r : Race) : Std.HashMap pos Nat := Id.run do
+def path (r : Race) : HashMap pos Nat := Id.run do
   let mut curr := r.E
   let mut dists := {(curr, 0)}
   let mut gr := r.grid.erase curr
@@ -80,7 +80,7 @@ def parts (dat : Array String) (cheat : Nat) (saving : Nat) : Nat := Id.run do
   let r := inputToRace dat
   let path := path r
   let poss := posAtMost cheat
-  let mut improve : Std.HashMap Nat Nat := ∅
+  let mut improve : HashMap Nat Nat := ∅
   for (p, pToE) in path do
     for shift in poss do
       let q := p + shift

@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day06
 
@@ -40,16 +40,16 @@ The state for the grid.
 -/
 structure GuardMoves where
   /-- `mz` is the location of the obstacles. -/
-  mz : Std.HashSet pos
+  mz : HashSet pos
   /-- `S` is the current location of the guard. -/
   S  : pos
   /-- `d` is the current direction of the guard. .-/
   d  : pos
   /-- `visited` is the record of all the pairs position-direction through which the guard passed. -/
-  visited : Std.HashSet (pos × pos)
+  visited : HashSet (pos × pos)
   /-- `bd` is the "boundary": it is the location of every point in the grid and
   it is used to find out when the guard leaves it. -/
-  bd : Std.HashSet pos
+  bd : HashSet pos
   /-- `loop` records whether the guard is known to be in a loop.-/
   loop : Bool := false
   deriving Inhabited
@@ -74,7 +74,7 @@ def move (gm : GuardMoves) : GuardMoves :=
     {gm with d := rot gm.d}
 
 /-- Updates the `GuardMoves` state, by taking `n` steps -- the iteration of `move`. -/
-def moveN (gm : GuardMoves) : Nat → Std.HashSet pos × Bool
+def moveN (gm : GuardMoves) : Nat → HashSet pos × Bool
   | 0 => (gm.visited.fold (init := {}) (·.insert ·.1), gm.loop)
   | n + 1 => moveN (move gm) n
 
@@ -82,7 +82,7 @@ def moveN (gm : GuardMoves) : Nat → Std.HashSet pos × Bool
 Repeatedly take one more step until either the guard exits the grid, or it repeats a
 position-direction pair.
 -/
-def moveUntil (gm : GuardMoves) : Std.HashSet pos × Bool := Id.run do
+def moveUntil (gm : GuardMoves) : HashSet pos × Bool := Id.run do
   let mut gm := gm
   while gm.d != (0, 0) && !gm.loop do
     gm := move gm
@@ -110,7 +110,7 @@ It returns the pair consisting of the final position and,
 * if it reached a `hash`, then the rotation of `d`;
 * if it exited `grid`, then `(0, 0)`.
 -/
-def findNext (grid hashes : Std.HashSet pos) (p d : pos) : pos × pos := Id.run do
+def findNext (grid hashes : HashSet pos) (p d : pos) : pos × pos := Id.run do
   let mut curr := p
   while grid.contains curr && !hashes.contains curr do
     curr := curr + d
@@ -126,9 +126,9 @@ It returns the collection of all positions that have a `hash` to their right.
 
 These are the paths that need to break, if we add `p` as a `hash`.
 -/
-def findNextAll (grid hashes : Std.HashSet pos) (p d : pos) : Std.HashSet pos := Id.run do
+def findNextAll (grid hashes : HashSet pos) (p d : pos) : HashSet pos := Id.run do
   let mut curr := p
-  let mut sides : Std.HashSet pos := ∅
+  let mut sides : HashSet pos := ∅
   while grid.contains curr && !hashes.contains curr do
     curr := curr + d
     if hashes.contains (curr + rot d) then
@@ -143,14 +143,14 @@ from `p` and going in the direction `d` that is not a hash (`#`), and is contain
 * If `p'` is followed by a hash (`#`), then `d'` is the 90⁰ clockwise rotation of `d`.
 * If `p` is on the edge of the grid, then the returned direction `d'` is `(0, 0)`.
 -/
-abbrev Edges := Std.HashMap (pos × pos) (pos × pos)
+abbrev Edges := HashMap (pos × pos) (pos × pos)
 
 /-- Adds an edge from `(p, d)` to the input `Edges`, using the provided information. -/
-def addEdge (grid hashes : Std.HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
+def addEdge (grid hashes : HashSet pos) (edgs : Edges) (p d : pos) : Edges :=
   edgs.insert (p, d) (findNext grid hashes p d)
 
 /-- Similar to `addEdge`, except that it adds all edges from `p`, pointing in all directions. -/
-def addEdgeAllDirs (grid hashes : Std.HashSet pos) (edgs : Edges) (p : pos) : Edges :=
+def addEdgeAllDirs (grid hashes : HashSet pos) (edgs : Edges) (p : pos) : Edges :=
   [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun h' d =>
     addEdge grid (hashes.insert p) h' (p - d) (rot d)
 
@@ -158,14 +158,14 @@ def addEdgeAllDirs (grid hashes : Std.HashSet pos) (edgs : Edges) (p : pos) : Ed
 Similar to `addEdge` and `addEdgeAllDirs`, except that it adds all edges from all positions
 in `new`.
 -/
-def addEdges (grid hashes new : Std.HashSet pos) (edgs : Edges) : Edges :=
+def addEdges (grid hashes new : HashSet pos) (edgs : Edges) : Edges :=
   new.fold (init := edgs) (addEdgeAllDirs grid hashes)
 
 /--
 Breaks the edges that are already present in `edgs`, according to what they should be
 after we add the extra `wall`.
 -/
-def addNewWall (grid hashes : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edges :=
+def addNewWall (grid hashes : HashSet pos) (edgs : Edges) (wall : pos) : Edges :=
   [(0, 1), (0, -1), (1, 0), (-1, 0)].foldl (init := edgs) fun e del =>
     let toBreak := findNextAll grid hashes wall del
     toBreak.fold (init := e) fun e p =>
@@ -177,8 +177,8 @@ def addNewWall (grid hashes : Std.HashSet pos) (edgs : Edges) (wall : pos) : Edg
 Moves one step from `(p, d)` following the `Edges`.  The input `memo` records the visited pairs
 position-and-direction, so that we can detect loops.
 -/
-def nextWithMemo (memo : Std.HashSet (pos × pos)) (e : Edges) (p d : pos) :
-    pos × pos × Std.HashSet (pos × pos) :=
+def nextWithMemo (memo : HashSet (pos × pos)) (e : Edges) (p d : pos) :
+    pos × pos × HashSet (pos × pos) :=
   match e[(p, d)]? with
       | none => ((0, 0), (0, 0), memo)
       | some (p', d') => (p', d', memo.insert (p, d))
@@ -189,7 +189,7 @@ we ever enter a loop.
 The input `memo` is expected to be `∅` at the start and increases by the visited positions at each
 step.
 -/
-def loops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet pos)
+def loops? (memo : HashSet (pos × pos)) (grid hashes : HashSet pos)
     (e : Edges) (p d : pos) : Bool := Id.run do
   let (firstWall, _) := findNext grid hashes p d
   let mut memo := memo
@@ -201,14 +201,14 @@ def loops? (memo : Std.HashSet (pos × pos)) (grid hashes : Std.HashSet pos)
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
   let gm := mkGuardMoves dat
-  let path : Std.HashSet pos := (moveUntil gm).1.erase gm.S
+  let path : HashSet pos := (moveUntil gm).1.erase gm.S
   let grid := sparseGrid dat (fun _ => true)
   let Spos := sparseGrid dat (· == '^') |>.toArray[0]!
   let S : pos × pos := (Spos, (-1, 0))
   let hashes := sparseGrid dat (· == '#')
   let edgs := addEdges grid hashes hashes ⟨∅⟩
 
-  let obsts : Std.HashSet pos := path.fold (init := ∅) fun h obst =>
+  let obsts : HashSet pos := path.fold (init := ∅) fun h obst =>
     let newEdges := addNewWall grid hashes edgs obst
     let loop? := loops? ∅ grid (hashes.insert obst) newEdges S.1 S.2
     if loop? then

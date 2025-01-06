@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day24
 
@@ -103,9 +103,9 @@ def atest3 := (test3.splitOn "\n").toArray
 
 structure state where
   /-- `1 ↦ some true`, `0 ↦ some false`, `. ↦ none`. -/
-  values : Std.HashMap String (Option Bool)
+  values : HashMap String (Option Bool)
   /-- 4 entries representing first value, operation, second value, where to store the result. -/
-  gates : Std.HashSet (String × String × String × String)
+  gates : HashSet (String × String × String × String)
 
 def inputToState (dat : Array String) : state :=
   dat.foldl (init := {values := {}, gates := {}}) fun s i =>
@@ -195,18 +195,18 @@ def state.swap (s : state) (a b : String) : state :=
 -/
 
 partial
-def getDownstream (seen : Std.HashSet String) (s : state) : Std.HashSet String :=
+def getDownstream (seen : HashSet String) (s : state) : HashSet String :=
   let next := s.gates.fold (init := ∅) fun h (s1, _op, s2, tgt) =>
     if (seen.contains s1 || seen.contains s2) && !seen.contains tgt then h.insert tgt else h
   if next.isEmpty then seen else
   getDownstream (seen.union next) s
 
-def valHash {α} [BEq α] [Hashable α] [Inhabited α] (h : Std.HashSet α) (s : String) : α :=
+def valHash {α} [BEq α] [Hashable α] [Inhabited α] (h : HashSet α) (s : String) : α :=
   match h.toArray with
     | #[a] => a
     | _ => dbg_trace "'{s}' has size {h.size}, not 1"; default
 
-def fc (s : Std.HashSet (String × String × String × String)) : Bool × Option (String × String) :=
+def fc (s : HashSet (String × String × String × String)) : Bool × Option (String × String) :=
   let OR := s.filter fun (_, op, _, _) =>
     op == "OR"
   let ANDxs := s.filter fun (s1, op, s2, _) =>

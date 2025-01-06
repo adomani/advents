@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day12
 
@@ -75,25 +75,25 @@ The main structure to create connected components.
 -/
 structure OneComp where
   /-- `grid` is the underlying grid. -/
-  grid : Std.HashSet pos
+  grid : HashSet pos
   /-- `growing` is the set of vertices that we have so far added to our "connected component". -/
-  growing : Std.HashSet pos
+  growing : HashSet pos
   /-- `front` is the front of the expansion: at the next step, we add the newighbours of `front` to
   `growing`. -/
-  front : Std.HashSet pos
+  front : HashSet pos
   /-- `edges` is the set of entries of `growing` that have a neighbour not in `grid`. -/
-  edges : Std.HashMap pos Nat := {}
+  edges : HashMap pos Nat := {}
   deriving Inhabited
 
 /-- `nbs` is the set of neighbours, namely, the 4 coordinate directions. -/
-abbrev nbs : Std.HashSet pos := {(1, 0), (- 1, 0), (0, 1), (0, - 1)}
+abbrev nbs : HashSet pos := {(1, 0), (- 1, 0), (0, 1), (0, - 1)}
 
 /--
 Creates a "live" `OneComp`: this is not yet a connected component, just something that can
 `growComp` to be one.
 -/
-def mkOneComp {α} [BEq α] (g : Std.HashMap pos α) (c : α) (st : pos) : OneComp :=
-  let gr : Std.HashSet pos := g.fold (init := {}) fun h p val => if val == c then h.insert p else h
+def mkOneComp {α} [BEq α] (g : HashMap pos α) (c : α) (st : pos) : OneComp :=
+  let gr : HashSet pos := g.fold (init := {}) fun h p val => if val == c then h.insert p else h
   if gr.contains st then
     {grid := gr, growing := {st}, front := {st}}
   else
@@ -104,7 +104,7 @@ def mkOneComp {α} [BEq α] (g : Std.HashMap pos α) (c : α) (st : pos) : OneCo
 def grow (c : OneComp) : OneComp := Id.run do
   let mut newR := c.growing
   let mut edges := c.edges
-  let mut newF : Std.HashSet pos := {}
+  let mut newF : HashSet pos := {}
   for f in c.front do
     for p in nbs do
       let newpos := f + p
@@ -141,7 +141,7 @@ For each character that appears as a value in `tot`, determine the connected com
 set of positions with that character and return them all as an array,
 each with the corresponding character.
 -/
-def getComponents (tot : Std.HashMap pos Char) : Array (Char × OneComp) := Id.run do
+def getComponents (tot : HashMap pos Char) : Array (Char × OneComp) := Id.run do
   let mut tot := tot
   let mut fd := #[]
   while !tot.isEmpty do
@@ -153,7 +153,7 @@ def getComponents (tot : Std.HashMap pos Char) : Array (Char × OneComp) := Id.r
   return fd
 
 /-- Computes the sum of `area * perimeter` over all the connected components in `tot`. -/
-def tallyAll (tot : Std.HashMap pos Char) : Nat :=
+def tallyAll (tot : HashMap pos Char) : Nat :=
   let init := getComponents tot
   init.foldl (fun t (_, h) => t + (h.growing.size * perimeter h)) 0
 
@@ -174,7 +174,7 @@ def part1 (dat : Array String) : Nat := tallyAll <| loadGrid dat id
 Computes the `HashSet`s of the entries of `h` whose first coordinate is `i` and that do not have
 a left/right neighbour, storing them separately into the two output `HashSet`s.
 -/
-def leftRightBounds (h : OneComp) (i : Int) : Std.HashSet Int × Std.HashSet Int :=
+def leftRightBounds (h : OneComp) (i : Int) : HashSet Int × HashSet Int :=
   h.edges.fold (fun new@(newl, newr) p _ =>
     if p.1 == i
     then
@@ -194,7 +194,7 @@ TODO: find the values of `m` and `M` and generally make this more efficient.
 -/
 def corners (h : OneComp) (m M : Nat) : Nat := Id.run do
   let mut diffs := 0
-  let mut (cl, cr) : Std.HashSet Int × Std.HashSet Int := default
+  let mut (cl, cr) : HashSet Int × HashSet Int := default
   for i in [m:M] do
     let lr@(l, r) := leftRightBounds h i
     diffs := diffs +

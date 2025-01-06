@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day10
 
@@ -43,9 +43,9 @@ A path is an array of positions:
 -/
 structure TrailState where
   /-- `grid` is the `HashMap` deduced from the input, with a height for each map location. -/
-  grid : Std.HashMap pos Nat
+  grid : HashMap pos Nat
   /-- `paths` is the current `HashSet` of paths. -/
-  paths : Std.HashSet (Array pos)
+  paths : HashSet (Array pos)
 
 /--
 Reads the input `i` and creates the initial `TrailState`, loading the map and placing

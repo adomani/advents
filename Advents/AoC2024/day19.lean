@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day19
 
@@ -32,9 +32,9 @@ def atest := (test.splitOn "\n").toArray
 structure Towels where
   /-- `towels` contains the available towels:
   these should be combined to form the given `designs`. -/
-  towels : Std.HashSet String
+  towels : HashSet String
   /-- `designs` contains all the input designs. -/
-  designs : Std.HashSet String
+  designs : HashSet String
   deriving Inhabited
 
 /-- Converts the input data into `Towels`. -/
@@ -62,7 +62,7 @@ designs:
 Given a set `towels` of available towels and a `pattern`, return all the strings obtained from
 `pattern` by removing an element of `towels` from the start of `pattern`.
 -/
-def rmOneTowel (towels : Std.HashSet String) (pattern : String) : Std.HashSet String :=
+def rmOneTowel (towels : HashSet String) (pattern : String) : HashSet String :=
   towels.fold (init := ∅) fun leftPats d =>
     if pattern.startsWith d then
       leftPats.insert (pattern.drop d.length)
@@ -76,8 +76,8 @@ concatenation nof `towels`.
 its trailing substrings that are visited in the process of computing the value.
 -/
 partial
-def addMemo (memo : Std.HashMap String Nat) (towels : Std.HashSet String) (pattern : String) :
-    Std.HashMap String Nat :=
+def addMemo (memo : HashMap String Nat) (towels : HashSet String) (pattern : String) :
+    HashMap String Nat :=
   match memo[pattern]? with
     | some _ => memo
     | none =>
@@ -95,7 +95,7 @@ info: #[(, 1), (bbr, 2), (bbrgwb, 0), (bgbr, 3), (bggr, 1), (br, 2), (brgr, 2), 
 #eval do
   let dat := test
   let ts := inputToTowels dat
-  let mem : Std.HashMap String Nat := ts.designs.fold (addMemo · ts.towels ·) ∅
+  let mem : HashMap String Nat := ts.designs.fold (addMemo · ts.towels ·) ∅
   IO.println <| mem.toArray.qsort (·.1 < ·.1)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/

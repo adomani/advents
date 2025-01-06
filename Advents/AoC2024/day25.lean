@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day25
 
@@ -72,17 +72,14 @@ def le (a b : Array Nat) : Bool :=
     a.back! + b.back! ≤ 5 && le a.pop b.pop
 
 /-- Converts the input to the pair consists of all the locks and all the keys. -/
-def inputToLocksAndKeys (s : String) : Std.HashSet (Array Nat) × Std.HashSet (Array Nat) :=
-  let parts := s.splitOn "\n\n"
-  let (l, k) :=
-  parts.foldl (init := (∅, ∅)) fun (ls, ks) st =>
+def inputToLocksAndKeys (s : String) : HashSet (Array Nat) × HashSet (Array Nat) :=
+  s.splitOn "\n\n" |>.foldl (init := (∅, ∅)) fun (ls, ks) st =>
     let c := st.get 0
     let ct := toCounts st c
     if c == '#' then
       (ls.insert ct, ks)
     else
       (ls, ks.insert (ct.foldl (·.push <| 5 - ·) #[]))
-  (l, k)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat := Id.run do

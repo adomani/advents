@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day04
 
@@ -32,7 +32,7 @@ instance : HMul Int pos pos where
 /--
 Search the word `wd`, starting from the position `p` and continuing in all possible directions.
 -/
-def findWord (h : Std.HashMap pos Char) (p : pos) (wd : String := "XMAS") : Nat := Id.run do
+def findWord (h : HashMap pos Char) (p : pos) (wd : String := "XMAS") : Nat := Id.run do
   let mut ct := 0
   let mut cond := true
   let mut k := 0
@@ -68,7 +68,7 @@ def rot (p : pos) : pos := (p.2, - p.1)
 Search the `X` of `MAS`, starting with an `A` in position `p` with each of the possible
 4 orientations.
 -/
-def findX (h : Std.HashMap pos Char) (p : pos) : Nat :=
+def findX (h : HashMap pos Char) (p : pos) : Nat :=
   if some 'A' != h.get? p then 0 else
   [(1, 0), (-1, 0), (0, 1), (0, -1)].foldl (init := 0) fun ct i =>
     let j := (- 1) * i

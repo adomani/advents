@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day08
 
@@ -58,16 +58,16 @@ def test3 := "T.........
 def atest3 := (test3.splitOn "\n").toArray
 
 /-- Returns the locations of the antinodes with the given grid, for the input pair of positions. -/
-def antinodeLocations (gr : Std.HashSet pos) (p q : pos) : Array pos :=
+def antinodeLocations (gr : HashSet pos) (p q : pos) : Array pos :=
   let diff := (p - q)
   #[p + diff, q - diff].filterMap gr.get?
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
-  let kinds : Std.HashSet Char := (loadGrid dat id).fold (init := {}) fun gr _p c =>
+  let kinds : HashSet Char := (loadGrid dat id).fold (init := {}) fun gr _p c =>
     if c != '.' then gr.insert c else gr
   let grid := sparseGrid dat (fun _ => true)
-  let mut antinodes : Std.HashSet pos := {}
+  let mut antinodes : HashSet pos := {}
   for c in kinds do
     let antennas := sparseGrid dat (· == c)
     let mut remaining := antennas
@@ -88,7 +88,7 @@ solve 1 252
 /--
 Returns the locations of the resonant harmonics with the given grid, for the input of positions.
 -/
-def antinodeResonant (gr : Std.HashSet pos) (p q : pos) : Std.HashSet pos := Id.run do
+def antinodeResonant (gr : HashSet pos) (p q : pos) : HashSet pos := Id.run do
   if p == q then return {}
   let mut h := {}
   let diff := (p - q)
@@ -104,10 +104,10 @@ def antinodeResonant (gr : Std.HashSet pos) (p q : pos) : Std.HashSet pos := Id.
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
-  let kinds : Std.HashSet Char := (loadGrid dat id).fold (init := {}) fun gr _p c =>
+  let kinds : HashSet Char := (loadGrid dat id).fold (init := {}) fun gr _p c =>
     if c != '.' then gr.insert c else gr
   let grid := sparseGrid dat (fun _ => true)
-  let mut antinodes : Std.HashSet pos := {}
+  let mut antinodes : HashSet pos := {}
   for c in kinds do
     let antennas := sparseGrid dat (· == c)
     let mut remaining := antennas

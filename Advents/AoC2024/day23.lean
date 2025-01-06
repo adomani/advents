@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day23
 
@@ -55,7 +55,7 @@ For the problem, they are 2-letter strings, though this is not relevant.
 structure graph where
   /-- `edges` is a `HashSet` of pairs of vertices.
   Each pair appears in both orders and the entries are strings. -/
-  edges : Std.HashSet (String × String)
+  edges : HashSet (String × String)
   deriving Inhabited
 
 /-- Converts the input data into a `graph`. -/
@@ -68,7 +68,7 @@ def inputToGraph (dat : Array String) : graph where
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
   let gr := inputToGraph dat
-  let mut trs : Std.HashSet (Array String) := ∅
+  let mut trs : HashSet (Array String) := ∅
   for (e, f) in gr.edges do
     if ! e.startsWith "t" then continue
     for (g, h) in gr.edges do
@@ -89,28 +89,28 @@ namespace graph
 /--
 Displays the answer in the form that the problem requires: comma-separated, no spaces and sorted.
 -/
-def showHash (h : Std.HashSet String) : String :=
+def showHash (h : HashSet String) : String :=
   ",".intercalate (h.toArray.qsort (· < ·)).toList
 
 /-- If `g : graph` is a graph, then `g.vertices` returns the vertices of `g`. -/
-def vertices (g : graph) : Std.HashSet String :=
+def vertices (g : graph) : HashSet String :=
   g.edges.fold (init := ∅) fun h (e, f) => h.insert e |>.insert f
 
 /--
 If `g : graph` is a graph, then `g.getNeighbours h` finds the vertices that are at distance one
 from a vertex in `h` in `g`.
 -/
-def getNeighbours (g : graph) (h : Std.HashSet String) : Std.HashSet String :=
+def getNeighbours (g : graph) (h : HashSet String) : HashSet String :=
   g.edges.fold (fun nbs (a, b) => if h.contains a then nbs.insert b else nbs) ∅
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) (param : Nat := 37) : String :=
   let gr := inputToGraph dat
-  let allNbs : Array (String × Std.HashSet String) :=
+  let allNbs : Array (String × HashSet String) :=
     gr.vertices.fold (fun h v => h.push (v, getNeighbours gr {v})) ∅
-  let clique : Std.HashSet String := gr.vertices.fold (init := ∅) fun h v =>
+  let clique : HashSet String := gr.vertices.fold (init := ∅) fun h v =>
     let nbdV := (allNbs.find? (·.1 == v)).get!.2
-    let nbs : Std.HashSet String :=
+    let nbs : HashSet String :=
       allNbs.foldl (init := ∅) fun h (w, nw) => if nbdV.contains w then h.union nw else h
     if nbs.size ≤ param then h.insert v else h
   let clique := clique.fold (init := clique) fun h v =>

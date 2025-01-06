@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day18
 
@@ -68,23 +68,23 @@ The main state of the puzzle.
 -/
 structure MemorySpace where
   /-- `fallen` contains the position of the corrupted memory spaces. -/
-  fallen : Std.HashSet pos
+  fallen : HashSet pos
   /-- `steps` is the number of steps that have passed since the beginning. -/
   steps : Nat := 0
   /-- `size` is the width of the grid -- it is equal to the height. -/
   size : Nat
   /-- `frontHistorians` contains the positions of the historians at distance roughly `steps`
   movements from the origin. -/
-  frontHistorians : Std.HashSet pos := {(0, 0)}
+  frontHistorians : HashSet pos := {(0, 0)}
   /-- `visitedHistorians` contains the positions of the historians at distance at most `steps`
   movements from the origin. -/
-  visitedHistorians : Std.HashSet pos := {(0, 0)}
+  visitedHistorians : HashSet pos := {(0, 0)}
   /-- `frontCorrupted` contains the corrupted memory spaces that can be reached in roughly `steps`
   movements from the top or right edges of the grid. -/
-  frontCorrupted : Std.HashSet pos := fallen.filter fun (p, q) => p == 0 || q == size
+  frontCorrupted : HashSet pos := fallen.filter fun (p, q) => p == 0 || q == size
   /-- `visitedCorrupted` contains the corrupted memory spaces that can be reached with at most
   `steps` movements from the top or right edges of the grid. -/
-  visitedCorrupted : Std.HashSet pos := fallen.filter fun (p, q) => p == 0 || q == size
+  visitedCorrupted : HashSet pos := fallen.filter fun (p, q) => p == 0 || q == size
 
 /-- Checks whether a position is not corrupted and within the bounds of the puzzle. -/
 def MemorySpace.available (ms : MemorySpace) (p : pos) : Bool :=

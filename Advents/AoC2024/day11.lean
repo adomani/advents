@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day11
 
@@ -27,7 +27,7 @@ The effect of blinking ones on the stones, represented as a `HashMap` where
 * the keys are the numbers on the stones and
 * the values are the multiplicities.
 -/
-def blink (h : Std.HashMap Nat Nat) : Std.HashMap Nat Nat :=
+def blink (h : HashMap Nat Nat) : HashMap Nat Nat :=
   h.fold (init := {}) fun h val mult =>
     if val == 0
     then
@@ -44,14 +44,14 @@ def blink (h : Std.HashMap Nat Nat) : Std.HashMap Nat Nat :=
       h |>.alter (2024 * val) (some <| ·.getD 0 + mult)
 
 /-- The iteration of `blink`. -/
-def blinks (h : Std.HashMap Nat Nat) : Nat → Std.HashMap Nat Nat
+def blinks (h : HashMap Nat Nat) : Nat → HashMap Nat Nat
   | 0 => h
   | n + 1 => blinks (blink h) n
 
 /-- A function to test the outcome of `blink`ing. -/
 def mkTest (dat : String) : Array (Nat × Nat) :=
   let vals := dat.getNats
-  let h := Std.HashMap.ofList <| dat.getNats.zip <| List.replicate vals.length 1
+  let h := HashMap.ofList <| dat.getNats.zip <| List.replicate vals.length 1
   (blink h).toArray.qsort (·.1 < ·.1)
 
 #guard mkTest      "0" == #[(1, 1)]
@@ -65,7 +65,7 @@ def mkTest (dat : String) : Array (Nat × Nat) :=
 /-- Converts the input string `dat` and the number of `blink`s `n` to the final configuration. -/
 def parts (dat : String) (n : Nat) : Nat :=
   let vals := dat.getNats
-  let h := Std.HashMap.ofList <| dat.getNats.zip <| List.replicate vals.length 1
+  let h := HashMap.ofList <| dat.getNats.zip <| List.replicate vals.length 1
   let fin := blinks h n
   fin.fold (fun tot _ mult => tot + mult) 0
 
