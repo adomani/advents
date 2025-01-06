@@ -235,8 +235,8 @@ Example usage:
 solve 1 15    -- parses the input as an array of strings, errors if answer does not match `15`
 solve 2 629   -- parses the input as an array of strings, errors if answer does not match `629`
 
-solve 1 15  file  -- parses the input as a string, errors if answer does not match `15`
-solve 2 file      -- parses the input as a string, no error
+solve 1 15 file  -- parses the input as a string, errors if answer does not match `15`
+solve 2 file     -- parses the input as a string, no error
 ```
 -/
 elab "solve " part:num nn:(ppSpace term:max)? f:(&" file")?: command => do

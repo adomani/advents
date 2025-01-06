@@ -43,9 +43,8 @@ def Snail.toString : Snail → String
 /-- We make `Snail.toString` an instance for convenience. -/
 instance : ToString Snail where toString := Snail.toString
 
-variable (n : Nat) in
 /-- Another convenience instance: natural number literals are automatically `Snail` leaves. -/
-instance : OfNat Snail n where
+instance (n : Nat) : OfNat Snail n where
   ofNat := .i n
 
 /-- The notation `[s, t]` denotes the `Snail` with left tree `s` and right tree `t`. -/
@@ -72,7 +71,7 @@ def split : Snail → Snail
   | .i n => .i n
   | [a, b] =>
     let sa := split a
-    if sa != a then [sa, b] else [sa, (split b)]
+    if sa != a then [sa, b] else [sa, split b]
 
 #assert ([[[[4,3],4],4],[7,[[8,4],9]]] : Snail) + ([1,1] : Snail) ==
         ([[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]] : Snail)
@@ -96,7 +95,7 @@ def addLeftmost (n : Nat) : Snail → Snail
 -/
 def addRightmost (n : Nat) : Snail → Snail
   | .i x => .i (x + n)
-  | .cat a b => [a, addRightmost n b]
+  | [a, b] => [a, addRightmost n b]
 
 /--
 A `loc`ation is either `l`eft or `r`ight.  This is used to locate sub-`Snail`s inside a `Snail`.
