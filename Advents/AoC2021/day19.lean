@@ -265,15 +265,50 @@ def showScanners (scs : Array Scanner) : IO Unit := do
       IO.println t
     con := con + 1
 
-#eval do
-  let dat := atest2
-  let scs := inputToData dat
-  showScanners scs
+/--
+info:
+Scanner 0, position (0, 0, 0)
+(-3, -3, 3)
+(-2, -3, 1)
+(-2, -2, 2)
+(-1, -1, 1)
+(5, 6, -4)
+(8, 0, 7)
 
-#eval do
-  let dat := atest3
-  let scs := inputToData dat
-  showScanners scs
+Scanner 1, position (0, 0, 0)
+(-8, -7, 0)
+(-5, 4, -6)
+(1, -1, 1)
+(2, -2, 2)
+(2, -1, 3)
+(3, -3, 3)
+
+Scanner 2, position (0, 0, 0)
+(-7, 0, 8)
+(-3, -3, -3)
+(-2, -2, -2)
+(-1, -3, -2)
+(-1, -1, -1)
+(4, 6, 5)
+
+Scanner 3, position (0, 0, 0)
+(-4, -6, 5)
+(1, 1, -1)
+(1, 3, -2)
+(2, 2, -2)
+(3, 3, -3)
+(7, 0, 8)
+
+Scanner 4, position (0, 0, 0)
+(-6, -4, -5)
+(0, 7, -8)
+(1, 1, 1)
+(2, 2, 2)
+(3, 1, 2)
+(3, 3, 3)
+-/
+#guard_msgs in
+#eval showScanners (inputToData atest2)
 
 /-- Translates the positions of the `Scanner` `g` by subtracting the vector `v`. -/
 def translateToZero (g : Scanner) (v : vol) : Scanner :=
