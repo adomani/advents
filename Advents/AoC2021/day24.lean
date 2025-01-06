@@ -1,5 +1,4 @@
 import Advents.Utils
-import Advents.AoC2024.day18
 open Std
 
 namespace Day24
@@ -192,8 +191,6 @@ def _root_.Array.takeRight (as : Array α) (n : Nat) : Array α :=
 #assert #[1, 2, 3, 4].takeRight 4 == #[1, 2, 3, 4]
 #assert #[1, 2, 3, 4].takeRight 5 == #[1, 2, 3, 4]
 
-#check List.findIdxs
-
 def makeParts (dat : String) : Array (Array String) :=
   let parts := (dat.drop "inp w\n".length).splitOn "inp w\n" |>.foldl (·.push <| "inp w\n" ++ ·) #[]
   --dbg_trace parts
@@ -270,9 +267,9 @@ def solveOneLayer (as : Array ALU) (xs : HashMap Int (Array Int)) :
     let mut row := #[]
     for j in [0:mp.size] do
       row := row.push mp[j]![i]!
-    if row.sortDedup.size != 1 then
+    if true || row.sortDedup.size != 1 then
       IO.println s!"{i}"
-      IO.println <| row.sortDedup
+      IO.println <| "  " ++ "\n  ".intercalate row.sortDedup.toList
 
 #eval do
   --let dat := atest1
