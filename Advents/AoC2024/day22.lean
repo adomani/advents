@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day22
 
@@ -78,7 +78,7 @@ def iter (s : Nat) : Nat → Nat
   | n + 1 => iter (step s) n
 
 -- Testing the `iter` function.
-#eval show Elab.Term.TermElabM _ from do
+#eval show Lean.Elab.Term.TermElabM _ from do
   let msg := test.getNats.foldl (init := #[]) fun m d => m.push s!"{d}: {(iter d 2000)}"
   guard <| test1 == "\n".intercalate msg.toList
 
@@ -102,10 +102,10 @@ def window (a : Array Int) (n : Int) : Array Int :=
 `storeWindows` keeps a tally of how many bananas you would get with each possible `window`,
 while finding the `it` secrets generated from the seed `s`.
 -/
-def storeWindows (h : Std.HashMap (Array Int) Int) (s : Nat) (it : Nat := 2000) :
-    Std.HashMap (Array Int) Int := Id.run do
+def storeWindows (h : HashMap (Array Int) Int) (s : Nat) (it : Nat := 2000) :
+    HashMap (Array Int) Int := Id.run do
   let mut prevSecret := s
-  let mut alreadyFound : Std.HashSet (Array Int) := ∅
+  let mut alreadyFound : HashSet (Array Int) := ∅
   let mut tot := h
   let mut w : Array Int := #[]
   for _ in [0:it] do

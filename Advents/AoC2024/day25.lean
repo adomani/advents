@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day25
 
@@ -68,30 +68,23 @@ def toCounts (s : String) (c : Char) : Array Nat :=
 /-- The check to verify if a lock and a key fit together. -/
 partial
 def le (a b : Array Nat) : Bool :=
-  if a.isEmpty then true else if b.isEmpty then true else
+  if a.isEmpty || b.isEmpty then true else
     a.back! + b.back! ≤ 5 && le a.pop b.pop
 
 /-- Converts the input to the pair consists of all the locks and all the keys. -/
-def inputToLocksAndKeys (s : String) : Std.HashSet (Array Nat) × Std.HashSet (Array Nat) :=
-  let parts := s.splitOn "\n\n"
-  let (l, k) :=
-  parts.foldl (init := (∅, ∅)) fun (ls, ks) st =>
+def inputToLocksAndKeys (s : String) : HashSet (Array Nat) × HashSet (Array Nat) :=
+  s.splitOn "\n\n" |>.foldl (init := (∅, ∅)) fun (ls, ks) st =>
     let c := st.get 0
     let ct := toCounts st c
     if c == '#' then
       (ls.insert ct, ks)
     else
       (ls, ks.insert (ct.foldl (·.push <| 5 - ·) #[]))
-  (l, k)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : String) : Nat := Id.run do
+def part1 (dat : String) : Nat :=
   let (locks, keys) := inputToLocksAndKeys dat
-  let mut tot := 0
-  for l in locks do
-    for k in keys do
-      if le l k then tot := tot + 1
-  return tot
+  locks.fold (init := 0) fun tot l => tot + (keys.filter (le l ·)).size
 
 #assert part1 test == 3
 

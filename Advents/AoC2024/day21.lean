@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day21
 
@@ -61,8 +61,8 @@ The numeric keyboard: a conversion between a character in the table
 ```
 and a position.  For instance, the character `A` corresponds to `(3, 2)`.
 -/
-def numKeys : Std.HashMap Char pos := .union {('A', (3, 2)), ('0', (3, 1))} <|
-    (Array.range 9).foldl (init := (∅ : Std.HashMap Char pos)) fun h n =>
+def numKeys : HashMap Char pos := .union {('A', (3, 2)), ('0', (3, 1))} <|
+    (Array.range 9).foldl (init := (∅ : HashMap Char pos)) fun h n =>
         h.insert (s!"{n + 1}".get 0) (2 - n.cast / 3, 2 - (8 - n.cast) % 3)
 
 /--
@@ -73,7 +73,7 @@ The directional keyboard: a conversion between a character in the table
 ```
 and a position.  For instance, the character `A` corresponds to `(0, 2)`.
 -/
-def dirKeys : Std.HashMap Char pos := {
+def dirKeys : HashMap Char pos := {
                    ('^', (0, 1)), ('A', (0, 2)),
     ('<', (1, 0)), ('v', (1, 1)), ('>', (1, 2))
   }
@@ -93,7 +93,7 @@ inductive keyboard where
 `keys k` converts the `keyboard` `k` into its `HashMap` of keys, mapping a character to
 the corresponding position.
 -/
-def keyboard.keys : keyboard → Std.HashMap Char pos
+def keyboard.keys : keyboard → HashMap Char pos
   | .dir => dirKeys | .num => numKeys
 
 /--
@@ -101,19 +101,19 @@ def keyboard.keys : keyboard → Std.HashMap Char pos
 obtained by interleaving the entries of `l` and of `r` in all possible ways.
 -/
 partial
-def seqs {α} [BEq α] [Hashable α] : List α → List α → Std.HashSet (List α)
+def seqs {α} [BEq α] [Hashable α] : List α → List α → HashSet (List α)
   | [], l => {l}
   | l, [] => {l}
   | L@(l::ls), M@(m::ms) =>
-    ((seqs ls M).fold (init := (∅ : Std.HashSet (List α))) (·.insert <| l::·)).union <|
-      (seqs L ms).fold (init := (∅ : Std.HashSet (List α))) (·.insert <| m::·)
+    ((seqs ls M).fold (init := (∅ : HashSet (List α))) (·.insert <| l::·)).union <|
+      (seqs L ms).fold (init := (∅ : HashSet (List α))) (·.insert <| m::·)
 
 /--
 Computes all paths from `q` to `p` that are minimal with respect to the L¹-distance,
 written as strings of instructions `<`, `^`, `>`, `v`.
 `findPaths` then returns each such path, with `A` appended at the end.
 -/
-def findPaths (p q : pos) : Std.HashSet String :=
+def findPaths (p q : pos) : HashSet String :=
   let mv := p - q
   let right := List.replicate mv.2.natAbs (dirToChar (0, mv.2.sign))
   let left :=  List.replicate mv.1.natAbs (dirToChar (mv.1.sign, 0))
@@ -135,8 +135,8 @@ def validate (k : keyboard) (s : String) : Bool := Id.run do
 Converts a string, such as "029A", into all the strings of instructions
 It starts from the position recorded in `n` and then continues with the ones in `s`.
 -/
-def strToPaths (k : keyboard) (s : String) : Std.HashSet String :=
-  let (_start, fin) : pos × Std.HashSet String :=
+def strToPaths (k : keyboard) (s : String) : HashSet String :=
+  let (_start, fin) : pos × HashSet String :=
     s.toList.foldl (init := (k.keys['A']!, {""})) fun (start, fin) c =>
     let tgt := k.keys[c]!
     let next := findPaths tgt start
@@ -161,8 +161,8 @@ from a numeric `keyboard` to a directional one.
 This solution is taken from
 https://www.reddit.com/r/adventofcode/comments/1hjx0x4/2024_day_21_quick_tutorial_to_solve_part_2_in/
 -/
-def shortestSeqDir (keys : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
-    Nat × Std.HashMap (String × Nat) Nat :=
+def shortestSeqDir (keys : String) (d : Nat) (cache : HashMap (String × Nat) Nat) :
+    Nat × HashMap (String × Nat) Nat :=
   match d with
   | 0 => (keys.length, cache.insert (keys, 0) keys.length)
   | j + 1 =>
@@ -189,8 +189,8 @@ The function converts the input string `str` to all sequences of pushes of keys 
 `keyboard` that return `str`.
 Then, computes the value of `shortestSeq` on each such value, returning the smallest that it finds.
 -/
-def shortestSeq (str : String) (d : Nat) (cache : Std.HashMap (String × Nat) Nat) :
-    Nat × Std.HashMap (String × Nat) Nat :=
+def shortestSeq (str : String) (d : Nat) (cache : HashMap (String × Nat) Nat) :
+    Nat × HashMap (String × Nat) Nat :=
   strToPaths .num str |>.fold (init := (10^100, cache)) fun (strMin, cache) p =>
     let (newMin, newCache) := shortestSeqDir p d cache
     (min strMin newMin, newCache)
