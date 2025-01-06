@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day22
 
@@ -280,7 +280,7 @@ in reverse order.
 -/
 structure mesh where
   /-- `visited` is the collection of already visited cuboids. -/
-  visited : Std.HashSet (pos × pos × pos)
+  visited : HashSet (pos × pos × pos)
   /-- `totalVolume` is the number of lit leds so far. -/
   totalVolume : Int
   deriving BEq

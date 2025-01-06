@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day15
 
@@ -26,7 +26,7 @@ def test := "1163751742
 def atest := (test.splitOn "\n").toArray
 
 /-- A function to draw the answer to the second part of the puzzle. -/
-def drawHash (h : Std.HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
+def drawHash (h : HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
   let mut fin := #[]
   for i in [0:Nx] do
     let mut str := ""
@@ -48,13 +48,13 @@ along the grid.
 -/
 structure ChitonState where
   /-- `grid` is the data of the risk level at each position. -/
-  grid   : Std.HashMap pos Nat
+  grid   : HashMap pos Nat
   /-- `dists` are the weighted distances between the top-left corner and any location of the map
   *as currently computed by the process*. -/
-  dists  : Std.HashMap pos Nat
+  dists  : HashMap pos Nat
   /-- `crawls` are the positions of the bots that are crawling through the `grid`,
   accumulating their perceived distance from the start position. -/
-  crawls : Std.HashMap pos Nat
+  crawls : HashMap pos Nat
 
 /-- One step of the crawlers: each crawler moves in each available direction, compares its computed value
 with the value that could already be stored in `dists`.
@@ -104,7 +104,7 @@ solve 1 717
 
 /-- For the second part of the puzzle, the grid is rescaled to be 5 times larger and the entries
 slightly modified: the necessary adjustments are performed by `newGrid`. -/
-def newGrid (g : Std.HashMap pos Nat) (sz : Nat) : Std.HashMap pos Nat := Id.run do
+def newGrid (g : HashMap pos Nat) (sz : Nat) : HashMap pos Nat := Id.run do
   let mut newG := g
   let mut dist := 0
   for i in [0:5] do

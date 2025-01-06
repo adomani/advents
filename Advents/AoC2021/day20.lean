@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day20
 
@@ -34,7 +34,7 @@ structure Image where
   /-- `iea` is the `i`mage `e`nhancing `a`lgorithm -- a string of length 512. -/
   iea : String
   /-- `light` is a `HashSet` of positions that are lit (i.e., labeled as `#`). -/
-  light : Std.HashSet pos
+  light : HashSet pos
   deriving Inhabited
 
 /-- Converts the string input to an `Image`. -/
@@ -103,7 +103,7 @@ It computes the enhancement of `i` in the positions in the range
 def enhance (i : Image) (sz shift : Nat) : Image :=
   {i with
     light := Id.run do
-      let mut newImage : Std.HashSet pos := ∅
+      let mut newImage : HashSet pos := ∅
       for x in [0:sz + 2 * shift + 1] do
         for y in [0:sz + 2 * shift + 1] do
           let p : pos := (x-shift, y-shift)
