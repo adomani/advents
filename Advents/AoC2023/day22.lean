@@ -46,8 +46,8 @@ structure brick where
   deriving Inhabited, BEq, Hashable
 
 structure state where
-  bricks : HashMap pos pos
-  fallen : HashMap pos pos
+  bricks : Array (HashMap pos pos)
+  fallen : Array (HashMap pos pos)
   profile : HashMap pos pos
 
 def inputToState (dat : Array String) : state :=
@@ -66,10 +66,10 @@ def inputToState (dat : Array String) : state :=
         --  if b < e then (e - b) else
         --  (f - c)
         if dir != (0, 0, 1) then
-          h.insertMany <| (Array.range (lth + 1)).map fun v =>
+          h.push <| .ofList <| (List.range (lth + 1)).map fun v =>
             (((a, b) : pos) + v * (dir.1, dir.2.1), (c.cast, c.cast))
         else
-          h.insert ((a, b) : pos) (c, f)
+          h.push <| {(((a, b) : pos), ((c, f) : pos))}
       | _ => panic "Malformed input!"
   { bricks := bricks, fallen := ∅, profile := ∅}
 
@@ -80,20 +80,20 @@ def min1 : Option Int → Option Int → Option Int
   | some a, some b => some (min a b)
   | none, none => none
 
-def fallsBy (s : state) (b : Array vol) : Int :=
-  let minDiff : Int := b.foldl (init := (b.getD 0 (0, 0, 0)).2.2) fun h (a, b, c) =>
-    let ht := c - (s.profile[(a, b)]?.getD 1)
+def fallsBy (s : state) (b : HashMap pos pos) : Int :=
+  let minDiff : Int := b.fold (init := (b.toArray.getD 0 default).2.1) fun h p c =>
+    let ht := c.1 - (s.profile[p]?.getD (0, 0)).2
     min ht h
   minDiff
 
 #eval do
   let dat := atest
   let s := inputToState dat
-  let s := {inputToState dat with profile := {((1, 1), 1), ((1, 2), 2)}}
-  IO.println <| fallsBy s #[(1, 2, 5)]
-  IO.println <| fallsBy s #[(1, 1, 5), (1, 2, 5)]
+  let s := {inputToState dat with profile := {((1, 1), (1, 2)), ((1, 2), (1, 1))}}
+  IO.println <| fallsBy s {((1, 2), (5, 5))}
+  IO.println <| fallsBy s {((1, 1), (5, 5)), ((1, 2), (5, 5))}
 
-def mkFall (s : state) (b : Array vol) (h : Int) : state :=
+def mkFall (s : state) (b : HashMap pos pos) (h : Int) : state :=
   { bricks := s.bricks.erase b
     fallen := s.fallen.insert b
     profile :=
