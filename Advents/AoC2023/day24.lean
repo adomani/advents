@@ -1,4 +1,7 @@
 import Advents.Utils
+import Batteries.Data.Array.Basic
+import Batteries.Data.Nat.Basic
+import Batteries.Data.Rat.Basic
 
 namespace Day24
 

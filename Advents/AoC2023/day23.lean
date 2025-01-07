@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day23
 
@@ -48,9 +48,9 @@ It returns a `HashMap` enconding, for each `pos`ition on the map, the correspond
 * a `.X` `dir`ection, symbolizing that there is no ice on the `pos`ition;
 * a `dir`ection pointing where the icy slope pushes.
 -/
-def getPos (dat : Array String) : Std.HashMap pos dir :=
+def getPos (dat : Array String) : HashMap pos dir :=
   Id.run do
-  let mut new : Std.HashMap pos dir := .empty
+  let mut new : HashMap pos dir := .empty
   for i in [:dat.size] do
     let ri := dat[i]!.toList
     for j in [:ri.length] do
@@ -60,13 +60,13 @@ def getPos (dat : Array String) : Std.HashMap pos dir :=
 /-- `pos.nbs'' mz p` takes as input the `HashMap` `mz` encoding the maze and a position `p`.
 It returns an array consisting of the available unit vectors pointing in the directions
 accessible from `p`, *ignoring* the icy slopes. -/
-def _root_.pos.nbs' (mz : Std.HashMap pos dir) (p : pos) : Array pos :=
+def _root_.pos.nbs' (mz : HashMap pos dir) (p : pos) : Array pos :=
   uts.filter fun u => (mz.get? (p + u)).isSome
 
 /-- `pos.nbs'' mz p` takes as input the `HashMap` `mz` encoding the maze and a position `p`.
 It returns an array consisting of the available unit vectors pointing in the directions
 accessible from `p`, *taking into account* the icy slopes. -/
-def _root_.pos.nbs'' (mz : Std.HashMap pos dir) (p : pos) : Array pos :=
+def _root_.pos.nbs'' (mz : HashMap pos dir) (p : pos) : Array pos :=
   uts.filter fun u =>
     match (mz.get? (p + u)) with
       | some d => if d.toPos + u = (0, 0) then false else true
@@ -74,11 +74,11 @@ def _root_.pos.nbs'' (mz : Std.HashMap pos dir) (p : pos) : Array pos :=
 
 /-- `pos.nbs mz p` takes as input the `HashMap` `mz` encoding the maze and a position `p`.
 It returns an array consisting of the available positions adjacent to `p`. -/
-def _root_.pos.nbs (mz : Std.HashMap pos dir) (p : pos) : Array pos :=
+def _root_.pos.nbs (mz : HashMap pos dir) (p : pos) : Array pos :=
   (p.nbs' mz).map (p + ·)
 
 /-
-def forced (mz : Std.HashMap pos dir) (p : pos) : Bool :=
+def forced (mz : HashMap pos dir) (p : pos) : Bool :=
   (p.nbs mz).size ≤ 2
 -/
 
@@ -89,7 +89,7 @@ It goes through all the forced steps inside the maze, starting from `p` and movi
 It stops when it reaches a location where a choice can be made.
 It returns the number of steps taken from `p` until the choice, as well as the array of pairs
 consisting of the same final position and each of the available next steps. -/
-def go (mz : Std.HashMap pos dir) (p next : pos) : Nat × Array (pos × pos) :=
+def go (mz : HashMap pos dir) (p next : pos) : Nat × Array (pos × pos) :=
   let path := Id.run do
     let mut curr := next
     let mut pth := #[].push p
@@ -137,6 +137,7 @@ instance {α β} [Ord α] [Ord β] : Ord (α × β) where
     | .eq => compare x.2 y.2
     | g => g
 
+open Lean in
 /-- `findPaths dat` takes as input an array `dat` of strings and returns
 the array of all the lengths of the paths without repetitions in the maze
 determined by `dat`, sorted in descending order. -/

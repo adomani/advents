@@ -1,5 +1,6 @@
 import Advents.Utils
-open Lean
+import Batteries.Data.List.Basic
+open Std
 
 namespace Day16
 
@@ -59,12 +60,12 @@ def _root_.dir.split : Char → dir → Array dir
 
 /-- An auxilliary function to process mirrors encoded in the string `s`.
 It returns data that `getHSteps` and `getVSteps` use. -/
-def getHVSteps (s : String) (left_or_up : dir) (f : Int → pos) : Std.HashMap ray (Array ray) :=
+def getHVSteps (s : String) (left_or_up : dir) (f : Int → pos) : HashMap ray (Array ray) :=
   let sc := s.toList
   let idxs := sc.findIdxs (· != '.')
   if idxs.isEmpty then .empty else
   Id.run do
-  let mut new : Std.HashMap ray (Array ray) := .empty
+  let mut new : HashMap ray (Array ray) := .empty
 
   -- insert the entry `(last+1, .X)` pointing `left_or_up`
   let lastMirrorIdx := idxs[idxs.length-1]!
@@ -103,7 +104,7 @@ The function only produces this information for the
 * `last+1`th position;
 * positions where there is a mirror.
 -/
-def getHSteps (s : String) (row : Int) : Std.HashMap ray (Array ray) :=
+def getHSteps (s : String) (row : Int) : HashMap ray (Array ray) :=
   getHVSteps s .L (row, ·)
 
 /-- `getVSteps s col` takes as input a string `s` and an integer `col`.
@@ -117,7 +118,7 @@ The function only produces this information for the
 * `last+1`th position;
 * positions where there is a mirror.
 -/
-def getVSteps (s : String) (col : Int) : Std.HashMap ray (Array ray) :=
+def getVSteps (s : String) (col : Int) : HashMap ray (Array ray) :=
   getHVSteps s .U (·, col)
 
 /-- `lth p` is the `ℓ¹`-length of the `pos`ition `p`:
@@ -143,7 +144,7 @@ run_cmd Lean.Elab.Command.liftTermElabM do
   guard <| res == ans
 
 /-- returns the `HashMap` with the locations of the mirrors -/
-def init (dat : Array String) : Std.HashMap ray (Array ray) :=
+def init (dat : Array String) : HashMap ray (Array ray) :=
   let datt := dat.transposeString
   Id.run do
   let mut new := .empty
@@ -159,7 +160,7 @@ def init (dat : Array String) : Std.HashMap ray (Array ray) :=
 starting `ray` `r`.
 It returns the `HashMap` of the horizontal or vertical pairs of `ray`s
 encoding the path of the ray of light through the maze. -/
-def mkPath (mirs : Std.HashMap ray (Array ray)) (r : ray) : Std.HashMap ray ray :=
+def mkPath (mirs : HashMap ray (Array ray)) (r : ray) : HashMap ray ray :=
   Id.run do
   let mut path := .empty
   let mut curr : Array ray := #[r]
@@ -177,7 +178,7 @@ def mkPath (mirs : Std.HashMap ray (Array ray)) (r : ray) : Std.HashMap ray ray 
 the deflection points of a path in the maze.
 It strips off the information about the `dir`ection encoded in the `ray`s
 and remembers only the `pos`itions. -/
-def reduceToPos (path : Std.HashMap ray ray) : Std.HashSet pos :=
+def reduceToPos (path : HashMap ray ray) : HashSet pos :=
   Id.run do
   let mut fin := .empty
   for (a, b) in path do
