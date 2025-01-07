@@ -13,13 +13,14 @@ def input : System.FilePath := "Advents/AoC2021/day07.input"
 def test := "16,1,2,0,4,2,7,1,2,14"
 
 /--
-Assume that moving entry `d` of `dat` by `i` "costs" `wt d i` abd that we only move to a position that is in the
-range `[0..max dat]`.
+Assume that moving entry `d` of `dat` by `i` "costs" `wt d i` and that
+we only move to a position that is in the range `[0..max dat]`.
 Then `weightedMove` finds the minimum cost for moving all entries of `dat` to the same position.
 -/
 def weightedMove (dat : List Nat) (wt : Nat → Nat → Nat) : Nat :=
-  (List.range <| dat.max?.getD 0).foldl (fun tots i => tots.push (dat.map (wt · i)).sum) #[]
-    |>.min?.getD 0
+  let maxs :=
+    (List.range <| dat.foldl max 0).foldl (fun tots i => tots.push (dat.map (wt · i)).sum) #[]
+  maxs.foldl min (maxs.getD 0 0)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat := Id.run do

@@ -46,13 +46,11 @@ or `none` if the card never wins.
 def findMinBingoRows (nums : Array Nat) (card : Array (Array Nat)) : Option Nat :=
   let ref := nums.size
   let arr := Array.range ref
-  Id.run do
-  let mut min := ref
-  for row in card do
+  let min := card.foldl (init := ref) fun currMin row =>
     let fd? := row.map fun r => arr.find? (nums[·]! == r)
-    if fd?.contains none then continue
-    let newMin := fd?.reduceOption.maxD ref
-    if newMin < min then min := newMin
+    if fd?.contains none || fd?.isEmpty then currMin else
+    let newMin := fd?.reduceOption.foldl max 0
+    min newMin currMin
   if min == ref then none else some min
 
 /--
@@ -60,8 +58,8 @@ Takes as input the array of numbers extracted in a game of bingo and a bingo car
 how many extractions are needed for the card to win, or `none` if the card never wins.
 -/
 def findMinBingo (nums : Array Nat) (card : Array (Array Nat)) : Option (Nat × Nat) :=
-  let mins := #[findMinBingoRows nums card, findMinBingoRows nums card.transpose]
-  mins.reduceOption.min?.map fun d => (d, nums[d]!)
+  let mins := #[findMinBingoRows nums card, findMinBingoRows nums card.transpose].reduceOption
+  (if mins.isEmpty then none else some <| mins.foldl min mins[0]!).map fun d => (d, nums[d]!)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat :=
