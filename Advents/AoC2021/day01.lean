@@ -1,5 +1,4 @@
 import Advents.Utils
-open Std
 
 namespace Day01
 
