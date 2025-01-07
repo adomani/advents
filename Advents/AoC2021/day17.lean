@@ -83,7 +83,7 @@ def possibleX (rg : pos) : HashSet Int := Id.run do
   return h
 
 /-- A crude bound on the second component of a velocity that reaches the `y`-range `rg`. -/
-def possibleY (rg : pos) : HashSet (Int) :=
+def possibleY (rg : pos) : HashSet Int :=
   HashSet.ofArray ((Array.range (rg.1.natAbs + 1)).map Nat.cast)
     |>.union <| .ofArray ((Array.range (rg.1.natAbs + 1)).map (- Nat.cast ·))
 
