@@ -87,7 +87,7 @@ def min1 : Option Int → Option Int → Option Int
 
 def fallsBy (s : state) (b : HashMap pos pos) : Int :=
   let minDiff : Int := b.fold (init := (b.toArray.getD 0 default).2.1) fun h p c =>
-    let ht := c.1 - (s.profile[p]?.getD 0)
+    let ht := c.1 - (s.profile[p]?.getD default)
     min ht h
   minDiff - 1
 
@@ -112,17 +112,62 @@ def collapse (s : state) : state :=
     let ht := fallsBy s b
     mkFall s b ht
 
---def
+def upNbs (s : state) : HashMap (pos × pos) (Array (pos × pos)) × HashMap (pos × pos) (Array (pos × pos)) := Id.run do
+  let mut hasAbove := ∅
+  let mut hasBelow := ∅
+  let mut left := s.fallen
+  for a in s.fallen do
+    let am := (a.toArray.qsort (· < ·)).getD 0 default
+    left := left.erase a
+    for b in left do
+      let bm := (b.toArray.qsort (· < ·)).getD 0 default
+      for (p, r) in b do
+        match a[p]? with
+          | some (l, h) =>
+            if r.2  == l then
+              --dbg_trace "here"
+              hasAbove := hasAbove.alter bm fun x =>
+                let x := x.getD #[]
+                if x.contains am then x else x.push am
+              hasBelow := hasBelow.alter am fun x =>
+                let x := x.getD #[]
+                if x.contains bm then x else x.push bm
+            if h + 1 == r.1 then
+              --dbg_trace "there"
+              hasAbove := hasAbove.alter am fun x =>
+                let x := x.getD #[]
+                if x.contains bm then x else x.push bm
+              hasBelow := hasBelow.alter bm fun x =>
+                let x := x.getD #[]
+                if x.contains am then x else x.push am
+          | none => default
+  return (hasAbove, hasBelow)
 
 
+set_option trace.profiler true in
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
   let s := inputToState dat
   let s := collapse s
   IO.println <| s.fallen.size --.map (HashMap.toArray)
-  for b in s.profile.toArray do
-    IO.println b
+  let (hasAbove, hasBelow) := upNbs s
+  IO.println (hasBelow.size, hasAbove.size)
+  let mut tot := 0
+  for (x, y) in hasAbove do
+    for n in y do
+    --let belowY := y.foldl (β := Array (pos × pos)) (init := #[]) fun h n =>
+      let bn := hasBelow[n]! -- #[]
+      if bn != #[x] then tot := tot + 1
+  IO.println tot
+  for (y, x) in hasBelow do
+    if hasAbove[y]? == none then
+      tot := tot + 1
+  IO.println tot
+
+  --for h in s.fallen do
+  --  for (p, q) in h do
+  --    IO.println (p, q)
 
 
 #eval do
