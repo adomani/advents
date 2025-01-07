@@ -1,0 +1,14 @@
+name = "advents"
+defaultTargets = ["advents"]
+
+[[require]]
+name = "batteries"
+git = "https://github.com/leanprover-community/batteries"
+rev = "main"
+
+[[lean_lib]]
+name = "Advents"
+
+[[lean_exe]]
+name = "advents"
+root = "Main"
