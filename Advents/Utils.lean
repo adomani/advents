@@ -57,27 +57,33 @@ instance {a b : α × β} : Decidable (a < b) := decidable_of_iff' _ Prod.lt_iff
 
 end Instances_for_orders
 
+/--
+Given a list `l` of `α` and a predicate `f : α → Bool`, group the entries of `l` into
+consecutive sublists that either all satisfy the predicate, or are singletons, and then
+remove all singletons that do not satisfy `f`.
+-/
+def List.isolate [Inhabited α] (l : List α) (f : α → Bool) : List (List α) :=
+  let grp := l.splitBy (f · && f ·)
+  grp.filterMap fun s => if s.isEmpty || f (s.getD 0 default) then some s else none
+
+/-- Similar to `List.isolate`, except that it acts on the characters making up the list input. -/
+def String.isolate (str : String) (f : Char → Bool) : List String :=
+  str.toList.isolate f |>.map (⟨·⟩)
+
+#eval show Lean.Elab.Term.TermElabM _ from do
+  let str := "abA 123,cd\n456\n7 \n0"
+  guard <| str.isolate (·.isDigit) == ["123", "456", "7", "0"]
+
 /-- `String.getNats l` takes as input a string and returns the list of `Nat`
 where each entry is the natural number corresponding to each consecutive
 sequence of digits in `l`, in their order. -/
-partial
 def String.getNats (l : String) : List Nat :=
-  let l1 := l.dropWhile (! ·.isDigit)
-  if l1.isEmpty then [] else
-    let d1 := String.toNat! ⟨l1.toList.takeWhile (·.isDigit)⟩
-    let fin := getNats (l1.dropWhile (·.isDigit))
-  d1 :: fin
+  l.isolate (·.isDigit) |>.map (·.toNat!)
 
 /-- `String.getInts l` takes as input a string `l`, removes everything that is neither a digit,
 not a minus sign (`-`) and interprets the rest as a list of integers. -/
-partial
 def String.getInts (l : String) : List Int :=
-  let cond : Char → Bool := fun c => c.isDigit || (c == '-')
-  let l1 := l.dropWhile (!cond ·)
-  if l1.isEmpty then [] else
-    let d1 := String.toInt! (l1.takeWhile cond)
-    let fin := getInts (l1.dropWhile cond)
-  d1 :: fin
+  l.isolate (fun c => c.isDigit || (c == '-')) |>.map (·.toInt!)
 
 section Nats_and_Ints
 
