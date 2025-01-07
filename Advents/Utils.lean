@@ -27,7 +27,7 @@ section Instances_for_orders
 /-!
 # Instances for orders
 
-We introduce here instances on products, so that `vol` acquires them.
+We introduce here instances on products, so that `pos` and `vol` acquire them.
 -/
 
 /-- The component-wise addition on a pair. -/
