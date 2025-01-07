@@ -1,4 +1,10 @@
-import Batteries
+import Lean.Elab.Command
+import Batteries.Tactic.Lint
+open Std
+
+-- copied from `Batteries/Lean/HashSet.lean`
+instance [BEq α] [Hashable α] : BEq (HashSet α) where
+  beq s t := s.all (t.contains ·) && t.all (s.contains ·)
 
 section sums
 variable {α}
@@ -83,7 +89,7 @@ def Nat.factors (n : Nat) (p : Nat := 2) : Array Nat :=
     | n =>
       have : n / p < n := Nat.div_lt_self (Nat.pos_of_ne_zero (by omega)) (by omega)
       if n % p = 0 then ((n / p).factors p).push p
-      else if n.sqrt < p then #[n]
+      else if n < p * p then #[n]
       else
         n.factors p.succ
   termination_by (n, n - p)
@@ -170,10 +176,10 @@ def Char.toDir : Char → dir
 
 -- More functional, but less performant implementation
 /-
-def loadString (s : String) (r : Nat) : Std.HashMap pos Char :=
+def loadString (s : String) (r : Nat) : HashMap pos Char :=
   .ofList <| (List.range s.length).map fun i : Nat => ((r, i), s.get ⟨i⟩)
 
-def loadGrid (dat : Array String) : Std.HashMap pos Char :=
+def loadGrid (dat : Array String) : HashMap pos Char :=
   (Array.range dat.size).foldl (fun i => ·.union (loadString dat[i]! i)) ∅
 -/
 
@@ -181,7 +187,7 @@ def loadGrid (dat : Array String) : Std.HashMap pos Char :=
 Converts the input strings into a `HashMap`.
 Only the characters on which `toEntry` is `some` appear as keys.
 -/
-def sparseMap (dat : Array String) (toEntry : Char → Option α) : Std.HashMap pos α := Id.run do
+def sparseMap (dat : Array String) (toEntry : Char → Option α) : HashMap pos α := Id.run do
   let mut h := {}
   for d in [0:dat.size] do
     let row := dat[d]!
@@ -195,15 +201,16 @@ def sparseMap (dat : Array String) (toEntry : Char → Option α) : Std.HashMap 
 Converts the input strings into a `HashMap`.
 Uses *every* character in every string of `dat : Array String`.
 -/
-def loadGrid {α} (dat : Array String) (toEntry : Char → α) : Std.HashMap pos α :=
+def loadGrid {α} (dat : Array String) (toEntry : Char → α) : HashMap pos α :=
   sparseMap dat (some ∘ toEntry)
 
 /--
 Converts the input strings into a `HashMap`, assuming that the entries are natural numbers.
 -/
-def loadGridNats (dat : Array String) : Std.HashMap pos Nat := loadGrid dat (String.toNat! ⟨[·]⟩)
+def loadGridNats (dat : Array String) : HashMap pos Nat := loadGrid dat (String.toNat! ⟨[·]⟩)
 
-def sparseGrid (dat : Array String) (toEntry : Char → Bool) : Std.HashSet pos := Id.run do
+/-- Loads the positions of the characters satisfying `toEntry` into a `HashSet` of `pos`. -/
+def sparseGrid (dat : Array String) (toEntry : Char → Bool) : HashSet pos := Id.run do
   let mut h := {}
   for d in [0:dat.size] do
     let row := dat[d]!
@@ -317,7 +324,7 @@ def toPic (gr : Array pos) (Nx Ny : Nat) : Array String :=
     return rows
 
 /-- A function to draw `HashMap`s. -/
-def drawHash {α} [ToString α] (h : Std.HashMap pos α) (Nx Ny : Nat) : Array String := Id.run do
+def drawHash {α} [ToString α] (h : HashMap pos α) (Nx Ny : Nat) : Array String := Id.run do
   let mut fin := #[]
   for i in [0:Nx] do
     let mut str := ""
@@ -329,7 +336,7 @@ def drawHash {α} [ToString α] (h : Std.HashMap pos α) (Nx Ny : Nat) : Array S
   return fin
 
 /-- A function to draw `HashSet`s. -/
-def drawSparseWith (h : Std.HashSet pos) (Nx Ny : Nat)
+def drawSparseWith (h : HashSet pos) (Nx Ny : Nat)
     (yes : pos → String := fun _ => "#") (no : pos → String := fun _ => ".") :
     Array String := Id.run do
   let mut fin := #[]
@@ -343,7 +350,7 @@ def drawSparseWith (h : Std.HashSet pos) (Nx Ny : Nat)
   return fin
 
 /-- A function to draw `HashSet`s. -/
-def drawSparse (h : Std.HashSet pos) (Nx Ny : Nat) (yes : String := "#") (no : String := "·") :
+def drawSparse (h : HashSet pos) (Nx Ny : Nat) (yes : String := "#") (no : String := "·") :
     Array String := Id.run do
   let mut fin := #[]
   for i in [0:Nx] do
