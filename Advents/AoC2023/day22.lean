@@ -29,6 +29,9 @@ abbrev vol := Int × Int × Int
 instance : HMul Nat vol vol where
   hMul a x := (a * x.1, a * x.2.1, a * x.2.2)
 
+instance : HMul Nat pos pos where
+  hMul a x := (a * x.1, a * x.2)
+
 /-- A `brick` is a "linear" string of `vol`umes.  It is encoded by
 * `src`, its beginning position -- chosen so that the brick is in the
   positive orthant starting from `src`;
@@ -37,10 +40,88 @@ instance : HMul Nat vol vol where
   of the brick.
 -/
 structure brick where
-  (src : vol)
-  (dir : vol)
-  (lth : Nat)
+  src : vol
+  dir : vol
+  lth : Nat
   deriving Inhabited, BEq, Hashable
+
+structure state where
+  bricks : HashMap pos pos
+  fallen : HashMap pos pos
+  profile : HashMap pos pos
+
+def inputToState (dat : Array String) : state :=
+  let bricks := dat.foldl (init := ∅) fun h b =>
+    match b.getNats with
+      | [a, b, c, d, e, f] =>
+        -- first, we reorganize `(a, b, c), (d, e, f)` so that `(a, b, c) < (d, e, f)`
+        let (x, y) := ((a, b, c), (d, e, f))
+        let ((a, b, c), (d, e, f)) := if y < x then (y, x) else (x, y)
+        -- second, we extract the direction `v` and length `l` of the brick
+        let (dir, lth) : vol × Nat := if a < d then ((1, 0, 0), d - a) else
+                                      if b < e then ((0, 1, 0), e - b) else
+                                      ((0, 0, 1), f - c)
+        --h.insert (a, b) <|
+        --  if a < d then (d - a) else
+        --  if b < e then (e - b) else
+        --  (f - c)
+        if dir != (0, 0, 1) then
+          h.insertMany <| (Array.range (lth + 1)).map fun v =>
+            (((a, b) : pos) + v * (dir.1, dir.2.1), (c.cast, c.cast))
+        else
+          h.insert ((a, b) : pos) (c, f)
+      | _ => panic "Malformed input!"
+  { bricks := bricks, fallen := ∅, profile := ∅}
+
+nonrec
+def min1 : Option Int → Option Int → Option Int
+  | none, some a => some a
+  | some a, none => some a
+  | some a, some b => some (min a b)
+  | none, none => none
+
+def fallsBy (s : state) (b : Array vol) : Int :=
+  let minDiff : Int := b.foldl (init := (b.getD 0 (0, 0, 0)).2.2) fun h (a, b, c) =>
+    let ht := c - (s.profile[(a, b)]?.getD 1)
+    min ht h
+  minDiff
+
+#eval do
+  let dat := atest
+  let s := inputToState dat
+  let s := {inputToState dat with profile := {((1, 1), 1), ((1, 2), 2)}}
+  IO.println <| fallsBy s #[(1, 2, 5)]
+  IO.println <| fallsBy s #[(1, 1, 5), (1, 2, 5)]
+
+def mkFall (s : state) (b : Array vol) (h : Int) : state :=
+  { bricks := s.bricks.erase b
+    fallen := s.fallen.insert b
+    profile :=
+      let brickProfile : HashMap pos Int := b.foldl (init := ∅) fun b (x, y, z) =>
+        b.alter (x, y) (some <| z - ·.getD 0)
+      b.foldl (init := s.profile) fun hp (x, y, z) =>
+        hp.alter (x, y) (some <| ·.getD (0) + z - h)
+  }
+
+
+
+
+#eval do
+  let dat := atest
+  let s := inputToState dat
+  let bk := #[(1, 1, 5), (1, 2, 5)]
+  let ht := fallsBy s bk
+  IO.println <| ht
+  let s := mkFall s bk ht
+  IO.println s.profile.toArray
+  let bk := #[(1, 1, 5), (1, 2, 5)]
+  let ht := fallsBy s bk
+  let s := mkFall s bk ht
+  IO.println s.profile.toArray
+  let bk := #[(1, 1, 5), (1, 2, 5)]
+  let ht := fallsBy s bk
+  let s := mkFall s bk ht
+  IO.println s.profile.toArray
 
 /-- A pretty-printer for `brick`s. -/
 instance : ToString brick where
@@ -62,7 +143,7 @@ def String.toBrick (s : String) : brick :=
                                 if b < e then ((0, 1, 0), e - b) else
                                 ((0, 0, 1), f - c)
       ⟨(a, b, c), v, l⟩
-    | _ => dbg_trace "oh no!"; default
+    | _ => panic "oh no!"
 
 /-- `bricks dat` parses all the strings in the array `dat`, producing an array of `brick`s. -/
 def bricks (dat : Array String) : Array brick :=
@@ -77,13 +158,7 @@ def brick.toArray (bk : brick) : Array vol :=
 It returns the collection of all the `vol`umes occupied by some brick determined by `dat`.
 -/
 def getPos (dat : Array String) : HashSet vol :=
-  let dat := bricks dat
-  Id.run do
-  let mut s : HashSet vol := .empty
-  for b in dat do
-    for i in b.toArray do
-      s := s.insert i
-  return s
+  (bricks dat).foldl (·.insertMany ·.toArray) ∅
 
 /-- `checkNbr bks d bk` takes as input
 * a collection of occupied `vol`umes `bks,
@@ -132,11 +207,9 @@ making `bk` fall as much as `canFallBy bksH bk` allows. -/
 def fallOne (bksH : HashSet vol) (bk : brick) : HashSet vol × brick :=
   let n := canFallBy bksH bk
   let old := (Array.range bk.lth.succ).map (bk.src + · * bk.dir)
-  Id.run do
-  let mut s : HashSet vol := bksH
-  for x in old do
-    s := (s.erase x).insert (x + n * ((0, 0, -1) : vol))
-  return (s, ⟨bk.src + n * ((0, 0, -1) : vol), bk.dir, bk.lth⟩)
+  let s : HashSet vol := old.foldl (init := bksH) fun s x =>
+    (s.erase x).insert (x + n * ((0, 0, -1) : vol))
+  (s, ⟨bk.src + n * ((0, 0, -1) : vol), bk.dir, bk.lth⟩)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
@@ -153,9 +226,7 @@ def part1 (dat : Array String) : Nat :=
     bks := (bks.modify (bks.findIdx? (· == curr)).get! (fun _ => newB))
     bksFall := bks.find? <| canFall bksH
   let mut tot := 0
-  let mut bks' : HashSet brick := .empty
-  for d in bks do
-    bks' := bks'.insert d
+  let bks' : HashSet brick := .ofArray bks
   for bk in bks' do
     let old := bk.toArray
     let mut s : HashSet vol := bksH
@@ -171,7 +242,7 @@ def part1 (dat : Array String) : Nat :=
 #assert part1 atest == 5
 
 #eval "Day 22, part 1: 441   (prerecorded, the actual computation takes: ~45 seconds!"
---solve 1 441
+--set_option trace.profiler true in solve 1 441
 
 /-!
 #  Question 2
