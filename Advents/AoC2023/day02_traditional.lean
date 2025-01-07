@@ -36,7 +36,7 @@ def one_color (s : String) : cols :=
     | "blue"  => (0, 0, number)
     | _ => default
 
---#assert one_color "  45   blue" == (0, 0, 45)
+#assert one_color "  45   blue" == (0, 0, 45)
 
 /-- `get_color_number s` takes a string `s` as input and it assumes that it is of the form
 `Game <ds>: <ds> <colour>,... ; ...`
@@ -54,11 +54,9 @@ def get_color_number (s : String) : Nat × List cols :=
   let colors_lists := runs.map fun x => x.map one_color
   (String.toNat! (gameID.dropWhile (! Char.isDigit ·)), colors_lists.map List.sum)
 
-/-
 #assert
   get_color_number "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green" ==
     (1, [(4, 0, 3), (1, 2, 6), (0, 2, 0)])
---/
 
 /-- `limit` is the maximum number of cubes of each colour allows for each game in part 1. -/
 def limit : cols := (12, 13, 14)
@@ -109,7 +107,7 @@ solve 1 2169
 /-- The `sup` of two `cols` is simply the component-wise `max`imum of the two `cols`. -/
 def sup (x y : cols) : cols := (max x.1 y.1, max x.2.1 y.2.1, max x.2.2 y.2.2)
 
---#assert sup (sup (4, 0, 3) (1, 2, 6)) (0, 2, 0) == (4, 2, 6)
+#assert sup (sup (4, 0, 3) (1, 2, 6)) (0, 2, 0) == (4, 2, 6)
 
 /-- `part2 rows` takes an array of strings `rows` as input and produces that natural number
 obtained by
