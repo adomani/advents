@@ -70,9 +70,7 @@ def List.isolate [Inhabited α] (l : List α) (f : α → Bool) : List (List α)
 def String.isolate (str : String) (f : Char → Bool) : List String :=
   str.toList.isolate f |>.map (⟨·⟩)
 
-#eval show Lean.Elab.Term.TermElabM _ from do
-  let str := "abA 123,cd\n456\n7 \n0"
-  guard <| str.isolate (·.isDigit) == ["123", "456", "7", "0"]
+#guard "abA 123,cd\n456\n7 \n0".isolate (·.isDigit) == ["123", "456", "7", "0"]
 
 /-- `String.getNats l` takes as input a string and returns the list of `Nat`
 where each entry is the natural number corresponding to each consecutive
@@ -138,8 +136,7 @@ def Array.transpose [Inhabited α] (rows : Array (Array α)) : Array (Array α) 
       ans := ans.push row
     return ans
 
-#guard
-  #[#[0, 1], #[2, 3]].transpose == #[#[0, 2], #[1, 3]]
+#guard #[#[0, 1], #[2, 3]].transpose == #[#[0, 2], #[1, 3]]
 
 /-- Transpose an array of strings. -/
 def Array.transposeString (s : Array String) : Array String :=
