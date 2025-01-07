@@ -10,18 +10,16 @@ section sums
 variable {α}
 
 /--  Sum the elements of an `Array`. -/
-def Array.sum [Add α] [OfNat α 0] (l : Array α) : α :=
-  l.toList.sum
+def Array.sum [Add α] [OfNat α 0] : Array α → α :=
+  foldl (· + ·) 0
 
 /--  Multiply the elements of a `List`. -/
-def List.prod [Mul α] [OfNat α 1] : List α → α
-  | []    => 1
-  | [m]   => m
-  | m::ms => m * ms.prod
+def List.prod [Mul α] [OfNat α 1] : List α → α :=
+  foldr (· * ·) 1
 
 /--  Multiply the elements of an `Array`. -/
-def Array.prod [Mul α] [OfNat α 1] (l : Array α) : α :=
-  l.toList.prod
+def Array.prod [Mul α] [OfNat α 1] : Array α → α :=
+  foldl (· * ·) 1
 
 end sums
 
@@ -32,13 +30,17 @@ section Instances_for_orders
 We introduce here instances on products, so that `vol` acquires them.
 -/
 
-/-- the component-wise addition of pairs of integers. -/
+/-- The component-wise addition on a pair. -/
 instance {A B} [Add A] [Add B] : Add (A × B) where
   add x y := (x.1 + y.1, x.2 + y.2)
 
-/-- the component-wise subtraction of two pairs of integers. -/
+/-- The component-wise subtraction on pair. -/
 instance {A B} [Sub A] [Sub B] : Sub (A × B) where
  sub x y := (x.1 - y.1, x.2 - y.2)
+
+/-- The component-wise negation on a pair. -/
+instance {A B} [Neg A] [Neg B] : Neg (A × B) where
+ neg x := (- x.1, - x.2)
 
 variable {α β} [LT α] [LT β]
 /-- The lexicographic order of a product. -/
