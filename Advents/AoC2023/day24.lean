@@ -12,8 +12,6 @@ def input : System.FilePath := "Advents/AoC2023/day24.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the test string for the problem. -/
 def test := "19, 13, 30 @ -2,  1, -2
 18, 19, 22 @ -1, -1, -2

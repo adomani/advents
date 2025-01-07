@@ -13,8 +13,6 @@ I could not figure out the correct rounding for the answer in part 1.
 For this reason, I could not use the solution to part 2 also in part 1.
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the test string for the problem. -/
 def test := "Time:      7  15   30
 Distance:  9  40  200"

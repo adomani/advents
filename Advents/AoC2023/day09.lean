@@ -7,8 +7,6 @@ def input : System.FilePath := "Advents/AoC2023/day09.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the test string for the problem. -/
 def test := "0 3 6 9 12 15
 1 3 6 10 15 21

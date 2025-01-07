@@ -9,8 +9,6 @@ def input : System.FilePath := "Advents/AoC2023/day02.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `cols` is a triple of natural numbers and it stands for `colours`:
 the `red`, `green` and `blue` components of the puzzle.
 It is an `abbrev` rather than a `def`, since this makes it very easy for Lean to see through

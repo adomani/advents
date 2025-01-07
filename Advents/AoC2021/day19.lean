@@ -10,8 +10,6 @@ def input : System.FilePath := "Advents/AoC2021/day19.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the first test string for the problem. -/
 def test := "--- scanner 0 ---
 0,2

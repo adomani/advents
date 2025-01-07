@@ -10,8 +10,6 @@ def input : System.FilePath := "Advents/AoC2023/day01.input"
 -/
 
 --  Uncomment to take a look at the contents of the input file
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `first_digit? chars` given a list of characters `chars`,
 * if `chars` contains at least one digit, then
   return the corresponding natural number as `some n`,

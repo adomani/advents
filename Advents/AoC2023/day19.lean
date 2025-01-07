@@ -10,8 +10,6 @@ def input : System.FilePath := "Advents/AoC2023/day19.input"
 #  Question 1
 -/
 
---#eval do IO.println (← IO.FS.readFile input)
-
 /-- `test` is the test string for the problem. -/
 def test := "px{a<2006:qkq,m>2090:A,rfg}
 pv{a>1716:R,A}
