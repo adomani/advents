@@ -129,6 +129,6 @@ def part2 (dat : Array String) : Nat := Id.run do
 
 #assert part2 atest == 315
 
-solve 2 2993
+--set_option trace.profiler true in solve 2 2993  -- takes approx 85s
 
 end Day15
