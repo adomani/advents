@@ -167,3 +167,5 @@ def part2 (dat : String) : Nat :=
 #assert part2 test == 400
 
 solve 2 38063 file
+
+end Day13

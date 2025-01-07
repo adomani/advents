@@ -285,3 +285,5 @@ def part2 (dat : Array String) : Nat :=
 #assert part2 atest == 167409079868000
 
 solve 2 130303473508222
+
+end Day19

@@ -311,3 +311,5 @@ def part2 (dat : Array String) (i0 : Nat := 0) (i1 : Nat := 2) (i2 : Nat := 3) (
 #assert part2 atest == 47
 
 solve 2 888708704663413
+
+end Day24

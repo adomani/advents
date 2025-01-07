@@ -260,3 +260,5 @@ def part2 (dat : Array String) : Nat :=
   fr.foldl Nat.lcm 1
 
 solve 2 226732077152351
+
+end Day20

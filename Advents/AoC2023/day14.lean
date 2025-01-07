@@ -74,3 +74,5 @@ def part2 (dat : Array String) : Nat := sorry
 --#assert part2 atest == ???
 
 --solve 2
+
+end Day14

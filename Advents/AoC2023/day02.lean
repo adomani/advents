@@ -14,3 +14,5 @@ def input : System.FilePath := "Advents/AoC2023/day02.input"
   let ngames := (← IO.FS.lines input).size + 1
   let fin := "#eval do addMyGames " ++ ⟨Nat.toDigits 10 ngames⟩
   let _ ← runFrontend (init ++ "\n" ++ games ++ fin) (.empty) "" `day02_syntax
+
+end Day02

@@ -86,3 +86,5 @@ awk -F'"' '/[^[]pos/ {
 # answer: 619225
 -/
 #eval IO.println "Day 25, part 1: 619225"
+
+end Day25

@@ -53,3 +53,5 @@ def part2 (s : String) : Nat := discRt (getData2 s)
 #assert part2 test == 71503
 
 solve 2 36749103 file
+
+end Day06

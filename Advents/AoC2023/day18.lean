@@ -173,3 +173,5 @@ def part2 (dat : Array String) : Int :=
 #assert part2 atest == 952408144115
 
 solve 2 90111113594927
+
+end Day18

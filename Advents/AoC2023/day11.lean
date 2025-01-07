@@ -117,3 +117,5 @@ def part2 (dat : Array String) : Int := distances dat (1000000 - 1)
 #assert distances atest 99 == 8410
 
 solve 2 382979724122
+
+end Day11

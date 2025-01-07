@@ -153,3 +153,5 @@ def part2 (maps : String) : Nat :=
 #assert part2 test == 46
 
 solve 2 7873084 file
+
+end Day05

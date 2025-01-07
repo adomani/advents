@@ -1,5 +1,7 @@
 import Advents.Utils
 
+namespace Day09
+
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/AoC2023/day09.input"
 
@@ -90,3 +92,5 @@ def part2 (oasis : Array String) : Int :=
 #assert part2 atest == 2
 
 solve 2 1031
+
+end Day09

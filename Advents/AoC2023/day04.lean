@@ -98,3 +98,5 @@ def part2 (rows : Array String) : Nat :=
 #assert part2 atest == 30
 
 solve 2 8477787
+
+end Day04

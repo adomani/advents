@@ -185,3 +185,5 @@ def part2 (dat : Array String) : Nat :=
 #assert part2 (test2.splitOn "\n").toArray == 4
 
 solve 2 401
+
+end Day10

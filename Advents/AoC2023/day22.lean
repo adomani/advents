@@ -216,3 +216,5 @@ def part2 (dat : Array String) : Nat :=
 
 #eval "Day 22, part 2: 80778 (prerecorded, the actual computation takes: ~24 minutes!"
 --solve 2 80778
+
+end Day22
