@@ -48,30 +48,35 @@ structure brick where
 structure state where
   bricks : Array (HashMap pos pos)
   fallen : Array (HashMap pos pos)
-  profile : HashMap pos pos
+  profile : HashMap pos Int
+
+def lowestZ (h1 h2 : HashMap pos pos) : Bool :=
+  let mz1 := h1.fold (init := (h1.toArray.getD 0 default).2.1) fun h _ (ql, _) => min ql h
+  let mz2 := h2.fold (init := (h2.toArray.getD 0 default).2.1) fun h _ (ql, _) => min ql h
+  mz1 < mz2
 
 def inputToState (dat : Array String) : state :=
-  let bricks := dat.foldl (init := ∅) fun h b =>
+  let bricks : Array (HashMap pos pos) := dat.foldl (init := ∅) fun h b =>
     match b.getNats with
       | [a, b, c, d, e, f] =>
         -- first, we reorganize `(a, b, c), (d, e, f)` so that `(a, b, c) < (d, e, f)`
         let (x, y) := ((a, b, c), (d, e, f))
         let ((a, b, c), (d, e, f)) := if y < x then (y, x) else (x, y)
         -- second, we extract the direction `v` and length `l` of the brick
-        let (dir, lth) : vol × Nat := if a < d then ((1, 0, 0), d - a) else
-                                      if b < e then ((0, 1, 0), e - b) else
-                                      ((0, 0, 1), f - c)
+        let (dir, lth) : pos × Nat := if a < d then ((1, 0), d - a) else
+                                      if b < e then ((0, 1), e - b) else
+                                      ((0, 0), f - c)
         --h.insert (a, b) <|
         --  if a < d then (d - a) else
         --  if b < e then (e - b) else
         --  (f - c)
-        if dir != (0, 0, 1) then
+        if dir != (0, 0) then
           h.push <| .ofList <| (List.range (lth + 1)).map fun v =>
-            (((a, b) : pos) + v * (dir.1, dir.2.1), (c.cast, c.cast))
+            (((a, b) : pos) + v * dir, (c.cast, c.cast))
         else
           h.push <| {(((a, b) : pos), ((c, f) : pos))}
       | _ => panic "Malformed input!"
-  { bricks := bricks, fallen := ∅, profile := ∅}
+  { bricks := bricks.qsort lowestZ, fallen := ∅, profile := ∅}
 
 nonrec
 def min1 : Option Int → Option Int → Option Int
@@ -82,28 +87,42 @@ def min1 : Option Int → Option Int → Option Int
 
 def fallsBy (s : state) (b : HashMap pos pos) : Int :=
   let minDiff : Int := b.fold (init := (b.toArray.getD 0 default).2.1) fun h p c =>
-    let ht := c.1 - (s.profile[p]?.getD (0, 0)).2
+    let ht := c.1 - (s.profile[p]?.getD 0)
     min ht h
-  minDiff
+  minDiff - 1
 
 #eval do
   let dat := atest
   let s := inputToState dat
-  let s := {inputToState dat with profile := {((1, 1), (1, 2)), ((1, 2), (1, 1))}}
+  let s := {inputToState dat with profile := {((1, 1), 2), ((1, 2), 1)}}
   IO.println <| fallsBy s {((1, 2), (5, 5))}
   IO.println <| fallsBy s {((1, 1), (5, 5)), ((1, 2), (5, 5))}
 
 def mkFall (s : state) (b : HashMap pos pos) (h : Int) : state :=
   { bricks := s.bricks.erase b
-    fallen := s.fallen.insert b
+    fallen := s.fallen.push <| b.fold (init := ∅) fun f p q => f.insert p (q - (h, h))
     profile :=
-      let brickProfile : HashMap pos Int := b.foldl (init := ∅) fun b (x, y, z) =>
-        b.alter (x, y) (some <| z - ·.getD 0)
-      b.foldl (init := s.profile) fun hp (x, y, z) =>
-        hp.alter (x, y) (some <| ·.getD (0) + z - h)
+      --let brickProfile : HashMap pos Int := b.foldl (init := ∅) fun b (x, y, z) =>
+      --  b.alter (x, y) (some <| z - ·.getD 0)
+      b.fold (init := s.profile) fun hp p q => hp.insert p (q.2 - h)
   }
 
+def collapse (s : state) : state :=
+  s.bricks.foldl (init := s) fun s b =>
+    let ht := fallsBy s b
+    mkFall s b ht
 
+--def
+
+
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let s := inputToState dat
+  let s := collapse s
+  IO.println <| s.fallen.size --.map (HashMap.toArray)
+  for b in s.profile.toArray do
+    IO.println b
 
 
 #eval do
