@@ -1,5 +1,5 @@
 import Advents.Utils
-
+import Lean.Elab.Eval
 open Lean Elab Expr Meta
 
 namespace Day02

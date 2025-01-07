@@ -1,5 +1,6 @@
 import Advents.Utils
-open Lean
+import Batteries.Data.Array.Merge
+open Std
 
 namespace Day25
 
@@ -32,7 +33,7 @@ def atest := (test.splitOn "\n").toArray
 
 /-- `wires` is the type containing all (ordered) pairs of `String`s that correspond
 to wires in the graph of today's puzzle. -/
-abbrev wires := Std.HashSet (String × String)
+abbrev wires := HashSet (String × String)
 
 /-- `getStringsOne1 s` takes as input a string `s` and returns the ordered pair
 consisting of the string on the left of the input and the array of strings on the right. -/

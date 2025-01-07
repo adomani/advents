@@ -1,5 +1,6 @@
 import Advents.Utils
-open Lean
+import Batteries.Data.Nat.Basic
+open Std
 
 namespace Day17
 
@@ -72,7 +73,7 @@ solve 1 11781 file
 -/
 
 /-- The possible first components of a velocity that reaches the `x`-range `rg`. -/
-def possibleX (rg : pos) : Std.HashSet Int := Id.run do
+def possibleX (rg : pos) : HashSet Int := Id.run do
   let mut h := {}
   for i in [0:rg.2.natAbs+1] do
     let mut sum := 0
@@ -82,8 +83,8 @@ def possibleX (rg : pos) : Std.HashSet Int := Id.run do
   return h
 
 /-- A crude bound on the second component of a velocity that reaches the `y`-range `rg`. -/
-def possibleY (rg : pos) : Std.HashSet (Int) :=
-  Std.HashSet.ofArray ((Array.range (rg.1.natAbs + 1)).map Nat.cast)
+def possibleY (rg : pos) : HashSet (Int) :=
+  HashSet.ofArray ((Array.range (rg.1.natAbs + 1)).map Nat.cast)
     |>.union <| .ofArray ((Array.range (rg.1.natAbs + 1)).map (- Nat.cast ·))
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
@@ -91,7 +92,7 @@ def part2 (dat : String) : Nat := Id.run do
   let dat := inputToPos dat
   let posX := possibleX (dat.1.1, dat.1.2)
   let posY := possibleY (dat.2.1, dat.2.2)
-  let mut (incl, disc) : Std.HashSet pos × Std.HashSet pos := default
+  let mut (incl, disc) : HashSet pos × HashSet pos := default
   for x in posX do
     for y in posY do
       if reaches dat (x, y) then

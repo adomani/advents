@@ -1,5 +1,4 @@
 import Advents.Utils
-open Lean
 
 namespace Day01
 

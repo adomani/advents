@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day05
 
@@ -37,7 +37,7 @@ def toDirDist (a b : Int × Int) : (Int × Int) × Nat :=
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
-  let mut pos : Std.HashMap (Int × Int) Nat := {}
+  let mut pos : HashMap (Int × Int) Nat := {}
   for s in dat do
     if let [p1, p2, q1, q2] := s.getNats then
       let (dir, dist) := toDirDist (p1, p2) (q1, q2)
@@ -58,7 +58,7 @@ solve 1 6005
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
-  let mut pos : Std.HashMap (Int × Int) Nat := {}
+  let mut pos : HashMap (Int × Int) Nat := {}
   for s in dat do
     if let [p1, p2, q1, q2] := s.getNats then
       let (dir, dist) := toDirDist (p1, p2) (q1, q2)

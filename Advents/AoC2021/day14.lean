@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day14
 
@@ -41,9 +41,9 @@ def atest := (test.splitOn "\n").toArray
 -/
 structure Polymer where
   /-- `rules` encodes the character that is inserted between two consecutive characters. -/
-  rules : Std.HashMap (Char × Char) Char
+  rules : HashMap (Char × Char) Char
   /-- `poly` is the current molecule *decomposed into its constituent pairs*. -/
-  poly  : Std.HashMap (Char × Char) Nat
+  poly  : HashMap (Char × Char) Nat
   /-- `ends` is the pair of the first and last character of the molecule -- these never change
   and recording (at least one of) them helps with the tally. -/
   ends  : Char × Char
@@ -83,8 +83,8 @@ def insert (p : Polymer) : Nat → Polymer
   | n + 1 => insert (insertOnce p) n
 
 /-- Retrieves the numbers of elements from a `Polymer` as a `HashMap Char Nat`. -/
-def countSplit (p : Polymer) : Std.HashMap Char Nat :=
-  let h : Std.HashMap Char Nat := p.poly.fold (init := ∅) fun h (l, _r) val =>
+def countSplit (p : Polymer) : HashMap Char Nat :=
+  let h : HashMap Char Nat := p.poly.fold (init := ∅) fun h (l, _r) val =>
     let acc := h.getD l 0
     h.insert l (acc + val)
   let acc := h.getD p.ends.2 0

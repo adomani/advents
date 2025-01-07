@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day13
 
@@ -37,11 +37,11 @@ fold along x=5"
 def atest := (test.splitOn "\n").toArray
 
 /-- Performs the operation that in the instructions is denoted by `fold along x=n`. -/
-def foldX (n : Int) (g : Std.HashSet pos) : Std.HashSet pos :=
+def foldX (n : Int) (g : HashSet pos) : HashSet pos :=
   g.fold (init := {}) fun h p => h.insert (if p.1 < n then p else (2 * n - p.1, p.2))
 
 /-- Performs the operation that in the instructions is denoted by `fold along y=n`. -/
-def foldY (n : Int) (g : Std.HashSet pos) : Std.HashSet pos :=
+def foldY (n : Int) (g : HashSet pos) : HashSet pos :=
   g.fold (init := {}) fun h p => h.insert (if p.2 < n then p else (p.1, 2 * n - p.2))
 
 /--
@@ -49,7 +49,7 @@ Scans the input `inp`. First, it constructs the initial grid, then it performs t
 The `Bool`ean input is `true`, then Lean will stop `fold`ing, after the first fold:
 this is what the answer to part 1 wants.
 -/
-def getGrid (inp : Array String) (stop : Bool) : Std.HashSet pos := Id.run do
+def getGrid (inp : Array String) (stop : Bool) : HashSet pos := Id.run do
   let mut h := {}
   for l in inp do
     match l.getInts with
@@ -84,7 +84,7 @@ def part2 (dat : Array String) : Nat := (getGrid dat false).size
 solve 2 92
 
 /-- A function to draw the answer to the second part of the puzzle. -/
-def drawHash (h : Std.HashSet pos) (Nx Ny : Nat) : Array String := Id.run do
+def drawHash (h : HashSet pos) (Nx Ny : Nat) : Array String := Id.run do
   let mut fin := #[]
   for i in [0:Nx] do
     let mut str := ""
@@ -95,7 +95,7 @@ def drawHash (h : Std.HashSet pos) (Nx Ny : Nat) : Array String := Id.run do
     fin := fin.push str
   return fin
 
-#eval show Elab.Term.TermElabM _ from do
+#eval show Lean.Elab.Term.TermElabM _ from do
   let dat ← IO.FS.lines input
   let grid := getGrid dat false
   let (mx, my) := grid.fold (init := (0, 0)) fun (mx, my) (px, py) => (max mx px, max my py)

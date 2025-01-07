@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day19
 
@@ -229,7 +229,7 @@ The structure encoding the information of a scanner.
 -/
 structure Scanner where
   /-- `beacons` are the coordinate vectors of the beacons, from the perspective of the scanner. -/
-  beacons : Std.HashSet vol
+  beacons : HashSet vol
   /-- `position` is the coordinate vector of the scanner.  It starts out being `(0, 0, 0)`,
   but gets updated with translations, rotations and sign-changes. -/
   position : vol := (0, 0, 0)
@@ -294,8 +294,8 @@ whole scanner.
 def generalPosition (p q : vol) : Bool :=
   let (p1, p2, p3) := p
   let (q1, q2, q3) := q
-  let fst : Std.HashSet Nat := {p1.natAbs, p2.natAbs, p3.natAbs}
-  let snd : Std.HashSet Nat := {q1.natAbs, q2.natAbs, q3.natAbs}
+  let fst : HashSet Nat := {p1.natAbs, p2.natAbs, p3.natAbs}
+  let snd : HashSet Nat := {q1.natAbs, q2.natAbs, q3.natAbs}
   fst == snd && fst.size == 3
 
 /--
@@ -353,7 +353,7 @@ coincidences in the distances.  This is in fact unnecessary for the given input.
 def quickCheck (g h : Scanner) : Bool := Id.run do
   let mut allDists := #[]
   for s in [g.beacons, h.beacons] do
-    let mut dists : Std.HashSet Int := ∅
+    let mut dists : HashSet Int := ∅
     let mut left := s
     for a in s do
       left := left.erase a
@@ -381,10 +381,10 @@ def sync (g h : Scanner) : Option Scanner := Id.run do
   let mut con := 0
   for a0 in g.beacons do
     if 2 ≤ pair.size then continue
-    let diffs : Std.HashSet Int :=
+    let diffs : HashSet Int :=
       g.beacons.fold (init := ∅) fun h a => h.insert <| sc (a - a0) (a - a0)
     for v in h.beacons do
-      let tr : Std.HashSet Int :=
+      let tr : HashSet Int :=
         h.beacons.fold (init := ∅) fun h a => h.insert <| sc (a - v) (a - v)
       let overlap := (diffs.filter (tr.contains)).size
       if 12 ≤ overlap then
@@ -440,7 +440,7 @@ def orientScanners (dat : Array String) : Array Scanner := Id.run do
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let beacons := orientScanners dat
-  beacons.foldl (init := (∅ : Std.HashSet vol)) (·.union ·.beacons) |>.size
+  beacons.foldl (init := (∅ : HashSet vol)) (·.union ·.beacons) |>.size
 
 #assert part1 atest3 == 79
 
@@ -453,7 +453,7 @@ solve 1 405  -- takes approximately 5s
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
   let beacons := orientScanners dat
-  let scanners := beacons.foldl (init := (∅ : Std.HashSet vol)) (·.insert ·.position)
+  let scanners := beacons.foldl (init := (∅ : HashSet vol)) (·.insert ·.position)
   let mut Mdist := 0
   let mut leftF := scanners
   for a in scanners do

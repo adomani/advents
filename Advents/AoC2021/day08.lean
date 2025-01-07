@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day08
 
@@ -69,7 +69,7 @@ Next, `2` corresponds to the only string left.
 
 Blunt, but works!
 -/
-def label (ns : List String) : Std.HashMap Nat String := Id.run do
+def label (ns : List String) : HashMap Nat String := Id.run do
   let mut h := {}
   let mut left := #[]
   for n in ns do

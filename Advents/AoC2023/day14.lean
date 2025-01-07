@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+import Batteries.Data.List.Basic
 
 namespace Day14
 

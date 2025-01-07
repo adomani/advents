@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day11
 
@@ -37,12 +37,12 @@ def atest := (test.splitOn "\n").toArray
 -/
 structure OctoState where
   /-- `state` represents current energy levels of the octopuses.-/
-  state      : Std.HashMap pos Nat
+  state      : HashMap pos Nat
   /-- `flashed` are the octopuses that in this round have already emitted a flash.-/
-  flashed    : Std.HashSet pos := {}
+  flashed    : HashSet pos := {}
   /-- `preflashed` are the octopushes that will emit a flash, but have not yet done so and
   hence have not yet updated the energy level of their neighbours. -/
-  preflashed : Std.HashSet pos := {}
+  preflashed : HashSet pos := {}
   /-- `flashes` is the count of the total number of flashes, since this state started tracking
   the octopuses. -/
   flashes    : Nat := 0
@@ -98,7 +98,7 @@ def dealWithPreflashed (st : OctoState) : OctoState :=
   dealWithPreflashed new
 
 /-- Draw the `state` of the `OctoState` -- just needed for pretty pictures, no actual content. -/
-def drawHash (h : Std.HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
+def drawHash (h : HashMap pos Nat) (Nx Ny : Nat) : Array String := Id.run do
   let mut fin := #[]
   for i in [0:Nx] do
     let mut str := ""

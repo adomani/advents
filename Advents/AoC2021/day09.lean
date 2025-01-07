@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day09
 
@@ -30,9 +30,9 @@ It computes
   smaller than some neighbour (useful for part 2);
 * the sum of the risk levels (useful for part 1).
 -/
-def lowPoints (dat : Array String) : Std.HashSet (Nat × Nat) × Nat := Id.run do
+def lowPoints (dat : Array String) : HashSet (Nat × Nat) × Nat := Id.run do
   let mut heights := 0
-  let mut lowPoints : Std.HashSet (Nat × Nat) := {}
+  let mut lowPoints : HashSet (Nat × Nat) := {}
   for d in [0:dat.size] do
     let prev := dat[d-1]!
     let next := dat[d+1]?.getD dat[d]!
@@ -69,8 +69,8 @@ Cf `growOnce` and `grow`: at each iteration, from each entry in `front`,
 they scan the neighbours and expand `visited`
 -/
 structure ExpandingDomain where
-  visited : Std.HashSet (Nat × Nat)
-  front : Std.HashSet (Nat × Nat)
+  visited : HashSet (Nat × Nat)
+  front : HashSet (Nat × Nat)
   deriving Inhabited
 
 /-- Expands an `ExpandingDomain` once, using the reference `grid`. -/

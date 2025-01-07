@@ -1,5 +1,5 @@
 import Advents.Utils
-open Lean
+open Std
 
 namespace Day12
 
@@ -69,13 +69,13 @@ def atest3 := (test3.splitOn "\n").toArray
 -/
 structure MazeState where
   /-- `maze` assigns to each cave the adjacent caves. -/
-  maze      : Std.HashMap String (Array String)
+  maze      : HashMap String (Array String)
   /-- `completed` is a count of how many paths we already found from `start` to `end`. -/
   completed : Nat
   /-- `growing` is the collection of partial paths beginning from `start`,
   together with a boolean that is `true` if and only if we already repeated a small cave
   (this is only relevant for part 2). -/
-  growing   : Std.HashSet (Array String × Bool) := {(#["start"], false)}
+  growing   : HashSet (Array String × Bool) := {(#["start"], false)}
 
 /-- Checks if a string consists entirely of lower-case characters. -/
 def isLower (s : String) : Bool :=
@@ -88,7 +88,7 @@ directions and updating everything else accordingly.
 -/
 def addStep (m : MazeState) : MazeState := Id.run do
   let mut completed := m.completed
-  let mut growing : Std.HashSet (Array String × Bool) := {}
+  let mut growing : HashSet (Array String × Bool) := {}
   for (g, dup) in m.growing do
     let tail := g.back!
     for n in m.maze.get! tail do
@@ -103,7 +103,7 @@ def addStep (m : MazeState) : MazeState := Id.run do
   return {m with completed := completed, growing := growing}
 
 /-- Produces the "adjacency `HashMap`" for the cave from the puzzle input. -/
-def mkMaze (dat : Array String) : Std.HashMap String (Array String) :=
+def mkMaze (dat : Array String) : HashMap String (Array String) :=
   dat.foldl (init := {}) fun mz d =>
     if let [s, t] := d.splitOn "-" then
       let s1 := mz.getD s #[]
@@ -132,7 +132,7 @@ solve 1 5457
 further step, this time allowing a small cave to be visited at most once. -/
 def addStepOneRep (m : MazeState) : MazeState := Id.run do
   let mut completed := m.completed
-  let mut growing : Std.HashSet (Array String × Bool) := {}
+  let mut growing : HashSet (Array String × Bool) := {}
   for (g, dup) in m.growing do
     let tail := g.back!
     for n in m.maze.get! tail do
