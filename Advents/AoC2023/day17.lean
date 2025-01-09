@@ -65,8 +65,8 @@ def drawCrux (c : crux) : IO Unit := do
   draw <| drawHash regrid dat.size dat.size
 
 def updatePast {α} (ps : Array α) (a : α) (n : Nat := 3) : Array α :=
-  --(if ps.size < n then ps else ps.eraseIdx 0).push a
-  ps.push a
+  (if ps.size < n then ps else ps.eraseIdx 0).push a
+  --ps.push a
 
 def rotL (p : pos) : pos := (- p.2,   p.1)
 def rotR (p : pos) : pos := (  p.2, - p.1)
@@ -87,44 +87,40 @@ def availableSteps (ps : Array pos) : Array pos :=
     IO.println ps
     ps := updatePast ps i
 
+def mkPath (pth : Array pos) : Array pos :=
+  pth.foldl (init := #[((0, 0))]) fun h n => h ++ #[h.back! + n]
+
 def step (c : crux) (exit : pos) : crux := Id.run do
   let currMax := c.visited[exit]?.map Prod.fst
   let mut front := ∅
   let mut visited := c.visited
   for (p, cost, past) in c.front do
-    let avSteps := availableSteps past
-    --dbg_trace "{p}\n{past} <-- past\n{avSteps} <-- avSteps\n{avSteps.filter (c.grid.contains <|p + ·)} <-- actual\n"
-    for d in avSteps do
+    for d in availableSteps past do
       let cand := p + d
       if let some val := c.grid[cand]? then
         let newCost := cost + val
-        --let t := if cand == exit then dbg_trace newCost; true else true
-        --if t then
         if currMax.getD newCost < newCost then
-          --dbg_trace "eliminating {newCost}"
           continue
-        let newPast := updatePast past d 45
-        --front := front.insert cand (newCost, newPast)
+        let newPast := updatePast past d 3
         front := front.insert cand (newCost, newPast)
         match visited[cand]? with
           | none =>
-            --front := front.insert cand (newCost, newPast)
             visited := visited.insert cand (newCost, #[newPast])
+            front := front.insert cand (newCost, newPast)
           | some (oldCost, pasts) =>
             visited := visited.insert cand (min oldCost newCost, pasts.push newPast)
             --if --newCost ≤ oldCost +27 ||
             --  !pasts.contains newPast then
-            --front := front.insert cand (newCost, newPast)
             --else
-            --if !pasts.contains newPast then
-            --  front := front.insert cand (newCost, newPast)
+            if !pasts.contains newPast then
+              front := front.insert cand (newCost, newPast)
 
   return {c with front := front, visited := visited}
 
 set_option trace.profiler true in
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest
+  let dat ← IO.FS.lines input
   let mut c := inputToCrux dat
   let exit : pos := c.grid.fold (init := (0, 0))
     fun (mx, my) ((nx, ny) : pos) _ => (max mx nx.natAbs, max my ny.natAbs)
@@ -135,26 +131,23 @@ set_option trace.profiler true in
     c := step c exit
     --IO.println c.front.size
     if let some (val, _) := c.visited[exit]? then IO.println s!"Step {i}, cost: {val}"
-    if i % 9 == 0 then
-      --IO.println s!"Step {i+1}"
-      drawCrux {c with visited := c.front.fold (init := ∅) fun (h : HashMap _ _) p _n => h.insert p default}
+    --if i % 9 == 0 then
+    --  --IO.println s!"Step {i+1}"
+    --  drawCrux {c with visited := c.front.fold (init := ∅) fun (h : HashMap _ _) p _n => h.insert p default}
   IO.println <| s!"Step {i}: there are {c.front.size} open fronts"
 
   IO.println <| (c.front.filter (fun p _ => p == exit)).toArray
-  let vis := c.visited[exit]!
-  --let pth := vis.2[1]!
-  for pth in vis.2 do
-    let news : List (pos × (Nat × Array (Array pos))) := pth.foldl (init := [((0, 0), default)]) fun h n =>
-      h ++ [((h.getLast!.1 + n), default)]
-    c := {c with visited := .ofList news}
-    dbg_trace "news.length: {news.length}"
-    drawCrux c
-
+  --let vis := c.visited[exit]!
+  --for pth in vis.2 do
+  --  let news := mkPath pth |>.map (·, default)
+  --  c := {c with visited := .ofList news.toList}
+  --  dbg_trace "news.length: {news.size}"
+  --  drawCrux c
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
--- 1407  -- ??
+-- 1407  -- not correct
 -- 1413  -- not correct
 -- 1443  -- not correct
 --#assert part1 atest == ???
