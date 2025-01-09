@@ -6,6 +6,10 @@ open Std
 instance [BEq α] [Hashable α] : BEq (HashSet α) where
   beq s t := s.all (t.contains ·) && t.all (s.contains ·)
 
+instance [BEq α] [Hashable α] [BEq β] : BEq (HashMap α β) where
+  beq s t := (s.fold (init := true) (fun h a _ => h && t[a]? == s[a]?)) &&
+             (t.fold (init := true) (fun h a _ => h && t[a]? == s[a]?))
+
 section sums
 variable {α}
 
