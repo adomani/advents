@@ -13,4 +13,4 @@ jobs:
     steps:
       - uses: adomani/PR_summary/@dev
         with:
-          TECH_DEBT_SUMMARY: ".src/technical-debt-metrics.sh"
+          CUSTOM_REPORT_SCRIPT: ".src/technical-debt-metrics.sh"
