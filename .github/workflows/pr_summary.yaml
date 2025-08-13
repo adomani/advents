@@ -1,11 +1,12 @@
 name: PR Summary
 on:
-  pull_request:
-  workflow_dispatch:
+  pull_request_target:
 
+# Limit permissions for GITHUB_TOKEN for the entire workflow
 permissions:
-  issues: write
-  pull-requests: write
+  contents: read
+  pull-requests: write  # Only allow PR comments/labels
+  # All other permissions are implicitly 'none'
 
 jobs:
   pr-summary:
