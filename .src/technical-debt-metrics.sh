@@ -94,6 +94,7 @@ for i in ${!titlesPathsAndRegexes[@]}; do
     printf '%s|%s\n' "$(git grep "${fl}" "${regex}" -- ":^scripts" "${pathspec[@]}" | wc -l)" "${title}"
   fi
 done
+}
 
 report () {
 
