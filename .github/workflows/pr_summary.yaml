@@ -12,3 +12,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: adomani/PR_summary/@dev
+        with:
+          ROOT_DIR: .lake
