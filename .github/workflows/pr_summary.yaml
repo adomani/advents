@@ -12,3 +12,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: adomani/PR_summary/@dev
+        with:
+          TECH_DEBT_SUMMARY: ".src/technical-debt-metrics.sh"
