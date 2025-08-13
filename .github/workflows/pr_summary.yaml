@@ -13,4 +13,4 @@ jobs:
     steps:
       - uses: adomani/PR_summary/@dev
         with:
-          ROOT_DIR: .lake
+          ROOT_DIR: Advents
