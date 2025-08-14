@@ -14,6 +14,6 @@ jobs:
     steps:
       - uses: adomani/PR_summary/@dev
         with:
-          IMPORT_DIFF: false
+          IMPORT_DIFF: true
           CUSTOM_REPORT_SCRIPT: ".src/technical-debt-metrics.sh"
           CUSTOM_REPORT_SCRIPT_ARGUMENTS: "pr_summary; echo '${{ github.repository }}'"
