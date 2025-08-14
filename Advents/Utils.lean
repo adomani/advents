@@ -1,5 +1,7 @@
 import Lean.Elab.Command
+import Lean.Elab.CommandAgain
 import Batteries.Tactic.Lint
+import Batteries.Tactic.LintAgain
 open Std
 
 -- copied from `Batteries/Lean/HashSet.lean`
