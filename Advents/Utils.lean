@@ -9,10 +9,6 @@ instance [BEq α] [Hashable α] : BEq (HashSet α) where
 section sums
 variable {α}
 
-/--  Sum the elements of an `Array`. -/
-def Array.sum [Add α] [OfNat α 0] : Array α → α :=
-  foldl (· + ·) 0
-
 /--  Multiply the elements of a `List`. -/
 def List.prod [Mul α] [OfNat α 1] : List α → α :=
   foldr (· * ·) 1
@@ -224,7 +220,7 @@ def sparseGrid (dat : Array String) (toEntry : Char → Bool) : HashSet pos := I
         h := h.insert (d, c)
   return h
 
-section meta
+section Meta
 open Lean Elab Command
 
 /-- `#assert x` takes a `Bool`ean `x` and fails if `x` is `false`.
@@ -275,7 +271,7 @@ elab "solve " part:num ans:(ppSpace term:max)? f:(&" file")?: command => do
       let ans := ($ans).getD answer
       guard (answer == ans) <|> throwError "Computed {answer}\nExpected {ans}"))
 
-end meta
+end Meta
 
 /-- a utility function to display arrays of strings.
 It assumes that the strings all have the same length,
