@@ -117,7 +117,7 @@ def findPaths (p q : pos) : HashSet String :=
   let mv := p - q
   let right := List.replicate mv.2.natAbs (dirToChar (0, mv.2.sign))
   let left :=  List.replicate mv.1.natAbs (dirToChar (mv.1.sign, 0))
-  seqs left right |>.fold (init := ∅) (·.insert <| (⟨·⟩ : String).push 'A')
+  seqs left right |>.fold (init := ∅) (·.insert <| String.mk · |>.push 'A')
 
 /--
 Makes sure that the given string is a sequence of instructions that make the robot move within
