@@ -12,8 +12,15 @@ getDay () {
   if [ -z "${1}" ]; then
     yr="${2:-$currYear}"
     AoCyear="${rootDir}${yr}"
-    ind="$( ls "${AoCyear}"/day*.input | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
-    ind=$((ind+1))
+    if ! [ -d "${AoCyear}" ]
+    then
+      >&2 printf $'Creating %s dir\n' "${AoCyear}"
+      mkdir "${AoCyear}"
+      ind=1
+    else
+      ind="$( ls "${AoCyear}"/day*.input | tail -1 | sed 's=.*y[0]*\([0-9]*\).*=\1=' )"
+      ind=$((ind+1))
+    fi
   else ind="${1}"
   fi
   printf '%s' "${ind}"
