@@ -64,7 +64,7 @@ def List.isolate [Inhabited α] (l : List α) (f : α → Bool) : List (List α)
 
 /-- Similar to `List.isolate`, except that it acts on the characters making up the list input. -/
 def String.isolate (str : String) (f : Char → Bool) : List String :=
-  str.toList.isolate f |>.map (⟨·⟩)
+  str.toList.isolate f |>.map String.ofList
 
 #guard "abA 123,cd\n456\n7 \n0".isolate (·.isDigit) == ["123", "456", "7", "0"]
 
@@ -137,7 +137,7 @@ def Array.transpose [Inhabited α] (rows : Array (Array α)) : Array (Array α) 
 /-- Transpose an array of strings. -/
 def Array.transposeString (s : Array String) : Array String :=
   let rows := s.map (List.toArray ∘ String.toList)
-  rows.transpose.map (String.mk ∘ Array.toList)
+  rows.transpose.map (String.ofList ∘ Array.toList)
 
 /-- A `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int
@@ -193,7 +193,7 @@ def sparseMap (dat : Array String) (toEntry : Char → Option α) : HashMap pos 
   for d in [0:dat.size] do
     let row := dat[d]!
     for c in [0:row.length] do
-      match toEntry (row.get ⟨c⟩) with
+      match toEntry (String.Pos.Raw.get row ⟨c⟩) with
         | none => continue
         | some a => h := h.insert (d, c) a
   return h
@@ -208,7 +208,7 @@ def loadGrid {α} (dat : Array String) (toEntry : Char → α) : HashMap pos α 
 /--
 Converts the input strings into a `HashMap`, assuming that the entries are natural numbers.
 -/
-def loadGridNats (dat : Array String) : HashMap pos Nat := loadGrid dat (String.toNat! ⟨[·]⟩)
+def loadGridNats (dat : Array String) : HashMap pos Nat := loadGrid dat (String.toNat! <| String.ofList [·])
 
 /-- Loads the positions of the characters satisfying `toEntry` into a `HashSet` of `pos`. -/
 def sparseGrid (dat : Array String) (toEntry : Char → Bool) : HashSet pos := Id.run do
@@ -216,7 +216,7 @@ def sparseGrid (dat : Array String) (toEntry : Char → Bool) : HashSet pos := I
   for d in [0:dat.size] do
     let row := dat[d]!
     for c in [0:row.length] do
-      if toEntry (row.get ⟨c⟩) then
+      if toEntry (String.Pos.Raw.get row ⟨c⟩) then
         h := h.insert (d, c)
   return h
 
@@ -278,7 +278,7 @@ It assumes that the strings all have the same length,
 it also surrounds the data with dashes/vertical bars.
 -/
 def draws (ar : Array String) : IO Unit := do
-  let sep := String.mk <| List.replicate (ar[0]!.length + 2) '-'
+  let sep := String.ofList <| List.replicate (ar[0]!.length + 2) '-'
   IO.println <| sep
   for i in ar do
     IO.println s!"|{i}|"
@@ -294,12 +294,12 @@ def draw (s : Array String) : IO Unit := do
   let width := s[0]!.length
   let length := s.size
 
-  let ns := String.mk <| (List.range width).map fun n =>
+  let ns := String.ofList <| (List.range width).map fun n =>
     (Nat.toDigits 10 n).getLast!
   let pns := (if (10 < length) then " " else "") ++ "--" ++ ns ++ "-"
   IO.println pns
   for i in [:s.size] do
-    let pad := (if (10 < length ∧ i < 10) then " " else "") ++ ⟨Nat.toDigits 10 i⟩
+    let pad := (if (10 < length ∧ i < 10) then " " else "") ++ String.ofList (Nat.toDigits 10 i)
     IO.println s!"{pad}|{s[i]!}|"
   IO.println s!"{pns}\n"
 

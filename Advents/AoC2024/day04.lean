@@ -36,14 +36,14 @@ def findWord (h : HashMap pos Char) (p : pos) (wd : String := "XMAS") : Nat := I
   let mut ct := 0
   let mut cond := true
   let mut k := 0
-  if some (wd.get 0) != h.get? p then return 0
+  if some (String.Pos.Raw.get wd 0) != h.get? p then return 0
   for i in [0, 1, -1] do
     for j in [0, 1, -1] do
       if (i, j) == (0, 0) then continue
       cond := true
       k := 0
       while cond && k < wd.length do
-        cond := some (wd.get ⟨k⟩) == h.get? (p + (k : Int) * ((i, j) : pos))
+        cond := some (String.Pos.Raw.get wd ⟨k⟩) == h.get? (p + (k : Int) * ((i, j) : pos))
         k := k + 1
       if cond then ct := ct + 1
   return ct

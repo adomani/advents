@@ -197,7 +197,7 @@ def reprogramOne (s : State) (a : Array Nat) : Array Nat × Nat :=
   -- we make the guess that the program goes through `lth`-many steps, before looping back
   let lth := (s.program.size - 2) / 2
   let new := (Array.range lth).foldl (init := {s with A := seed}) fun s _ => oneOp s
-  (((Nat.toDigits 2 new.A).map (fun d => String.toNat! (⟨[d]⟩))).toArray, new.out.back!)
+  (((Nat.toDigits 2 new.A).map (fun d => String.toNat! ("".push d))).toArray, new.out.back!)
 
 /--
 Returns all the 10-digit binary numbers that yield first digit `i` when used in the program.
