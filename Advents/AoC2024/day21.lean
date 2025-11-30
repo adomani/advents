@@ -63,7 +63,7 @@ and a position.  For instance, the character `A` corresponds to `(3, 2)`.
 -/
 def numKeys : HashMap Char pos := .union {('A', (3, 2)), ('0', (3, 1))} <|
     (Array.range 9).foldl (init := (∅ : HashMap Char pos)) fun h n =>
-        h.insert (s!"{n + 1}".get 0) (2 - n.cast / 3, 2 - (8 - n.cast) % 3)
+        h.insert (String.Pos.Raw.get s!"{n + 1}" 0) (2 - n.cast / 3, 2 - (8 - n.cast) % 3)
 
 /--
 The directional keyboard: a conversion between a character in the table
@@ -117,7 +117,7 @@ def findPaths (p q : pos) : HashSet String :=
   let mv := p - q
   let right := List.replicate mv.2.natAbs (dirToChar (0, mv.2.sign))
   let left :=  List.replicate mv.1.natAbs (dirToChar (mv.1.sign, 0))
-  seqs left right |>.fold (init := ∅) (·.insert <| String.mk · |>.push 'A')
+  seqs left right |>.fold (init := ∅) (·.insert <| String.ofList · |>.push 'A')
 
 /--
 Makes sure that the given string is a sequence of instructions that make the robot move within

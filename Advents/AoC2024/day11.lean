@@ -36,8 +36,8 @@ def blink (h : HashMap Nat Nat) : HashMap Nat Nat :=
     let digs := Nat.toDigits 10 val
     let hlf := digs.length
     if hlf % 2 == 0 then
-      let left := String.toNat! ⟨digs.take (hlf / 2)⟩
-      let right := String.toNat! ⟨digs.drop (hlf / 2)⟩
+      let left := String.toNat! (String.ofList (digs.take (hlf / 2)))
+      let right := String.toNat! (String.ofList (digs.drop (hlf / 2)))
       h |>.alter left  (some <| ·.getD 0 + mult)
         |>.alter right (some <| ·.getD 0 + mult)
     else

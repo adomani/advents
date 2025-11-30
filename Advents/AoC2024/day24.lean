@@ -169,7 +169,7 @@ solve 1 58639252480880
 def pad (width n : Nat) : String :=
   let n := s!"{n}"
   let l := width - n.length
-  ⟨List.replicate l '0'⟩ ++ n
+  String.ofList (List.replicate l '0') ++ n
 
 /- unused code, but was helpful to design tests.
 def natToValues (x : Nat) (s : String) (padl : Nat := 2) (lth : Nat := 45) : List (String × Bool) :=

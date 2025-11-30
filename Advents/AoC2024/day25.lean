@@ -74,7 +74,7 @@ def le (a b : Array Nat) : Bool :=
 /-- Converts the input to the pair consists of all the locks and all the keys. -/
 def inputToLocksAndKeys (s : String) : HashSet (Array Nat) × HashSet (Array Nat) :=
   s.splitOn "\n\n" |>.foldl (init := (∅, ∅)) fun (ls, ks) st =>
-    let c := st.get 0
+    let c := String.Pos.Raw.get st 0
     let ct := toCounts st c
     if c == '#' then
       (ls.insert ct, ks)
