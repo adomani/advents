@@ -4,9 +4,9 @@ My current solutions of [Advent of Code](https://adventofcode.com/) in [Lean](ht
 
 So far, this repository contains only (partial) solutions to the
 [2021](https://adventofcode.com/2021),
-[2021](https://adventofcode.com/2023),
-[2023](https://adventofcode.com/2024) and
-[2024](https://adventofcode.com/2025) editions.
+[2023](https://adventofcode.com/2023),
+[2024](https://adventofcode.com/2024) and
+[2025](https://adventofcode.com/2025) editions.
 
 Obviously, if you go to the files with code, there will be spoilers!
 
