@@ -2,8 +2,9 @@ import Advents.Utils
 
 namespace Day07
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day07.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day07" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -85,7 +86,8 @@ variable (cds : String) (f : String × Nat → Array Nat) in
 def parts (dat : Array String) : Nat :=
   let dat := dat.map parseCC
   let sorted := (sortTypeStr cds f dat).toList
-  let muls := sorted.zipWith (fun x y => x.2 * y) (List.iota sorted.length)
+  let muls := sorted.zipWith (fun x y => x.2 * y) <|
+    (List.range sorted.length).map (sorted.length - ·)
   muls.sum
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/

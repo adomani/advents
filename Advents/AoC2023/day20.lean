@@ -3,8 +3,9 @@ open Std
 
 namespace Day20
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day20.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day20" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -67,7 +68,7 @@ def parseOne (s : String) : String × Char × Array String :=
 /-- records all the connections between modules and their types. -/
 def grid (dat : Array String) : HashMap String (Char × Array String) :=
   Id.run do
-  let mut st : HashMap String (Char × Array String) := .empty
+  let mut st : HashMap String (Char × Array String) := ∅
   for d in dat do
     let (nm, c, tgts) := parseOne d
     st := st.insert nm (c, tgts)
@@ -79,7 +80,7 @@ variable (gr : HashMap String (Char × Array String))
 /-- returns the HashMap sending a module `s` to the array of modules having `s` as target. -/
 def getSrcs : HashMap String (Array String) :=
   Id.run do
-  let mut y : HashMap String (Array String) := .empty
+  let mut y : HashMap String (Array String) := ∅
   for (s, _, d) in gr do
     for t in d do
       let srcs := (y.get? t).getD #[]
@@ -92,7 +93,7 @@ def getSrcs : HashMap String (Array String) :=
 /-- returns the HashMap sending a module `s` to the array of modules having `s` as source. -/
 def getTgts : HashMap String (Array String) :=
   Id.run do
-  let mut x := .empty
+  let mut x := ∅
   for (s, _, a) in gr do x := x.insert s a
   return x
 
@@ -104,7 +105,7 @@ It returns the initial grid, according to the layout in `gr`. -/
 def init : HashMap String (module × Option Bool) :=
   let srcs := getSrcs gr
   Id.run do
-  let mut st : HashMap String (module × Option Bool) := .empty
+  let mut st : HashMap String (module × Option Bool) := ∅
   for (nm, c, tgts) in gr do
     match c with
       | '@' => st := st.insert nm (.b tgts, false)
@@ -130,7 +131,7 @@ def pulseOne (srcs' : HashMap String (Array String)) (st : HashMap String (modul
     --  process conjunction
     | some (.cj ar, _sgn) =>
       let srcs := (srcs'.get? s).getD #[]
-      let news := srcs.zipWith ar (fun nm a =>
+      let news := srcs.zipWith (bs := ar) (fun nm a =>
         match st.get? nm with
           | none => a
           | some (_, tf) => (a.1, tf.getD a.2))
@@ -165,7 +166,7 @@ def onePush (gr : HashMap String (Char × Array String)) (st : HashMap String (m
   let srcs := getSrcs gr
   Id.run do
   let mut str := ""
-  let mut marker : HashSet String := .empty
+  let mut marker : HashSet String := ∅
   if v? then for s in st do str := str ++ s!"{s}\n"
              dbg_trace str
   let mut next := st
@@ -233,7 +234,7 @@ def findRep (gr : HashMap String (Char × Array String)) (tracked : Array String
   Id.run do
   let mut st := init gr
   let mut con := 0
-  let mut reph : HashMap String Nat := .empty
+  let mut reph : HashMap String Nat := ∅
   while (reph.size ≠ tracked.size) do
     con := con + 1
     let (st1, _, rep1) := onePush (tracked := tracked) gr st default

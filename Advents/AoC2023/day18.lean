@@ -2,8 +2,9 @@ import Advents.Utils
 
 namespace Day18
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day18.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day18" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -131,7 +132,7 @@ a hexadecimal digit and returns the corresponding natural number. -/
 def _root_.Char.toDec (c : Char) : Nat :=
   match c.toString.toNat? with
     | some n => n
-    | none => c.val.val + 10 - 'a'.val.val
+    | none => c.val.toNat + 10 - 'a'.val.toNat
 
 #assert "0123456789abcdef".toList.map Char.toDec == List.range 16
 

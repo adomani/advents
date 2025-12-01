@@ -3,8 +3,9 @@ open Std
 
 namespace Day22
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day22.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day22" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -79,7 +80,7 @@ It returns the collection of all the `vol`umes occupied by some brick determined
 def getPos (dat : Array String) : HashSet vol :=
   let dat := bricks dat
   Id.run do
-  let mut s : HashSet vol := .empty
+  let mut s : HashSet vol := ∅
   for b in dat do
     for i in b.toArray do
       s := s.insert i
@@ -153,7 +154,7 @@ def part1 (dat : Array String) : Nat :=
     bks := (bks.modify (bks.findIdx? (· == curr)).get! (fun _ => newB))
     bksFall := bks.find? <| canFall bksH
   let mut tot := 0
-  let mut bks' : HashSet brick := .empty
+  let mut bks' : HashSet brick := ∅
   for d in bks do
     bks' := bks'.insert d
   for bk in bks' do

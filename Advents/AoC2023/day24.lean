@@ -1,12 +1,12 @@
 import Advents.Utils
 import Batteries.Data.Array.Basic
 import Batteries.Data.Nat.Basic
-import Batteries.Data.Rat.Basic
 
 namespace Day24
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day24.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day24" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -31,7 +31,7 @@ instance : HMul (Array (Array Rat)) (Array Rat) (Array Rat) where
     if (m.map Array.size).all (! · == x.size) then
       dbg_trace "cannot multiply matrix by column!"; default
     else
-      m.map fun r => (r.zipWith x (· * ·)).sum
+      m.map fun r => (r.zipWith (· * ·) x).sum
 
 instance : HMul Rat vol vol where
   hMul a x := (a * x.1, a * x.2.1, a * x.2.2)
@@ -54,7 +54,7 @@ local instance [Mul α] : HMul α (Array α) (Array α) where
   hMul a := Array.map (a * ·)
 
 local instance [Sub α] : Sub (Array α) where
-  sub x y := x.zipWith y (· - ·)
+  sub x y := x.zipWith (· - ·) y
 
 /-- A simple implementation of row reduction of a matrix. -/
 partial
@@ -64,8 +64,8 @@ def red (m : Array (Array Rat)) : Array (Array Rat) :=
     let min := firstIdxs.minD m[0]!.size.succ
     if min == m[0]!.size.succ then m else
       let fInd := (firstIdxs.findIdx? (· == min)).getD 0
-      let m' := m.eraseIdx fInd
-      let sgn := (List.replicate fInd (-1 : Rat)).prod
+      let m' := m.eraseIdx! fInd
+      let sgn := (List.replicate fInd (-1 : Rat)).prod'
       let r1 := sgn * m[fInd]!
       #[r1] ++ red (m'.map fun r => (r - r[min]! / r1[min]! * r1))
 
@@ -99,7 +99,7 @@ def solve2 (x y : Array Rat) : Array Rat :=
   Id.run do
   let mut ans := #[]
   for i in [:x.size] do
-    ans := ans.push <| ((-1) ^ i.succ : Int) * det #[Array.eraseIdx x i, Array.eraseIdx y i]
+    ans := ans.push <| ((-1) ^ i.succ : Int) * det #[Array.eraseIdx! x i, Array.eraseIdx! y i]
   ans
 
 /-- `inter x y` takes as input two arrays `x, y` of integers, assuming that they are
@@ -182,7 +182,7 @@ def evals2 (p : vol) : Array Rat :=
 given arrays, assuming that each inner array has length one more than the number
 of arrays. -/
 def mins (a : Array (Array Rat)) : Array Rat :=
-  (Array.range a.size.succ).map fun i => ((-1) ^ i : Int) * (det (a.map fun r => r.eraseIdx i))
+  (Array.range a.size.succ).map fun i => ((-1) ^ i : Int) * (det (a.map fun r => r.eraseIdx! i))
 
 #assert mins #[#[1, 2, 3], #[2, 3, 4]] == #[-1, 2, -1]
 #assert mins #[#[1, 2]] == #[2, -1]
@@ -202,7 +202,7 @@ def quadricContaining3lines (pv1 pv2 pv3 : vol × vol) : Array Rat :=
 /-- `qeval q x` returns the evaluation of the quadric represented by `q` at the point whose
 coordinates are `x`. -/
 def qeval (q : Array Rat) (x : vol) : Rat :=
-  (q.zipWith (evals2 x) (· * ·)).sum
+  (q.zipWith (· * ·) (evals2 x)).sum
 
 /-- given the 10 coefficients of a quadric, return the matrix representing the quadratic
 form associated to the quadric. -/

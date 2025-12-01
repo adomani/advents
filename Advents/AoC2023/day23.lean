@@ -1,10 +1,13 @@
 import Advents.Utils
+import Lean.Data.RBTree
+
 open Std
 
 namespace Day23
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day23.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day23" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -48,7 +51,7 @@ It returns a `HashMap` enconding, for each `pos`ition on the map, the correspond
 -/
 def getPos (dat : Array String) : HashMap pos dir :=
   Id.run do
-  let mut new : HashMap pos dir := .empty
+  let mut new : HashMap pos dir := ∅
   for i in [:dat.size] do
     let ri := dat[i]!.toList
     for j in [:ri.length] do

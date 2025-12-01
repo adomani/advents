@@ -10,7 +10,7 @@ section sums
 variable {α}
 
 /--  Multiply the elements of a `List`. -/
-def List.prod [Mul α] [OfNat α 1] : List α → α :=
+def List.prod' [Mul α] [OfNat α 1] : List α → α :=
   foldr (· * ·) 1
 
 /--  Multiply the elements of an `Array`. -/
@@ -115,7 +115,7 @@ def Nat.factorial : Nat → Nat
 
 /-- `Nat.binom n k` -- the binomial coefficient `n choose k`. `n` is allowed to be an integer. -/
 def Nat.binom (n : Nat) (k : Nat) : Nat :=
-  ((List.range k).map (n - ·)).prod / k.factorial
+  ((List.range k).map (n - ·)).prod' / k.factorial
 
 end Nats_and_Ints
 

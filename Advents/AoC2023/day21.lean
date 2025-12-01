@@ -3,8 +3,9 @@ open Std
 
 namespace Day21
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day21.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day21" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -70,7 +71,7 @@ def findRk (dat : Array String) : pos :=
 /-- creates the `HashSet` containing all the positions of all the rocks in `dat`. -/
 def getRocks (dat : Array String) (c : Char := '#') : HashSet pos :=
   Id.run do
-    let mut rks : HashSet pos := .empty
+    let mut rks : HashSet pos := ∅
     for i in [:dat.size] do
       let row := dat[i]!.toList
       for j in [:row.length] do
@@ -113,7 +114,7 @@ def parts (dat : Array String) (n : Nat := 64) (f : pos → pos := id) : HashSet
   Id.run do
   let init := findS dat
   let mut bd := #[init]
-  let mut gd : HashSet pos := HashSet.empty.insert init
+  let mut gd : HashSet pos := HashSet.emptyWithCapacity.insert init
   for _ in [:n] do
     (gd, bd) := (mvs rk gd bd f)
   return gd
