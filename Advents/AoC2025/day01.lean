@@ -25,6 +25,11 @@ L82"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+Converts a line like `"L68"` into the pair `(true, 68)` where
+* `true` means `L`eft and
+* `false` means `R`ight.
+-/
 def parseOneLine (s : String) : Bool × Nat :=
   let dir := s.take 1
   let dist := s.drop 1 |>.toNat!
@@ -33,10 +38,11 @@ def parseOneLine (s : String) : Bool × Nat :=
   | "R" => (false, dist)
   | _   => panic! "Invalid direction"
 
+/--
+Performs one rotation from `start` according to the instruction `h`.
+-/
 def moveOne (start : Int) (h : Bool × Nat) : Int :=
-  let (turnLeft, dist) := h
-  let newDir := (if turnLeft then start - dist else start + dist) % 100
-  newDir
+  (if h.1 then start - h.2 else start + h.2) % 100
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
