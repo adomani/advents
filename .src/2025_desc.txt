@@ -1,0 +1,16 @@
+-- Day 1
+The input is a lists strings, starting with either `L` or `R` and continuing with a natural number.
+The first character represents whether we rotate left or right, the following natural number
+represents by how much.
+
+### Description
+
+#### Part 1
+
+Count how many times, following the rotations, we reach the position `0` at the end of some
+rotation.
+
+#### Part 2
+
+Count how many times, following the rotations, we cross through the position `0`, possibly multiple
+times with a single rotation.
