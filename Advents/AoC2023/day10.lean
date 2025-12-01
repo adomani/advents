@@ -2,8 +2,9 @@ import Advents.Utils
 
 namespace Day10
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day10.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day10" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -147,7 +148,7 @@ def inside? (p : pos) : Bool :=
         prev := curr
         curr := curr + (0,1)
       if bd ≤ curr.2 then false else
-      return ! (curr, .L) ∈ orp
+      return ! orp.contains (curr, .L)
 
 /-- `test2` is the second test string for the problem. -/
 def test2 := "...........

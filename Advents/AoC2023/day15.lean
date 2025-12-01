@@ -2,8 +2,9 @@ import Advents.Utils
 
 namespace Day15
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day15.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day15" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -18,14 +19,14 @@ def atest := (test.splitOn ",").toArray
 /-- `Hash` is the second test string. -/
 def Hash := "HASH"
 
-#assert (Hash.toList.map Char.val).map UInt32.val == [72, 65, 83, 72]
+#assert Hash.toList.map Char.toNat == [72, 65, 83, 72]
 
 /-- `convOne curr c` takes as input the current value `curr` and
 a character `c`.
 It performs the conversion step on the character `c`,
 starting with the current value `curr`. -/
 def convOne (curr : Nat) (c : Char) : Nat :=
-  (curr + c.val.val) * 17 % 256
+  (curr + c.toNat) * 17 % 256
 
 #assert convOne 0 'H' == 200
 
@@ -91,7 +92,7 @@ def actOneEq (s : String) : Array (Array String) :=
 /-- `combine dat` takes as input the list of instructions and
 returns the final configuration of lenses in each box. -/
 def combine (dat : List String) : Array (Array String) :=
-  combineAux (Array.mkArray 256 (#[] : Array String)) dat where
+  combineAux (Array.replicate 256 #[]) dat where
   /-- `combineAux` is an auxilliary function to `combine`. -/
   combineAux : Array (Array String) → List String → Array (Array String)
     | dat, s::ss =>
@@ -113,7 +114,7 @@ def focPowOne (a : Array String) : Nat :=
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : String) : Nat :=
   let dat := (if dat.back == '\n' then dat.dropRight 1 else dat).splitOn ","
-  let alls := (Array.range 256).zipWith ((combine dat).map focPowOne) (Nat.succ · * ·)
+  let alls := (Array.range 256).zipWith (Nat.succ · * ·) ((combine dat).map focPowOne)
   alls.sum
 
 #assert part2 test == 145

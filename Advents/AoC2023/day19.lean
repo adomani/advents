@@ -3,8 +3,9 @@ import Batteries.Data.List.Basic
 
 namespace Day19
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day19.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day19" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -57,10 +58,10 @@ def parseData (pts : Array String) : Array part :=
     parseDataOne (s : String) : part :=
       match (((s.drop 1).dropRight 1).splitOn ",").map String.toList with
         | ['x'::'='::xs, 'm'::'='::ms, 'a'::'='::as, 's'::'='::ss] =>
-          { x := String.toNat! ⟨xs⟩
-            m := String.toNat! ⟨ms⟩
-            a := String.toNat! ⟨as⟩
-            s := String.toNat! ⟨ss⟩ }
+          { x := String.toNat! (String.ofList xs)
+            m := String.toNat! (String.ofList ms)
+            a := String.toNat! (String.ofList as)
+            s := String.toNat! (String.ofList ss) }
         | y => dbg_trace s!"parseDataOne error {y}"; default
 
 #assert parseData.parseDataOne "{x=2127,m=1623,a=2188,s=1013}" ==
@@ -89,7 +90,7 @@ def parseWFOne (s : String) (p : part) : Option String :=
         | 's' => p.s
         | _ => dbg_trace s!"WF error {s}"; default
       let (val, tgt) := match xs.splitOnP (· == ':') with
-        | [v, t] => ((String.mk v).toNat!, String.mk t)
+        | [v, t] => ((String.ofList v).toNat!, String.ofList t)
         | y => dbg_trace s!"parseWF error {y}"; default
       let rel : Bool := (if lt == '<' then (pt < val) else (pt > val))
       if rel then some tgt else none
@@ -227,7 +228,7 @@ def parseAlone (s : String) : Char × (icc × icc) × String :=
   match s.toList with
     | c::lt::xs =>
       let (val, tgt) := match xs.splitOnP (· == ':') with
-        | [v, t] => ((String.mk v).toNat!, String.mk t)
+        | [v, t] => ((String.ofList v).toNat!, String.ofList t)
         | y => dbg_trace s!"parseWF error {y}"; default
       let int : icc × icc := match lt with
         | '<' => (⟨0, val - 1⟩, ⟨val, 4000⟩)

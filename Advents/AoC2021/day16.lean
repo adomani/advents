@@ -2,8 +2,9 @@ import Advents.Utils
 
 namespace Day16
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2021/day16.input"
+def input : FilePath := ("Advents"/"AoC2021"/"day16" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -57,7 +58,7 @@ convert it into the corresponding natural number.
 partial
 def bitToNat (s : String) : Nat :=
   if s == "" then 0 else
-  (if s.get 0 == '0' then 0 else 2 ^ (s.length - 1)) + bitToNat (s.drop 1)
+  (if String.Pos.Raw.get s 0 == '0' then 0 else 2 ^ (s.length - 1)) + bitToNat (s.drop 1)
 
 /-- A `Packet` is the structure encoding the "packets" of the problem.  A `Packet` has
 * a `version` obtained from a 3-digit binay number;
@@ -95,7 +96,7 @@ Returns the correspoding natural number, plus whatever has not been parsed of th
 def decodeLiteral (s : String) : Nat × String := Id.run do
   let mut digits := ""
   let mut s := s
-  while s.get 0 == '1' do
+  while String.Pos.Raw.get s 0 == '1' do
     digits := digits ++ (s.drop 1).take 4
     s := s.drop 5
   digits := digits ++ (s.drop 1).take 4

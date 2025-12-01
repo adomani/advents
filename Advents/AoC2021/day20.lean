@@ -3,8 +3,9 @@ open Std
 
 namespace Day20
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2021/day20.input"
+def input : FilePath := ("Advents"/"AoC2021"/"day20" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -66,7 +67,8 @@ info: --01234-
 ..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..###..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###.######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#..#..#..##..#...##.######.####.####.#.#...#.......#..#.#.#...####.##.#......#..#...##.#.##..#...##.#.##..###.#......#.#.......#.#.#.####.###.##...#.....####.#..#..#.##.#....##..#.####....##...##..#...#......#.#.......#.......##..####..#...#.#.#...##..#.#..###..#####........#..####......#..#
 ---
 warning: unused variable `dat`
-note: this linter can be disabled with `set_option linter.unusedVariables false`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
 -/
 #guard_msgs in
 #eval do
@@ -86,13 +88,13 @@ def checkNbs (i : Image) (p : pos) : Array Bool := nbs.foldl (·.push <| i.light
 
 /-- Converts an array of `Bool`eans to a natural number. -/
 def binToNat (as : Array Bool) : Nat :=
-  Array.sum <| as.reverse.zipWith (Array.range as.size) fun a n => 2 ^ n * if a then 1 else 0
+  Array.sum <| as.reverse.zipWith (bs := Array.range as.size) fun a n => 2 ^ n * if a then 1 else 0
 
 #assert binToNat #[false, false, false, true, false, false, false, true, false] == 34
 
 /-- Reads the new character that the enhancement of the `Image` `i` places at `p`. -/
 def newChar (i : Image) (p : pos) : Char :=
-  i.iea.get ⟨binToNat <| checkNbs i p⟩
+  String.Pos.Raw.get i.iea ⟨binToNat <| checkNbs i p⟩
 
 /-- `enhance i sz shift` takes as input an `Image` `i`, the size `sz` of the grid and a
 natural number `shift`.

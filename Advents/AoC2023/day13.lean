@@ -2,8 +2,9 @@ import Advents.Utils
 
 namespace Day13
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day13.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day13" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -88,7 +89,7 @@ this happens at a position with index `i`, then
 If the two strings are identical or differ in more
 than one location, then `smudge` returns `false`. -/
 def smudge (l r : Array Char) : Option Nat :=
-  let lr := l.zipWith r (! · = ·)
+  let lr := l.zipWith (! · = ·) r
   if (lr.filter id).size ≠ 1 then none else
   lr.findIdx? (· == true)
 
@@ -118,7 +119,8 @@ def rssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
 The output contains all the locations that, when changed, make the grid
 acquire a vertical symmetry. -/
 def cssmudge (dat : Array (Array Char)) : Array (Nat × Nat) :=
-  let tr := (Array.transposeString <| dat.map (String.mk ∘ Array.toList)).map (List.toArray ∘ String.toList)
+  let tr := (Array.transposeString <|
+    dat.map (String.ofList ∘ Array.toList)).map (List.toArray ∘ String.toList)
   let sm := rssmudge tr
   sm.map fun x => (x.2, x.1)
 
@@ -133,7 +135,7 @@ def rockAshSwap : Char → Char
 /-- `RA p dat` performs the swap `'#' ↔ '.'` at position `p` in `dat`. -/
 def RA (p : Nat × Nat) (dat : Array String) : Array String :=
   (Array.range dat.size).map fun x =>
-    if x == p.1 then(String.modify dat[p.1]! ⟨p.2⟩ rockAshSwap)
+    if x == p.1 then(String.Pos.Raw.modify dat[p.1]! ⟨p.2⟩ rockAshSwap)
     else dat[x]!
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
@@ -148,13 +150,13 @@ def part2 (dat : String) : Nat :=
       let rs := rssmudge c0
       let cs := cssmudge c0
       let smudges := rs ++ cs
-      let ta := tally <| c0.map <| String.mk ∘ Array.toList
+      let ta := tally <| c0.map <| String.ofList ∘ Array.toList
       let lr := match ta with
         | (#[], #[a]) => (2, a)
         | (#[a], #[]) => (1, a)
         | _ => dbg_trace "too many refls!"; default
       for s in smudges do
-        let smudgeMatrix := RA s <| c0.map (String.mk ∘ Array.toList)
+        let smudgeMatrix := RA s <| c0.map (String.ofList ∘ Array.toList)
         let ta2 := tally smudgeMatrix
         let newt2 := if lr.1 == 1 then
           (ta2.1.erase lr.2, ta2.2) else

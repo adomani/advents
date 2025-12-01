@@ -2,8 +2,9 @@ import Advents.Utils
 
 namespace Day01
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day01.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day01" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -57,7 +58,7 @@ def nums : List String := ["one", "two", "three", "four", "five", "six", "seven"
 
 /-- `smun` is the list `nums`, but where each entry is spelled backwards,
 i.e. it consists of `"eno"`, `"owt"`, ..., `"enin"`. -/
-def smun : List String := nums.map fun x => ⟨x.toList.reverse⟩
+def smun : List String := nums.map fun x => String.ofList x.toList.reverse
 
 --#eval smun
 
@@ -109,7 +110,7 @@ def first_digit_in? (names : List String) : List Char → Option Nat
   | [] => none
   | l@(a::as) =>
     if a.isDigit then first_digit? l else
-    let init := word_position_in ⟨l⟩ names
+    let init := word_position_in (String.ofList l) names
     match init with
       | none => first_digit_in? names as
       | n    => n

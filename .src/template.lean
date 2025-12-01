@@ -1,10 +1,11 @@
 import Advents.Utils
 open Std
 
-namespace Day_newDay_
+namespace AoCYYYY_Day_newDay_
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoCYYYY/day_newDay_.input"
+def input : FilePath := ("Advents"/"AoCYYYY"/"day_newDay_" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -36,4 +37,4 @@ def part2 (dat : Array String) : Nat := sorry
 
 --set_option trace.profiler true in solve 2
 
-end Day_newDay_
+end AoCYYYY_Day_newDay_

@@ -3,8 +3,9 @@ open Std
 
 namespace Day10
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2024/day10.input"
+def input : FilePath := ("Advents"/"AoC2024"/"day10" : FilePath).withExtension "input"
 
 /-!
 #  Question 1

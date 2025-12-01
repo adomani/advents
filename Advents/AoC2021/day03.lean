@@ -2,8 +2,9 @@ import Advents.Utils
 
 namespace Day03
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2021/day03.input"
+def input : FilePath := ("Advents"/"AoC2021"/"day03" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -84,7 +85,7 @@ successively filtering all lists whose `pos`th position is the most frequent or 
 -/
 partial
 def keepMost (as : Array (List Nat)) (pos : Nat) (many? : Bool) : List Nat :=
-  if h : as.size = 1 then as.get ⟨0, lt_of_lt_of_eq Nat.zero_lt_one h.symm⟩ else
+  if h : as.size = 1 then as[0] else
   let (zeros, ones) := as.partition (·.getD pos 0 == 0)
   if many? then
     match (zeros.size ≤ ones.size : Bool) with
