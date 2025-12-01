@@ -3,8 +3,9 @@ open Std
 
 namespace Day14
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2021/day14.input"
+def input : FilePath := ("Advents"/"AoC2021"/"day14" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -52,15 +53,15 @@ structure Polymer where
 def mkPolymer (dat : Array String) : Polymer where
   rules := dat.foldl (init := ∅) fun h d =>
       if let [a, b] := d.splitOn " -> " then
-        h.insert (a.get 0, a.get ⟨1⟩) (b.get 0)
+        h.insert (String.Pos.Raw.get a 0, String.Pos.Raw.get a ⟨1⟩) (String.Pos.Raw.get b 0)
       else h
   poly :=
     let pol := dat[0]!
     (Array.range (pol.length - 1)).foldl (init := ∅) fun h i =>
-      let new := (pol.get ⟨i⟩, pol.get ⟨i + 1⟩)
+      let new := (String.Pos.Raw.get pol ⟨i⟩, String.Pos.Raw.get pol ⟨i + 1⟩)
       let fd := h.getD new 0
       h.insert new (fd + 1)
-  ends := (dat[0]!.get 0, dat[0]!.back)
+  ends := (String.Pos.Raw.get dat[0]! 0, dat[0]!.back)
 
 /-- Performs one set of insertions. -/
 def insertOnce (p : Polymer) : Polymer where

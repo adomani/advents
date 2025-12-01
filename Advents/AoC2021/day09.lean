@@ -3,8 +3,9 @@ open Std
 
 namespace Day09
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2021/day09.input"
+def input : FilePath := ("Advents"/"AoC2021"/"day09" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -36,11 +37,11 @@ def lowPoints (dat : Array String) : HashSet (Nat × Nat) × Nat := Id.run do
     let next := dat[d+1]?.getD dat[d]!
     let row := dat[d]!
     for c in [0:row.length] do
-      let curr := row.get ⟨c⟩
-      let rownext := if c == row.length - 1 then curr else row.get ⟨c+1⟩
-      let rowprev := if c == 0              then curr else row.get ⟨c-1⟩
-      if (curr ≤ rownext && curr ≤ rowprev && curr ≤ prev.get ⟨c⟩ && curr ≤ next.get ⟨c⟩) &&
-        ! (curr == rownext && curr == rowprev && curr == prev.get ⟨c⟩ && curr == next.get ⟨c⟩)
+      let curr := String.Pos.Raw.get row ⟨c⟩
+      let rownext := if c == row.length - 1 then curr else String.Pos.Raw.get row ⟨c+1⟩
+      let rowprev := if c == 0              then curr else String.Pos.Raw.get row ⟨c-1⟩
+      if (curr ≤ rownext && curr ≤ rowprev && curr ≤ String.Pos.Raw.get prev ⟨c⟩ && curr ≤ String.Pos.Raw.get next ⟨c⟩) &&
+        ! (curr == rownext && curr == rowprev && curr == String.Pos.Raw.get prev ⟨c⟩ && curr == String.Pos.Raw.get next ⟨c⟩)
       then
         lowPoints := lowPoints.insert (d, c)
         heights := heights + 1 + ("".push curr).toNat!
@@ -84,7 +85,7 @@ def growOnce (domain : ExpandingDomain) (grid : Array String) : ExpandingDomain 
     if p.2 != row.length -1 then nbs := nbs.push (p.1, p.2 + 1)
     for q@(x, y) in nbs do
       if vis.contains q then continue
-      if grid[x]!.get ⟨y⟩ == '9' then continue
+      if String.Pos.Raw.get grid[x]! ⟨y⟩ == '9' then continue
       vis := vis.insert q
       frt := frt.insert q
   return { visited := vis, front := frt }
