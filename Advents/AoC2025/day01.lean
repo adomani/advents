@@ -25,13 +25,32 @@ L82"
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+def parseOneLine (s : String) : Bool × Nat :=
+  let dir := s.take 1
+  let dist := s.drop 1 |>.toNat!
+  match dir with
+  | "L" => (true, dist)
+  | "R" => (false, dist)
+  | _   => panic! "Invalid direction"
+
+def moveOne (start : Int) (h : Bool × Nat) : Int :=
+  let (turnLeft, dist) := h
+  let newDir := (if turnLeft then start - dist else start + dist) % 100
+  newDir
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : Array String) : Nat :=
+  let start : Int := 50
+  let parsed := (dat.map String.trim).map parseOneLine
+  let (_, num) : Int × Nat := parsed.foldl (init := (start, 0)) fun (acc : Int × Nat) h =>
+    let (currentPos, stepNum) := acc
+    let newPos := moveOne currentPos h
+    (newPos, stepNum + if newPos == 0 then 1 else 0)
+  num
 
---#assert part1 atest == ???
+#assert part1 atest == 3
 
---set_option trace.profiler true in solve 1
+solve 1 1034
 
 /-!
 #  Question 2
