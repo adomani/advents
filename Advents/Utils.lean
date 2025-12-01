@@ -272,13 +272,13 @@ elab "solve " part:num ans:(ppSpace term:max)? f:(&" file")?: command => do
   let inputName ← liftTermElabM do realizeGlobalConstNoOverloadCore `input
   let expr := ((← getEnv).find? inputName).get!.value!
   let inputFileName := getFilePath expr
-  let (year, day) := match (inputFileNamgetFilePathats.reverse.take 2).reverse with
+  let (year, day) := match (inputFileName.getNats.reverse.take 2).reverse with
     | [y, d] => (Syntax.mkNumLit s!"{y}", Syntax.mkNumLit s!"{d}")
-    | _ => (Syntax.mkNumLgetFilePathYY", Syntax.mkNumLit "DD")
+    | _ => (Syntax.mkNumLit "YYYY", Syntax.mkNumLit "DD")
   let inp := mkIdent `input
   let readFile := mkIdent <| if f.isSome then `IO.FS.readFile else `IO.FS.lines
   elabCommand (← `(command|
-    getFilePathshow TermElabM _ from do
+    #eval show TermElabM _ from do
       let answer := $part1or2 <| ← $readFile $inp
       IO.println <| f!"Day {$day}, {$year}, part {$part}: {answer}"
       let ans := ($ans).getD answer
