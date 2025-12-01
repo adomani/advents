@@ -233,14 +233,14 @@ Parses the input `Expr`ession assuming that it is a `FilePath`, built using `/` 
 extension.
 -/
 partial
-def getStrs (e : Expr) : String :=
-  let withEmpties := getStrAux e
+def getFilePath (e : Expr) : String :=
+  let withEmpties := getFilePathAux e
   ((System.mkFilePath withEmpties).withExtension withEmpties.getLast!).toString
-where getStrAux (e : Expr) : List String :=
+where getFilePathAux (e : Expr) : List String :=
   let new := if let .lit (.strVal s) := e then [s] else []
   let args := e.getAppArgs
   args.foldr (init := new) fun tot path =>
-    getStrAux tot ++ path
+    getFilePathAux tot ++ path
 
 /-- `solve pt answer` runs function `part1` if `pt = 1` and function `part2` if `pt = 2`
 on declaration `input`, expecting that it evaluates to `answer`.
@@ -271,14 +271,14 @@ elab "solve " part:num ans:(ppSpace term:max)? f:(&" file")?: command => do
     | _ => default
   let inputName ← liftTermElabM do realizeGlobalConstNoOverloadCore `input
   let expr := ((← getEnv).find? inputName).get!.value!
-  let inputFileName := getStrs expr
-  let (year, day) := match (inputFileName.getNats.reverse.take 2).reverse with
+  let inputFileName := getFilePath expr
+  let (year, day) := match (inputFileNamgetFilePathats.reverse.take 2).reverse with
     | [y, d] => (Syntax.mkNumLit s!"{y}", Syntax.mkNumLit s!"{d}")
-    | _ => (Syntax.mkNumLit "YYYY", Syntax.mkNumLit "DD")
+    | _ => (Syntax.mkNumLgetFilePathYY", Syntax.mkNumLit "DD")
   let inp := mkIdent `input
   let readFile := mkIdent <| if f.isSome then `IO.FS.readFile else `IO.FS.lines
   elabCommand (← `(command|
-    #eval show TermElabM _ from do
+    getFilePathshow TermElabM _ from do
       let answer := $part1or2 <| ← $readFile $inp
       IO.println <| f!"Day {$day}, {$year}, part {$part}: {answer}"
       let ans := ($ans).getD answer
