@@ -228,6 +228,16 @@ It runs `run_cmd Elab.Command.liftTermElabM do guard x`-/
 macro (name := cmdAssert) "#assert " cmd:term : command =>
   `(command| run_cmd Elab.Command.liftTermElabM do guard $cmd)
 
+partial
+def getStrs (e : Expr) : String :=
+  let withEmpties := getStrAux e
+  ((System.mkFilePath withEmpties).withExtension withEmpties.getLast!).toString
+where getStrAux (e : Expr) : List String :=
+  let new := if let .lit (.strVal s) := e then [s] else []
+  let args := e.getAppArgs
+  args.foldr (init := new) fun tot path =>
+    getStrAux tot ++ path
+
 /-- `solve pt answer` runs function `part1` if `pt = 1` and function `part2` if `pt = 2`
 on declaration `input`, expecting that it evaluates to `answer`.
 If it does, then it prints a summary, otherwise it fails.
@@ -256,10 +266,9 @@ elab "solve " part:num ans:(ppSpace term:max)? f:(&" file")?: command => do
     | 2 => `part2
     | _ => default
   let inputName ← liftTermElabM do realizeGlobalConstNoOverloadCore `input
-  let inputFileName := match (← getEnv).find? inputName |>.getD default |>.value? with
-      | some (.app _ (.lit (.strVal s))) => s
-      | _ => ""
-  let (year, day) := match inputFileName.getNats with
+  let expr := ((← getEnv).find? inputName).get!.value!
+  let inputFileName := getStrs expr
+  let (year, day) := match (inputFileName.getNats.reverse.take 2).reverse with
     | [y, d] => (Syntax.mkNumLit s!"{y}", Syntax.mkNumLit s!"{d}")
     | _ => (Syntax.mkNumLit "YYYY", Syntax.mkNumLit "DD")
   let inp := mkIdent `input
