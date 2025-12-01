@@ -228,6 +228,10 @@ It runs `run_cmd Elab.Command.liftTermElabM do guard x`-/
 macro (name := cmdAssert) "#assert " cmd:term : command =>
   `(command| run_cmd Elab.Command.liftTermElabM do guard $cmd)
 
+/--
+Parses the input `Expr`ession assuming that it is a `FilePath`, built using `/` and an
+extension.
+-/
 partial
 def getStrs (e : Expr) : String :=
   let withEmpties := getStrAux e
