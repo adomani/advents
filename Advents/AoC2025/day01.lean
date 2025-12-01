@@ -56,7 +56,7 @@ def part1 (dat : Array String) : Nat :=
 
 #assert part1 atest == 3
 
-solve 1 1048
+solve 1 1034
 
 /-!
 #  Question 2
@@ -84,6 +84,6 @@ def part2 (dat : Array String) : Nat :=
 
 #assert part2 atest == 6
 
-solve 2 6498
+solve 2 6166
 
 end Day01
