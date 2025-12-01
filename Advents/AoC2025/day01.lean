@@ -11,7 +11,16 @@ def input : System.FilePath := "Advents/AoC2025/day01.input"
 -/
 
 /-- `test` is the test string for the problem. -/
-def test := ""
+def test := "L68
+L30
+R48
+L5
+R60
+L55
+L1
+L99
+R14
+L82"
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
