@@ -56,18 +56,34 @@ def part1 (dat : Array String) : Nat :=
 
 #assert part1 atest == 3
 
-solve 1 1034
+solve 1 1048
 
 /-!
 #  Question 2
 -/
 
+/--
+Count the number of naturals congruent to `res` modulo `mod`
+there are between `0` (inclusive) and `fin` (exclusive).
+-/
+def countResidues (res fin : Nat) (mod : Nat := 100) : Nat :=
+  let res := res % mod
+  let guess := fin / mod
+  let correction := if res < (fin % mod) then 1 else 0
+  guess + correction
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat :=
+  let start : Int := 50
+  let parsed := dat.map parseOneLine
+  let (_, num) : Int × Nat := parsed.foldl (init := (start, 0)) fun (currentPos, stepNum) h =>
+    let newPos := moveOne currentPos h
+    let signedDist := (if h.1 then 1 else - 1) * currentPos
+    (newPos, stepNum + countResidues (signedDist % 100).natAbs h.2)
+  num
 
---#assert part2 atest == ???
+#assert part2 atest == 6
 
---set_option trace.profiler true in solve 2
+solve 2 6498
 
 end Day01
