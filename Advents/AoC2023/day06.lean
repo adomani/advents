@@ -3,8 +3,9 @@ import Batteries.Data.Nat.Basic
 
 namespace Day06
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day06.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day06" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -24,7 +25,7 @@ def getData (s : String) : List (List Nat) :=
 /-- The solution to part 1. -/
 def part1 (str : String) : Nat :=
   let dat := getData str |>.filter (· ≠ [])
-  List.prod <| (List.range dat[0]!.length).map fun i =>
+  List.prod' <| (List.range dat[0]!.length).map fun i =>
     let tgt := dat[1]![i]!
     let currTime := dat[0]![i]!
     ((List.range currTime).filter fun j => tgt < (currTime - j) * j).length
@@ -39,7 +40,7 @@ solve 1 1312850 file
 
 /-- Extract the pair of natural numbers from the input data. -/
 def getData2 (s : String) : Nat × Nat :=
-  match (String.mk (s.toList.filter (· != ' '))).getNats with
+  match (String.ofList (s.toList.filter (· != ' '))).getNats with
     | [a, b] => (a, b)
     | _ => dbg_trace "oh no!"; default
 

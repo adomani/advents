@@ -4,8 +4,9 @@ open Std
 
 namespace Day16
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day16.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day16" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -61,9 +62,9 @@ It returns data that `getHSteps` and `getVSteps` use. -/
 def getHVSteps (s : String) (left_or_up : dir) (f : Int → pos) : HashMap ray (Array ray) :=
   let sc := s.toList
   let idxs := sc.findIdxs (· != '.')
-  if idxs.isEmpty then .empty else
+  if idxs.isEmpty then ∅ else
   Id.run do
-  let mut new : HashMap ray (Array ray) := .empty
+  let mut new : HashMap ray (Array ray) := ∅
 
   -- insert the entry `(last+1, .X)` pointing `left_or_up`
   let lastMirrorIdx := idxs[idxs.length-1]!
@@ -145,7 +146,7 @@ run_cmd Lean.Elab.Command.liftTermElabM do
 def init (dat : Array String) : HashMap ray (Array ray) :=
   let datt := dat.transposeString
   Id.run do
-  let mut new := .empty
+  let mut new := ∅
   for r in [:dat.size] do
     for x in getHSteps dat[r]! r do
       new := new.insert x.1 x.2
@@ -160,13 +161,13 @@ It returns the `HashMap` of the horizontal or vertical pairs of `ray`s
 encoding the path of the ray of light through the maze. -/
 def mkPath (mirs : HashMap ray (Array ray)) (r : ray) : HashMap ray ray :=
   Id.run do
-  let mut path := .empty
+  let mut path := ∅
   let mut curr : Array ray := #[r]
   let mut con := 0
   while (! curr.isEmpty) do --∧ con ≤ 70 do
     con := con + 1
     let news := curr.map mirs.get?
-    let toAdd := (curr.zipWith news fun x y => (y.getD #[]).map (x, ·)).foldl (· ++ ·) #[]
+    let toAdd := (curr.zipWith (bs := news) fun x y => (y.getD #[]).map (x, ·)).foldl (· ++ ·) #[]
     curr := (news.reduceOption.foldl (· ++ ·) #[]).filter (! path.contains ·)
     for x in toAdd do
       path := path.insert x.1 x.2
@@ -178,7 +179,7 @@ It strips off the information about the `dir`ection encoded in the `ray`s
 and remembers only the `pos`itions. -/
 def reduceToPos (path : HashMap ray ray) : HashSet pos :=
   Id.run do
-  let mut fin := .empty
+  let mut fin := ∅
   for (a, b) in path do
     let (ct, d) := getEnum a.1 b.1
     let mut cur := a.1

@@ -2,8 +2,9 @@ import Advents.Utils
 
 namespace Day02_traditional
 
+open System in
 /-- `input` is the location of the file with the data for the problem. -/
-def input : System.FilePath := "Advents/AoC2023/day02.input"
+def input : FilePath := ("Advents"/"AoC2023"/"day02" : FilePath).withExtension "input"
 
 /-!
 #  Question 1
@@ -29,7 +30,7 @@ with the appropriate value and colour.
 def one_color (s : String) : cols :=
   let no_spaces := s.toList.filter (· != ' ')
   let (number, color) := no_spaces.partition Char.isDigit
-  let (number, color) : Nat × String := (String.toNat! ⟨number⟩, ⟨color⟩)
+  let (number, color) : Nat × String := (String.toNat! (String.ofList number), (String.ofList color))
   match color with
     | "red"   => (number, 0, 0)
     | "green" => (0, number, 0)
