@@ -105,26 +105,31 @@ def countFromTo (a b : Nat) : Nat :=
 
 -- #[2, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0]
 #eval do
-  let dat ← IO.FS.readFile input
   let dat := test
+  let dat ← IO.FS.readFile input
   let pairs := inputToRanges dat
-  let twoOrdersOfMagnitude := pairs.map fun ((a, b) : Nat × Nat) =>
+  let sums := pairs.map fun ((a, b) : Nat × Nat) =>
     let small := mkMax a
     let smallDouble := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
     let large := mkMin b
     let largeDouble := 10 ^ ((Nat.toDigits 10 b).length / 2) + 1
+    let mult := if (Nat.toDigits 10 a).length % 2 == 1 then
+      largeDouble
+    else
+      smallDouble
     dbg_trace "{(small, large)} count: {countFromTo small large}"
     dbg_trace "a: {(a, small, smallDouble)}"
     dbg_trace "b: {(b, large, largeDouble)}"
-    dbg_trace "{(small ≤ large : Bool)}"
+    dbg_trace "{(small ≤ large : Bool)}, mult: {mult}, tot: {mult * countFromTo small large}"
     dbg_trace ""
-
-    if let some (base, (start, stop)) := toBaseAndRange a b
-    then
-      countResidues (base - (start % base)) (stop - start + 1) base
+    if small ≤ large then
+      mult * countFromTo small large
     else 0
+
     --if (Nat.toDigits 10 a).length + 2 ≤ (Nat.toDigits 10 b).length then some (a, b) else none
-  dbg_trace twoOrdersOfMagnitude
+  dbg_trace "{(sums, sums.sum)}"
+
+-- too low 1733317451
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
