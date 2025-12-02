@@ -62,14 +62,14 @@ def mkMinMax (a : Nat) (fn : Nat → Nat → Nat) : Option Nat :=
   of the two halves interpreted as numbers.
 -/
 def mkMax (a : Nat) : Nat :=
-  (mkMinMax a max).getD <|
+  (mkMinMax a (fun x y => if x < y then x + 1 else x)).getD <|
     let digs := ((Nat.toDigits 10 a).length) / 2
     10 ^ digs
 
 
 #assert
   let as := [1123, 9, 123, 4321]
-  as.map mkMax == [23, 1, 10, 43]
+  as.map mkMax == [12, 1, 10, 43]
 
 /--
 `mkMin a` writes `a` to base `10` and
@@ -79,14 +79,14 @@ def mkMax (a : Nat) : Nat :=
   of the two halves interpreted as numbers.
 -/
 def mkMin (a : Nat) : Nat := --mkMinMax a min
-  (mkMinMax a min).getD <|
+  (mkMinMax a (fun x y => if x ≤ y then x else x - 1)).getD <|
     let digs := (Nat.toDigits 10 a).length / 2
     --if digs == 0 then 0 else
     10 ^ digs - 1
 
-#eval
+#assert
   let as := [1123, 9, 123, 4321]
-  as.map mkMin --== [11, 0, 9, 21]
+  as.map mkMin == [11, 0, 9, 42]
 
 def toBaseAndRange (a b : Nat) : Option (Nat × (Nat × Nat)) :=
   let aDigs := (Nat.toDigits 10 a).length
@@ -102,7 +102,7 @@ def countTo (a : Nat) : Nat := a * (a + 1) / 2
 
 def countFromTo (a b : Nat) : Nat :=
   countTo b - countTo (a - 1)
-
+#eval 91 + 92 + 93 + 94 + 95 + 96 + 97 + 98 + 99
 -- #[2, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0]
 #eval do
   let dat := test
@@ -130,6 +130,7 @@ def countFromTo (a b : Nat) : Nat :=
   dbg_trace "{(sums, sums.sum)}"
 
 -- too low 1733317451
+-- too ... 18952700150
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
