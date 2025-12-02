@@ -42,7 +42,7 @@ This is used only with `fn ∈ {min, max}`.
 -/
 def mkMinMax (a : Nat) (fn : Nat → Nat → Nat) : Option Nat :=
   let digs := (Nat.toDigits 10 a).length
-  if digs % 2 == 1 then none else --10 ^ (digs / 2) - 1 else
+  if digs % 2 == 1 then none else
   let len := digs / 2
   some (fn (a / 10 ^ len) (a % 10 ^ len))
 
@@ -83,6 +83,28 @@ def countTo (a : Nat) : Nat := a * (a + 1) / 2
 def countFromTo (a b : Nat) : Nat :=
   countTo b - countTo (a - 1)
 
+/-- `atest` is the test string for the problem, split into rows. -/
+def atest := (test.splitOn "\n").toArray
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : String) : Nat :=
+  let pairs := inputToRanges dat
+  let sums := pairs.map fun (a, b) =>
+    let (small, large) := (mkMax a, mkMin b)
+    let smallDouble := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
+    let largeDouble := 10 ^ ((Nat.toDigits 10 b).length / 2) + 1
+    let mult := if (Nat.toDigits 10 a).length % 2 == 1 then largeDouble else smallDouble
+    if small ≤ large then mult * countFromTo small large else 0
+  sums.sum
+
+#assert part1 test == 1227775554
+
+set_option trace.profiler true in solve 1 18952700150 file
+
+/-!
+#  Question 2
+-/
+
 #eval do
   let dat := test
   let dat ← IO.FS.readFile input
@@ -105,28 +127,6 @@ def countFromTo (a b : Nat) : Nat :=
       mult * countFromTo small large
     else 0
   dbg_trace "{(sums, sums.sum)}"
-
-/-- `atest` is the test string for the problem, split into rows. -/
-def atest := (test.splitOn "\n").toArray
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : String) : Nat :=
-  let pairs := inputToRanges dat
-  let sums := pairs.map fun (a, b) =>
-    let (small, large) := (mkMax a, mkMin b)
-    let smallDouble := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
-    let largeDouble := 10 ^ ((Nat.toDigits 10 b).length / 2) + 1
-    let mult := if (Nat.toDigits 10 a).length % 2 == 1 then largeDouble else smallDouble
-    if small ≤ large then mult * countFromTo small large else 0
-  sums.sum
-
-#assert part1 test == 1227775554
-
-set_option trace.profiler true in solve 1 18952700150 file
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
