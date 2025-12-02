@@ -110,11 +110,23 @@ def splitEvery (l : List α) (n : Nat) : List (List α) :=
   if l.length ≤ n then [l] else
   l.take n :: splitEvery (l.drop n) n
 
+/--
+Splits the input natural number `a` into consecutive subsequences of `lth` digits each, returning
+`none` if the number of digits of `a` is not divisible by `lth`.
+
+It returns
+* the first subsequence, if either all subsequences are equal, or if the first subsequence is
+  greater than the first one that is different;
+* the first subsequence increased by `1`, otherwise.
+
+The second output natural number is the largest number less than or equal to `a`
+whose digits are `0` and `1`, and where `1` only occupies the positions divisible
+by `lth`.
+-/
 def replaceWithMultLower (lth a : Nat) : Option (Nat × Nat) := do
   if (Nat.toDigits 10 a).length % lth != 0 then none else
   let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
   let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
-  --dbg_trace (first::rest, mult)
   if let some ne := rest.find? (· != first) then
     if ne ≤ first then return (first, mult) else return (first + 1, mult)
   else
@@ -123,9 +135,12 @@ def replaceWithMultLower (lth a : Nat) : Option (Nat × Nat) := do
 #assert replaceWithMultLower 1 2204535 == some (2, 1111111)
 
 /--
-Splits the input natural number `a` into consecutive subsequences of `lth` digits each.
+Splits the input natural number `a` into consecutive subsequences of `lth` digits each, returning
+`none` if the number of digits of `a` is not divisible by `lth`.
+
 It returns
-* the first subsequence, if its value is smaller than all the remaining extracted subsequences;
+* the first subsequence, if either all subsequences are equal, or if the first subsequence is
+  smaller than the first one that is different;
 * the first subsequence decreased by `1`, otherwise.
 
 The second output natural number is the largest number less than or equal to `a`
