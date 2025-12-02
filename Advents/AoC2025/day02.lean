@@ -115,10 +115,12 @@ def replaceWithMultLower (lth a : Nat) : Option (Nat × Nat) := do
   let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
   let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
   --dbg_trace (first::rest, mult)
-  if rest.all (· ≤ first) then
-    return (first, mult)
+  if let some ne := rest.find? (· != first) then
+    if ne ≤ first then return (first, mult) else return (first + 1, mult)
   else
-    return (first + 1, mult)
+    return (first, mult)
+
+#eval replaceWithMultLower 1 2204535
 
 /--
 Splits the input natural number `a` into consecutive subsequences of `lth` digits each.
@@ -135,10 +137,17 @@ def replaceWithMultUpper (lth a : Nat) : Option (Nat × Nat) := do
   let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
   let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
   --dbg_trace (first::rest, mult)
-  if rest.all (first ≤ ·) then
-    return (first, mult)
+  if let some ne := rest.find? (· != first) then
+    if first ≤ ne then return (first, mult) else return (first - 1, mult)
   else
-    return (first - 1, mult)
+    return (first, mult)
+
+--  if rest.all (first ≤ ·) then
+--    return (first, mult)
+--  else
+--    return (first - 1, mult)
+
+#eval replaceWithMultUpper 1 2244247
 
 #assert
   (replaceWithMultLower 2 123456, replaceWithMultUpper 2 123456) ==
@@ -197,6 +206,10 @@ def processTwo (a b : Nat) (verbose? : Bool := false) :
         fin := fin.push ((a, b), if multa != multb then panic! s!"{#[multa, multb]}" else multa)
   return fin
 
+#eval processTwo 2204535 2244247 true
+#eval replaceWithMultLower 1 2204535
+#eval replaceWithMultUpper 1 2244247
+
 def mkReps (h : Array ((Nat × Nat) × Nat)) : Std.HashSet Nat :=
   h.foldl (init := ∅) fun acc ((a, b), mult) =>
     acc.insertMany ((List.range (b - a + 1)).map (fun x => (a + x) * mult))
@@ -228,9 +241,11 @@ def mkRepsArray (h : Array ((Nat × Nat) × Nat)) : Array Nat :=
 
   --dbg_trace (mkReps allPrs).toArray.qsort
   ----dbg_trace allPrs
-  --dbg_trace (mkReps allPrs).toArray.sum
+  dbg_trace (mkReps allPrs).toArray.sum
 
 -- 18980589997 too low
+-- 18984184711 too low
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : String) : Nat := Id.run do
   let pairs := inputToRanges dat
@@ -249,15 +264,10 @@ def part2 (dat : String) : Nat := Id.run do
     --dbg_trace ""
     tot := tot + (processed.map fun (((a, b), _arr) : (Nat × Nat) × Nat) => b - a + 1).sum
     allPrs := allPrs ++ processed
-  --dbg_trace tot
-  --dbg_trace mkRepsArray allPrs
-
-  --dbg_trace (mkReps allPrs).toArray.qsort
-  ----dbg_trace allPrs
   (mkReps allPrs).toArray.sum
 
 #assert part2 test == 4174379265
 
-set_option trace.profiler true in solve 2 0 file
+solve 2 28858486244 file
 
 end AoC2025_Day02
