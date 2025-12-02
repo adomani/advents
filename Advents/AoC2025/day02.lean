@@ -133,14 +133,11 @@ def atest := (test.splitOn "\n").toArray
 def part1 (dat : String) : Nat :=
   let pairs := inputToRanges dat
   let sums := pairs.map fun ((a, b) : Nat × Nat) =>
-    let small := mkMax a
-    let large := mkMin b
+    let (small, large) := (mkMax a, mkMin b)
     let smallDouble := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
     let largeDouble := 10 ^ ((Nat.toDigits 10 b).length / 2) + 1
     let mult := if (Nat.toDigits 10 a).length % 2 == 1 then largeDouble else smallDouble
-    if small ≤ large then
-      mult * countFromTo small large
-    else 0
+    if small ≤ large then mult * countFromTo small large else 0
   sums.sum
 
 #assert part1 test == 1227775554
