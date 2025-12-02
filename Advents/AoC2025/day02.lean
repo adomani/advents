@@ -120,6 +120,16 @@ def replaceWithMultLower (lth a : Nat) : Option (Nat × Nat) := do
   else
     return (first + 1, mult)
 
+/--
+Splits the input natural number `a` into consecutive subsequences of `lth` digits each.
+It returns
+* the first subsequence, if its value is smaller than all the remaining extracted subsequences;
+* the first subsequence decreased by `1`, otherwise.
+
+The second output natural number is the largest number less than or equal to `a`
+whose digits are `0` and `1`, and where `1` only occupies the positions divisible
+by `lth`.
+-/
 def replaceWithMultUpper (lth a : Nat) : Option (Nat × Nat) := do
   if (Nat.toDigits 10 a).length % lth != 0 then none else
   let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
