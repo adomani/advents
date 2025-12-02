@@ -131,7 +131,8 @@ by `lth`.
 -/
 def replaceWithMultLower (lth a : Nat) : Option (Nat × Nat) := do
   if (Nat.toDigits 10 a).length % lth != 0 then none else
-  let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
+  let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) |
+    failure
   let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
   if let some ne := rest.find? (· != first) then
     if ne < first then return (first, mult) else return (first + 1, mult)
@@ -155,7 +156,8 @@ by `lth`.
 -/
 def replaceWithMultUpper (lth a : Nat) : Option (Nat × Nat) := do
   if (Nat.toDigits 10 a).length % lth != 0 then none else
-  let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
+  let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) |
+    failure
   let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
   if let some ne := rest.find? (· != first) then
     if first < ne then return (first, mult) else return (first - 1, mult)
