@@ -152,14 +152,68 @@ def replaceWithMultUpper (lth a : Nat) : Option (Nat × Nat) := do
   (replaceWithMultLower 2 121212, replaceWithMultUpper 2 121212) ==
     (some (12, 10101), some (12, 10101))
 
-def rangesWithSize (lth a b : Nat) : Nat :=
-  let a := if
+--def rangesWithSize (lth a b : Nat) : Nat :=
+--  let a := if
+
+def next999 (a : Nat) : Nat :=
+  10 ^ (Nat.toDigits 10 a).length - 1
+
+#eval next999 1234 -- 9999
+
+/-
+* 2: `11-22` still has `two` invalid IDs,                   `11` and `22`.
+* 2: `95-115` now has `two` invalid IDs,                   `99` and `111`.
+* 2: `998-1012` now has `two` invalid IDs,               `999` and `1010`.
+* 1: `1188511880-1188511890` still has `one` invalid ID,     `1188511885`.
+* 1: `222220-222224` still has `one` invalid ID,                 `222222`.
+* 0: `1698522-1698528` still contains no invalid IDs.
+* 1: `446443-446449` still has `one` invalid ID,                 `446446`.
+* 1: `38593856-38593862` still has `one` invalid ID,           `38593859`.
+* 1: `565653-565659` now has `one` invalid ID,                   `565656`.
+* 1: `824824821-824824827` now has `one` invalid ID,          `824824824`.
+* 1: `2121212118-2121212124` now has `one` invalid ID,       `2121212121`.
+-/
+
+def processTwo (a b : Nat) : Array (Nat × Nat) := Id.run do
+  let mut fin := #[]
+  for i in [1:(Nat.toDigits 10 b).length] do
+    match replaceWithMultLower i a, replaceWithMultUpper i b with
+    -- neither the number of digits of `a` nor of `b` are multiples of `i`
+    | none, none => continue
+    | some (a, mult), none =>
+      dbg_trace "* {i}: {a} {replaceWithMultUpper i (next999 a)} -- {mult}"
+      fin := fin.push (a, (replaceWithMultUpper i (next999 a)).get!.1)
+    | none, some (b, mult) =>
+      dbg_trace "* {i}: {replaceWithMultLower i (1 + next999 a)} {b} -- {mult}"
+      fin := fin.push ((replaceWithMultLower i (1 + next999 a)).get!.1, b)
+    | some (a, multa), some (b, multb) =>
+      if b < a then
+        continue --dbg_trace "* {i}: none ({a}, {b}) -- {multa} {multb}"
+      else
+        dbg_trace "* {i}: {(a, b)} -- {multa} {multb}"
+        fin := fin.push (a, b)
+  return fin
 
 #eval do
-  let dat := test
   let dat ← IO.FS.readFile input
+  let dat := test
   let pairs := inputToRanges dat
-  let sums := pairs.map fun ((a, b) : Nat × Nat) =>
+  for (a, b) in pairs do
+  --let sums := pairs.map fun ((a, b) : Nat × Nat) => Id.run do
+    dbg_trace (a, b)
+    for i in [1:(Nat.toDigits 10 b).length] do
+      match replaceWithMultLower i a, replaceWithMultUpper i b with
+      | none, none => continue --dbg_trace "* {i}: none"
+      | some (a, mult), none =>
+        dbg_trace "* {i}: {a} {replaceWithMultUpper i (next999 a)} -- {mult}"
+      | none, some (b, mult) =>
+        dbg_trace "* {i}: {replaceWithMultLower i (1 + next999 a)} {b} -- {mult}"
+      | some (a, multa), some (b, multb) =>
+        if b < a then
+          continue --dbg_trace "* {i}: none ({a}, {b}) -- {multa} {multb}"
+        else
+          dbg_trace "* {i}: {(a, b)} -- {multa} {multb}"
+    dbg_trace ""
     let small := mkMax a
     let smallDouble := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
     let large := mkMin b
@@ -168,15 +222,15 @@ def rangesWithSize (lth a b : Nat) : Nat :=
       largeDouble
     else
       smallDouble
-    dbg_trace "{(small, large)} count: {countFromTo small large}"
-    dbg_trace "a: {(a, small, smallDouble)}"
-    dbg_trace "b: {(b, large, largeDouble)}"
-    dbg_trace "{(small ≤ large : Bool)}, mult: {mult}, tot: {mult * countFromTo small large}"
-    dbg_trace ""
-    if small ≤ large then
-      mult * countFromTo small large
-    else 0
-  dbg_trace "{(sums, sums.sum)}"
+    --dbg_trace "{(small, large)} count: {countFromTo small large}"
+    --dbg_trace "a: {(a, small, smallDouble)}"
+    --dbg_trace "b: {(b, large, largeDouble)}"
+    --dbg_trace "{(small ≤ large : Bool)}, mult: {mult}, tot: {mult * countFromTo small large}"
+    --dbg_trace ""
+--    if small ≤ large then
+--      mult * countFromTo small large
+--    else 0
+--  dbg_trace "{(sums, sums.sum)}"
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
