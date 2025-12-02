@@ -174,64 +174,49 @@ def next999 (a : Nat) : Nat :=
 * 1: `2121212118-2121212124` now has `one` invalid ID,       `2121212121`.
 -/
 
-def processTwo (a b : Nat) : Array (Nat × Nat) := Id.run do
+def processTwo (a b : Nat) (verbose? : Bool := false) :
+    Array ((Nat × Nat) × Nat) := Id.run do
   let mut fin := #[]
   for i in [1:(Nat.toDigits 10 b).length] do
     match replaceWithMultLower i a, replaceWithMultUpper i b with
     -- neither the number of digits of `a` nor of `b` are multiples of `i`
     | none, none => continue
     | some (a, mult), none =>
-      dbg_trace "* {i}: {a} {replaceWithMultUpper i (next999 a)} -- {mult}"
-      fin := fin.push (a, (replaceWithMultUpper i (next999 a)).get!.1)
+      let bPair := (replaceWithMultUpper i (next999 a)).get!
+      if verbose? then dbg_trace "{i}: {a} {bPair} -- {mult}"
+      fin := fin.push ((a, bPair.1), mult)
     | none, some (b, mult) =>
-      dbg_trace "* {i}: {replaceWithMultLower i (1 + next999 a)} {b} -- {mult}"
-      fin := fin.push ((replaceWithMultLower i (1 + next999 a)).get!.1, b)
+      let aPair := (replaceWithMultLower i (1 + next999 a)).get!
+      if verbose? then dbg_trace "{i}: {aPair} {b} -- {mult}"
+      fin := fin.push ((aPair.1, b), mult)
     | some (a, multa), some (b, multb) =>
       if b < a then
-        continue --dbg_trace "* {i}: none ({a}, {b}) -- {multa} {multb}"
+        continue --dbg_trace "{i}: none ({a}, {b}) -- {multa} {multb}"
       else
-        dbg_trace "* {i}: {(a, b)} -- {multa} {multb}"
-        fin := fin.push (a, b)
+        if verbose? then dbg_trace "{i}: {(a, b)} -- {multa} {multb}"
+        fin := fin.push ((a, b), if multa != multb then panic! s!"{#[multa, multb]}" else multa)
   return fin
 
+
+
 #eval do
-  let dat ← IO.FS.readFile input
+  let v? := false
   let dat := test
+  let dat ← IO.FS.readFile input
   let pairs := inputToRanges dat
+  let mut tot := 0
   for (a, b) in pairs do
   --let sums := pairs.map fun ((a, b) : Nat × Nat) => Id.run do
-    dbg_trace (a, b)
-    for i in [1:(Nat.toDigits 10 b).length] do
-      match replaceWithMultLower i a, replaceWithMultUpper i b with
-      | none, none => continue --dbg_trace "* {i}: none"
-      | some (a, mult), none =>
-        dbg_trace "* {i}: {a} {replaceWithMultUpper i (next999 a)} -- {mult}"
-      | none, some (b, mult) =>
-        dbg_trace "* {i}: {replaceWithMultLower i (1 + next999 a)} {b} -- {mult}"
-      | some (a, multa), some (b, multb) =>
-        if b < a then
-          continue --dbg_trace "* {i}: none ({a}, {b}) -- {multa} {multb}"
-        else
-          dbg_trace "* {i}: {(a, b)} -- {multa} {multb}"
+    let mid := next999 a
+    let processed :=
+      if b ≤ mid then processTwo a b v? else processTwo a mid v? ++ processTwo (1 + mid) b v?
+    dbg_trace "---\n* {(a, b)}\n"
+    if processed.isEmpty then dbg_trace "empty"; continue
+    dbg_trace "{"\n".intercalate (processed.map (s!"{·}")).toList}"
     dbg_trace ""
-    let small := mkMax a
-    let smallDouble := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
-    let large := mkMin b
-    let largeDouble := 10 ^ ((Nat.toDigits 10 b).length / 2) + 1
-    let mult := if (Nat.toDigits 10 a).length % 2 == 1 then
-      largeDouble
-    else
-      smallDouble
-    --dbg_trace "{(small, large)} count: {countFromTo small large}"
-    --dbg_trace "a: {(a, small, smallDouble)}"
-    --dbg_trace "b: {(b, large, largeDouble)}"
-    --dbg_trace "{(small ≤ large : Bool)}, mult: {mult}, tot: {mult * countFromTo small large}"
-    --dbg_trace ""
---    if small ≤ large then
---      mult * countFromTo small large
---    else 0
---  dbg_trace "{(sums, sums.sum)}"
-
+    tot := tot + (processed.map fun (((a, b), arr) : (Nat × Nat) × Nat) =>
+      if arr == 1 then 1 else b - a + 1).sum
+  dbg_trace tot
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
 --def part2 (dat : String) : Nat :=
