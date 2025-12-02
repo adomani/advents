@@ -226,17 +226,16 @@ def mkReps (h : Array ((Nat × Nat) × Nat)) : Std.HashSet Nat :=
     acc.insertMany <| (List.range (b - a + 1)).map fun x => (a + x) * mult
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : String) : Nat := Id.run do
+def part2 (dat : String) : Nat :=
   let pairs := inputToRanges dat
-  let mut allPrs := #[]
-  for (a, b) in pairs do
+  let allPrs : Std.HashSet Nat := pairs.foldl (init := ∅) fun allPrs (a, b) =>
     -- We make sure that we evaluate `processTwo` on ranges with numbers consisting of the same
     -- number of digits, by splitting at `next999 a`, if necessary.
     let mid := next999 a
     let processed :=
       if b ≤ mid then processTwo a b else processTwo a mid ++ processTwo (mid + 1) b
-    allPrs := allPrs ++ processed
-  (mkReps allPrs).toArray.sum
+    allPrs.union (mkReps processed)
+  (allPrs).fold (· + ·) 0
 
 #assert part2 test == 4174379265
 
