@@ -105,6 +105,46 @@ set_option trace.profiler true in solve 1 18952700150 file
 #  Question 2
 -/
 
+def splitEvery (l : List α) (n : Nat) : List (List α) :=
+  if n = 0 then [l] else
+  if l.length ≤ n then [l] else
+  l.take n :: splitEvery (l.drop n) n
+
+def replaceWithMultLower (lth a : Nat) : Option (Nat × Nat) := do
+  if (Nat.toDigits 10 a).length % lth != 0 then none else
+  let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
+  let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
+  --dbg_trace (first::rest, mult)
+  if rest.all (· ≤ first) then
+    return (first, mult)
+  else
+    return (first + 1, mult)
+
+def replaceWithMultUpper (lth a : Nat) : Option (Nat × Nat) := do
+  if (Nat.toDigits 10 a).length % lth != 0 then none else
+  let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
+  let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
+  --dbg_trace (first::rest, mult)
+  if rest.all (first ≤ ·) then
+    return (first, mult)
+  else
+    return (first - 1, mult)
+
+#assert
+  (replaceWithMultLower 2 123456, replaceWithMultUpper 2 123456) ==
+    (some (13, 10101), some (12, 10101))
+
+#assert
+  (replaceWithMultLower 3 123456, replaceWithMultUpper 3 123456) ==
+    (some (124, 1001), some (123, 1001))
+
+#assert
+  (replaceWithMultLower 2 121212, replaceWithMultUpper 2 121212) ==
+    (some (12, 10101), some (12, 10101))
+
+def rangesWithSize (lth a b : Nat) : Nat :=
+  let a := if
+
 #eval do
   let dat := test
   let dat ← IO.FS.readFile input
