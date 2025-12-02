@@ -22,12 +22,6 @@ def inputToRanges (s : String) : Array (Nat × Nat) :=
     | _       => none
   pairs.toArray
 
-def countResidues (res fin : Nat) (mod : Nat) : Nat :=
-  let res := res % mod
-  let guess := fin / mod
-  let correction := if res < (fin % mod) then 1 else 0
-  guess + correction
-
 -- Check that the pairs do not span ranges that are too big.
 #eval do
   for dat in [test, ← IO.FS.readFile input] do
@@ -36,8 +30,6 @@ def countResidues (res fin : Nat) (mod : Nat) : Nat :=
       if (Nat.toDigits 10 a).length + 2 ≤ (Nat.toDigits 10 b).length then some (a, b) else none
     if !twoOrdersOfMagnitude.isEmpty then
       IO.println "No pairs with at least two orders of magnitude difference."
-
-def oneOhOne (a : Nat) := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
 
 /--
 `mkMinMax a fn` writes `a` to base `10` and
@@ -66,7 +58,6 @@ def mkMax (a : Nat) : Nat :=
     let digs := ((Nat.toDigits 10 a).length) / 2
     10 ^ digs
 
-
 #assert
   let as := [1123, 9, 123, 4321]
   as.map mkMax == [12, 1, 10, 43]
@@ -78,25 +69,14 @@ def mkMax (a : Nat) : Nat :=
 * if `a` has an even number of digits, then it splits the digits in half and returns the minimum
   of the two halves interpreted as numbers.
 -/
-def mkMin (a : Nat) : Nat := --mkMinMax a min
+def mkMin (a : Nat) : Nat :=
   (mkMinMax a (fun x y => if x ≤ y then x else x - 1)).getD <|
     let digs := (Nat.toDigits 10 a).length / 2
-    --if digs == 0 then 0 else
     10 ^ digs - 1
 
 #assert
   let as := [1123, 9, 123, 4321]
   as.map mkMin == [11, 0, 9, 42]
-
-def toBaseAndRange (a b : Nat) : Option (Nat × (Nat × Nat)) :=
-  let aDigs := (Nat.toDigits 10 a).length
-  let bDigs := (Nat.toDigits 10 b).length
-  if aDigs % 2 == 0 then
-    some (oneOhOne a, a, if bDigs == aDigs then b else 10 ^ aDigs - 1)
-  else
-  if bDigs % 2 == 0 then
-    some (oneOhOne b, 10 ^ aDigs, b)
-  else none
 
 def countTo (a : Nat) : Nat := a * (a + 1) / 2
 
@@ -132,7 +112,7 @@ def atest := (test.splitOn "\n").toArray
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat :=
   let pairs := inputToRanges dat
-  let sums := pairs.map fun ((a, b) : Nat × Nat) =>
+  let sums := pairs.map fun (a, b) =>
     let (small, large) := (mkMax a, mkMin b)
     let smallDouble := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
     let largeDouble := 10 ^ ((Nat.toDigits 10 b).length / 2) + 1
