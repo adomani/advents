@@ -230,6 +230,8 @@ def part2 (dat : String) : Nat := Id.run do
   let pairs := inputToRanges dat
   let mut allPrs := #[]
   for (a, b) in pairs do
+    -- We make sure that we evaluate `processTwo` on ranges with numbers consisting of the same
+    -- number of digits, by splitting at `next999 a`, if necessary.
     let mid := next999 a
     let processed :=
       if b ≤ mid then processTwo a b else processTwo a mid ++ processTwo (mid + 1) b
