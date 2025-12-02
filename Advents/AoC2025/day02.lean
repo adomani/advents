@@ -99,7 +99,7 @@ def part1 (dat : String) : Nat :=
 
 #assert part1 test == 1227775554
 
-set_option trace.profiler true in solve 1 18952700150 file
+solve 1 18952700150 file
 
 /-!
 #  Question 2
@@ -120,7 +120,7 @@ def replaceWithMultLower (lth a : Nat) : Option (Nat × Nat) := do
   else
     return (first, mult)
 
-#eval replaceWithMultLower 1 2204535
+#assert replaceWithMultLower 1 2204535 == some (2, 1111111)
 
 /--
 Splits the input natural number `a` into consecutive subsequences of `lth` digits each.
@@ -136,18 +136,13 @@ def replaceWithMultUpper (lth a : Nat) : Option (Nat × Nat) := do
   if (Nat.toDigits 10 a).length % lth != 0 then none else
   let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
   let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
-  --dbg_trace (first::rest, mult)
   if let some ne := rest.find? (· != first) then
     if first ≤ ne then return (first, mult) else return (first - 1, mult)
   else
     return (first, mult)
 
---  if rest.all (first ≤ ·) then
---    return (first, mult)
---  else
---    return (first - 1, mult)
-
-#eval replaceWithMultUpper 1 2244247
+#assert replaceWithMultUpper 1 2244247 == some (2, 1111111)
+#assert replaceWithMultUpper 1 2241247 == some (2, 1111111)
 
 #assert
   (replaceWithMultLower 2 123456, replaceWithMultUpper 2 123456) ==
@@ -161,13 +156,10 @@ def replaceWithMultUpper (lth a : Nat) : Option (Nat × Nat) := do
   (replaceWithMultLower 2 121212, replaceWithMultUpper 2 121212) ==
     (some (12, 10101), some (12, 10101))
 
---def rangesWithSize (lth a b : Nat) : Nat :=
---  let a := if
-
 def next999 (a : Nat) : Nat :=
   10 ^ (Nat.toDigits 10 a).length - 1
 
-#eval next999 1234 -- 9999
+#assert next999 1234 == 9999
 
 /-
 * 2: `11-22` still has `two` invalid IDs,                   `11` and `22`.
@@ -200,69 +192,28 @@ def processTwo (a b : Nat) (verbose? : Bool := false) :
       fin := fin.push ((aPair.1, b), mult)
     | some (a, multa), some (b, multb) =>
       if b < a then
-        continue --dbg_trace "{i}: none ({a}, {b}) -- {multa} {multb}"
+        continue
       else
         if verbose? then dbg_trace "{i}: {(a, b)} -- {multa} {multb}"
         fin := fin.push ((a, b), if multa != multb then panic! s!"{#[multa, multb]}" else multa)
   return fin
 
-#eval processTwo 2204535 2244247 true
-#eval replaceWithMultLower 1 2204535
-#eval replaceWithMultUpper 1 2244247
+#assert processTwo 2204535 2244247 == #[((2, 2), 1111111)]
 
 def mkReps (h : Array ((Nat × Nat) × Nat)) : Std.HashSet Nat :=
   h.foldl (init := ∅) fun acc ((a, b), mult) =>
-    acc.insertMany ((List.range (b - a + 1)).map (fun x => (a + x) * mult))
-
-def mkRepsArray (h : Array ((Nat × Nat) × Nat)) : Array Nat :=
-  h.foldl (init := #[]) fun acc ((a, b), mult) =>
-    acc ++ ((List.range (b - a + 1)).map (fun x => (a + x) * mult))
-
-#eval do
-  let v? := false
-  let dat := test
-  let dat ← IO.FS.readFile input
-  let pairs := inputToRanges dat
-  let mut tot := 0
-  let mut allPrs := #[]
-  for (a, b) in pairs do
-  --let sums := pairs.map fun ((a, b) : Nat × Nat) => Id.run do
-    let mid := next999 a
-    let processed :=
-      if b ≤ mid then processTwo a b v? else processTwo a mid v? ++ processTwo (1 + mid) b v?
-    dbg_trace "---\n* {(a, b)}\n"
-    if processed.isEmpty then dbg_trace "empty"; continue
-    dbg_trace "{"\n".intercalate (processed.map (s!"{·}")).toList}"
-    dbg_trace ""
-    tot := tot + (processed.map fun (((a, b), _arr) : (Nat × Nat) × Nat) => b - a + 1).sum
-    allPrs := allPrs ++ processed
-  dbg_trace tot
-  dbg_trace mkRepsArray allPrs
-
-  --dbg_trace (mkReps allPrs).toArray.qsort
-  ----dbg_trace allPrs
-  dbg_trace (mkReps allPrs).toArray.sum
-
--- 18980589997 too low
--- 18984184711 too low
+    acc.insertMany <| (List.range (b - a + 1)).map fun x => (a + x) * mult
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : String) : Nat := Id.run do
   let pairs := inputToRanges dat
-  let mut tot := 0
   let mut allPrs := #[]
   for (a, b) in pairs do
-  --let sums := pairs.map fun ((a, b) : Nat × Nat) => Id.run do
     let mid := next999 a
     let processed :=
-      if b ≤ mid then processTwo a b else processTwo a mid ++ processTwo (1 + mid) b
-    --dbg_trace "---\n* {(a, b)}\n"
+      if b ≤ mid then processTwo a b else processTwo a mid ++ processTwo (mid + 1) b
     if processed.isEmpty then
-      --dbg_trace "empty"
       continue
-    --dbg_trace "{"\n".intercalate (processed.map (s!"{·}")).toList}"
-    --dbg_trace ""
-    tot := tot + (processed.map fun (((a, b), _arr) : (Nat × Nat) × Nat) => b - a + 1).sum
     allPrs := allPrs ++ processed
   (mkReps allPrs).toArray.sum
 
