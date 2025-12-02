@@ -14,6 +14,10 @@ def input : FilePath := ("Advents"/"AoC2025"/"day02" : FilePath).withExtension "
 /-- `test` is the test string for the problem. -/
 def test := "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124"
 
+/--
+Converts the input string `s` into an array of pairs of natural numbers,
+corresponding to the ranges.
+-/
 def inputToRanges (s : String) : Array (Nat × Nat) :=
   let pairsStr := s.splitOn ","
   let pairs := pairsStr.filterMap fun t =>
@@ -78,10 +82,11 @@ def mkMin (a : Nat) : Nat :=
   let as := [1123, 9, 123, 4321]
   as.map mkMin == [11, 0, 9, 42]
 
+/-- The sum of all the natural numbers from `0` to `a` inclusive. -/
 def countTo (a : Nat) : Nat := a * (a + 1) / 2
 
-def countFromTo (a b : Nat) : Nat :=
-  countTo b - countTo (a - 1)
+/-- The sum of all the natural numbers from `a` to `b` inclusive. -/
+def countFromTo (a b : Nat) : Nat := countTo b - countTo (a - 1)
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
@@ -105,6 +110,10 @@ solve 1 18952700150 file
 #  Question 2
 -/
 
+/--
+`splitEvery l n` splits the list `l` into consecutive sublists of length `n`,
+where the last sublist may be shorter than `n` if the length of `l` is not divisible by `n`.
+-/
 def splitEvery (l : List α) (n : Nat) : List (List α) :=
   if n = 0 then [l] else
   if l.length ≤ n then [l] else
@@ -128,7 +137,7 @@ def replaceWithMultLower (lth a : Nat) : Option (Nat × Nat) := do
   let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
   let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
   if let some ne := rest.find? (· != first) then
-    if ne ≤ first then return (first, mult) else return (first + 1, mult)
+    if ne < first then return (first, mult) else return (first + 1, mult)
   else
     return (first, mult)
 
@@ -152,7 +161,7 @@ def replaceWithMultUpper (lth a : Nat) : Option (Nat × Nat) := do
   let first::rest := (splitEvery (Nat.toDigits 10 a) lth).map (String.toNat! ∘ String.ofList) | failure
   let mult := ((List.range (rest.length + 1)).map fun i => (10 ^ (lth * i))).sum
   if let some ne := rest.find? (· != first) then
-    if first ≤ ne then return (first, mult) else return (first - 1, mult)
+    if first < ne then return (first, mult) else return (first - 1, mult)
   else
     return (first, mult)
 
@@ -171,6 +180,9 @@ def replaceWithMultUpper (lth a : Nat) : Option (Nat × Nat) := do
   (replaceWithMultLower 2 121212, replaceWithMultUpper 2 121212) ==
     (some (12, 10101), some (12, 10101))
 
+/--
+`next999 a` returns the number with the same number of digits as `a`, all of whose digits are `9`.
+ -/
 def next999 (a : Nat) : Nat :=
   10 ^ (Nat.toDigits 10 a).length - 1
 
@@ -190,6 +202,13 @@ def next999 (a : Nat) : Nat :=
 * 1: `2121212118-2121212124` now has `one` invalid ID,       `2121212121`.
 -/
 
+/--
+`processTwo a b` processes the IDs in the range from `a` to `b` (inclusive)
+and returns an array of pairs `((a', b'), mult)` where
+all multiples `x * mult` of `mult` with `x ∈ [a', b']` are invalid IDs.
+
+If the `verbose?` flag is set to `true`, it also prints debugging information.
+-/
 def processTwo (a b : Nat) (verbose? : Bool := false) :
     Array ((Nat × Nat) × Nat) := Id.run do
   let mut fin := #[]
@@ -215,6 +234,9 @@ def processTwo (a b : Nat) (verbose? : Bool := false) :
 
 #assert processTwo 2204535 2244247 == #[((2, 2), 1111111)]
 
+/--
+Processes the output of `processTwo` to produce a `HashSet` of all invalid IDs.
+-/
 def mkReps (h : Array ((Nat × Nat) × Nat)) : Std.HashSet Nat :=
   h.foldl (init := ∅) fun acc ((a, b), mult) =>
     acc.insertMany <| (List.range (b - a + 1)).map fun x => (a + x) * mult
