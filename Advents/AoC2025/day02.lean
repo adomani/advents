@@ -197,7 +197,13 @@ def processTwo (a b : Nat) (verbose? : Bool := false) :
         fin := fin.push ((a, b), if multa != multb then panic! s!"{#[multa, multb]}" else multa)
   return fin
 
+def mkReps (h : Array ((Nat × Nat) × Nat)) : Std.HashSet Nat :=
+  h.foldl (init := ∅) fun acc ((a, b), mult) =>
+    acc.insertMany ((List.range (b - a + 1)).map (fun x => (a + x) * mult))
 
+def mkRepsArray (h : Array ((Nat × Nat) × Nat)) : Array Nat :=
+  h.foldl (init := #[]) fun acc ((a, b), mult) =>
+    acc ++ ((List.range (b - a + 1)).map (fun x => (a + x) * mult))
 
 #eval do
   let v? := false
@@ -205,6 +211,7 @@ def processTwo (a b : Nat) (verbose? : Bool := false) :
   let dat ← IO.FS.readFile input
   let pairs := inputToRanges dat
   let mut tot := 0
+  let mut allPrs := #[]
   for (a, b) in pairs do
   --let sums := pairs.map fun ((a, b) : Nat × Nat) => Id.run do
     let mid := next999 a
@@ -214,15 +221,43 @@ def processTwo (a b : Nat) (verbose? : Bool := false) :
     if processed.isEmpty then dbg_trace "empty"; continue
     dbg_trace "{"\n".intercalate (processed.map (s!"{·}")).toList}"
     dbg_trace ""
-    tot := tot + (processed.map fun (((a, b), arr) : (Nat × Nat) × Nat) =>
-      if arr == 1 then 1 else b - a + 1).sum
+    tot := tot + (processed.map fun (((a, b), _arr) : (Nat × Nat) × Nat) => b - a + 1).sum
+    allPrs := allPrs ++ processed
   dbg_trace tot
+  dbg_trace mkRepsArray allPrs
+
+  --dbg_trace (mkReps allPrs).toArray.qsort
+  ----dbg_trace allPrs
+  --dbg_trace (mkReps allPrs).toArray.sum
+
+-- 18980589997 too low
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : String) : Nat := Id.run do
+  let pairs := inputToRanges dat
+  let mut tot := 0
+  let mut allPrs := #[]
+  for (a, b) in pairs do
+  --let sums := pairs.map fun ((a, b) : Nat × Nat) => Id.run do
+    let mid := next999 a
+    let processed :=
+      if b ≤ mid then processTwo a b else processTwo a mid ++ processTwo (1 + mid) b
+    --dbg_trace "---\n* {(a, b)}\n"
+    if processed.isEmpty then
+      --dbg_trace "empty"
+      continue
+    --dbg_trace "{"\n".intercalate (processed.map (s!"{·}")).toList}"
+    --dbg_trace ""
+    tot := tot + (processed.map fun (((a, b), _arr) : (Nat × Nat) × Nat) => b - a + 1).sum
+    allPrs := allPrs ++ processed
+  --dbg_trace tot
+  --dbg_trace mkRepsArray allPrs
 
---#assert part2 atest == ???
+  --dbg_trace (mkReps allPrs).toArray.qsort
+  ----dbg_trace allPrs
+  (mkReps allPrs).toArray.sum
 
---set_option trace.profiler true in solve 2
+#assert part2 test == 4174379265
+
+set_option trace.profiler true in solve 2 0 file
 
 end AoC2025_Day02
