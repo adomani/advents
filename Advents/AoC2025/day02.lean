@@ -37,11 +37,58 @@ def countResidues (res fin : Nat) (mod : Nat) : Nat :=
     if !twoOrdersOfMagnitude.isEmpty then
       IO.println "No pairs with at least two orders of magnitude difference."
 
-def toBase (a : Nat) : Nat :=
-  if a % 2 == 0 then
-    10 ^ ((Nat.toDigits 10 a).length / 2) + 1
+def oneOhOne (a : Nat) := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
+
+/--
+`mkMinMax a fn` writes `a` to base `10` and
+* if `a` has an odd number of digits, then it returns `99...9`, where the number of `9`s is
+  half the number of digits of `a` rounded down;
+* if `a` has an even number of digits, then it splits the digits in half and returns the value
+  of `fn` on two halves interpreted as numbers.
+
+This is used only with `fn ∈ {min, max}`.
+-/
+def mkMinMax (a : Nat) (fn : Nat → Nat → Nat) : Nat :=
+  let digs := (Nat.toDigits 10 a).length
+  if digs % 2 == 1 then 10 ^ (digs / 2) - 1 else
+  let len := digs / 2
+  fn (a / 10 ^ len) (a % 10 ^ len)
+
+/--
+`mkMax a` writes `a` to base `10` and
+* if `a` has an odd number of digits, then it returns `99...9`, where the number of `9`s is
+  half the number of digits of `a` rounded down;
+* if `a` has an even number of digits, then it splits the digits in half and returns the maximum
+  of the two halves interpreted as numbers.
+-/
+def mkMax (a : Nat) : Nat := mkMinMax a max
+
+#assert
+  let as := [1123, 9, 123, 4321]
+  as.map mkMax == [23, 0, 9, 43]
+
+/--
+`mkMin a` writes `a` to base `10` and
+* if `a` has an odd number of digits, then it returns `99...9`, where the number of `9`s is
+  half the number of digits of `a` rounded down;
+* if `a` has an even number of digits, then it splits the digits in half and returns the minimum
+  of the two halves interpreted as numbers.
+-/
+def mkMin (a : Nat) : Nat := mkMinMax a min
+
+#assert
+  let as := [1123, 9, 123, 4321]
+  as.map mkMin == [11, 0, 9, 21]
+
+def toBaseAndRange (a b : Nat) : Option (Nat × (Nat × Nat)) :=
+  let aDigs := (Nat.toDigits 10 a).length
+  let bDigs := (Nat.toDigits 10 b).length
+  if aDigs % 2 == 0 then
+    some (oneOhOne a, a, if bDigs == aDigs then b else 10 ^ aDigs - 1)
   else
-    10 ^ (((Nat.toDigits 10 a).length + 1) / 2) + 1
+  if bDigs % 2 == 0 then
+    some (oneOhOne b, 10 ^ aDigs, b)
+  else none
 
 -- #[2, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0]
 #eval do
@@ -49,8 +96,11 @@ def toBase (a : Nat) : Nat :=
   let dat := test
   let pairs := inputToRanges dat
   let twoOrdersOfMagnitude := pairs.map fun ((a, b) : Nat × Nat) =>
-    let base := toBase b
-    countResidues (base - (a % base)) (b - a + 1) base
+    dbg_trace (mkMax a, mkMin b)
+    if let some (base, (start, stop)) := toBaseAndRange a b
+    then
+      countResidues (base - (start % base)) (stop - start + 1) base
+    else 0
     --if (Nat.toDigits 10 a).length + 2 ≤ (Nat.toDigits 10 b).length then some (a, b) else none
   dbg_trace twoOrdersOfMagnitude
 
