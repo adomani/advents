@@ -231,9 +231,7 @@ def processTwo (a b : Nat) (verbose? : Bool := false) :
 
 #assert processTwo 2204535 2244247 == #[((2, 2), 1111111)]
 
-/--
-Processes the output of `processTwo` to produce a `HashSet` of all invalid IDs.
--/
+/-- Processes the output of `processTwo` to produce a `HashSet` of all invalid IDs. -/
 def mkReps (h : Array ((Nat × Nat) × Nat)) : Std.HashSet Nat :=
   h.foldl (init := ∅) fun acc ((a, b), mult) =>
     acc.insertMany <| (List.range (b - a + 1)).map fun x => (a + x) * mult
