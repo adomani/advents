@@ -204,29 +204,18 @@ def next999 (a : Nat) : Nat :=
 and returns an array of pairs `((a', b'), mult)` where
 all multiples `x * mult` of `mult` with `x ∈ [a', b']` are invalid IDs.
 
-If the `verbose?` flag is set to `true`, it also prints debugging information.
+*Note*. The function expects `a` and `b` to have the same number of digits.
 -/
-def processTwo (a b : Nat) (verbose? : Bool := false) :
-    Array ((Nat × Nat) × Nat) := Id.run do
+def processTwo (a b : Nat) : Array ((Nat × Nat) × Nat) := Id.run do
   let mut fin := #[]
   for i in [1:(Nat.toDigits 10 b).length] do
     match replaceWithMultLower i a, replaceWithMultUpper i b with
-    -- neither the number of digits of `a` nor of `b` are multiples of `i`
-    | none, none => continue
-    | some (a, mult), none =>
-      let bPair := (replaceWithMultUpper i (next999 a)).get!
-      if verbose? then dbg_trace "{i}: {a} {bPair} -- {mult}"
-      fin := fin.push ((a, bPair.1), mult)
-    | none, some (b, mult) =>
-      let aPair := (replaceWithMultLower i (1 + next999 a)).get!
-      if verbose? then dbg_trace "{i}: {aPair} {b} -- {mult}"
-      fin := fin.push ((aPair.1, b), mult)
     | some (a, multa), some (b, multb) =>
       if b < a then
         continue
       else
-        if verbose? then dbg_trace "{i}: {(a, b)} -- {multa} {multb}"
         fin := fin.push ((a, b), if multa != multb then panic! s!"{#[multa, multb]}" else multa)
+    | _, _ => continue
   return fin
 
 #assert processTwo 2204535 2244247 == #[((2, 2), 1111111)]
