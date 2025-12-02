@@ -41,7 +41,7 @@ def inputToRanges (s : String) : Array (Nat × Nat) :=
 * if `a` has an even number of digits, then it splits the digits in half and returns the value
   of `fn` on two halves interpreted as numbers.
 
-This is used only with `fn ∈ {min, max}`.
+This is used only with two possibilities for `fn`: see `mkMax` and `mkMin`.
 -/
 def mkMinMax (a : Nat) (fn : Nat → Nat → Nat) : Option Nat :=
   let digs := (Nat.toDigits 10 a).length
