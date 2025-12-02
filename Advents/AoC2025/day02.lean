@@ -246,8 +246,6 @@ def part2 (dat : String) : Nat := Id.run do
     let mid := next999 a
     let processed :=
       if b ≤ mid then processTwo a b else processTwo a mid ++ processTwo (mid + 1) b
-    if processed.isEmpty then
-      continue
     allPrs := allPrs ++ processed
   (mkReps allPrs).toArray.sum
 
