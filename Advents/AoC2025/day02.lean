@@ -37,8 +37,7 @@ def inputToRanges (s : String) : Array (Nat × Nat) :=
 
 /--
 `mkMinMax a fn` writes `a` to base `10` and
-* if `a` has an odd number of digits, then it returns `99...9`, where the number of `9`s is
-  half the number of digits of `a` rounded down;
+* if `a` has an odd number of digits, then it returns `none`;
 * if `a` has an even number of digits, then it splits the digits in half and returns the value
   of `fn` on two halves interpreted as numbers.
 
@@ -52,10 +51,9 @@ def mkMinMax (a : Nat) (fn : Nat → Nat → Nat) : Option Nat :=
 
 /--
 `mkMax a` writes `a` to base `10` and
-* if `a` has an odd number of digits, then it returns `99...9`, where the number of `9`s is
-  half the number of digits of `a` rounded down;
-* if `a` has an even number of digits, then it splits the digits in half and returns the maximum
-  of the two halves interpreted as numbers.
+* if `a` has an odd number of digits, then it returns `10 ^ ⌊(log₁₀ a) / 2⌋`;
+* if `a` has an even number of digits, then it splits the digits in half and returns either the
+  first half of `a` or one more than that, depending on the relative size of the two halves.
 -/
 def mkMax (a : Nat) : Nat :=
   (mkMinMax a (fun x y => if x < y then x + 1 else x)).getD <|
@@ -68,10 +66,9 @@ def mkMax (a : Nat) : Nat :=
 
 /--
 `mkMin a` writes `a` to base `10` and
-* if `a` has an odd number of digits, then it returns `99...9`, where the number of `9`s is
-  half the number of digits of `a` rounded down;
-* if `a` has an even number of digits, then it splits the digits in half and returns the minimum
-  of the two halves interpreted as numbers.
+* if `a` has an odd number of digits, then it returns `10 ^ ⌊(log₁₀ a) / 2⌋`;
+* if `a` has an even number of digits, then it splits the digits in half and returns either the
+  first half of `a` or one less than that, depending on the relative size of the two halves.
 -/
 def mkMin (a : Nat) : Nat :=
   (mkMinMax a (fun x y => if x ≤ y then x else x - 1)).getD <|
