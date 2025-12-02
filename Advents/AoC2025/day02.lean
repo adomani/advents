@@ -48,11 +48,11 @@ def oneOhOne (a : Nat) := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
 
 This is used only with `fn ∈ {min, max}`.
 -/
-def mkMinMax (a : Nat) (fn : Nat → Nat → Nat) : Nat :=
+def mkMinMax (a : Nat) (fn : Nat → Nat → Nat) : Option Nat :=
   let digs := (Nat.toDigits 10 a).length
-  if digs % 2 == 1 then 10 ^ (digs / 2) - 1 else
+  if digs % 2 == 1 then none else --10 ^ (digs / 2) - 1 else
   let len := digs / 2
-  fn (a / 10 ^ len) (a % 10 ^ len)
+  some (fn (a / 10 ^ len) (a % 10 ^ len))
 
 /--
 `mkMax a` writes `a` to base `10` and
@@ -61,11 +61,15 @@ def mkMinMax (a : Nat) (fn : Nat → Nat → Nat) : Nat :=
 * if `a` has an even number of digits, then it splits the digits in half and returns the maximum
   of the two halves interpreted as numbers.
 -/
-def mkMax (a : Nat) : Nat := mkMinMax a max
+def mkMax (a : Nat) : Nat :=
+  (mkMinMax a max).getD <|
+    let digs := ((Nat.toDigits 10 a).length) / 2
+    10 ^ digs
+
 
 #assert
   let as := [1123, 9, 123, 4321]
-  as.map mkMax == [23, 0, 9, 43]
+  as.map mkMax == [23, 1, 10, 43]
 
 /--
 `mkMin a` writes `a` to base `10` and
@@ -74,11 +78,15 @@ def mkMax (a : Nat) : Nat := mkMinMax a max
 * if `a` has an even number of digits, then it splits the digits in half and returns the minimum
   of the two halves interpreted as numbers.
 -/
-def mkMin (a : Nat) : Nat := mkMinMax a min
+def mkMin (a : Nat) : Nat := --mkMinMax a min
+  (mkMinMax a min).getD <|
+    let digs := (Nat.toDigits 10 a).length / 2
+    --if digs == 0 then 0 else
+    10 ^ digs - 1
 
-#assert
+#eval
   let as := [1123, 9, 123, 4321]
-  as.map mkMin == [11, 0, 9, 21]
+  as.map mkMin --== [11, 0, 9, 21]
 
 def toBaseAndRange (a b : Nat) : Option (Nat × (Nat × Nat)) :=
   let aDigs := (Nat.toDigits 10 a).length
@@ -90,13 +98,27 @@ def toBaseAndRange (a b : Nat) : Option (Nat × (Nat × Nat)) :=
     some (oneOhOne b, 10 ^ aDigs, b)
   else none
 
+def countTo (a : Nat) : Nat := a * (a + 1) / 2
+
+def countFromTo (a b : Nat) : Nat :=
+  countTo b - countTo (a - 1)
+
 -- #[2, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0]
 #eval do
   let dat ← IO.FS.readFile input
   let dat := test
   let pairs := inputToRanges dat
   let twoOrdersOfMagnitude := pairs.map fun ((a, b) : Nat × Nat) =>
-    dbg_trace (mkMax a, mkMin b)
+    let small := mkMax a
+    let smallDouble := 10 ^ ((Nat.toDigits 10 a).length / 2) + 1
+    let large := mkMin b
+    let largeDouble := 10 ^ ((Nat.toDigits 10 b).length / 2) + 1
+    dbg_trace "{(small, large)} count: {countFromTo small large}"
+    dbg_trace "a: {(a, small, smallDouble)}"
+    dbg_trace "b: {(b, large, largeDouble)}"
+    dbg_trace "{(small ≤ large : Bool)}"
+    dbg_trace ""
+
     if let some (base, (start, stop)) := toBaseAndRange a b
     then
       countResidues (base - (start % base)) (stop - start + 1) base
