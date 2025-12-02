@@ -35,3 +35,31 @@ times with a single rotation.
 [Solution in Lean](day01.lean)
 
 ---
+
+#  [Day 2](https://adventofcode.com/2025/day/2)
+
+The input is a sequence of ranges of IDs that are all natural numbers.
+
+####  Test
+
+<pre>
+11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124
+</pre>
+
+### Description
+
+#### Part 1
+
+Find the IDs in the given ranges that consist of the concatenation of twice the same natural number,
+when written to base `10` and report their sum.
+
+For instance, `123123`, `1010` and `22` are examples of natural numbers that we are seeking.
+
+#### Part 2
+
+For the second part, we should find all numbers in the given ranges that are a concatenation of
+*at least* two identical numbers and again report the sum of all such IDs.
+
+[Solution in Lean](day02.lean)
+
+---
