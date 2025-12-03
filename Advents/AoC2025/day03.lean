@@ -38,31 +38,59 @@ def getMaxs (dat : List Nat) : Nat × Nat :=
   else
     (m2, m1)
 
-#eval do
-  let dat := atest
-  let dat ← IO.FS.lines input
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
   let digs := dat.map inputToDigits
   let maxs := digs.map getMaxs
-  dbg_trace maxs.foldl (init := 0) fun tot (a, b) => tot + 10 * a + b
+  maxs.foldl (init := 0) fun tot (a, b) => tot + 10 * a + b
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+#assert part1 atest == 357
 
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
+solve 1 17100
 
 /-!
 #  Question 2
 -/
 
+def getMaxBefore (dat : List Nat) (left : Nat) : Nat × List Nat :=
+  let cands := (dat.reverse.drop (left - 1)).reverse
+  let m1 := cands.max?.getD 0
+  let i1 := dat.findIdx (· == m1)
+  let l2 := dat.drop (i1 + 1)
+  (m1, l2)
+
+partial
+def getNMaxs (dat : Array Nat × List Nat) (left : Nat) : Array Nat :=
+  let (acc, leftovers) := dat
+  if left == 0 then acc else
+  let (newMax, newLeftovers) := getMaxBefore leftovers left
+  getNMaxs (acc.push newMax, newLeftovers) (left - 1)
+
+def mkNat (as : Array Nat) : Nat :=
+  (Array.range as.size).foldl (init := 0) fun tot i => 10 * tot + as[i]!
+
+#assert mkNat #[1,2,3] == 123
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest
+  let digs := dat.map inputToDigits
+  --let maxs := digs.map (getMaxBefore · 2)
+  let maxs := digs.map fun ds => (getNMaxs (#[], ds) 12)
+  dbg_trace (maxs.map mkNat).sum --.foldl (init := 0) fun tot (a, b) => tot + 10 * a + b
+
+
+
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat :=
+  let digs := dat.map inputToDigits
+  --let maxs := digs.map (getMaxBefore · 2)
+  let maxs := digs.map fun ds => (getNMaxs (#[], ds) 12)
+  (maxs.map mkNat).sum --.foldl (init := 0) fun tot (a, b) => tot + 10 * a + b
 
---#assert part2 atest == ???
+#assert part2 atest == 3121910778619
 
---set_option trace.profiler true in solve 2
+set_option trace.profiler true in solve 2
 
 end AoC2025_Day03
