@@ -23,35 +23,6 @@ def atest := (test.splitOn "\n").toArray
 def inputToDigits (s : String) : List Nat :=
   s.toList.map fun c => ("".push c).toNat!
 
-def getMaxs (dat : List Nat) : Nat × Nat :=
-  let m1 := dat.max?.getD 0
-  let i1 := dat.findIdx (· == m1)
-  if i1 < dat.length - 1 then
-    let l2 := dat.drop (i1 + 1)
-    (m1, l2.max?.getD 0)
-  else
-  let dat2 := dat.erase m1
-  let m2 := dat2.max?.getD 0
-  let i2 := dat2.findIdx (· == m2)
-  if i1 ≤ i2 then
-    (m1, m2)
-  else
-    (m2, m1)
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat :=
-  let digs := dat.map inputToDigits
-  let maxs := digs.map getMaxs
-  maxs.foldl (init := 0) fun tot (a, b) => tot + 10 * a + b
-
-#assert part1 atest == 357
-
-solve 1 17100
-
-/-!
-#  Question 2
--/
-
 def getMaxBefore (dat : List Nat) (left : Nat) : Nat × List Nat :=
   let cands := (dat.reverse.drop (left - 1)).reverse
   let m1 := cands.max?.getD 0
@@ -71,26 +42,28 @@ def mkNat (as : Array Nat) : Nat :=
 
 #assert mkNat #[1,2,3] == 123
 
-#eval do
-  let dat ← IO.FS.lines input
-  let dat := atest
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
   let digs := dat.map inputToDigits
-  --let maxs := digs.map (getMaxBefore · 2)
-  let maxs := digs.map fun ds => (getNMaxs (#[], ds) 12)
-  dbg_trace (maxs.map mkNat).sum --.foldl (init := 0) fun tot (a, b) => tot + 10 * a + b
+  let maxs := digs.map fun ds => (getNMaxs (#[], ds) 2)
+  (maxs.map mkNat).sum
 
+#assert part1 atest == 357
 
+solve 1 17100
 
+/-!
+#  Question 2
+-/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
   let digs := dat.map inputToDigits
-  --let maxs := digs.map (getMaxBefore · 2)
   let maxs := digs.map fun ds => (getNMaxs (#[], ds) 12)
-  (maxs.map mkNat).sum --.foldl (init := 0) fun tot (a, b) => tot + 10 * a + b
+  (maxs.map mkNat).sum
 
 #assert part2 atest == 3121910778619
 
-set_option trace.profiler true in solve 2
+solve 2
 
 end AoC2025_Day03
