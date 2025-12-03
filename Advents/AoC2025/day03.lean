@@ -20,9 +20,21 @@ def test := "987654321111111
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+Converts the input string to the list of digits composing it.
+
+*Note*.  This function assumes that the initial list consists only of digits.
+-/
 def inputToDigits (s : String) : List Nat :=
   s.toList.map fun c => ("".push c).toNat!
 
+/--
+`getMaxBefore dat left` finds the earliest largest value in the input list `dat` that happens
+at least `left` position from the end.
+
+It returns the largest value found, as well as the residual list that follows the value that was
+found.
+-/
 def getMaxBefore (dat : List Nat) (left : Nat) : Nat × List Nat :=
   let cands := (dat.reverse.drop (left - 1)).reverse
   let m1 := cands.max?.getD 0
@@ -30,12 +42,14 @@ def getMaxBefore (dat : List Nat) (left : Nat) : Nat × List Nat :=
   let l2 := dat.drop (i1 + 1)
   (m1, l2)
 
+/--
+This is the cumulative version of `getMaxBefore`: extract `left` consecutive maxima from the input
+-/
 partial
-def getNMaxs (dat : Array Nat × List Nat) (left : Nat) : Array Nat :=
-  let (acc, leftovers) := dat
+def getNMaxs (acc : Array Nat) (dat : List Nat) (left : Nat) : Array Nat :=
   if left == 0 then acc else
-  let (newMax, newLeftovers) := getMaxBefore leftovers left
-  getNMaxs (acc.push newMax, newLeftovers) (left - 1)
+  let (newMax, newDat) := getMaxBefore dat left
+  getNMaxs (acc.push newMax) newDat (left - 1)
 
 def mkNat (as : Array Nat) : Nat :=
   (Array.range as.size).foldl (init := 0) fun tot i => 10 * tot + as[i]!
@@ -45,7 +59,7 @@ def mkNat (as : Array Nat) : Nat :=
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let digs := dat.map inputToDigits
-  let maxs := digs.map fun ds => (getNMaxs (#[], ds) 2)
+  let maxs := digs.map fun ds => (getNMaxs #[] ds 2)
   (maxs.map mkNat).sum
 
 #assert part1 atest == 357
@@ -59,7 +73,7 @@ solve 1 17100
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
   let digs := dat.map inputToDigits
-  let maxs := digs.map fun ds => (getNMaxs (#[], ds) 12)
+  let maxs := digs.map fun ds => (getNMaxs #[] ds 12)
   (maxs.map mkNat).sum
 
 #assert part2 atest == 3121910778619
