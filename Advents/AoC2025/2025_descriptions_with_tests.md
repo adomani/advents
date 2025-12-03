@@ -63,3 +63,36 @@ For the second part, we should find all numbers in the given ranges that are a c
 [Solution in Lean](day02.lean)
 
 ---
+
+#  [Day 3](https://adventofcode.com/2025/day/3)
+
+The input is a list of sequences of joltages, each of which is a natural number from `1` to `9`.
+
+####  Test
+
+<pre>
+987654321111111
+811111111111119
+234234234234278
+818181911112111
+</pre>
+
+### Description
+
+#### Part 1
+
+Find the pairs of joltages in each sequence that are the digits of the largest natural number
+that can be extracted in order.
+Report the sum of such two-digit numbers.
+
+For instance, from `321` extract `32` and from `123` extract `23`.
+Their sum would be `55`.
+
+#### Part 2
+
+For the second part, we should do the same as in part 1, except that we want to sum the largest
+12-digit numbers that can be extracted.
+
+[Solution in Lean](day03.lean)
+
+---
