@@ -56,8 +56,7 @@ def getNMaxs (acc : Nat) (dat : List Nat) (left : Nat) : Nat :=
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let digs := dat.map inputToDigits
-  let maxs := digs.map (getNMaxs 0 · 2)
-  maxs.sum
+  (digs.map (getNMaxs 0 · 2)).sum
 
 #assert part1 atest == 357
 
@@ -70,8 +69,7 @@ solve 1 17100
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
   let digs := dat.map inputToDigits
-  let maxs := digs.map (getNMaxs 0 · 12)
-  maxs.sum
+  (digs.map (getNMaxs 0 · 12)).sum
 
 #assert part2 atest == 3121910778619
 
