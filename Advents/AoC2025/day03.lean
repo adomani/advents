@@ -53,10 +53,18 @@ def getNMaxs (acc : Nat) (dat : List Nat) (left : Nat) : Nat :=
   let (newMax, newDat) := getMaxBefore dat left
   getNMaxs (10 * acc + newMax) newDat (left - 1)
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat :=
+/--
+Convert the input data `dat` into an array of joltages.
+Then sum the largest sublists of length `n` that can be extracted.
+
+This is the common shape of the solutions to the two parts.
+-/
+def sols (dat : Array String) (n : Nat) : Nat :=
   let digs := dat.map inputToDigits
-  (digs.map (getNMaxs 0 · 2)).sum
+  (digs.map (getNMaxs 0 · n)).sum
+
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := sols dat 2
 
 #assert part1 atest == 357
 
@@ -67,9 +75,7 @@ solve 1 17100
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat :=
-  let digs := dat.map inputToDigits
-  (digs.map (getNMaxs 0 · 12)).sum
+def part2 (dat : Array String) : Nat := sols dat 12
 
 #assert part2 atest == 3121910778619
 
