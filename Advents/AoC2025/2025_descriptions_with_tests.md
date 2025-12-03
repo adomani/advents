@@ -86,6 +86,7 @@ that can be extracted in order.
 Report the sum of such two-digit numbers.
 
 For instance, from `321` extract `32` and from `123` extract `23`.
+Their sum would be `55`.
 
 #### Part 2
 
