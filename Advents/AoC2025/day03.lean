@@ -44,29 +44,20 @@ def getMaxBefore (dat : List Nat) (left : Nat) : Nat × List Nat :=
 
 /--
 This is the cumulative version of `getMaxBefore`:
-extract `left` consecutive maxima from the input list `dat`, storing them in `acc`.
+extract `left` consecutive maxima from the input list `dat`, storing them in `acc`,
+*assuming that they are digits of a number to base 10*.
 -/
 partial
-def getNMaxs (acc : Array Nat) (dat : List Nat) (left : Nat) : Array Nat :=
+def getNMaxs (acc : Nat) (dat : List Nat) (left : Nat) : Nat :=
   if left == 0 then acc else
   let (newMax, newDat) := getMaxBefore dat left
-  getNMaxs (acc.push newMax) newDat (left - 1)
-
-/--
-Convert an array of digits into a natural number, as though it was written to base `10`.
-
-*Note*.  There is no check that the entries of `as` at between `0` and `9`.
--/
-def mkNat (as : Array Nat) : Nat :=
-  (Array.range as.size).foldl (init := 0) fun tot i => 10 * tot + as[i]!
-
-#assert mkNat #[1,2,3] == 123
+  getNMaxs (10 * acc + newMax) newDat (left - 1)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let digs := dat.map inputToDigits
-  let maxs := digs.map fun ds => (getNMaxs #[] ds 2)
-  (maxs.map mkNat).sum
+  let maxs := digs.map (getNMaxs 0 · 2)
+  maxs.sum
 
 #assert part1 atest == 357
 
@@ -79,8 +70,8 @@ solve 1 17100
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
   let digs := dat.map inputToDigits
-  let maxs := digs.map fun ds => (getNMaxs #[] ds 12)
-  (maxs.map mkNat).sum
+  let maxs := digs.map (getNMaxs 0 · 12)
+  maxs.sum
 
 #assert part2 atest == 3121910778619
 
