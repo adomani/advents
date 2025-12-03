@@ -12,7 +12,10 @@ def input : FilePath := ("Advents"/"AoC2025"/"day03" : FilePath).withExtension "
 -/
 
 /-- `test` is the test string for the problem. -/
-def test := ""
+def test := "987654321111111
+811111111111119
+234234234234278
+818181911112111"
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
