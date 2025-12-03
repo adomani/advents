@@ -30,7 +30,7 @@ def inputToDigits (s : String) : List Nat :=
 
 /--
 `getMaxBefore dat left` finds the earliest largest value in the input list `dat` that happens
-at least `left` position from the end.
+at least `left` positions from the end.
 
 It returns the largest value found, as well as the residual list that follows the value that was
 found.
