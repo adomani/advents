@@ -1,5 +1,4 @@
 import Advents.Utils
-open Std
 
 namespace AoC2025_Day02
 
