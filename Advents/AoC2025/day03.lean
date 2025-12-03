@@ -43,7 +43,8 @@ def getMaxBefore (dat : List Nat) (left : Nat) : Nat × List Nat :=
   (m1, l2)
 
 /--
-This is the cumulative version of `getMaxBefore`: extract `left` consecutive maxima from the input
+This is the cumulative version of `getMaxBefore`:
+extract `left` consecutive maxima from the input list `dat`, storing them in `acc`.
 -/
 partial
 def getNMaxs (acc : Array Nat) (dat : List Nat) (left : Nat) : Array Nat :=
@@ -51,6 +52,11 @@ def getNMaxs (acc : Array Nat) (dat : List Nat) (left : Nat) : Array Nat :=
   let (newMax, newDat) := getMaxBefore dat left
   getNMaxs (acc.push newMax) newDat (left - 1)
 
+/--
+Convert an array of digits into a natural number, as though it was written to base `10`.
+
+*Note*.  There is no check that the entries of `as` at between `0` and `9`.
+-/
 def mkNat (as : Array Nat) : Nat :=
   (Array.range as.size).foldl (init := 0) fun tot i => 10 * tot + as[i]!
 
