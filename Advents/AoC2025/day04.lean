@@ -37,13 +37,10 @@ def neighs (h : HashSet pos) (p : pos) : HashSet pos := Id.run do
       fin := fin.insert new
   return fin
 
-def accessible (h : HashSet pos) : HashSet pos :=
-  h.filter fun p => (neighs h p).size < 4
-
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let gr := sparseGrid dat (· == '@')
-  let le4 := accessible gr
+  let le4 := gr.filter fun p => (neighs gr p).size < 4
   le4.size
 
 #assert part1 atest == 13
@@ -55,8 +52,8 @@ solve 1 1409
 -/
 
 #eval do
-  let dat := atest
   let dat ← IO.FS.lines input
+  let dat := atest
   let gr := sparseGrid dat (· == '@')
   let mut old := gr
   let mut new := old.filter fun p => 4 ≤ (neighs old p).size
@@ -68,16 +65,24 @@ solve 1 1409
     con := con + 1
     IO.println s!"Step {con}"
     new := old.filter fun p => 4 ≤ (neighs old p).size
-    --draw <| drawSparse new dat.size dat[0]!.length
+    draw <| drawSparse new dat.size dat[0]!.length
     rems := rems + old.size - new.size
     IO.println (rems, old.size - new.size)
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat := Id.run do
+  let gr := sparseGrid dat (· == '@')
+  let mut old := gr
+  let mut new := old.filter fun p => 4 ≤ (neighs old p).size
+  let mut rems := old.size - new.size
+  while old != new do
+    old := new
+    new := old.filter fun p => 4 ≤ (neighs old p).size
+    rems := rems + old.size - new.size
+  return rems
 
---#assert part2 atest == ???
+#assert part2 atest == 43
 
---set_option trace.profiler true in solve 2
+set_option trace.profiler true in solve 2 8366
 
 end AoC2025_Day04
