@@ -96,3 +96,38 @@ For the second part, we should do the same as in part 1, except that we want to 
 [Solution in Lean](day03.lean)
 
 ---
+
+#  [Day 4](https://adventofcode.com/2025/day/4)
+
+The input is a grid with the positions of rolls of paper.
+
+####  Test
+
+<pre>
+..@@.@@@@.
+@@@.@.@.@@
+@@@@@.@.@@
+@.@@@@..@.
+@@.@@@@.@@
+.@@@@@@@.@
+.@.@.@.@@@
+@.@@@.@@@@
+.@@@@@@@@.
+@.@.@@@.@.
+</pre>
+
+### Description
+
+#### Part 1
+
+We should find the number of rolls of papers that have fewer than `4` nearby rolls of paper.
+
+#### Part 2
+
+For the second part, we should recursively remove all rolls of paper that have fewer than `4` nearby
+rolls of paper, until no more rolls can be removed.
+We should report how rolls we removed in the process.
+
+[Solution in Lean](day04.lean)
+
+---
