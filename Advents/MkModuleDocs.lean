@@ -14,12 +14,9 @@ def mkMdTable (rootFile : String) (descs : List String) (days : List Nat) :
     String :=
   let rows := [["Day", "Description"], [":-:", "-"]] ++
     days.zipWith (fun i s => [s!"[{i}]({rootFile}#day-{i})", s]) descs
-  Id.run do
-  let mut maxs := List.replicate rows[0]!.length 0
-  for i in rows do
-    maxs := maxs.zipWith max (i.map (·.length))
+  let maxs := rows.foldl (init := List.replicate rows[0]!.length 0) (·.zipWith (max · ·.length) ·)
   let rows := rows.map (·.zipWith padRight maxs)
-  return ("\n".intercalate <| rows.map mkTableRow).trim.push '\n'
+  ("\n".intercalate <| rows.map mkTableRow).trim.push '\n'
 
 run_cmd
   let year := 2025
