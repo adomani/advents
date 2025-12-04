@@ -349,7 +349,12 @@ def drawHash {α} [ToString α] (h : HashMap pos α) (Nx Ny : Nat) : Array Strin
     fin := fin.push str
   return fin
 
-/-- A function to draw `HashSet`s. -/
+/--
+A function to draw `HashSet`s.
+
+The `Nx` input is the *vertical* span of the `HashSet`,
+the `Ny` input is the *horizontal* span of the `HashSet`.
+-/
 def drawSparseWith (h : HashSet pos) (Nx Ny : Nat)
     (yes : pos → String := fun _ => "#") (no : pos → String := fun _ => ".") :
     Array String := Id.run do
@@ -363,7 +368,12 @@ def drawSparseWith (h : HashSet pos) (Nx Ny : Nat)
     fin := fin.push str
   return fin
 
-/-- A function to draw `HashSet`s. -/
+/--
+A function to draw `HashSet`s.
+
+If `h` is obtained by reading a "grid" `dat : Array String`, then
+the `Nx` input is likely `dat.size` and the `Ny` input is likely `dat[0]!.length`.
+-/
 def drawSparse (h : HashSet pos) (Nx Ny : Nat) (yes : String := "#") (no : String := "·") :
     Array String := Id.run do
   let mut fin := #[]
