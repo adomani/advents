@@ -56,34 +56,6 @@ def getNbs (h rem : HashSet pos) : HashSet pos :=
       if shifted ∈ h then here := here.insert shifted
     tot.insertMany here
 
-#eval do
-  let dat := atest
-  let dat ← IO.FS.lines input
-  let gr := sparseGrid dat (· == '@')
-  let mut old := gr
-  let mut (new, removed) := old.partition fun p => 4 ≤ (neighs old p).size
-  let mut nearRemoved := getNbs old removed
-  let mut rems := old.size - new.size
-
-  IO.println (rems, old.size - new.size)
-  let mut con := 0
-  while old != new && con ≤ 55 do
-    old := new
-    con := con + 1
-    IO.println s!"Step {con}"
-    --nearRemoved := getNbs old removed
-    let mut (new', removed') : HashSet pos × HashSet pos := (old, ∅)
-    for p in nearRemoved do
-      if (neighs old p).size < 4 then
-        new' := new'.erase p
-        removed' := removed'.insert p
-    (new, removed) := (new', removed') --old.partition fun p => 4 ≤ (neighs old p).size
-    nearRemoved := getNbs old removed
-
-    --draw <| drawSparse new dat.size dat[0]!.length
-    rems := rems + old.size - new.size
-    IO.println (rems, old.size - new.size)
-
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
   let gr := sparseGrid dat (· == '@')
@@ -105,6 +77,6 @@ def part2 (dat : Array String) : Nat := Id.run do
 
 #assert part2 atest == 43
 
-set_option trace.profiler true in solve 2 8366
+solve 2 8366
 
 end AoC2025_Day04
