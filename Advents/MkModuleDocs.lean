@@ -10,8 +10,7 @@ def mkTableRow (rs : List String) : String :=
 def padRight (s : String) (n : Nat) :=
   s ++ String.ofList (List.replicate (n - s.length) ' ')
 
-def mkMdTable (rootFile : String) (descs : List String)
-    (days : List Nat := List.range descs.length) :
+def mkMdTable (rootFile : String) (descs : List String) (days : List Nat) :
     String :=
   let rows := [["Day", "Description"], [":-:", "-"]] ++
     days.zipWith (fun i s => [s!"[{i}]({rootFile}#day-{i})", s]) descs
