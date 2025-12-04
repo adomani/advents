@@ -26,6 +26,10 @@ def test := "..@@.@@@@.
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+Finds the elements of `h` that are neighbours of position `p`,
+in one of the possible `8` directions.
+-/
 def neighs (h : HashSet pos) (p : pos) : HashSet pos := Id.run do
   let mut fin := ∅
   for ns in [(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)] do
@@ -48,6 +52,10 @@ solve 1 1409
 #  Question 2
 -/
 
+/--
+Given two `h rem : HashSet pos`, returns the `HashSet` of those elements of `h` that are
+neighbours of some element of `rem`.
+-/
 def getNbs (h rem : HashSet pos) : HashSet pos :=
   rem.fold (init := ∅) fun tot p => Id.run do
     let mut here : HashSet pos := ∅
