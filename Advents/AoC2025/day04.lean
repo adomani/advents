@@ -37,6 +37,20 @@ def neighs (h : HashSet pos) (p : pos) : HashSet pos := Id.run do
       fin := fin.insert new
   return fin
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
+  let gr := sparseGrid dat (· == '@')
+  let le4 := gr.filter fun p => (neighs gr p).size < 4
+  le4.size
+
+#assert part1 atest == 13
+
+solve 1 1409
+
+/-!
+#  Question 2
+-/
+
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
@@ -45,19 +59,6 @@ def neighs (h : HashSet pos) (p : pos) : HashSet pos := Id.run do
   let le4 := gr.filter fun p => (neighs gr p).size < 4
   draw <| drawSparse le4 dat.size dat[0]!.length
   IO.println le4.size
-
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
