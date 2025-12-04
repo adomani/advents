@@ -26,6 +26,27 @@ def test := "..@@.@@@@.
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+instance : Add (Int × Int) where
+  add := fun (a, b) (c, d) => (a + c, b + d)
+
+def neighs (h : HashSet pos) (p : pos) : HashSet pos := Id.run do
+  let mut fin := ∅
+  for ns in [(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)] do
+    let new := p + ns
+    if h.contains new then
+      fin := fin.insert new
+  return fin
+
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let gr := sparseGrid dat (· == '@')
+  draw <| drawSparse gr dat.size dat[0]!.length
+  let le4 := gr.filter fun p => (neighs gr p).size < 4
+  draw <| drawSparse le4 dat.size dat[0]!.length
+  IO.println le4.size
+
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
