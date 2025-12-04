@@ -26,9 +26,6 @@ def test := "..@@.@@@@.
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-instance : Add (Int × Int) where
-  add := fun (a, b) (c, d) => (a + c, b + d)
-
 def neighs (h : HashSet pos) (p : pos) : HashSet pos := Id.run do
   let mut fin := ∅
   for ns in [(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)] do
@@ -51,21 +48,39 @@ solve 1 1409
 #  Question 2
 -/
 
+def getNbs (h rem : HashSet pos) : HashSet pos :=
+  rem.fold (init := ∅) fun tot p => Id.run do
+    let mut here : HashSet pos := ∅
+    for n in [(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)] do
+      let shifted := p + n
+      if shifted ∈ h then here := here.insert shifted
+    tot.insertMany here
+
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest
+  let dat ← IO.FS.lines input
   let gr := sparseGrid dat (· == '@')
   let mut old := gr
-  let mut new := old.filter fun p => 4 ≤ (neighs old p).size
+  let mut (new, removed) := old.partition fun p => 4 ≤ (neighs old p).size
+  let mut nearRemoved := getNbs old removed
   let mut rems := old.size - new.size
+
   IO.println (rems, old.size - new.size)
   let mut con := 0
-  while old != new do
+  while old != new && con ≤ 55 do
     old := new
     con := con + 1
     IO.println s!"Step {con}"
-    new := old.filter fun p => 4 ≤ (neighs old p).size
-    draw <| drawSparse new dat.size dat[0]!.length
+    --nearRemoved := getNbs old removed
+    let mut (new', removed') : HashSet pos × HashSet pos := (old, ∅)
+    for p in nearRemoved do
+      if (neighs old p).size < 4 then
+        new' := new'.erase p
+        removed' := removed'.insert p
+    (new, removed) := (new', removed') --old.partition fun p => 4 ≤ (neighs old p).size
+    nearRemoved := getNbs old removed
+
+    --draw <| drawSparse new dat.size dat[0]!.length
     rems := rems + old.size - new.size
     IO.println (rems, old.size - new.size)
 
@@ -73,11 +88,18 @@ solve 1 1409
 def part2 (dat : Array String) : Nat := Id.run do
   let gr := sparseGrid dat (· == '@')
   let mut old := gr
-  let mut new := old.filter fun p => 4 ≤ (neighs old p).size
+  let mut (new, removed) := old.partition fun p => 4 ≤ (neighs old p).size
+  let mut nearRemoved := getNbs old removed
   let mut rems := old.size - new.size
   while old != new do
     old := new
-    new := old.filter fun p => 4 ≤ (neighs old p).size
+    let mut (new', removed') : HashSet pos × HashSet pos := (old, ∅)
+    for p in nearRemoved do
+      if (neighs old p).size < 4 then
+        new' := new'.erase p
+        removed' := removed'.insert p
+    (new, removed) := (new', removed')
+    nearRemoved := getNbs old removed
     rems := rems + old.size - new.size
   return rems
 
