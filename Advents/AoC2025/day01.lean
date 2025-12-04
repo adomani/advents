@@ -1,5 +1,11 @@
 import Advents.Utils
 
+/-!
+The input is a lists strings, starting with either `L` or `R` and continuing with a natural number.
+The first character represents whether we rotate left or right, the following natural number
+represents by how much.
+-/
+
 namespace Day01
 
 /-- `input` is the location of the file with the data for the problem. -/
@@ -7,6 +13,9 @@ def input : System.FilePath := "Advents/AoC2025/day01.input"
 
 /-!
 #  Question 1
+
+Count how many times, following the rotations, we reach the position `0` at the end of some
+rotation.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -59,6 +68,9 @@ solve 1 1034
 
 /-!
 #  Question 2
+
+Count how many times, following the rotations, we cross through the position `0`, possibly multiple
+times with a single rotation.
 -/
 
 /--

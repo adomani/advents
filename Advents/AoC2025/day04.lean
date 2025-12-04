@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+The input is a grid with the positions of rolls of paper.
+-/
+
 namespace AoC2025_Day04
 
 open System in
@@ -9,6 +13,8 @@ def input : FilePath := ("Advents"/"AoC2025"/"day04" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+We should find the number of rolls of papers that have fewer than `4` nearby rolls of paper.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -50,6 +56,10 @@ solve 1 1409
 
 /-!
 #  Question 2
+
+For the second part, we should recursively remove all rolls of paper that have fewer than `4` nearby
+rolls of paper, until no more rolls can be removed.
+We should report how rolls we removed in the process.
 -/
 
 /--

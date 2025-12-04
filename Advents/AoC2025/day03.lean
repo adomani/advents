@@ -1,5 +1,9 @@
 import Advents.Utils
 
+/-!
+The input is a list of sequences of joltages, each of which is a natural number from `1` to `9`.
+-/
+
 namespace AoC2025_Day03
 
 open System in
@@ -8,6 +12,13 @@ def input : FilePath := ("Advents"/"AoC2025"/"day03" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+Find the pairs of joltages in each sequence that are the digits of the largest natural number
+that can be extracted in order.
+Report the sum of such two-digit numbers.
+
+For instance, from `321` extract `32` and from `123` extract `23`.
+Their sum would be `55`.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -71,6 +82,9 @@ solve 1 17100
 
 /-!
 #  Question 2
+
+For the second part, we should do the same as in part 1, except that we want to sum the largest
+12-digit numbers that can be extracted.
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/

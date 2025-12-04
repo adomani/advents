@@ -1,5 +1,9 @@
 import Advents.Utils
 
+/-!
+The input is a sequence of ranges of IDs that are all natural numbers.
+-/
+
 namespace AoC2025_Day02
 
 open System in
@@ -8,6 +12,11 @@ def input : FilePath := ("Advents"/"AoC2025"/"day02" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+Find the IDs in the given ranges that consist of the concatenation of twice the same natural number,
+when written to base `10` and report their sum.
+
+For instance, `123123`, `1010` and `22` are examples of natural numbers that we are seeking.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -104,6 +113,11 @@ solve 1 18952700150 file
 
 /-!
 #  Question 2
+
+For the second part, we should find all numbers in the given ranges that are a concatenation of
+*at least* two identical numbers and again report the sum of all such IDs.
+-- Day 3
+The input is a list of sequences of joltages, each of which is a natural number from `1` to `9`.
 -/
 
 /--
