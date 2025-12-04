@@ -19,11 +19,7 @@ def mkMdTable (rootFile : String) (descs : List String)
   let mut maxs := List.replicate rows[0]!.length 0
   for i in rows do
     maxs := maxs.zipWith max (i.map (·.length))
-  let rows := rows.map fun r => Id.run do
-    let mut pads := []
-    for i in [0:r.length] do
-      pads := pads ++ [padRight r[i]! maxs[i]!]
-    return pads
+  let rows := rows.map (·.zipWith padRight maxs)
   return ("\n".intercalate <| rows.map mkTableRow).trim.push '\n'
 
 run_cmd
