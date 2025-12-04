@@ -37,10 +37,13 @@ def neighs (h : HashSet pos) (p : pos) : HashSet pos := Id.run do
       fin := fin.insert new
   return fin
 
+def accessible (h : HashSet pos) : HashSet pos :=
+  h.filter fun p => (neighs h p).size < 4
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let gr := sparseGrid dat (· == '@')
-  let le4 := gr.filter fun p => (neighs gr p).size < 4
+  let le4 := accessible gr
   le4.size
 
 #assert part1 atest == 13
@@ -55,10 +58,19 @@ solve 1 1409
   let dat := atest
   let dat ← IO.FS.lines input
   let gr := sparseGrid dat (· == '@')
-  draw <| drawSparse gr dat.size dat[0]!.length
-  let le4 := gr.filter fun p => (neighs gr p).size < 4
-  draw <| drawSparse le4 dat.size dat[0]!.length
-  IO.println le4.size
+  let mut old := gr
+  let mut new := old.filter fun p => 4 ≤ (neighs old p).size
+  let mut rems := old.size - new.size
+  IO.println (rems, old.size - new.size)
+  let mut con := 0
+  while old != new do
+    old := new
+    con := con + 1
+    IO.println s!"Step {con}"
+    new := old.filter fun p => 4 ≤ (neighs old p).size
+    --draw <| drawSparse new dat.size dat[0]!.length
+    rems := rems + old.size - new.size
+    IO.println (rems, old.size - new.size)
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
