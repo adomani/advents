@@ -6,7 +6,7 @@ The first character represents whether we rotate left or right, the following na
 represents by how much.
 -/
 
-namespace Day01
+namespace AoC2025_Day01
 
 /-- `input` is the location of the file with the data for the problem. -/
 def input : System.FilePath := "Advents/AoC2025/day01.input"
@@ -97,4 +97,4 @@ def part2 (dat : Array String) : Nat :=
 
 solve 2 6166
 
-end Day01
+end AoC2025_Day01
