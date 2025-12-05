@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+Finding fresh ingredients for the cafeteria
+-/
+
 namespace AoC2025_Day05
 
 open System in
@@ -9,6 +13,11 @@ def input : FilePath := ("Advents"/"AoC2025"/"day05" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+The input consists of ingredient ID ranges and individual IDs.
+
+First, we should determine how many of the individual IDs are contained in at least one of the
+ranges.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -70,6 +79,9 @@ solve 1 563
 
 /-!
 #  Question 2
+
+Next, we should figure out how many distinct ingredient IDs are contained in the union of all the
+IDs in all of the ranges.
 -/
 
 /--
