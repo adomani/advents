@@ -70,17 +70,26 @@ solve 1 563
 #  Question 2
 -/
 
+/--
+Check is two ranges `a` and `b` overlap, by checking if one of the endpoints of either is contained
+in the range of the other.
+-/
 def overlap (a b : Nat × Nat) : Bool :=
   (a.1 ≤ b.1 && b.1 ≤ a.2) || (a.1 ≤ b.2 && b.2 ≤ a.2) ||
   (b.1 ≤ a.1 && a.1 ≤ b.2) || (b.1 ≤ a.2 && a.2 ≤ b.2)
 
+/--
+Returns the smallest first coordinate and the largest second coordinate in `rs`.
+
+It exploits that `max` on `Option Nat` considers `none` to be smaller than `some 0`.
+
+Panics if `rs` is empty.
+-/
 def mergeOverlaps (rs : HashSet (Nat × Nat)) : Nat × Nat :=
   let (sa, sb) := rs.fold (init := (none, none)) fun
-    | (some m, some M), (a, b) => (min m a, max M b)
-    | (some m, none), (a, b) => (min m a, b)
-    | (none, some M), (a, b) => (a, max M b)
-    | (none, none), (a, b) => (a, b)
-  (sa.getD 0, sb.getD 0)
+    | (some m, M), (a, b) => (min m a, max M b)
+    | (none, M), (a, b) => (a, max M b)
+  (sa.get!, sb.get!)
 
 def addOneRange (rs : HashSet (Nat × Nat)) (new : Nat × Nat) : HashSet (Nat × Nat) :=
   let (overlaps, outside) := rs.partition (overlap · new)
