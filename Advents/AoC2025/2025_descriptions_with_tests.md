@@ -131,3 +131,41 @@ We should report how rolls we removed in the process.
 [Solution in Lean](day04.lean)
 
 ---
+
+#  [Day 5](https://adventofcode.com/2025/day/5)
+
+Finding fresh ingredients for the cafeteria
+
+####  Test
+
+<pre>
+3-5
+10-14
+16-20
+12-18
+
+1
+5
+8
+11
+17
+32
+</pre>
+
+### Description
+
+#### Part 1
+
+The input consists of ingredient ID ranges and individual IDs.
+
+First, we should determine how many of the individual IDs are contained in at least one of the
+ranges.
+
+#### Part 2
+
+Next, we should figure out how many distinct ingredient IDs are contained in the union of all the
+IDs in all of the ranges.
+
+[Solution in Lean](day05.lean)
+
+---
