@@ -27,30 +27,30 @@ def test := "3-5
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-structure State where
+structure Database where
   ranges : HashSet (Nat × Nat)
   ids : HashSet Nat
   deriving Inhabited
 
-instance [BEq α] [Hashable α] [ToString α] [LT α] [DecidableRel (α := α) (· < ·)] :
+local instance [BEq α] [Hashable α] [ToString α] [LT α] [DecidableRel (α := α) (· < ·)] :
     ToString (HashSet α) where
   toString as := s!"{as.toArray.qsort (· < ·)}"
 
-instance : ToString State where
+local instance : ToString Database where
   toString := fun {ranges := rs, ids := ids} => s!"Ranges:\n{rs}\n\nIDs:\n{ids}"
 
-def inputToState (dat : Array String) : State :=
+def inputToDatabase (dat : Array String) : Database :=
   dat.foldl (init := {ranges := ∅, ids := ∅}) fun tot s => match s.getNats with
     | [id] => {tot with ids := tot.ids.insert id}
     | [a, b] => {tot with ranges := tot.ranges.insert (a, b)}
     | _ => if s.isEmpty then tot else panic s!"Invalid input line {s}!"
 
-def isFresh (st : State) (id : Nat) : Bool :=
+def isFresh (st : Database) (id : Nat) : Bool :=
   st.ranges.any fun (a, b) => a ≤ id && id ≤ b
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
-  let st := inputToState dat
+  let st := inputToDatabase dat
   st.ids.fold (init := 0) fun tot n => if isFresh st n then tot + 1 else tot
 
 #assert part1 atest == 3
@@ -80,7 +80,7 @@ def addOneRange (rs : HashSet (Nat × Nat)) (new : Nat × Nat) : HashSet (Nat ×
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat :=
-  let st := inputToState dat
+  let st := inputToDatabase dat
   let ranges := st.ranges.fold (init := ∅) fun (tot : HashSet (Nat × Nat)) new => addOneRange tot new
   ranges.fold (init := 0) fun tot (a, b) => (tot + b - a + 1)
 
