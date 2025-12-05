@@ -54,13 +54,13 @@ def inputToDatabase (dat : Array String) : Database :=
     | _ => if s.isEmpty then tot else panic s!"Invalid input line {s}!"
 
 /-- Check whether `id` is fresh, that is it lies in at least one of the ranges of `st`. -/
-def isFresh (st : Database) (id : Nat) : Bool :=
-  st.ranges.any fun (a, b) => a ≤ id && id ≤ b
+def isFresh (st : HashSet (Nat × Nat)) (id : Nat) : Bool :=
+  st.any fun (a, b) => a ≤ id && id ≤ b
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let st := inputToDatabase dat
-  st.ids.fold (init := 0) fun tot n => if isFresh st n then tot + 1 else tot
+  st.ids.fold (init := 0) fun tot n => if isFresh st.ranges n then tot + 1 else tot
 
 #assert part1 atest == 3
 
