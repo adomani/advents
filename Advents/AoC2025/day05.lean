@@ -83,7 +83,7 @@ def overlap (a b : Nat × Nat) : Bool :=
 /--
 Returns the smallest first coordinate and the largest second coordinate in `rs`.
 
-It exploits that `max` on `Option Nat` considers `none` to be smaller than `some 0`.
+It exploits that `max` on `Option Nat` considers `none` to be smaller than `some _`.
 
 Panics if `rs` is empty.
 -/
