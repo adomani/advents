@@ -27,24 +27,33 @@ def test := "3-5
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+The `Database` stores in `HashSet`s
+* the `ranges` of the fresh ingredient IDs as pairs of natural numbers;
+* the `ids` of the ingredients as natural numbers.
+-/
 structure Database where
   ranges : HashSet (Nat × Nat)
   ids : HashSet Nat
   deriving Inhabited
 
+/-- A convenience instance to display `HashSet`s. -/
 local instance [BEq α] [Hashable α] [ToString α] [LT α] [DecidableRel (α := α) (· < ·)] :
     ToString (HashSet α) where
   toString as := s!"{as.toArray.qsort (· < ·)}"
 
+/-- A convenience instance to display `Database`s. -/
 local instance : ToString Database where
   toString := fun {ranges := rs, ids := ids} => s!"Ranges:\n{rs}\n\nIDs:\n{ids}"
 
+/-- Converts the input data into a `Database`. -/
 def inputToDatabase (dat : Array String) : Database :=
   dat.foldl (init := {ranges := ∅, ids := ∅}) fun tot s => match s.getNats with
     | [id] => {tot with ids := tot.ids.insert id}
     | [a, b] => {tot with ranges := tot.ranges.insert (a, b)}
     | _ => if s.isEmpty then tot else panic s!"Invalid input line {s}!"
 
+/-- Check whether `id` is fresh, that is it lies in at least one of the ranges of `st`. -/
 def isFresh (st : Database) (id : Nat) : Bool :=
   st.ranges.any fun (a, b) => a ≤ id && id ≤ b
 
