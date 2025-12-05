@@ -27,6 +27,35 @@ def test := "3-5
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+structure State where
+  ranges : HashSet (Nat × Nat)
+  ids : HashSet Nat
+  deriving Inhabited
+
+instance : ToString State where
+  toString := fun {ranges := rs, ids := ids} =>
+    s!"Ranges:\n{rs.toArray.qsort}\n\nIDs:\n{ids.toArray.qsort}"
+
+def inputToState (dat : Array String) : State :=
+  dat.foldl (init := {ranges := ∅, ids := ∅}) fun tot s => match s.getNats with
+    | [id] => {tot with ids := tot.ids.insert id}
+    | [a, b] => {tot with ranges := tot.ranges.insert (a, b)}
+    | _ => if s.isEmpty then tot else panic s!"Invalid input line {s}!"
+
+def isFresh (st : State) (id : Nat) : Bool :=
+  st.ranges.any fun (a, b) => a ≤ id && id ≤ b
+
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let st := inputToState dat
+  dbg_trace st
+  dbg_trace ""
+  let freshes := st.ids.fold (init := #[]) fun (tot : Array Nat) n =>
+    if isFresh st n then tot.push n else tot
+  dbg_trace freshes.size
+  dbg_trace freshes
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
