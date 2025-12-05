@@ -45,6 +45,19 @@ def inputToState (dat : Array String) : State :=
 def isFresh (st : State) (id : Nat) : Bool :=
   st.ranges.any fun (a, b) => a ≤ id && id ≤ b
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat :=
+  let st := inputToState dat
+  st.ids.fold (init := 0) fun tot n => if isFresh st n then tot + 1 else tot
+
+#assert part1 atest == 3
+
+solve 1 563
+
+/-!
+#  Question 2
+-/
+
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
@@ -55,18 +68,6 @@ def isFresh (st : State) (id : Nat) : Bool :=
     if isFresh st n then tot.push n else tot
   dbg_trace freshes.size
   dbg_trace freshes
-
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
