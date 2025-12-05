@@ -32,7 +32,7 @@ structure State where
   ids : HashSet Nat
   deriving Inhabited
 
-instance [BEq α] [Hashable α] [ToString α] [LT α] [DecidableRel (LT.lt (α := α))] :
+instance [BEq α] [Hashable α] [ToString α] [LT α] [DecidableRel (α := α) (· < ·)] :
     ToString (HashSet α) where
   toString as := s!"{as.toArray.qsort (· < ·)}"
 
