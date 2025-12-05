@@ -4,9 +4,10 @@ open Lean Elab Command
 
 def mkTableRow (rs : List String) : String :=
   "| " ++ " | ".intercalate rs ++ " |"
-#check List.replicate
-#eval mkTableRow ["Day", "Description"]
-#eval mkTableRow [":-:", "-"]
+
+#assert mkTableRow ["Day", "Description"] == "| Day | Description |"
+#assert mkTableRow [":-:", "-"] == "| :-: | - |"
+
 def padRight (s : String) (n : Nat) :=
   s ++ String.ofList (List.replicate (n - s.length) ' ')
 
