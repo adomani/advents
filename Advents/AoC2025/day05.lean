@@ -76,34 +76,16 @@ def mergeOverlaps (rs : HashSet (Nat × Nat)) : Nat × Nat :=
 def addOneRange (rs : HashSet (Nat × Nat)) (new : Nat × Nat) : HashSet (Nat × Nat) :=
   let (overlaps, outside) := rs.partition (overlap · new)
   let merged := mergeOverlaps (overlaps.insert new)
-  --dbg_trace "adding {new}"
-  --dbg_trace "outside {outside}"
-  --dbg_trace "overlaps {overlaps}"
-  --dbg_trace "merged {merged}"
-  let final := if merged == (0, 0) then outside.insert new else outside.insert merged
-  --dbg_trace "final {final}\n"
-  final
-
-#eval do
-  let dat := atest
-  let dat ← IO.FS.lines input
-  let st := inputToState dat
-  --dbg_trace st.ranges
-  --dbg_trace ""
-  let ranges := st.ranges.fold (init := ∅) fun (tot : HashSet (Nat × Nat)) new => addOneRange tot new
-  dbg_trace ranges.fold (init := 0) fun tot (a, b) => (tot + b - a + 1)
-  dbg_trace ranges
-  --let freshes := st.ids.fold (init := #[]) fun (tot : Array Nat) n =>
-  --  if isFresh st n then tot.push n else tot
-  --dbg_trace freshes.size
-  --dbg_trace freshes
+  if merged == (0, 0) then outside.insert new else outside.insert merged
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat :=
+  let st := inputToState dat
+  let ranges := st.ranges.fold (init := ∅) fun (tot : HashSet (Nat × Nat)) new => addOneRange tot new
+  ranges.fold (init := 0) fun tot (a, b) => (tot + b - a + 1)
 
---#assert part2 atest == ???
+#assert part2 atest == 14
 
---set_option trace.profiler true in solve 2
+solve 2 338693411431456
 
 end AoC2025_Day05
