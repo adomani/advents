@@ -32,9 +32,12 @@ structure State where
   ids : HashSet Nat
   deriving Inhabited
 
+instance [BEq α] [Hashable α] [ToString α] [LT α] [DecidableRel (LT.lt (α := α))] :
+    ToString (HashSet α) where
+  toString as := s!"{as.toArray.qsort (· < ·)}"
+
 instance : ToString State where
-  toString := fun {ranges := rs, ids := ids} =>
-    s!"Ranges:\n{rs.toArray.qsort}\n\nIDs:\n{ids.toArray.qsort}"
+  toString := fun {ranges := rs, ids := ids} => s!"Ranges:\n{rs}\n\nIDs:\n{ids}"
 
 def inputToState (dat : Array String) : State :=
   dat.foldl (init := {ranges := ∅, ids := ∅}) fun tot s => match s.getNats with
@@ -58,16 +61,42 @@ solve 1 563
 #  Question 2
 -/
 
+def overlap (a b : Nat × Nat) : Bool :=
+  (a.1 ≤ b.1 && b.1 ≤ a.2) || (a.1 ≤ b.2 && b.2 ≤ a.2) ||
+  (b.1 ≤ a.1 && a.1 ≤ b.2) || (b.1 ≤ a.2 && a.2 ≤ b.2)
+
+def mergeOverlaps (rs : HashSet (Nat × Nat)) : Nat × Nat :=
+  let (sa, sb) := rs.fold (init := (none, none)) fun
+    | (some m, some M), (a, b) => (min m a, max M b)
+    | (some m, none), (a, b) => (min m a, b)
+    | (none, some M), (a, b) => (a, max M b)
+    | (none, none), (a, b) => (a, b)
+  (sa.getD 0, sb.getD 0)
+
+def addOneRange (rs : HashSet (Nat × Nat)) (new : Nat × Nat) : HashSet (Nat × Nat) :=
+  let (overlaps, outside) := rs.partition (overlap · new)
+  let merged := mergeOverlaps (overlaps.insert new)
+  --dbg_trace "adding {new}"
+  --dbg_trace "outside {outside}"
+  --dbg_trace "overlaps {overlaps}"
+  --dbg_trace "merged {merged}"
+  let final := if merged == (0, 0) then outside.insert new else outside.insert merged
+  --dbg_trace "final {final}\n"
+  final
+
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
   let st := inputToState dat
-  dbg_trace st
-  dbg_trace ""
-  let freshes := st.ids.fold (init := #[]) fun (tot : Array Nat) n =>
-    if isFresh st n then tot.push n else tot
-  dbg_trace freshes.size
-  dbg_trace freshes
+  --dbg_trace st.ranges
+  --dbg_trace ""
+  let ranges := st.ranges.fold (init := ∅) fun (tot : HashSet (Nat × Nat)) new => addOneRange tot new
+  dbg_trace ranges.fold (init := 0) fun tot (a, b) => (tot + b - a + 1)
+  dbg_trace ranges
+  --let freshes := st.ids.fold (init := #[]) fun (tot : Array Nat) n =>
+  --  if isFresh st n then tot.push n else tot
+  --dbg_trace freshes.size
+  --dbg_trace freshes
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
