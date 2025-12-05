@@ -33,7 +33,9 @@ The `Database` stores in `HashSet`s
 * the `ids` of the ingredients as natural numbers.
 -/
 structure Database where
+  /-- The `ranges` of the fresh ingredient IDs as pairs of natural numbers -/
   ranges : HashSet (Nat × Nat)
+  /-- The `ids` of the ingredients as natural numbers -/
   ids : HashSet Nat
   deriving Inhabited
 
@@ -91,6 +93,12 @@ def mergeOverlaps (rs : HashSet (Nat × Nat)) : Nat × Nat :=
     | (none, M), (a, b) => (a, max M b)
   (sa.get!, sb.get!)
 
+/--
+Insert one more range `new` into `rs`.
+
+It preserves the property that the ranges in `rs` are pairwise non-overlapping,
+making sure to merge together all of the ranges in `rs` that overlap with `new` into a single range.
+-/
 def addOneRange (rs : HashSet (Nat × Nat)) (new : Nat × Nat) : HashSet (Nat × Nat) :=
   let (overlaps, outside) := rs.partition (overlap · new)
   let merged := mergeOverlaps (overlaps.insert new)
