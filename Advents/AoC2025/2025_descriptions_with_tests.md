@@ -169,3 +169,30 @@ IDs in all of the ranges.
 [Solution in Lean](day05.lean)
 
 ---
+
+#  [Day 6](https://adventofcode.com/2025/day/6)
+
+Helping cephalopods with their maths homework
+
+####  Test
+
+<pre>
+123 328  51 64
+ 45 64  387 23
+  6 98  215 314
+*   +   *   +
+</pre>
+
+### Description
+
+#### Part 1
+
+Read the input one way to add and multiply various numbers.
+
+#### Part 2
+
+Read the input in a different way to add and multiply various numbers.
+
+[Solution in Lean](day06.lean)
+
+---

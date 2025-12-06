@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+Helping cephalopods with their maths homework
+-/
+
 namespace AoC2025_Day06
 
 open System in
@@ -9,15 +13,15 @@ def input : FilePath := ("Advents"/"AoC2025"/"day06" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+Read the input one way to add and multiply various numbers.
 -/
 
 /-- `test` is the test string for the problem. -/
-def test := "\
-123 328  51 64
+def test := "123 328  51 64
  45 64  387 23
   6 98  215 314
-*   +   *   +  \
-"
+*   +   *   +  "
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
@@ -46,6 +50,8 @@ solve 1 6503327062445
 
 /-!
 #  Question 2
+
+Read the input in a different way to add and multiply various numbers.
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
