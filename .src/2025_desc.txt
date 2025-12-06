@@ -78,3 +78,15 @@ ranges.
 
 Next, we should figure out how many distinct ingredient IDs are contained in the union of all the
 IDs in all of the ranges.
+-- Day 6
+Helping cephalopods with their maths homework
+
+### Description
+
+#### Part 1
+
+Read the input one way to add and multiply various numbers.
+
+#### Part 2
+
+Read the input in a different way to add and multiply various numbers.

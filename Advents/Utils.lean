@@ -134,10 +134,18 @@ def Array.transpose [Inhabited α] (rows : Array (Array α)) : Array (Array α) 
 
 #guard #[#[0, 1], #[2, 3]].transpose == #[#[0, 2], #[1, 3]]
 
-/-- Transpose an array of strings. -/
+/--
+Transpose an array of strings.
+
+Note that it assumes that all the lengths of all the involved strings are equal.
+-/
 def Array.transposeString (s : Array String) : Array String :=
   let rows := s.map (List.toArray ∘ String.toList)
   rows.transpose.map (String.ofList ∘ Array.toList)
+
+#guard Array.transposeString #["01", "23"] == #["02", "13"]
+#guard Array.transposeString #["01", "23 "] == #["02", "13"]
+#guard Array.transposeString #["01 ", "23 "] == #["02", "13", "  "]
 
 /-- A `pos`ition is a pair of integers. -/
 abbrev pos := Int × Int

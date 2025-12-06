@@ -5,3 +5,4 @@
 | [3](2025_descriptions_with_tests.md#day-3) | The input is a list of sequences of joltages, each of which is a natural number from `1` to `9`.    |
 | [4](2025_descriptions_with_tests.md#day-4) | The input is a grid with the positions of rolls of paper.                                           |
 | [5](2025_descriptions_with_tests.md#day-5) | Finding fresh ingredients for the cafeteria                                                         |
+| [6](2025_descriptions_with_tests.md#day-6) | Helping cephalopods with their maths homework                                                       |
