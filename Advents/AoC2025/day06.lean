@@ -51,7 +51,7 @@ def part2 (dat : Array String) : Nat := Id.run do
   let nums := nums.toList.splitBy fun l r => l != [] && r != []
   let nums := nums.filterMap fun ls => if ls == [[]] then none else some (ls.map (·[0]!))
   let ops := trs.filterMap fun s =>
-    let f1 : String := s.dropWhile fun c => c != '*' && c != '+'
+    let f1 := s.dropWhile fun c => c != '*' && c != '+'
     if f1.isEmpty then none else some (String.Pos.Raw.get f1 0)
   let mut tots := 0
   for i in [0:ops.size] do
