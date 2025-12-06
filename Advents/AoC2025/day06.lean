@@ -22,32 +22,16 @@ def test := "\
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-def charToOp : Char → Option (Nat → Nat → Nat)
-  | '*' => some (· * ·)
-  | '+' => some (· + ·)
-  | ' ' => none
-  | c => some (panic s!"'{c}' is not an operation!")
-
-def stringToOp (s : String) : List (Nat → Nat → Nat) :=
-  go s.toList
-  where go : List Char → List (Nat → Nat → Nat)
-    | '*'::rs => (· * ·) :: go rs
-    | '+'::rs => (· + ·) :: go rs
-    | ' '::rs => go rs
-    | c::rs => panic s!"'{c}' is not an operation!" :: go rs
-    | [] => []
-
-def inputToArrays (dat : Array String) : Array (Array Nat) × Array (Nat → Nat → Nat) :=
+def inputToArrays (dat : Array String) : Array (Array Nat) × List (Char) :=
   let ops := dat.back!
-  ((dat.pop.map (List.toArray ·.getNats)), (stringToOp ops).toArray)
+  ((dat.pop.map (List.toArray ·.getNats)), (String.toList (ops.replace " " "")))
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let (nums, ops) := inputToArrays dat
   let adds := nums.pop.foldl (·.zipWith (· + ·) ·) nums.back!
   let muls := nums.pop.foldl (·.zipWith (· * ·) ·) nums.back!
-  let tots := ((Array.range ops.size).filterMap fun i =>
-    if ops[i]! 1 1 == 2 then some adds[i]! else some muls[i]!)
+  let tots := (Array.range ops.length).map fun i => if ops[i]! == '+' then adds[i]! else muls[i]!
   tots.sum
 
 #assert part1 atest == 4277556
@@ -66,15 +50,14 @@ def part2 (dat : Array String) : Nat := Id.run do
   let nums := trs.map String.getNats
   let nums := nums.toList.splitBy fun l r => l != [] && r != []
   let nums := nums.filterMap fun ls => if ls == [[]] then none else some (ls.map (·[0]!))
-  let ops? := trs.filterMap fun s =>
-    let f1 : String := String.dropWhile s fun c => c != '*' && c != '+'
-    if f1.isEmpty then none else some (charToOp (String.Pos.Raw.get f1 0))
-  let ops := ops?.reduceOption
+  let ops := trs.filterMap fun s =>
+    let f1 : String := s.dropWhile fun c => c != '*' && c != '+'
+    if f1.isEmpty then none else some (String.Pos.Raw.get f1 0)
   let mut tots := 0
   for i in [0:ops.size] do
     let opi := ops[i]!
     let ni := nums[i]!
-    tots := tots + if opi 1 1 == 1 then ni.toArray.prod else ni.sum
+    tots := tots + if opi == '*' then ni.toArray.prod else ni.sum
   return tots
 
 #assert part2 atest == 3263827
