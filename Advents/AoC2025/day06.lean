@@ -20,6 +20,29 @@ def test := "123 328  51 64
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+def stringToOp (s : String) : List (Nat → Nat → Nat) :=
+  go s.toList
+  where go : List Char → List (Nat → Nat → Nat)
+    | '*'::rs => (· * ·) :: go rs
+    | '+'::rs => (· + ·) :: go rs
+    | ' '::rs => go rs
+    | c::rs => panic s!"'{c}' is not an operation!" :: go rs
+    | [] => []
+
+def inputToArrays (dat : Array String) : Array (Array Nat) × Array (Nat → Nat → Nat) :=
+  let ops := dat.back!
+  ((dat.pop.map (List.toArray ·.getNats)), (stringToOp ops).toArray)
+
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let (nums, ops) := inputToArrays dat
+  dbg_trace nums
+  let adds := nums.pop.foldl (init := nums.back!) fun tot ns => (tot : Array Nat).zipWith (· + ·) ns
+  let muls := nums.pop.foldl (init := nums.back!) fun tot ns => (tot : Array Nat).zipWith (· * ·) ns
+  let tots := ((Array.range ops.size).filterMap fun i => if (ops[i]! : Nat → Nat → Nat) 1 1 == 2 then some adds[i]! else some muls[i]!)
+  dbg_trace tots.sum
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
