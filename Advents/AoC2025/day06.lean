@@ -60,8 +60,8 @@ solve 1 6503327062445
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
-  let maxLth : Nat := dat.foldl (init := 0) fun tot (n : String) => (max tot n.length)
-  let dat := dat.map fun d : String => d ++ List.toString (List.replicate (maxLth - d.length) ' ')
+  let maxLth : Nat := dat.foldl (init := 0) (max · ·.length)
+  let dat := dat.map fun d => d ++ List.toString (List.replicate (maxLth - d.length) ' ')
   let trs := Array.transposeString dat
   let nums := trs.map String.getNats
   let nums := nums.toList.splitBy fun l r => l != [] && r != []
