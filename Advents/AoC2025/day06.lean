@@ -22,13 +22,19 @@ def test := "\
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-def inputToArrays (dat : Array String) : Array (Array Nat) × List (Char) :=
+/--
+Converts the input array of strings into a pairs
+* whose first component is the array of all the numbers in each problem, arranged in a list and
+* whose second component is the list of operations, as single characters, where the options are `*`
+  and `+`.
+-/
+def inputToLists (dat : Array String) : Array (List Nat) × List Char :=
   let ops := dat.back!
-  ((dat.pop.map (List.toArray ·.getNats)), (String.toList (ops.replace " " "")))
+  (dat.pop.map (·.getNats), (ops.replace " " "").toList)
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
-  let (nums, ops) := inputToArrays dat
+  let (nums, ops) := inputToLists dat
   let adds := nums.pop.foldl (·.zipWith (· + ·) ·) nums.back!
   let muls := nums.pop.foldl (·.zipWith (· * ·) ·) nums.back!
   let tots := (Array.range ops.length).map fun i => if ops[i]! == '+' then adds[i]! else muls[i]!
