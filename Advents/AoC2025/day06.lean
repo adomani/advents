@@ -41,26 +41,13 @@ def inputToArrays (dat : Array String) : Array (Array Nat) × Array (Nat → Nat
   let ops := dat.back!
   ((dat.pop.map (List.toArray ·.getNats)), (stringToOp ops).toArray)
 
-#eval do
-  let dat := atest
-  let dat ← IO.FS.lines input
-  let (nums, ops) := inputToArrays dat
-  dbg_trace nums
-  let mut (adds, muls) : Array Nat × Array Nat := (#[], #[])
-  for i in [:ops.size] do
-    if (ops[i]! : Nat → Nat → Nat) 1 1 == 2 then
-
-      adds := nums.pop.foldl (init := nums.back!) fun tot ns => (tot : Array Nat).zipWith (· + ·) ns
-    let muls := nums.pop.foldl (init := nums.back!) fun tot ns => (tot : Array Nat).zipWith (· * ·) ns
-    let tots := ((Array.range ops.size).filterMap fun i => if (ops[i]! : Nat → Nat → Nat) 1 1 == 2 then some adds[i]! else some muls[i]!)
-  dbg_trace tots.sum
-
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat :=
   let (nums, ops) := inputToArrays dat
-  let adds := nums.pop.foldl (init := nums.back!) fun tot ns => (tot : Array Nat).zipWith (· + ·) ns
-  let muls := nums.pop.foldl (init := nums.back!) fun tot ns => (tot : Array Nat).zipWith (· * ·) ns
-  let tots := ((Array.range ops.size).filterMap fun i => if (ops[i]! : Nat → Nat → Nat) 1 1 == 2 then some adds[i]! else some muls[i]!)
+  let adds := nums.pop.foldl (·.zipWith (· + ·) ·) nums.back!
+  let muls := nums.pop.foldl (·.zipWith (· * ·) ·) nums.back!
+  let tots := ((Array.range ops.size).filterMap fun i =>
+    if ops[i]! 1 1 == 2 then some adds[i]! else some muls[i]!)
   tots.sum
 
 #assert part1 atest == 4277556
@@ -70,8 +57,6 @@ solve 1 6503327062445
 /-!
 #  Question 2
 -/
-
-#eval String.dropWhile "saslkjdl*" fun c => c != '*' && c != '+'
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
