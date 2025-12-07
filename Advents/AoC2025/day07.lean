@@ -96,16 +96,14 @@ def part2 (dat : Array String) : Nat := Id.run do
   for d in dat do
     let inds := sparseGrid (d.toList.toArray.map ("".push)) (· == '^')
     if inds.isEmpty then continue
-    let (newpathsTo) := (Array.range dat[0]!.length).foldl (init := (p0))
-      fun (ss) (n : Nat) =>
+    pathsTo := (Array.range dat[0]!.length).foldl (init := p0)
+      fun ss (n : Nat) =>
         if pathsTo[n]! != 0 then
           if inds.contains (n, 0) then
-            ((ss.modify (n - 1) (· + pathsTo[n]!)).modify (n + 1) (· + pathsTo[n]!))
-          else (ss.modify n (· + pathsTo[n]!))
-        else (ss)
-    pathsTo := newpathsTo
+            (ss.modify (n - 1) (· + pathsTo[n]!)).modify (n + 1) (· + pathsTo[n]!)
+          else ss.modify n (· + pathsTo[n]!)
+        else ss
   pathsTo.sum
-
 
 #assert part2 atest == 40
 
