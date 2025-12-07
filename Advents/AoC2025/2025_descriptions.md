@@ -6,3 +6,4 @@
 | [4](2025_descriptions_with_tests.md#day-4) | The input is a grid with the positions of rolls of paper.                                           |
 | [5](2025_descriptions_with_tests.md#day-5) | Finding fresh ingredients for the cafeteria                                                         |
 | [6](2025_descriptions_with_tests.md#day-6) | Helping cephalopods with their maths homework                                                       |
+| [7](2025_descriptions_with_tests.md#day-7) | Splitting tachyon manifolds                                                                         |
