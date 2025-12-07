@@ -88,11 +88,27 @@ solve 1 1553
   dbg_trace "\n{tacs.toArray.qsort}"
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat := Id.run do
+  let spos := dat[0]!.length - (dat[0]!.dropWhile (· != 'S')).length
+  let p0 := List.replicate dat[0]!.length 0
+  let mut pathsTo := p0
+  pathsTo := pathsTo.modify spos (· + 1)
+  for d in dat do
+    let inds := sparseGrid (d.toList.toArray.map ("".push)) (· == '^')
+    if inds.isEmpty then continue
+    let (newpathsTo) := (Array.range dat[0]!.length).foldl (init := (p0))
+      fun (ss) (n : Nat) =>
+        if pathsTo[n]! != 0 then
+          if inds.contains (n, 0) then
+            ((ss.modify (n - 1) (· + pathsTo[n]!)).modify (n + 1) (· + pathsTo[n]!))
+          else (ss.modify n (· + pathsTo[n]!))
+        else (ss)
+    pathsTo := newpathsTo
+  pathsTo.sum
 
---#assert part2 atest == ???
 
---set_option trace.profiler true in solve 2
+#assert part2 atest == 40
+
+solve 2 15811946526915
 
 end AoC2025_Day07
