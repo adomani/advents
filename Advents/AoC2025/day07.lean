@@ -91,15 +91,15 @@ solve 1 1553
 def part2 (dat : Array String) : Nat := Id.run do
   let spos := dat[0]!.length - (dat[0]!.dropWhile (· != 'S')).length
   let p0 := List.replicate dat[0]!.length 0
-  let mut pathsTo := p0
-  pathsTo := pathsTo.modify spos (· + 1)
+  let mut pathsTo := p0.modify spos (· + 1)
   for d in dat do
-    let inds := sparseGrid (d.toList.toArray.map ("".push)) (· == '^')
+    let (inds, _) := d.foldl (init := ((∅ : HashSet Nat), 0)) fun (tot, ct) c =>
+      (if c == '^' then tot.insert ct else tot, ct + 1)
     if inds.isEmpty then continue
     pathsTo := (Array.range dat[0]!.length).foldl (init := p0)
       fun ss (n : Nat) =>
         if pathsTo[n]! != 0 then
-          if inds.contains (n, 0) then
+          if inds.contains n then
             (ss.modify (n - 1) (· + pathsTo[n]!)).modify (n + 1) (· + pathsTo[n]!)
           else ss.modify n (· + pathsTo[n]!)
         else ss
