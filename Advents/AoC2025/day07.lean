@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+Splitting tachyon manifolds
+-/
+
 namespace AoC2025_Day07
 
 open System in
@@ -9,6 +13,10 @@ def input : FilePath := ("Advents"/"AoC2025"/"day07" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+The input is a map with the positions of the splitters and the starting tachyon.
+We should determine how many times the tachyon splits, while travelling in a
+*classical* tachyon manifold.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -54,6 +62,9 @@ solve 1 1553
 
 /-!
 #  Question 2
+
+For part 2, we should determine how many times the tachyon splits, while travelling in a
+*quantum* tachyon manifold.
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/

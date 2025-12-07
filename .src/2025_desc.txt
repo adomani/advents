@@ -90,3 +90,18 @@ Read the input one way to add and multiply various numbers.
 #### Part 2
 
 Read the input in a different way to add and multiply various numbers.
+-- Day 7
+Splitting tachyon manifolds
+
+### Description
+
+#### Part 1
+
+The input is a map with the positions of the splitters and the starting tachyon.
+We should determine how many times the tachyon splits, while travelling in a
+*classical* tachyon manifold.
+
+#### Part 2
+
+For part 2, we should determine how many times the tachyon splits, while travelling in a
+*quantum* tachyon manifold.
