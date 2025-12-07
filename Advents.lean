@@ -5,3 +5,4 @@ import Advents.AoC2025.day03
 import Advents.AoC2025.day04
 import Advents.AoC2025.day05
 import Advents.AoC2025.day06
+import Advents.AoC2025.day07
