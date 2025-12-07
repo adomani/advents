@@ -65,8 +65,7 @@ def part2 (dat : Array String) : Nat := Id.run do
     let (inds, _) := d.foldl (init := ((∅ : HashSet Nat), 0)) fun (tot, ct) c =>
       (if c == '^' then tot.insert ct else tot, ct + 1)
     if inds.isEmpty then continue
-    pathsTo := (Array.range dat[0]!.length).foldl (init := p0)
-      fun ss (n : Nat) =>
+    pathsTo := (Array.range dat[0]!.length).foldl (init := p0) fun ss n =>
         if pathsTo[n]! != 0 then
           if inds.contains n then
             (ss.modify (n - 1) (· + pathsTo[n]!)).modify (n + 1) (· + pathsTo[n]!)
