@@ -79,11 +79,40 @@ set_option trace.profiler true in solve 1 50760
 #  Question 2
 -/
 
+variable {α β} [LT α] [LT β] [DecidableEq α] [DecidableRel (α := α) (· < ·)] [DecidableRel (α := β) (· < ·)]
+instance instLex : LT (α × β) where
+  lt := fun | (a, b), (c, d) => a < c || (a = c && b < d)
+
+theorem lex_iff (a c : α) (b d : β) : ((a, b) < (c, d)) ↔ a < c || (a = c && b < d) := Iff.rfl
+
+instance : DecidableRel (α := α × β) (· < ·) := fun _ _ => decidable_of_iff' _ (lex_iff ..)
+
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest
-  let close := if dat.size == 20 then 10 else 1000
+  --let close := if dat.size == 20 then 10 else 1000
   let vs := inputToPos dat
+  let (pairs, _) : HashSet (vol × vol) × HashSet vol :=
+    vs.fold (init := (∅, vs)) fun (tot, left) n =>
+      let newleft := left.erase n
+      (tot.union (newleft.fold (init := ∅) fun ps p =>
+        ps.insert (if p < n then (p, n) else (n, p))), newleft)
+  --let vsorted := vs.toArray.qsort dist
+  let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b > dist c d
+  let mut merged : HashSet vol := ∅
+  let mut last : vol × vol := default
+  while merged.size != vs.size do
+    last := psort.back!
+    let (a, b) := last
+    merged := (merged.insert a).insert b
+    psort := psort.pop
+  dbg_trace last.1.1 * last.2.1 --psort --.size
+
+#eval ""
+
+#eval 11589 * 22043 = 255456327
+
+#exit
   let mut (left, visited) : Array vol × Array vol := (vs.toArray, #[])
   let mut dists : Array Int := #[]
   let mut edges : HashSet (vol × vol) := ∅
@@ -118,3 +147,5 @@ def part2 (dat : Array String) : Nat := sorry
 --set_option trace.profiler true in solve 2
 
 end AoC2025_Day08
+((11589, (99764, 8671)), (22043, (97952, 801)))
+-- too low 11589 * 22043 = 255456327
