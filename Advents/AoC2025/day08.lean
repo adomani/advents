@@ -101,7 +101,7 @@ set_option trace.profiler true in
       (newleft.fold (init := tot) fun ps p =>
         ps.insert (p, n), newleft)
   --let vsorted := vs.toArray.qsort dist
-  let verts : HashSet vol := pairs.fold (init := ∅) fun tot (a, b) => tot.insertMany [a, b]
+  --let verts : HashSet vol := pairs.fold (init := ∅) fun tot (a, b) => tot.insertMany [a, b]
   --dbg_trace verts == vs
 --#exit
   let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b < dist c d
@@ -122,9 +122,9 @@ set_option trace.profiler true in
     let (withAB, withoutAB) : Array (HashSet vol) × Array (HashSet vol) := comps.partition fun c =>
       (c.contains a || c.contains b)
     comps := withoutAB.push (withAB.foldl (init := ∅) (·.union ·))
-    let tots : Array Nat := comps.foldl (init := #[]) fun t (n : HashSet vol) => (t.push n.size)
+    --let tots : Array Nat := comps.foldl (init := #[]) fun t (n : HashSet vol) => (t.push n.size)
     --dbg_trace "tots: {tots}"
-    if tots.size == 1 then dbg_trace "{curr} -- {(a.1, b.1)} -- {a.1 * b.1}"; return
+    if comps.size == 1 then dbg_trace "{curr} -- {(a.1, b.1)} -- {a.1 * b.1}"; return
     --merged := merged.insertMany #[a, b]
     --let diff := merged.size - csize
     --if diff != 0 then dbg_trace "χ decreasing {diff}"; χ := χ - 1
@@ -140,45 +140,31 @@ set_option trace.profiler true in
   dbg_trace "Step {con}: {printVol last.1} {printVol last.2}"
   dbg_trace "{last.1.1} * {last.2.1} = {last.1.1 * last.2.1}" --psort --.size
 
-#eval ""
-
-#eval 11589 * 22043 = 255456327
-
-#exit
-  let mut (left, visited) : Array vol × Array vol := (vs.toArray, #[])
-  let mut dists : Array Int := #[]
-  let mut edges : HashSet (vol × vol) := ∅
-  while !left.isEmpty do
-    let curr := left.back!
-    left := left.pop
-    for n in left do
-      if dist n curr ≤ mdis dat then
-        edges := edges.insert (n, curr)
-    --dists := dists ++ left.foldl (init := (#[] : Array Int)) fun (tot : Array Int) n => (tot.push (dist n curr))
-
-  --let dists :=
-  let verts : HashSet (Array vol) := edges.fold (init := ∅) fun tot (a, b) => tot.insertMany #[#[a], #[b]]
-  let comps : HashSet (Array vol) := edges.fold (init := verts) mergeOne
-  let sizes : Array Nat := comps.fold (init := #[]) fun tot (n : Array vol) => (tot.push n.size)
-  let sorted := sizes.qsort (· > ·)
-  dbg_trace sorted.take 3
-  dbg_trace (sorted.take 3).prod
-  --dbg_trace edges.toArray
-  --dbg_trace dists.qsort.take close
-  --dbg_trace ((HashSet.ofArray dists).size, vs.size)
-  --dbg_trace (dists.size, vs.size)
-
-
-
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+def part2 (dat : Array String) : Nat := Id.run do
+  let vs := inputToPos dat
+  let (pairs, _) : HashSet (vol × vol) × HashSet vol :=
+    vs.fold (init := (∅, vs)) fun (tot, left) n =>
+      let newleft := left.erase n
+      (newleft.fold (init := tot) fun ps p =>
+        ps.insert (p, n), newleft)
+  let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b < dist c d
+  let res := Id.run do
+    let mut con := 0
+    let mut comps : Array (HashSet vol) := vs.fold (·.push {·}) ∅
+    for (a, b) in psort do
+      con := con + 1
+      let (withAB, withoutAB) : Array (HashSet vol) × Array (HashSet vol) := comps.partition fun c =>
+        (c.contains a || c.contains b)
+      comps := withoutAB.push (withAB.foldl (init := ∅) (·.union ·))
+      if comps.size == 1 then
+        return a.1 * b.1
+      else continue
+    return 0
+  return res.natAbs
 
---#assert part2 atest == 25272
+#assert part2 atest == 25272
 
---set_option trace.profiler true in solve 2
+set_option trace.profiler true in solve 2 3206508875
 
 end AoC2025_Day08
-((11589, (99764, 8671)), (22043, (97952, 801)))
--- too low 11589 * 22043 = 255456327
---         62719 * 51125   3206508875
