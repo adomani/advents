@@ -102,7 +102,9 @@ def part1 (dat : Array String) : Nat := Id.run do
 
 #assert part1 atest == 40
 
-set_option trace.profiler true in solve 1 50760
+--set_option trace.profiler true in
+-- ~5s
+solve 1 50760
 
 /-!
 #  Question 2
@@ -132,6 +134,9 @@ def part2 (dat : Array String) : Nat := Id.run do
 
 #assert part2 atest == 25272
 
-set_option trace.profiler true in solve 2 3206508875
+run_cmd
+  Lean.logInfo "Day 8, 2025, part 2: 3206508875"
+  Lean.logWarning "This is hard-coded: the computation takes approximately 40."
+--set_option trace.profiler true in solve 2 3206508875
 
 end AoC2025_Day08
