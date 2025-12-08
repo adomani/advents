@@ -149,10 +149,10 @@ def part2 (dat : Array String) : Nat := Id.run do
       (newleft.fold (init := tot) fun ps p =>
         ps.insert (p, n), newleft)
   let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b < dist c d
-  let mut comps : Array (HashSet vol) := vs.fold (·.push {·}) ∅
+  let mut comps : Array (HashSet vol) := vs.fold (·.push {·}) #[]
   for (a, b) in psort do
     let (withAB, withoutAB) := comps.partition fun c => (c.contains a || c.contains b)
-    comps := withoutAB.push (withAB.foldl (init := ∅) (·.union ·))
+    comps := withoutAB.push (withAB.foldl (·.union ·) ∅)
     if comps.size == 1 then
       return (a.1 * b.1).natAbs
     else continue
