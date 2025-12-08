@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+Powering up Christmas decorations
+-/
+
 namespace AoC2025_Day08
 
 open System in
@@ -9,6 +13,11 @@ def input : FilePath := ("Advents"/"AoC2025"/"day08" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+The input is a list of positions in 3-space of junction boxes.
+The first part, asks to connect the `1000` pairs positions that are closest to one another,
+find the sizes of the `3` largest resulting connected components and report the product of these
+sizes.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -77,6 +86,11 @@ set_option trace.profiler true in solve 1 50760
 
 /-!
 #  Question 2
+
+Now, we should add all edges, from the shortest to the largest, until the graph has a single
+connected component.
+Once that happens, we should report the product of the `x`-coordinates of the last edge that was
+added.
 -/
 
 def printVol (v : vol) : String := s!"({v.1}, {v.2.1}, {v.2.2})"
@@ -85,6 +99,8 @@ set_option trace.profiler true in
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest
+  let smallest := dat.qsort fun a b => a.length < b.length
+  --let dat := dat.take 500
   --let close := if dat.size == 20 then 10 else 1000
   let vs := inputToPos dat
   let (pairs, _) : HashSet (vol × vol) × HashSet vol :=
@@ -96,7 +112,14 @@ set_option trace.profiler true in
   --let verts : HashSet vol := pairs.fold (init := ∅) fun tot (a, b) => tot.insertMany [a, b]
   --dbg_trace verts == vs
 --#exit
-  let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b < dist c d
+  --let smallest := vs.fold (init := vs.toArray[0]!) fun (a b : vol) =>
+  --  if a.1 + a.2.1 + a.2.2 < b.1 + b.2.1 + b.2.2 then a else b
+  let bc := (vs.fold (init := (0, 0, 0)) fun (a b : vol) => a + b)
+  let bc := (bc.1 / vs.size, bc.2.1 / vs.size, bc.2.2 / vs.size)
+  dbg_trace bc
+--#exit
+  let mut psort := (pairs.fold (init := ∅) (fun (tot : HashSet (vol × vol)) (n : vol × vol) =>
+    tot.insert (n.1 - bc, n.2 - bc))).toArray.qsort fun (a, b) (c, d) => dist a b < dist c d
   --dbg_trace (psort.take 150).map fun (a, b) => dist a b
 --#exit
   --let mut merged : HashSet vol := ∅
@@ -123,8 +146,9 @@ set_option trace.profiler true in
     --merged := merged.insertMany #[a, b]
     --let diff := merged.size - csize
     --if diff != 0 then dbg_trace "χ decreasing {diff}"; χ := χ - 1
-    --if con % (dat.size / 10) == 0 then
-    --  dbg_trace "Step {con}, size {merged.size} difference {diff}, curr χ = {χ}"
+    if con % (dat.size / 100) == 0 then
+      let tots : Array Nat := comps.foldl (init := #[]) fun t (n : HashSet vol) => (t.push n.size)
+      dbg_trace "Step {con}\n{tots}\n"
     --if merged.size == vs.size && χ ≤ 10 then
     --  dbg_trace "χ = {χ}"
     --  last := curr
@@ -154,6 +178,7 @@ def part2 (dat : Array String) : Nat := Id.run do
 
 #assert part2 atest == 25272
 
+#exit
 set_option trace.profiler true in solve 2 3206508875
 
 end AoC2025_Day08
