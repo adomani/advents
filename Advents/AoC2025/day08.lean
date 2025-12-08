@@ -87,9 +87,10 @@ theorem lex_iff (a c : α) (b d : β) : ((a, b) < (c, d)) ↔ a < c || (a = c &&
 
 instance : DecidableRel (α := α × β) (· < ·) := fun _ _ => decidable_of_iff' _ (lex_iff ..)
 
+--set_option trace.profiler true in
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest
+  let dat ← IO.FS.lines input
   --let close := if dat.size == 20 then 10 else 1000
   let vs := inputToPos dat
   let (pairs, _) : HashSet (vol × vol) × HashSet vol :=
@@ -98,14 +99,23 @@ instance : DecidableRel (α := α × β) (· < ·) := fun _ _ => decidable_of_if
       (tot.union (newleft.fold (init := ∅) fun ps p =>
         ps.insert (if p < n then (p, n) else (n, p))), newleft)
   --let vsorted := vs.toArray.qsort dist
+  --dbg_trace pairs.size
+--#exit
   let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b > dist c d
+  dbg_trace (psort.reverse.take 550).map fun (a, b) => dist a b
+--#exit
   let mut merged : HashSet vol := ∅
   let mut last : vol × vol := default
+  let mut con := 0
   while merged.size != vs.size do
+    con := con + 1
     last := psort.back!
     let (a, b) := last
+    let csize := merged.size
     merged := (merged.insert a).insert b
+    dbg_trace "Step {con}, size {merged.size} difference {merged.size - csize}"
     psort := psort.pop
+  dbg_trace "Step {con}: {last.1} {last.2}"
   dbg_trace last.1.1 * last.2.1 --psort --.size
 
 #eval ""
