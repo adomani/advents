@@ -149,19 +149,14 @@ def part2 (dat : Array String) : Nat := Id.run do
       (newleft.fold (init := tot) fun ps p =>
         ps.insert (p, n), newleft)
   let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b < dist c d
-  let res := Id.run do
-    let mut con := 0
-    let mut comps : Array (HashSet vol) := vs.fold (·.push {·}) ∅
-    for (a, b) in psort do
-      con := con + 1
-      let (withAB, withoutAB) : Array (HashSet vol) × Array (HashSet vol) := comps.partition fun c =>
-        (c.contains a || c.contains b)
-      comps := withoutAB.push (withAB.foldl (init := ∅) (·.union ·))
-      if comps.size == 1 then
-        return a.1 * b.1
-      else continue
-    return 0
-  return res.natAbs
+  let mut comps : Array (HashSet vol) := vs.fold (·.push {·}) ∅
+  for (a, b) in psort do
+    let (withAB, withoutAB) := comps.partition fun c => (c.contains a || c.contains b)
+    comps := withoutAB.push (withAB.foldl (init := ∅) (·.union ·))
+    if comps.size == 1 then
+      return (a.1 * b.1).natAbs
+    else continue
+  panic "This should not have happened!"
 
 #assert part2 atest == 25272
 
