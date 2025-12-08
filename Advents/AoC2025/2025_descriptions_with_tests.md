@@ -238,3 +238,52 @@ For part 2, we should determine how many times the tachyon splits, while travell
 [Solution in Lean](day07.lean)
 
 ---
+
+#  [Day 8](https://adventofcode.com/2025/day/8)
+
+Powering up Christmas decorations
+
+####  Test
+
+<pre>
+162,817,812
+57,618,57
+906,360,560
+592,479,940
+352,342,300
+466,668,158
+542,29,236
+431,825,988
+739,650,466
+52,470,668
+216,146,977
+819,987,18
+117,168,530
+805,96,715
+346,949,466
+970,615,88
+941,993,340
+862,61,35
+984,92,344
+425,690,689
+</pre>
+
+### Description
+
+#### Part 1
+
+The input is a list of positions in 3-space of junction boxes.
+The first part, asks to connect the `1000` pairs positions that are closest to one another,
+find the sizes of the `3` largest resulting connected components and report the product of these
+sizes.
+
+#### Part 2
+
+Now, we should add all edges, from the shortest to the largest, until the graph has a single
+connected component.
+Once that happens, we should report the product of the `x`-coordinates of the last edge that was
+added.
+
+[Solution in Lean](day08.lean)
+
+---
