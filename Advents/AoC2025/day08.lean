@@ -45,17 +45,30 @@ def test := "162,817,812
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- The type of integer coordinates in `3`-space. -/
 abbrev vol := Int × Int × Int
 
+/-- Converts the input strings into a `HashSet` of `vol`s. -/
 def inputToPos (dat : Array String) : HashSet vol :=
   dat.foldl (init := ∅) fun tot s => match s.getNats with
     | [a, b, c] => tot.insert (a, b, c)
     | _ => panic s!"{s} is not of the required form!"
 
+/-- `dist v w` is the (square of the) Euclidean distance between `v` and `w`. -/
 def dist (v w : vol) : Int := (v.1 - w.1) ^ 2 + (v.2.1 - w.2.1) ^ 2 + (v.2.2 - w.2.2) ^ 2
 
+/--
+The hard-coded maximum distance required for part 1.
+This is the `1000`th shortest distance between any two points in the input.
+
+*Note*.  The reason for hard-coding is that otherwise even part 1 takes a somewhat long time.
+-/
 def mdis (d : Array String) : Int := if d.size == 20 then 124564 else 63390489
 
+/--
+`mergeOne h v` replaces the components that contain one of the endpoints of `v` into a single one,
+obtained by merging them together.
+-/
 def mergeOne (h : HashSet (Array vol)) (v : vol × vol) : HashSet (Array vol) :=
   let (a, b) := v
   let withAB := h.filter fun as => as.contains a || as.contains b
@@ -66,7 +79,14 @@ def mergeOne (h : HashSet (Array vol)) (v : vol × vol) : HashSet (Array vol) :=
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
   let vs := inputToPos dat
-  let mut (left) := vs.toArray
+  let mut maxDistance := 0
+  let mut left := vs.toArray
+  for a in vs do
+    left := left.erase a
+    for b in left do
+      let ab := dist a b
+      if maxDistance < ab then maxDistance := ab
+  left := vs.toArray
   let mut edges : HashSet (vol × vol) := ∅
   while !left.isEmpty do
     let curr := left.back!
@@ -74,11 +94,11 @@ def part1 (dat : Array String) : Nat := Id.run do
     for n in left do
       if dist n curr ≤ mdis dat then
         edges := edges.insert (n, curr)
-  let verts : HashSet (Array vol) := edges.fold (init := ∅) fun tot (a, b) => tot.insertMany #[#[a], #[b]]
-  let comps : HashSet (Array vol) := edges.fold (init := verts) mergeOne
-  let sizes : Array Nat := comps.fold (init := #[]) fun tot (n : Array vol) => (tot.push n.size)
+  let verts := edges.fold (init := ∅) fun tot (a, b) => tot.insertMany #[#[a], #[b]]
+  let comps := edges.fold mergeOne verts
+  let sizes := comps.fold (init := #[]) fun tot (n) => (tot.push n.size)
   let sorted := sizes.qsort (· > ·)
-  (sorted.take 3).prod
+  return (sorted.take 3).prod
 
 #assert part1 atest == 40
 
@@ -92,72 +112,6 @@ connected component.
 Once that happens, we should report the product of the `x`-coordinates of the last edge that was
 added.
 -/
-
-def printVol (v : vol) : String := s!"({v.1}, {v.2.1}, {v.2.2})"
-
-set_option trace.profiler true in
-#eval do
-  let dat ← IO.FS.lines input
-  let dat := atest
-  let smallest := dat.qsort fun a b => a.length < b.length
-  --let dat := dat.take 500
-  --let close := if dat.size == 20 then 10 else 1000
-  let vs := inputToPos dat
-  let (pairs, _) : HashSet (vol × vol) × HashSet vol :=
-    vs.fold (init := (∅, vs)) fun (tot, left) n =>
-      let newleft := left.erase n
-      (newleft.fold (init := tot) fun ps p =>
-        ps.insert (p, n), newleft)
-  --let vsorted := vs.toArray.qsort dist
-  --let verts : HashSet vol := pairs.fold (init := ∅) fun tot (a, b) => tot.insertMany [a, b]
-  --dbg_trace verts == vs
---#exit
-  --let smallest := vs.fold (init := vs.toArray[0]!) fun (a b : vol) =>
-  --  if a.1 + a.2.1 + a.2.2 < b.1 + b.2.1 + b.2.2 then a else b
-  let bc := (vs.fold (init := (0, 0, 0)) fun (a b : vol) => a + b)
-  let bc := (bc.1 / vs.size, bc.2.1 / vs.size, bc.2.2 / vs.size)
-  dbg_trace bc
---#exit
-  let mut psort := (pairs.fold (init := ∅) (fun (tot : HashSet (vol × vol)) (n : vol × vol) =>
-    tot.insert (n.1 - bc, n.2 - bc))).toArray.qsort fun (a, b) (c, d) => dist a b < dist c d
-  --dbg_trace (psort.take 150).map fun (a, b) => dist a b
---#exit
-  --let mut merged : HashSet vol := ∅
-  let mut last : vol × vol := default
-  let mut con := 0
-  --let mut χ := vs.size
-  let mut comps : Array (HashSet vol) := vs.fold (·.push {·}) ∅
-  --dbg_trace comps.map HashSet.toArray
-  for curr@(a, b) in psort do
-    --if con ≤ 150 then dbg_trace "** Considering {curr}: distance {dist a b}"
-    con := con + 1
-    --last := psort.back!
-    --let (a, b) := last
-    --let csize := merged.size
-    let (withAB, withoutAB) : Array (HashSet vol) × Array (HashSet vol) := comps.partition fun c =>
-      (c.contains a || c.contains b)
-    comps := withoutAB.push (withAB.foldl (init := ∅) (·.union ·))
-    --let tots : Array Nat := comps.foldl (init := #[]) fun t (n : HashSet vol) => (t.push n.size)
-    --dbg_trace "tots: {tots}"
-    if comps.size == 1 then
-      dbg_trace "Step {con}: {printVol curr.1} {printVol curr.2}"
-      dbg_trace "{a.1} * {b.1} = {a.1 * b.1}"
-      return
-    --merged := merged.insertMany #[a, b]
-    --let diff := merged.size - csize
-    --if diff != 0 then dbg_trace "χ decreasing {diff}"; χ := χ - 1
-    if con % (dat.size / 100) == 0 then
-      let tots : Array Nat := comps.foldl (init := #[]) fun t (n : HashSet vol) => (t.push n.size)
-      dbg_trace "Step {con}\n{tots}\n"
-    --if merged.size == vs.size && χ ≤ 10 then
-    --  dbg_trace "χ = {χ}"
-    --  last := curr
-    --  dbg_trace "\nStep {con}: {printVol last.1} {printVol last.2}"
-    --  dbg_trace "{last.1.1} * {last.2.1} = {last.1.1 * last.2.1}" --psort --.size
-    --  --return
-    --psort := psort.pop
-  dbg_trace "Step {con}: {printVol last.1} {printVol last.2}"
-  dbg_trace "{last.1.1} * {last.2.1} = {last.1.1 * last.2.1}" --psort --.size
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
@@ -178,7 +132,6 @@ def part2 (dat : Array String) : Nat := Id.run do
 
 #assert part2 atest == 25272
 
-#exit
 set_option trace.profiler true in solve 2 3206508875
 
 end AoC2025_Day08
