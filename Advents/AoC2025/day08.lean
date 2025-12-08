@@ -116,7 +116,10 @@ set_option trace.profiler true in
     comps := withoutAB.push (withAB.foldl (init := ∅) (·.union ·))
     --let tots : Array Nat := comps.foldl (init := #[]) fun t (n : HashSet vol) => (t.push n.size)
     --dbg_trace "tots: {tots}"
-    if comps.size == 1 then dbg_trace "{curr} -- {(a.1, b.1)} -- {a.1 * b.1}"; return
+    if comps.size == 1 then
+      dbg_trace "Step {con}: {printVol curr.1} {printVol curr.2}"
+      dbg_trace "{a.1} * {b.1} = {a.1 * b.1}"
+      return
     --merged := merged.insertMany #[a, b]
     --let diff := merged.size - csize
     --if diff != 0 then dbg_trace "χ decreasing {diff}"; χ := χ - 1
