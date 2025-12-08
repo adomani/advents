@@ -35,3 +35,6 @@
   multiple times)
 * Day 22, part 2 is slow (minimizing price windows to obtain bananas -- bitwise operations,
   approximately 3m -- try to streamline the generation of the bits for speed up?)
+
+### 2025
+* Day 8: both parts are slow, the first one is only sped up by a hard-coded answer.
