@@ -102,40 +102,40 @@ set_option trace.profiler true in
         ps.insert (p, n), newleft)
   --let vsorted := vs.toArray.qsort dist
   let verts : HashSet vol := pairs.fold (init := ∅) fun tot (a, b) => tot.insertMany [a, b]
-  dbg_trace verts == vs
+  --dbg_trace verts == vs
 --#exit
   let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b < dist c d
-  dbg_trace (psort.take 150).map fun (a, b) => dist a b
+  --dbg_trace (psort.take 150).map fun (a, b) => dist a b
 --#exit
-  let mut merged : HashSet vol := ∅
+  --let mut merged : HashSet vol := ∅
   let mut last : vol × vol := default
   let mut con := 0
-  let mut χ := vs.size
+  --let mut χ := vs.size
   let mut comps : Array (HashSet vol) := vs.fold (·.push {·}) ∅
-  dbg_trace comps.map HashSet.toArray
+  --dbg_trace comps.map HashSet.toArray
   for curr@(a, b) in psort do
     --if con ≤ 150 then dbg_trace "** Considering {curr}: distance {dist a b}"
     con := con + 1
     --last := psort.back!
     --let (a, b) := last
-    let csize := merged.size
+    --let csize := merged.size
     let (withAB, withoutAB) : Array (HashSet vol) × Array (HashSet vol) := comps.partition fun c =>
       (c.contains a || c.contains b)
     comps := withoutAB.push (withAB.foldl (init := ∅) (·.union ·))
     let tots : Array Nat := comps.foldl (init := #[]) fun t (n : HashSet vol) => (t.push n.size)
-    dbg_trace "tots: {tots}"
-    if tots.size == 1 then dbg_trace curr; return
-    merged := merged.insertMany #[a, b]
-    let diff := merged.size - csize
-    if diff != 0 then dbg_trace "χ decreasing {diff}"; χ := χ - 1
-    if con % (dat.size / 10) == 0 then
-      dbg_trace "Step {con}, size {merged.size} difference {diff}, curr χ = {χ}"
-    if merged.size == vs.size && χ ≤ 10 then
-      dbg_trace "χ = {χ}"
-      last := curr
-      dbg_trace "\nStep {con}: {printVol last.1} {printVol last.2}"
-      dbg_trace "{last.1.1} * {last.2.1} = {last.1.1 * last.2.1}" --psort --.size
-      --return
+    --dbg_trace "tots: {tots}"
+    if tots.size == 1 then dbg_trace "{curr} -- {(a.1, b.1)} -- {a.1 * b.1}"; return
+    --merged := merged.insertMany #[a, b]
+    --let diff := merged.size - csize
+    --if diff != 0 then dbg_trace "χ decreasing {diff}"; χ := χ - 1
+    --if con % (dat.size / 10) == 0 then
+    --  dbg_trace "Step {con}, size {merged.size} difference {diff}, curr χ = {χ}"
+    --if merged.size == vs.size && χ ≤ 10 then
+    --  dbg_trace "χ = {χ}"
+    --  last := curr
+    --  dbg_trace "\nStep {con}: {printVol last.1} {printVol last.2}"
+    --  dbg_trace "{last.1.1} * {last.2.1} = {last.1.1 * last.2.1}" --psort --.size
+    --  --return
     --psort := psort.pop
   dbg_trace "Step {con}: {printVol last.1} {printVol last.2}"
   dbg_trace "{last.1.1} * {last.2.1} = {last.1.1 * last.2.1}" --psort --.size
