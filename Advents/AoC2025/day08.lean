@@ -54,9 +54,34 @@ def mergeOne (h : HashSet (Array vol)) (v : vol × vol) : HashSet (Array vol) :=
   let merged : HashSet vol := withAB.fold (·.insertMany ·) ∅
   h_ab.insert merged.toArray
 
+/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
+def part1 (dat : Array String) : Nat := Id.run do
+  let vs := inputToPos dat
+  let mut (left) := vs.toArray
+  let mut edges : HashSet (vol × vol) := ∅
+  while !left.isEmpty do
+    let curr := left.back!
+    left := left.pop
+    for n in left do
+      if dist n curr ≤ mdis dat then
+        edges := edges.insert (n, curr)
+  let verts : HashSet (Array vol) := edges.fold (init := ∅) fun tot (a, b) => tot.insertMany #[#[a], #[b]]
+  let comps : HashSet (Array vol) := edges.fold (init := verts) mergeOne
+  let sizes : Array Nat := comps.fold (init := #[]) fun tot (n : Array vol) => (tot.push n.size)
+  let sorted := sizes.qsort (· > ·)
+  (sorted.take 3).prod
+
+#assert part1 atest == 40
+
+set_option trace.profiler true in solve 1 50760
+
+/-!
+#  Question 2
+-/
+
 #eval do
-  let dat := atest
   let dat ← IO.FS.lines input
+  let dat := atest
   let close := if dat.size == 20 then 10 else 1000
   let vs := inputToPos dat
   let mut (left, visited) : Array vol × Array vol := (vs.toArray, #[])
@@ -83,17 +108,6 @@ def mergeOne (h : HashSet (Array vol)) (v : vol × vol) : HashSet (Array vol) :=
   --dbg_trace (dists.size, vs.size)
 
 
-/-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
-
---#assert part1 atest == ???
-
---set_option trace.profiler true in solve 1
-
-/-!
-#  Question 2
--/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
