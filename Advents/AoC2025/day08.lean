@@ -87,7 +87,9 @@ theorem lex_iff (a c : α) (b d : β) : ((a, b) < (c, d)) ↔ a < c || (a = c &&
 
 instance : DecidableRel (α := α × β) (· < ·) := fun _ _ => decidable_of_iff' _ (lex_iff ..)
 
---set_option trace.profiler true in
+def printVol (v : vol) : String := s!"({v.1}, {v.2.1}, {v.2.2})"
+
+set_option trace.profiler true in
 #eval do
   let dat := atest
   let dat ← IO.FS.lines input
@@ -96,27 +98,47 @@ instance : DecidableRel (α := α × β) (· < ·) := fun _ _ => decidable_of_if
   let (pairs, _) : HashSet (vol × vol) × HashSet vol :=
     vs.fold (init := (∅, vs)) fun (tot, left) n =>
       let newleft := left.erase n
-      (tot.union (newleft.fold (init := ∅) fun ps p =>
-        ps.insert (if p < n then (p, n) else (n, p))), newleft)
+      (newleft.fold (init := tot) fun ps p =>
+        ps.insert (p, n), newleft)
   --let vsorted := vs.toArray.qsort dist
-  --dbg_trace pairs.size
+  let verts : HashSet vol := pairs.fold (init := ∅) fun tot (a, b) => tot.insertMany [a, b]
+  dbg_trace verts == vs
 --#exit
-  let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b > dist c d
-  dbg_trace (psort.reverse.take 550).map fun (a, b) => dist a b
+  let mut psort := pairs.toArray.qsort fun (a, b) (c, d) => dist a b < dist c d
+  dbg_trace (psort.take 150).map fun (a, b) => dist a b
 --#exit
   let mut merged : HashSet vol := ∅
   let mut last : vol × vol := default
   let mut con := 0
-  while merged.size != vs.size do
+  let mut χ := vs.size
+  let mut comps : Array (HashSet vol) := vs.fold (·.push {·}) ∅
+  dbg_trace comps.map HashSet.toArray
+  for curr@(a, b) in psort do
+    --if con ≤ 150 then dbg_trace "** Considering {curr}: distance {dist a b}"
     con := con + 1
-    last := psort.back!
-    let (a, b) := last
+    --last := psort.back!
+    --let (a, b) := last
     let csize := merged.size
-    merged := (merged.insert a).insert b
-    dbg_trace "Step {con}, size {merged.size} difference {merged.size - csize}"
-    psort := psort.pop
-  dbg_trace "Step {con}: {last.1} {last.2}"
-  dbg_trace last.1.1 * last.2.1 --psort --.size
+    let (withAB, withoutAB) : Array (HashSet vol) × Array (HashSet vol) := comps.partition fun c =>
+      (c.contains a || c.contains b)
+    comps := withoutAB.push (withAB.foldl (init := ∅) (·.union ·))
+    let tots : Array Nat := comps.foldl (init := #[]) fun t (n : HashSet vol) => (t.push n.size)
+    dbg_trace "tots: {tots}"
+    if tots.size == 1 then dbg_trace curr; return
+    merged := merged.insertMany #[a, b]
+    let diff := merged.size - csize
+    if diff != 0 then dbg_trace "χ decreasing {diff}"; χ := χ - 1
+    if con % (dat.size / 10) == 0 then
+      dbg_trace "Step {con}, size {merged.size} difference {diff}, curr χ = {χ}"
+    if merged.size == vs.size && χ ≤ 10 then
+      dbg_trace "χ = {χ}"
+      last := curr
+      dbg_trace "\nStep {con}: {printVol last.1} {printVol last.2}"
+      dbg_trace "{last.1.1} * {last.2.1} = {last.1.1 * last.2.1}" --psort --.size
+      --return
+    --psort := psort.pop
+  dbg_trace "Step {con}: {printVol last.1} {printVol last.2}"
+  dbg_trace "{last.1.1} * {last.2.1} = {last.1.1 * last.2.1}" --psort --.size
 
 #eval ""
 
@@ -152,10 +174,11 @@ instance : DecidableRel (α := α × β) (· < ·) := fun _ _ => decidable_of_if
 def part2 (dat : Array String) : Nat := sorry
 --def part2 (dat : String) : Nat :=
 
---#assert part2 atest == ???
+--#assert part2 atest == 25272
 
 --set_option trace.profiler true in solve 2
 
 end AoC2025_Day08
 ((11589, (99764, 8671)), (22043, (97952, 801)))
 -- too low 11589 * 22043 = 255456327
+--         62719 * 51125   3206508875

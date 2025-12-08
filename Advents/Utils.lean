@@ -4,7 +4,7 @@ open Std
 
 -- copied from `Batteries/Lean/HashSet.lean`
 instance [BEq α] [Hashable α] : BEq (HashSet α) where
-  beq s t := s.all (t.contains ·) && t.all (s.contains ·)
+  beq s t := s.all (t.contains ·) && s.size == t.size
 
 section sums
 variable {α}
