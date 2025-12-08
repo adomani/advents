@@ -36,6 +36,53 @@ def test := "162,817,812
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+abbrev vol := Int × Int × Int
+
+def inputToPos (dat : Array String) : HashSet vol :=
+  dat.foldl (init := ∅) fun tot s => match s.getNats with
+    | [a, b, c] => tot.insert (a, b, c)
+    | _ => panic s!"{s} is not of the required form!"
+
+def dist (v w : vol) : Int := (v.1 - w.1) ^ 2 + (v.2.1 - w.2.1) ^ 2 + (v.2.2 - w.2.2) ^ 2
+
+def mdis (d : Array String) : Int := if d.size == 20 then 124564 else 63390489
+
+def mergeOne (h : HashSet (Array vol)) (v : vol × vol) : HashSet (Array vol) :=
+  let (a, b) := v
+  let withAB := h.filter fun as => as.contains a || as.contains b
+  let h_ab : HashSet (Array vol) := withAB.fold (·.erase ·) h
+  let merged : HashSet vol := withAB.fold (·.insertMany ·) ∅
+  h_ab.insert merged.toArray
+
+#eval do
+  let dat := atest
+  let dat ← IO.FS.lines input
+  let close := if dat.size == 20 then 10 else 1000
+  let vs := inputToPos dat
+  let mut (left, visited) : Array vol × Array vol := (vs.toArray, #[])
+  let mut dists : Array Int := #[]
+  let mut edges : HashSet (vol × vol) := ∅
+  while !left.isEmpty do
+    let curr := left.back!
+    left := left.pop
+    for n in left do
+      if dist n curr ≤ mdis dat then
+        edges := edges.insert (n, curr)
+    --dists := dists ++ left.foldl (init := (#[] : Array Int)) fun (tot : Array Int) n => (tot.push (dist n curr))
+
+  --let dists :=
+  let verts : HashSet (Array vol) := edges.fold (init := ∅) fun tot (a, b) => tot.insertMany #[#[a], #[b]]
+  let comps : HashSet (Array vol) := edges.fold (init := verts) mergeOne
+  let sizes : Array Nat := comps.fold (init := #[]) fun tot (n : Array vol) => (tot.push n.size)
+  let sorted := sizes.qsort (· > ·)
+  dbg_trace sorted.take 3
+  dbg_trace (sorted.take 3).prod
+  --dbg_trace edges.toArray
+  --dbg_trace dists.qsort.take close
+  --dbg_trace ((HashSet.ofArray dists).size, vs.size)
+  --dbg_trace (dists.size, vs.size)
+
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
