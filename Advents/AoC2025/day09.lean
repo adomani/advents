@@ -21,6 +21,25 @@ def test := "7,1
 2,3
 7,3"
 
+/-
+........3←2
+........↓.↑
+.5←←←←←←4.↑
+.↓........↑
+.6→→→→7...↑
+......↓...↑
+......0→→→1
+
+......#←←←#
+......↓...↑
+.#←←←←#...↑
+.↓........↑
+.#→→→→→→@.↑
+........↓.↑
+........#→#
+-/
+
+
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
@@ -66,10 +85,37 @@ def inputToArray (dat : Array String) : Array pos :=
   if (HashSet.ofArray xs).size * 2 != dat.size then dbg_trace "Coincidence among first coordinates!"
   if (HashSet.ofArray ys).size * 2 != dat.size then dbg_trace "Coincidence among second coordinates!"
 
+/-- Counterclockwise rotation by `π / 4`. -/
+def rot (v : pos) : pos := (- v.2, v.1)
+/-- Clockwise rotation by `π / 4`. -/
+def rot' (v : pos) : pos := - rot v
+
+#guard rot (1, 0) == (0, 1)
+#guard rot (0, 1) == (- 1, 0)
+
+def sign (v : pos) : pos :=
+  (Int.sign v.1, Int.sign v.2)
+
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest
   let gr := inputToArray dat
+  let (xs, ys) := gr.unzip
+  let mx := xs.foldl min (xs[0]!)
+  let withMin := gr.filter (Prod.fst · == mx)
+  let ccw : Bool := withMin[0]!.2 > withMin[1]!.2
+  let inrot := if ccw then rot else rot'
+  let mut possibles := #[]
+  let mut past := gr.back!
+  for i in [:gr.size] do
+    let curr := gr[i]!
+    let pastArrow := curr - past
+    dbg_trace "{i}\nold {sign pastArrow}\nnew {inrot (sign pastArrow)}\n"
+    possibles := possibles.push curr
+    past := curr
+  --gr.filter
+  dbg_trace (withMin, ccw)
+#exit
   --let (mx, Mx) : Option Int × Option Int := gr.fold (init := (none, none)) fun (mx, Mx) ((a, _) : pos) =>
   --  match mx, Mx with
   --  | some m, some M => (min a m, max a M)
