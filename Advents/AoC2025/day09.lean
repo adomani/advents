@@ -169,22 +169,29 @@ def condSquare (vs : Array pos) (v w : pos) : Bool :=
 Assuming that `ab` is vertical, `vw` is horizontal,
 returns `none` if the segment `ab` and `vw` do not intersect and `some q`, where `q` is the intersection point otherwise.
 -/
-def inter (a b v w : pos) : Option pos :=
+def inter (a b v w : pos) (v? : Bool := false) : Option pos :=
   -- the common `y`-coordinate of `vw` is strictly between the `y`-coordinates of `ab`.
+  let s := s!"{(min a.2 b.2 < v.2 : Bool)} \
+    {(v.2 < max a.2 b.2 : Bool)} \
+    {(min v.1 w.1 < a.1 : Bool)} \
+    {(a.1 < max v.1 w.1 : Bool)}"
   if min a.2 b.2 < v.2 && v.2 < max a.2 b.2 &&
     -- and similarly with the roles reversed.
-    min v.1 w.1 < a.1 && a.1 < max v.1 v.1
-  then (a.1, v.2) else none
+    min v.1 w.1 < a.1 && a.1 < max v.1 w.1
+  then
+    if v? then dbg_trace s; (a.1, v.2) else (a.1, v.2)
+  else
+    if v? then dbg_trace s; none else none
+
+#eval inter (1, 10) (1, 15) (0, 7) (2, 7)
+#eval inter (1, 10) (1, 15) (0, 11) (2, 11)
 
 /--
 Assuming that `ab` is vertical, `vw` is horizontal,
 returns `true` if the segment  `ab` crosses the segment `vw` internally.
 -/
-def vertHor (a b v w : pos) : Bool :=
-    -- the common `y`-coordinate of `vw` is strictly between the `y`-coordinates of `ab`.
-    min a.2 b.2 < v.2 && v.2 < max a.2 b.2 &&
-    -- and similarly with the roles reversed.
-    min v.1 w.1 < a.1 && a.1 < max v.1 v.1
+def vertHor (a b v w : pos) (v? : Bool := false) : Bool :=
+  (inter a b v w v?).isSome
 
 def crosses (a b v w : pos) : Bool :=
   -- `ab` is vertical, `vw` is horizontal
