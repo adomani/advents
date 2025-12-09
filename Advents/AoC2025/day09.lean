@@ -96,6 +96,65 @@ def rot' (v : pos) : pos := - rot v
 def sign (v : pos) : pos :=
   (Int.sign v.1, Int.sign v.2)
 
+/-
+........3←2
+........↓.↑
+.5←←←←←←4.↑
+.↓........↑
+.6→→→→7...↑
+......↓...↑
+......0→→→1
+-/
+
+/--
+Assumes that the edge `v0→v1` is either horizontal or vertical.
+Checks that the coordinate of `v` is inside of the range determined
+by the non-equal coordinate of `v0` and `v1`.
+-/
+def inRange (v0 v1 v : pos) : Bool :=
+  if v0.1 == v1.1
+  then
+    min v0.2 v1.2 ≤ v.2 && v.2 ≤ max v0.2 v1.2
+  else
+    min v0.1 v1.1 ≤ v.1 && v.1 ≤ max v0.1 v1.1
+
+/--
+Assumes that the edge `v0→v1` is part of a counterclockwise oriented loop that is either horizontal or vertical.
+Checks whether the vertex `v` is on the positive side of the edge, that is, it is in
+the half-space that starts on the line `v0→v1` and contains all the points
+obtained from a point on the line by adding a positive multiple of a clock-wise
+rotation of `v0→v1`.
+-/
+def isPos (v0 v1 v : pos) : Bool :=
+  if v0.1 == v1.1 then
+    let sgn := (rot' (v1 - v0)).1
+    0 < sgn * (v.1 - v0.1)
+  else
+    let sgn := (rot' (v1 - v0)).2
+    0 < sgn * (v.2 - v0.2)
+
+#guard isPos (0, 0) (0, 1) (1, 1)
+#guard isPos (0, 0) (0, 1) (2, 1)
+#guard !isPos (0, 0) (0, 1) (-1, 1)
+#guard !isPos (0, 0) (0, 1) (-2, 1)
+#guard !isPos (0, 0) (1, 0) (1, 1)
+
+#guard !isPos (0, 0) (0, - 1) (1, 1)
+#guard isPos (0, 0) (- 1, 0) (1, 1)
+
+
+def cond (vs : Array pos) (i : Nat) (v : pos) : Bool :=
+  let v0 := vs[i]!
+  let v1 := vs[i + 1]!
+  let inRangex :=
+    if v0.1 == v1.1
+    then
+      min v0.2 v1.2 ≤ v.2 && v.2 ≤ max v0.2 v1.2
+    else
+      min v0.1 v1.1 ≤ v.1 && v.1 ≤ max v0.1 v1.1
+
+  (! inRange v0 v1 v) || default
+
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest
@@ -115,6 +174,7 @@ def sign (v : pos) : pos :=
     past := curr
   --gr.filter
   dbg_trace (withMin, ccw)
+
 #exit
   --let (mx, Mx) : Option Int × Option Int := gr.fold (init := (none, none)) fun (mx, Mx) ((a, _) : pos) =>
   --  match mx, Mx with
