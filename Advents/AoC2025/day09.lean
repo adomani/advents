@@ -111,12 +111,19 @@ Assumes that the edge `v0→v1` is either horizontal or vertical.
 Checks that the coordinate of `v` is inside of the range determined
 by the non-equal coordinate of `v0` and `v1`.
 -/
-def inRange (v0 v1 v : pos) : Bool :=
-  if v0.1 == v1.1
+def inRange (a b v : pos) : Bool :=
+  dbg_trace "inRange {a} {b} {v}"
+  if a.1 == b.1
   then
-    min v0.2 v1.2 ≤ v.2 && v.2 ≤ max v0.2 v1.2
+    dbg_trace "{v} fst coord eq {v.2} ∈ [{min a.2 b.2}, {max a.2 b.2}]"
+    let res := min a.2 b.2 < v.2 && v.2 < max a.2 b.2
+    dbg_trace "{res}\n"
+    res
   else
-    min v0.1 v1.1 ≤ v.1 && v.1 ≤ max v0.1 v1.1
+    dbg_trace "{v} snd coord eq {v.1} ∈ [{min a.1 b.1}, {max a.1 b.1}]"
+    let res := min a.1 b.1 < v.1 && v.1 < max a.1 b.1
+    dbg_trace "{res}\n"
+    res
 
 /--
 Assumes that the edge `v0→v1` is part of a counterclockwise oriented loop that is either horizontal or vertical.
@@ -128,10 +135,10 @@ rotation of `v0→v1`.
 def isPos (v0 v1 v : pos) : Bool :=
   if v0.1 == v1.1 then
     let sgn := (rot' (v1 - v0)).1
-    0 < sgn * (v.1 - v0.1)
+    0 ≤ sgn * (v.1 - v0.1)
   else
     let sgn := (rot' (v1 - v0)).2
-    0 < sgn * (v.2 - v0.2)
+    0 ≤ sgn * (v.2 - v0.2)
 
 #guard isPos (0, 0) (0, 1) (1, 1)
 #guard isPos (0, 0) (0, 1) (2, 1)
@@ -143,22 +150,51 @@ def isPos (v0 v1 v : pos) : Bool :=
 #guard isPos (0, 0) (- 1, 0) (1, 1)
 
 
-def cond (vs : Array pos) (i : Nat) (v : pos) : Bool :=
+def cond (v0 v1 v : pos) : Bool :=
+  let l := ! inRange v0 v1 v
+  let r := isPos v0 v1 v
+  dbg_trace "(rg, pos) = {(l, r)}"
+  l || r
+
+def condSquare (vs : Array pos) (v w : pos) : Bool :=
+  (Array.range vs.size).all fun i =>
   let v0 := vs[i]!
   let v1 := vs[i + 1]!
-  let inRangex :=
-    if v0.1 == v1.1
-    then
-      min v0.2 v1.2 ≤ v.2 && v.2 ≤ max v0.2 v1.2
-    else
-      min v0.1 v1.1 ≤ v.1 && v.1 ≤ max v0.1 v1.1
+  cond v0 v1 v &&
+    cond v0 v1 w &&
+    cond v0 v1 (v.1, w.2) &&
+    cond v0 v1 (w.1, v.2)
 
-  (! inRange v0 v1 v) || default
+/--
+Assuming that `ab` is vertical, `vw` is horizontal,
+returns `true` if the segment  `ab` crosses the segment `vw` internally.
+-/
+def vertHor (a b v w : pos) : Bool :=
+    -- the common `y`-coordinate of `vw` is strictly between the `y`-coordinates of `ab`.
+    min a.2 b.2 < v.2 && v.2 < max a.2 b.2 &&
+    -- and similarly with the roles reversed.
+    min v.1 w.1 < a.1 && a.1 < max v.1 v.1
+
+def crosses (a b v w : pos) : Bool :=
+  -- `ab` is vertical, `vw` is horizontal
+  if a.1 = b.1 && v.2 == w.2 then
+    vertHor a b v w
+  else
+  -- `ab` is horizontal, `vw` is vertical
+  if a.2 = b.2 && v.1 == w.1 then
+    vertHor v w a b
+  else
+    false
 
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest
   let gr := inputToArray dat
+  let mut gr' := gr
+  for v in gr do
+    gr' := gr'.drop 1
+    for w in gr' do
+      dbg_trace "{v} {w} {condSquare gr v w}\n"
   let (xs, ys) := gr.unzip
   let mx := xs.foldl min (xs[0]!)
   let withMin := gr.filter (Prod.fst · == mx)
