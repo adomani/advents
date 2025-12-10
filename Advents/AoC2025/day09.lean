@@ -204,15 +204,23 @@ def crosses (a b v w : pos) : Bool :=
   else
     false
 
+def crossesSquare (a b v w : pos) : Bool :=
+  crosses a b v (v.1, w.2) ||
+  crosses a b (v.1, w.2) w ||
+  crosses a b w (w.1, v.2) ||
+  crosses a b (w.1, v.2) v
+
 #eval do
   let dat ← IO.FS.lines input
   let dat := atest
   let gr := inputToArray dat
   let mut gr' := gr
+  let a := gr[4]!
+  let b := gr[4 + 1]!
   for v in gr do
     gr' := gr'.drop 1
     for w in gr' do
-      dbg_trace "{v} {w} {condSquare gr v w}\n"
+      dbg_trace "{a} {b} {v} {w} {crossesSquare a b v w}\n"
   let (xs, ys) := gr.unzip
   let mx := xs.foldl min (xs[0]!)
   let withMin := gr.filter (Prod.fst · == mx)
