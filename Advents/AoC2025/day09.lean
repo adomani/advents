@@ -35,6 +35,9 @@ def test := "7,1
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+Converts the input to the `HashSet` of positions of the red tiles.
+-/
 def inputToPos (dat : Array String) : HashSet pos :=
   dat.foldl (init := ∅) fun tot s => match s.getNats with | [x, y] => tot.insert (x, y) | _ => tot
 
