@@ -38,3 +38,4 @@
 
 ### 2025
 * Day 8: both parts are slow, the first one is only sped up by a hard-coded answer.
+* Day 9, part 2: missing -- finding rectangles in the interior of a region.

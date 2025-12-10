@@ -287,3 +287,36 @@ added.
 [Solution in Lean](day08.lean)
 
 ---
+
+#  [Day 9](https://adventofcode.com/2025/day/9)
+
+The input are the coordinates of the red tiles.
+
+####  Test
+
+<pre>
+7,1
+11,1
+11,7
+9,7
+9,5
+2,5
+2,3
+7,3
+</pre>
+
+### Description
+
+#### Part 1
+
+In part 1, we should determine the largest area of a rectangle with two opposite corners
+on the red tiles.
+
+#### Part 2
+
+In part 2, we should still find the largest rectangle with opposite vertices on the red tiles,
+but the rectangle must be entirely contained in the interior of the path.
+
+[Solution in Lean](day09.lean)
+
+---
