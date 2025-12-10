@@ -123,3 +123,17 @@ Now, we should add all edges, from the shortest to the largest, until the graph 
 connected component.
 Once that happens, we should report the product of the `x`-coordinates of the last edge that was
 added.
+-- Day 9
+The input are the coordinates of the red tiles.
+
+### Description
+
+#### Part 1
+
+In part 1, we should determine the largest area of a rectangle with two opposite corners
+on the red tiles.
+
+#### Part 2
+
+In part 2, we should still find the largest rectangle with opposite vertices on the red tiles,
+but the rectangle must be entirely contained in the interior of the path.

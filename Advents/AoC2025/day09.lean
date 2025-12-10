@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+The input are the coordinates of the red tiles.
+-/
+
 namespace AoC2025_Day09
 
 open System in
@@ -9,6 +13,9 @@ def input : FilePath := ("Advents"/"AoC2025"/"day09" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+In part 1, we should determine the largest area of a rectangle with two opposite corners
+on the red tiles.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -60,6 +67,9 @@ set_option trace.profiler true in solve 1 4767418746
 
 /-!
 #  Question 2
+
+In part 2, we should still find the largest rectangle with opposite vertices on the red tiles,
+but the rectangle must be entirely contained in the interior of the path.
 -/
 
 #exit
