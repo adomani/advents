@@ -11,8 +11,8 @@ def input : FilePath := ("Advents"/"AoC2025"/"day11" : FilePath).withExtension "
 #  Question 1
 -/
 
-/-- `test` is the test string for the problem. -/
-def test := "aaa: you hhh
+/-- `test1` is the test string for the problem. -/
+def test1 := "aaa: you hhh
 you: bbb ccc
 bbb: ddd eee
 ccc: ddd eee fff
@@ -38,12 +38,16 @@ fff: ggg hhh
 ggg: out
 hhh: out"
 
-/-- `atest` is the test string for the problem, split into rows. -/
-def atest := (test.splitOn "\n").toArray
+/-- `atest1` is the test string for the problem, split into rows. -/
+def atest1 := (test1.splitOn "\n").toArray
 
 /-- `atest2` is the second test string for the problem, split into rows. -/
 def atest2 := (test2.splitOn "\n").toArray
 
+/--
+Converts the input to a `HashMap` assigning to each node, the array of nodes reachable
+from the first entry.
+-/
 def inputToMap (dat : Array String) : HashMap String (Array String) :=
   dat.foldl (init := ∅) fun tot s =>
     if let [src, tgts] := s.splitOn ": " then
@@ -69,7 +73,7 @@ def part1 (dat : Array String) : Nat := Id.run do
   total
 
 
-#assert part1 atest == 5
+#assert part1 atest1 == 5
 
 set_option trace.profiler true in solve 1 714
 
