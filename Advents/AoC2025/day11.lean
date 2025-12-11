@@ -23,8 +23,26 @@ ggg: out
 hhh: ccc fff iii
 iii: out"
 
+/-- `test2` is the second test string for the problem. -/
+def test2 := "svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
+ggg: out
+hhh: out"
+
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
+
+/-- `atest2` is the second test string for the problem, split into rows. -/
+def atest2 := (test2.splitOn "\n").toArray
 
 def inputToMap (dat : Array String) : HashMap String (Array String) :=
   dat.foldl (init := ∅) fun tot s =>
@@ -60,28 +78,38 @@ set_option trace.profiler true in solve 1 714
 -/
 
 #eval do
-  let dat := atest
+  let dat := atest2
   let dat ← IO.FS.lines input
   let mut mp := inputToMap dat
   --dbg_trace mp.toArray
-  let mut cts : HashMap String Nat := {("you", 1)}
+  let mut cts : HashMap String (Nat × Nat × Nat × Nat) := {("svr", (1, 0, 0, 0))}
   let mut con := 0
   let mut total := 0
   while (!cts.isEmpty) do
-    cts := cts.fold (init := ∅) fun tot src val =>
+    cts := cts.fold (init := ∅) fun tot src ((val, dac?, fft?, both) : Nat × Nat × Nat × Nat) =>
       if let some tgts := mp.get? src then
         tgts.foldl (init := tot) fun intot tgt =>
-          intot.alter tgt (some <| ·.getD 0 + val)
+          intot.alter tgt fun
+            | none =>
+              if tgt == "dac" then some (0, val + dac?, 0, both + fft?)
+              else if tgt == "fft" then (0, 0, val + fft?, both + dac?)
+              else (val, dac?, fft?, both)
+            | some (ct, isDac, isFft, isBoth) =>
+              if tgt == "dac" then some (0, ct + isDac + val + dac?, 0, isFft + both + fft? + isBoth)
+              else if tgt == "fft" then (0, 0, isFft + val + fft?, isBoth + both + dac? + isDac)
+              else (ct + val, isDac + dac?, isFft + fft?, isBoth + both)
       else
         tot
-    total := total + cts["out"]?.getD 0
-    dbg_trace "Step {con}: {total}"--": {cts.toArray}"
+    total := total + if let some (_, _, _, t) := cts["out"]? then t else 0
+    dbg_trace "Step {con}: {cts["out"]?} {total}"--": {cts.toArray}"
     con := con + 1
   dbg_trace "{total}"
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
 --def part2 (dat : String) : Nat :=
+
+-- too low 166690021305600
 
 --#assert part2 atest == ???
 
