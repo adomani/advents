@@ -137,7 +137,7 @@ on the red tiles.
 
 In part 2, we should still find the largest rectangle with opposite vertices on the red tiles,
 but the rectangle must be entirely contained in the interior of the path.
--- Day 9
+-- Day 10
 The inputs are switches to flips, patterns for flipping and joltages.
 
 ### Description
