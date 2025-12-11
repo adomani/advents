@@ -83,23 +83,23 @@ set_option trace.profiler true in solve 1 714
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := Id.run do
-  let mut mp := inputToMap dat
-  let mut cts : HashMap String (Nat × Nat × Nat × Nat) := {("svr", (1, 0, 0, 0))}
-  let mut con := 0
+  let mp := inputToMap dat
+  let mut cts : HashMap _ _ := {("svr", (1, 0, 0, 0))}
   let mut total := 0
   while (!cts.isEmpty) do
-    cts := cts.fold (init := ∅) fun tot src ((val, dac?, fft?, both) : Nat × Nat × Nat × Nat) =>
+    cts := cts.fold (init := ∅) fun tot src (val, dac?, fft?, both) =>
       if let some tgts := mp.get? src then
         tgts.foldl (init := tot) fun intot tgt =>
-          intot.alter tgt fun
-            | none =>
-              if tgt == "dac" then some (0, val + dac?, 0, both + fft?)
-              else if tgt == "fft" then (0, 0, val + fft?, both + dac?)
-              else (val, dac?, fft?, both)
-            | some (ct, isDac, isFft, isBoth) =>
-              if tgt == "dac" then some (0, ct + isDac + val + dac?, 0, isFft + both + fft? + isBoth)
-              else if tgt == "fft" then (0, 0, isFft + val + fft?, isBoth + both + dac? + isDac)
-              else (ct + val, isDac + dac?, isFft + fft?, isBoth + both)
+          intot.alter tgt fun x =>
+            let (ct, isDac, isFft, isBoth) := x.getD (0, 0, 0, 0)
+            if tgt == "dac"
+            then
+              some (0, ct + isDac + val + dac?, 0, isFft + both + fft? + isBoth)
+            else if tgt == "fft"
+            then
+              (0, 0, isFft + val + fft?, isBoth + both + dac? + isDac)
+            else
+              (ct + val, isDac + dac?, isFft + fft?, isBoth + both)
       else
         tot
     total := total + if let some (_, _, _, t) := cts["out"]? then t else 0
