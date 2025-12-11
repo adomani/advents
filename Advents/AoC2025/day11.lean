@@ -81,11 +81,9 @@ set_option trace.profiler true in solve 1 714
 #  Question 2
 -/
 
-#eval do
-  let dat := atest2
-  let dat ← IO.FS.lines input
+/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
+def part2 (dat : Array String) : Nat := Id.run do
   let mut mp := inputToMap dat
-  --dbg_trace mp.toArray
   let mut cts : HashMap String (Nat × Nat × Nat × Nat) := {("svr", (1, 0, 0, 0))}
   let mut con := 0
   let mut total := 0
@@ -105,18 +103,10 @@ set_option trace.profiler true in solve 1 714
       else
         tot
     total := total + if let some (_, _, _, t) := cts["out"]? then t else 0
-    dbg_trace "Step {con}: {cts["out"]?} {total}"--": {cts.toArray}"
-    con := con + 1
-  dbg_trace "{total}"
+  return total
 
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
+#assert part2 atest2 == 2
 
--- too low 166690021305600
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
+solve 2 333852915427200
 
 end AoC2025_Day11
