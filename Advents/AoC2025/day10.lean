@@ -27,17 +27,31 @@ def test := "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+The state to keep track of the data of the problem.
+
+* `ls` is the array of light switches -- they can be on or off;
+* `bs` is the array of configurations that can be toggled simultaneously;
+* `js` is the array of joltages;
+* `con` is the number of elapsed steps.
+-/
 structure state where
+  /-- `ls` is the array of light switches -- they can be on or off -/
   ls : Array Bool
+  /-- `bs` is the array of configurations that can be toggled simultaneously -/
   bs : Array (Array Nat)
+  /-- `js` is the array of joltages -/
   js : Array Nat
+  /-- `con` is the number of elapsed steps -/
   con : Nat
   deriving Inhabited, BEq, Hashable
 
+/-- A convenience instance to print a `state`. -/
 instance : ToString state where
   toString := fun
     | {ls := l, bs := b, js := _j, con := c} => s!"current: {l}\n{b}\n{c}"
 
+/-- Convert the input into an array of `state`s. -/
 def inputToM (dat : Array String) : Array state :=
   dat.foldl (init := #[]) fun tot s => tot.push <|
   let i1 := s.takeWhile (· != '(') |>.drop 1 |>.dropRight 2
@@ -50,6 +64,7 @@ def inputToM (dat : Array String) : Array state :=
     js := i3.getNats.toArray
     con := 0 }
 
+/-- Toggle the switches in `l` occupying the positions in `b`. -/
 def toggleOne (l : Array Bool) (b : Array Nat) : Array Bool :=
   b.foldl (·.modify · (!·)) l
 
@@ -63,12 +78,15 @@ def toggleOne (l : Array Bool) (b : Array Nat) : Array Bool :=
   let b := #[1, 3]
   toggleOne l b == #[false, false, true, true]
 
+/-- Toggle the light switches of the input `state`, incrementing `con` by `1` as well. -/
 def toggle (m : state) (b : Array Nat) : state :=
   {m with ls := toggleOne m.ls b, con := m.con + 1}
 
+/-- Toggle the input `state` in all possible ways, corresponding to all `bs`. -/
 def stepSingle (s : state) : HashSet state :=
   s.bs.foldl (·.insert <| toggle s ·) ∅
 
+/-- Toggle all entries of `h` in all possible ways. -/
 def step (h : HashSet state) : HashSet state :=
   h.fold (·.union <| stepSingle ·) ∅
 
