@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+Flowing through the server rack
+-/
+
 namespace AoC2025_Day11
 
 open System in
@@ -9,6 +13,8 @@ def input : FilePath := ("Advents"/"AoC2025"/"day11" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+In part 1, we count the paths from `you` to `out`.
 -/
 
 /-- `test1` is the test string for the problem. -/
@@ -72,13 +78,15 @@ def part1 (dat : Array String) : Nat := Id.run do
     con := con + 1
   total
 
-
 #assert part1 atest1 == 5
 
 set_option trace.profiler true in solve 1 714
 
 /-!
 #  Question 2
+
+In part 2, we count the paths from `svr` to `out` that go through both `dac` and `fft`,
+in some order.
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
