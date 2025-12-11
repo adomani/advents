@@ -27,38 +27,31 @@ def test := "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-structure machine where
+structure state where
   ls : Array Bool
   bs : Array (Array Nat)
   js : Array Nat
-  ons : Array Bool
+  con : Nat
   deriving Inhabited, BEq, Hashable
 
-instance : ToString machine where
+instance : ToString state where
   toString := fun
-    | {ls := l, bs := b, js := _j, ons := os} => s!"current: {l}\n{b}\ntarget: {os}"
+    | {ls := l, bs := b, js := _j, con := c} => s!"current: {l}\n{b}\n{c}"
 
-def inputToM (dat : Array String) : Array machine :=
+def inputToM (dat : Array String) : Array state :=
   dat.foldl (init := #[]) fun tot s => tot.push <|
   let i1 := s.takeWhile (· != '(') |>.drop 1 |>.dropRight 2
   let r2 := s.dropWhile (· != '(')
   let i2 := r2.takeWhile (· != '{')
   let i3 := r2.dropWhile (· != '{')
-  let ons := i1.foldl (init := #[]) fun tot s => tot.push (s == '#')
-  { ls := ons.map fun _ => false
-    bs := (i2.splitOn " ").foldl (init := #[]) (·.push <| ·.getNats.toArray) |>.pop
+  let ons := i1.foldl (·.push <| · == '#') #[]
+  { ls := ons
+    bs := (i2.splitOn " ").foldl (·.push <| ·.getNats.toArray) #[] |>.pop
     js := i3.getNats.toArray
-    ons := ons }
-
-structure state extends machine where
-  con : Nat
-  deriving Inhabited, BEq, Hashable
-
-instance : ToString state where
-  toString := fun | s@{con := n, ..} => s!"{s.tomachine}\n{n}"
+    con := 0 }
 
 def toggleOne (l : Array Bool) (b : Array Nat) : Array Bool :=
-  b.foldl (init := l) fun tot n => tot.modify (n) (!·)
+  b.foldl (·.modify · (!·)) l
 
 #guard
   let l := #[false, true, true, false]
@@ -70,37 +63,26 @@ def toggleOne (l : Array Bool) (b : Array Nat) : Array Bool :=
   let b := #[1, 3]
   toggleOne l b == #[false, false, true, true]
 
-def toggle (m : machine) (b : Array Nat) : machine :=
-  {m with ls := toggleOne m.ls b}
-
-def MtoS (m : machine) (c : Nat) : state where
-  ls := m.ls
-  bs := m.bs
-  js := m.js
-  ons := m.ons
-  con := c
+def toggle (m : state) (b : Array Nat) : state :=
+  {m with ls := toggleOne m.ls b, con := m.con + 1}
 
 def stepSingle (s : state) : HashSet state :=
-  s.bs.foldl (init := ∅) fun tot n =>
-    tot.insert (MtoS (toggle s.tomachine n) (s.con + 1))
+  s.bs.foldl (·.insert <| toggle s ·) ∅
 
 def step (h : HashSet state) : HashSet state :=
-  h.fold (init := ∅) (·.union <| stepSingle ·)
+  h.fold (·.union <| stepSingle ·) ∅
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
   let ms := inputToM dat
   let mut tot := 0
-  for m in ms do
-    let s := MtoS m 0
+  for s in ms do
     let mut h : HashSet state := {s}
-    let mut con := 0
     let mut found := false
     while !found do
-      con := con + 1
       h := step h
       for a in h do
-        found := found || a.ls == a.ons
+        found := found || a.ls.all (!·)
         if found then
           tot := tot + a.con
           break
