@@ -63,11 +63,10 @@ def inputToMap (dat : Array String) : HashMap String (Array String) :=
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
-  let mut mp := inputToMap dat
+  let mp := inputToMap dat
   let mut cts : HashMap String Nat := {("you", 1)}
-  let mut con := 0
   let mut total := 0
-  while (!cts.isEmpty) do
+  while !cts.isEmpty do
     cts := cts.fold (init := ∅) fun tot src val =>
       if let some tgts := mp.get? src then
         tgts.foldl (init := tot) fun intot tgt =>
@@ -75,12 +74,11 @@ def part1 (dat : Array String) : Nat := Id.run do
       else
         tot
     total := total + cts["out"]?.getD 0
-    con := con + 1
   total
 
 #assert part1 atest1 == 5
 
-set_option trace.profiler true in solve 1 714
+solve 1 714
 
 /-!
 #  Question 2
@@ -94,7 +92,7 @@ def part2 (dat : Array String) : Nat := Id.run do
   let mp := inputToMap dat
   let mut cts : HashMap _ _ := {("svr", (1, 0, 0, 0))}
   let mut total := 0
-  while (!cts.isEmpty) do
+  while !cts.isEmpty do
     cts := cts.fold (init := ∅) fun tot src (val, dac?, fft?, both) =>
       if let some tgts := mp.get? src then
         tgts.foldl (init := tot) fun intot tgt =>
