@@ -12,7 +12,16 @@ def input : FilePath := ("Advents"/"AoC2025"/"day11" : FilePath).withExtension "
 -/
 
 /-- `test` is the test string for the problem. -/
-def test := ""
+def test := "aaa: you hhh
+you: bbb ccc
+bbb: ddd eee
+ccc: ddd eee fff
+ddd: ggg
+eee: out
+fff: out
+ggg: out
+hhh: ccc fff iii
+iii: out"
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
