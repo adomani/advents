@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+The inputs are switches to flips, patterns for flipping and joltages.
+-/
+
 namespace AoC2025_Day10
 
 open System in
@@ -9,6 +13,10 @@ def input : FilePath := ("Advents"/"AoC2025"/"day10" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+In part 1, we should determine the minimum number of flips in patterns that take us from all switches being off to creating the input pattern.
+
+We need to return the total minimum number of required switches.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -104,6 +112,8 @@ set_option trace.profiler true in solve 1 396
 
 /-!
 #  Question 2
+
+In part 2, we should do something similar, but adding to joltages, instead of flipping switches.
 -/
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
