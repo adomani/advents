@@ -320,3 +320,31 @@ but the rectangle must be entirely contained in the interior of the path.
 [Solution in Lean](day09.lean)
 
 ---
+
+#  [Day 10](https://adventofcode.com/2025/day/10)
+
+The inputs are switches to flips, patterns for flipping and joltages.
+
+####  Test
+
+<pre>
+[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
+[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
+[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}
+</pre>
+
+### Description
+
+#### Part 1
+
+In part 1, we should determine the minimum number of flips in patterns that take us from all switches being off to creating the input pattern.
+
+We need to return the total minimum number of required switches.
+
+#### Part 2
+
+In part 2, we should do something similar, but adding to joltages, instead of flipping switches.
+
+[Solution in Lean](day10.lean)
+
+---
