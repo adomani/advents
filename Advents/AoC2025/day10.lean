@@ -124,6 +124,7 @@ def stepJ (h : HashSet state) : HashSet state :=
 def part1 (dat : Array String) : Nat := Id.run do
   let ms := inputToM dat
   let mut tot := 0
+  let mut cache : HashMap (Array Nat) Nat := ∅
   for m in ms do
     let s := MtoS m 0
     let mut h : HashSet state := {s}
@@ -131,6 +132,9 @@ def part1 (dat : Array String) : Nat := Id.run do
     let mut found := false
     while !found && con ≤ 130 do
       con := con + 1
+      for m1 in h do
+        let cached := cache.filter fun c _ => (c == m1.jons.zipWith (· - ·) m1.js)
+        if cached.isEmpty then
       h := stepJ h
       for a in h do
         found := found || a.js == a.jons
