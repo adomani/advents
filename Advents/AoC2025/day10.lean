@@ -95,6 +95,7 @@ def step (h : HashSet state) : HashSet state :=
 
 set_option trace.profiler true in
 #eval do
+  if false then
   let dat := atest
   let dat ← IO.FS.lines input
   let ms := inputToM dat
@@ -129,12 +130,28 @@ set_option trace.profiler true in
 --  | _ => default
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
--- 389 too low
---#assert part1 atest == ???
+def part1 (dat : Array String) : Nat := Id.run do
+  let ms := inputToM dat
+  let mut tot := 0
+  for m in ms do
+    let s := MtoS m 0
+    let mut h : HashSet state := {s}
+    let mut con := 0
+    let mut found := false
+    while !found do
+      con := con + 1
+      h := step h
+      for a in h do
+        found := found || a.ls == a.ons
+        if found then
+          tot := tot + a.con
+          break
+  tot
 
---set_option trace.profiler true in solve 1
+-- 389 too low
+#assert part1 atest == 7
+
+set_option trace.profiler true in solve 1 396
 
 /-!
 #  Question 2
