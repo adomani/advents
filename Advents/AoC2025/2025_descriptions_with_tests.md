@@ -348,3 +348,55 @@ In part 2, we should do something similar, but adding to joltages, instead of fl
 [Solution in Lean](day10.lean)
 
 ---
+
+#  [Day 11](https://adventofcode.com/2025/day/11)
+
+Flowing through the server rack
+
+####  Test 1
+
+<pre>
+aaa: you hhh
+you: bbb ccc
+bbb: ddd eee
+ccc: ddd eee fff
+ddd: ggg
+eee: out
+fff: out
+ggg: out
+hhh: ccc fff iii
+iii: out
+</pre>
+
+####  Test 2
+
+<pre>
+svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
+ggg: out
+hhh: out
+</pre>
+
+### Description
+
+#### Part 1
+
+In part 1, we count the paths from `you` to `out`.
+
+#### Part 2
+
+In part 2, we count the paths from `svr` to `out` that go through both `dac` and `fft`,
+in some order.
+
+[Solution in Lean](day11.lean)
+
+---

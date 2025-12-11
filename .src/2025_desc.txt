@@ -151,3 +151,16 @@ We need to return the total minimum number of required switches.
 #### Part 2
 
 In part 2, we should do something similar, but adding to joltages, instead of flipping switches.
+-- Day 11
+Flowing through the server rack
+
+### Description
+
+#### Part 1
+
+In part 1, we count the paths from `you` to `out`.
+
+#### Part 2
+
+In part 2, we count the paths from `svr` to `out` that go through both `dac` and `fft`,
+in some order.
