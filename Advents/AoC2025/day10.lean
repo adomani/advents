@@ -23,7 +23,7 @@ structure machine where
   ls : Array Bool
   bs : Array (Array Nat)
   js : Array Nat
-  ons : Array Bool --:= tomachine.ls.map fun _ => false
+  ons : Array Bool
   deriving Inhabited, BEq, Hashable
 
 instance : ToString machine where
@@ -51,7 +51,6 @@ instance : ToString state where
 
 def toggleOne (l : Array Bool) (b : Array Nat) : Array Bool :=
   b.foldl (init := l) fun tot n => tot.modify (n) (!·)
-  --l.zipWith (bs := b) fun tf n => _
 
 #guard
   let l := #[false, true, true, false]
@@ -67,67 +66,18 @@ def toggle (m : machine) (b : Array Nat) : machine :=
   {m with ls := toggleOne m.ls b}
 
 def MtoS (m : machine) (c : Nat) : state where
-  ls := m.ls --.map fun _ => false
+  ls := m.ls
   bs := m.bs
   js := m.js
   ons := m.ons
   con := c
 
-
 def stepSingle (s : state) : HashSet state :=
   s.bs.foldl (init := ∅) fun tot n =>
     tot.insert (MtoS (toggle s.tomachine n) (s.con + 1))
-  --{(∅ : HashSet state) with con := s.con + 1}
-
-#eval do
-  let dat := atest
-  let ms := inputToM dat
-  dbg_trace String.intercalate "\n\n" (ms.toList.map (s!"{·}"))
-  dbg_trace "\n"
-  let ⟨ls, bs, js, ons⟩ := ms[0]!
-  dbg_trace ({con := 0, ls := ls, bs := bs, js := js, ons := ons} : state)
-  dbg_trace "\n"
-  for m in stepSingle (MtoS ms[0]! 0) do
-    dbg_trace m
 
 def step (h : HashSet state) : HashSet state :=
   h.fold (init := ∅) (·.union <| stepSingle ·)
-
-set_option trace.profiler true in
-#eval do
-  if false then
-  let dat := atest
-  let dat ← IO.FS.lines input
-  let ms := inputToM dat
-  --dbg_trace String.intercalate "\n\n" (ms.toList.map (s!"{·}"))
-  --dbg_trace "\n"
-  --let ⟨ls, bs, js, ons⟩ := ms[0]!
-  --dbg_trace ({con := 0, ls := ls, bs := bs, js := js, ons := ons} : state)
-  --dbg_trace "\n"
-  --let s := MtoS ms[0]! 0
-  let mut tot := 0
-  for m in ms do
-    let s := MtoS m 0
-    --dbg_trace "\n**New" -- {s}"
-    let mut h : HashSet state := {s}
-    let mut con := 0
-    let mut found := false
-    while !found do
-      con := con + 1
-      h := step h
-      for a in h do
-        --dbg_trace a
-        found := found || a.ls == a.ons
-        if found then
-          tot := tot + a.con
-          dbg_trace "found at {a.con}" -- {a}"
-          --dbg_trace "\n"
-          break
-  dbg_trace "total: {tot}"
-
---  match s.splitOn " " with
---  | [l, b, j] => default
---  | _ => default
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
@@ -146,9 +96,8 @@ def part1 (dat : Array String) : Nat := Id.run do
         if found then
           tot := tot + a.con
           break
-  tot
+  return tot
 
--- 389 too low
 #assert part1 atest == 7
 
 set_option trace.profiler true in solve 1 396
