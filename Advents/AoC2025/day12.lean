@@ -49,6 +49,70 @@ def test := "0:
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+abbrev present := HashSet pos
+
+def inputToPresent (dat : Array String) : present :=
+  sparseGrid dat (· == '#')
+
+structure state where
+  /-- The height of the `region` -/
+  h : Nat
+  /-- The width of the `region` -/
+  w : Nat
+  /-- `pres` assigns to an index, the corresponding `present` -/
+  pres : HashMap Nat present
+  /-- `grs` assigns to each index the number of presents of that shape that still need placing -/
+  grs : HashMap Nat Nat
+  deriving Inhabited
+
+def inputToState (dat : String) : Array state :=
+  let parts := dat.splitOn "\n\n" |>.toArray
+  let (prs, sts) := (parts.pop, parts.back!)
+  let pres := prs.foldl (init := ∅) fun tot s =>
+    let split := s.splitOn "\n"
+    tot.insert split.head!.getNats[0]! (sparseGrid split.tail.toArray (· == '#'))
+  (sts.splitOn "\n").foldl (init := ∅) fun tot n =>
+    let (dims, grsString) := match n.splitOn ": " with
+      | [dims, w] => (dims, w)
+      | _ => panic s!"'{n}' does not contain a single ': '!"
+    let (h, w) := match dims.getNats with
+      | [h, w] => (h, w)
+      | _ => panic s!"'{dims}' does not contain two nats!"
+    let nums := grsString.getNats
+    tot.push <|
+    { h := h
+      w := w
+      pres := pres
+      grs := HashMap.ofList <| (List.range nums.length).zipWith (·, ·) nums
+      }
+
+structure region where
+  h : Nat
+  w : Nat
+  sh : HashSet pos
+
+structure state where
+  shapes : HashMap Nat (HashSet pos)
+  grs : HashMap Nat region
+  deriving Inhabited
+
+def inputToRegion (dat : Array String) : region :=
+  let (h, w) := match dat[0]!.getNats with
+    | [a, b] => (a, b)
+    | _ => panic s!"{dat[0]!} does not consist of two nats!"
+  { h := h
+    w := w
+    sh := sparseGrid (dat.drop 1) (· == '#') }
+
+
+
+def inputToState (dat : String) : Array state :=
+  let parts := dat.splitOn "\n\n" |>.toArray
+  let (rs, grs) := (parts.pop, parts.back!)
+  let regions := rs.foldl
+  { shapes := default
+    }
+
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := sorry
 --def part1 (dat : String) : Nat := sorry
