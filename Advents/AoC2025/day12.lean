@@ -93,14 +93,32 @@ def inputToState (dat : String) : Array state :=
       grs := HashMap.ofList <| (List.range nums.length).zipWith (·, ·) nums
       }
 
+def totArea (s : state) : Nat :=
+  s.grs.fold (init := 0) fun tot i n => tot + n * ((s.pres.get? i).getD default).size
+
 #eval do
   let dat := test
+  let dat := (← IO.FS.readFile input).trimRight
   let tot := inputToState dat
   let pres := tot.back!.pres
   let lefts : Array (Array (Nat × Nat)) := tot.foldl (init := #[]) fun ts (n : state) => (ts.push n.grs.toArray)
-  dbg_trace String.intercalate "\n\n" (lefts.map fun (as : Array (Nat × Nat)) => (s!"{as.map (Prod.snd ·)}")).toList
-  dbg_trace String.intercalate "\n\n" ((pres.toArray.qsort (·.1 < ·.1)).map fun ((i, p) : Nat × present) => s!"{i}\n{p}").toList
-
+  --dbg_trace String.intercalate "\n\n" (lefts.map fun (as : Array (Nat × Nat)) => (s!"{as.map (Prod.snd ·)}")).toList
+  --dbg_trace String.intercalate "\n\n" ((pres.toArray.qsort (·.1 < ·.1)).map fun ((i, p) : Nat × present) => s!"{i}\n{p}").toList
+  let mut (ok, maybe, no) := (0, 0, 0)
+  for s in tot do
+    let obv := (s.h / 3) * (s.w / 3)
+    let want := s.grs.fold (fun n _ v => n + v) 0
+    if want ≤ obv
+    then
+      ok := ok + 1
+      --dbg_trace "Ok"
+    else
+    if s.h * s.w < totArea s then
+      no := no + 1
+    else
+      maybe := maybe + 1
+    --dbg_trace "{s}\nSize: {(s.h, s.w)}, obvious: {obv}, want: {want}\n"
+  dbg_trace "(ok, maybe, no) = ({ok}, {maybe}, {no})"
 structure region where
   h : Nat
   w : Nat
