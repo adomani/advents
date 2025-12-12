@@ -49,14 +49,19 @@ def test := "0:
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/-- A `present` is the `HashSet` of `pos`itions that it occupies in a `3 × 3` grid. -/
 abbrev present := HashSet pos
 
-def inputToPresent (dat : Array String) : present :=
-  sparseGrid dat (· == '#')
-
+/-- A convenience function to print information about a `present`. -/
 instance : ToString present where
   toString p := "\n".intercalate (drawSparse p 3 3).toList
 
+/--
+A `state` contains
+* the `h`eight and `w`idth of the rectangle,
+* the assignment `pres` of each index to a `present`,
+* the assignment `grs` of each index to the multiplicity of the corresponding `present`.
+-/
 structure state where
   /-- The height of the `region` -/
   h : Nat
@@ -66,12 +71,13 @@ structure state where
   pres : HashMap Nat present
   /-- `grs` assigns to each index the number of presents of that shape that still need placing -/
   grs : HashMap Nat Nat
-  deriving Inhabited
 
+/-- A convenience function to print information about a `state`. -/
 instance : ToString state where
   toString := fun
     | {h, w, pres, grs} => s!"H&W: {(h, w)}, remaining: {grs.toArray.qsort}"
 
+/-- Converts the input string into an array of `state`s. -/
 def inputToState (dat : String) : Array state :=
   let parts := dat.trimRight.splitOn "\n\n" |>.toArray
   let (prs, sts) := (parts.pop, parts.back!)
@@ -93,32 +99,9 @@ def inputToState (dat : String) : Array state :=
       grs := HashMap.ofList <| (List.range nums.length).zipWith (·, ·) nums
       }
 
+/-- Computes the total area that the presents that should be included in the rectangle occupy. -/
 def totArea (s : state) : Nat :=
   s.grs.fold (init := 0) fun tot i n => tot + n * ((s.pres.get? i).getD default).size
-
-#eval do
-  let dat := test
-  let dat ← IO.FS.readFile input
-  let tot := inputToState dat
-  let pres := tot.back!.pres
-  let lefts : Array (Array (Nat × Nat)) := tot.foldl (init := #[]) fun ts (n : state) => (ts.push n.grs.toArray)
-  --dbg_trace String.intercalate "\n\n" (lefts.map fun (as : Array (Nat × Nat)) => (s!"{as.map (Prod.snd ·)}")).toList
-  --dbg_trace String.intercalate "\n\n" ((pres.toArray.qsort (·.1 < ·.1)).map fun ((i, p) : Nat × present) => s!"{i}\n{p}").toList
-  let mut (ok, maybe, no) := (0, 0, 0)
-  for s in tot do
-    let obv := (s.h / 3) * (s.w / 3)
-    let want := s.grs.fold (fun n _ v => n + v) 0
-    if want ≤ obv
-    then
-      ok := ok + 1
-      --dbg_trace "Ok"
-    else
-    if s.h * s.w < totArea s then
-      no := no + 1
-    else
-      maybe := maybe + 1
-    --dbg_trace "{s}\nSize: {(s.h, s.w)}, obvious: {obv}, want: {want}\n"
-  dbg_trace "(ok, maybe, no) = ({ok}, {maybe}, {no})"
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : String) : Nat := Id.run do
