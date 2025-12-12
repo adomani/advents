@@ -54,6 +54,9 @@ abbrev present := HashSet pos
 def inputToPresent (dat : Array String) : present :=
   sparseGrid dat (· == '#')
 
+instance : ToString present where
+  toString p := "\n".intercalate (drawSparse p 3 3).toList
+
 structure state where
   /-- The height of the `region` -/
   h : Nat
@@ -64,6 +67,10 @@ structure state where
   /-- `grs` assigns to each index the number of presents of that shape that still need placing -/
   grs : HashMap Nat Nat
   deriving Inhabited
+
+instance : ToString state where
+  toString := fun
+    | {h, w, pres, grs} => s!"H&W: {(h, w)}, remaining: {grs.toArray.qsort}"
 
 def inputToState (dat : String) : Array state :=
   let parts := dat.splitOn "\n\n" |>.toArray
@@ -85,6 +92,12 @@ def inputToState (dat : String) : Array state :=
       pres := pres
       grs := HashMap.ofList <| (List.range nums.length).zipWith (·, ·) nums
       }
+
+#eval do
+  let dat := test
+  let tot := inputToState dat
+  let pres := tot.back!.pres
+  dbg_trace String.intercalate "\n\n" ((pres.toArray.qsort (·.1 < ·.1)).map fun ((i, p) : Nat × present) => s!"{i}\n{p}").toList
 
 structure region where
   h : Nat
