@@ -73,7 +73,7 @@ instance : ToString state where
     | {h, w, pres, grs} => s!"H&W: {(h, w)}, remaining: {grs.toArray.qsort}"
 
 def inputToState (dat : String) : Array state :=
-  let parts := dat.splitOn "\n\n" |>.toArray
+  let parts := dat.trimRight.splitOn "\n\n" |>.toArray
   let (prs, sts) := (parts.pop, parts.back!)
   let pres := prs.foldl (init := ∅) fun tot s =>
     let split := s.splitOn "\n"
@@ -98,7 +98,7 @@ def totArea (s : state) : Nat :=
 
 #eval do
   let dat := test
-  let dat := (← IO.FS.readFile input).trimRight
+  let dat ← IO.FS.readFile input
   let tot := inputToState dat
   let pres := tot.back!.pres
   let lefts : Array (Array (Nat × Nat)) := tot.foldl (init := #[]) fun ts (n : state) => (ts.push n.grs.toArray)
@@ -119,51 +119,34 @@ def totArea (s : state) : Nat :=
       maybe := maybe + 1
     --dbg_trace "{s}\nSize: {(s.h, s.w)}, obvious: {obv}, want: {want}\n"
   dbg_trace "(ok, maybe, no) = ({ok}, {maybe}, {no})"
-structure region where
-  h : Nat
-  w : Nat
-  sh : HashSet pos
-
-structure state where
-  shapes : HashMap Nat (HashSet pos)
-  grs : HashMap Nat region
-  deriving Inhabited
-
-def inputToRegion (dat : Array String) : region :=
-  let (h, w) := match dat[0]!.getNats with
-    | [a, b] => (a, b)
-    | _ => panic s!"{dat[0]!} does not consist of two nats!"
-  { h := h
-    w := w
-    sh := sparseGrid (dat.drop 1) (· == '#') }
-
-
-
-def inputToState (dat : String) : Array state :=
-  let parts := dat.splitOn "\n\n" |>.toArray
-  let (rs, grs) := (parts.pop, parts.back!)
-  let regions := rs.foldl
-  { shapes := default
-    }
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
-def part1 (dat : Array String) : Nat := sorry
---def part1 (dat : String) : Nat := sorry
+def part1 (dat : String) : Nat := Id.run do
+  let tot := inputToState dat
+  -- `ok` counts the rectangles where the shapes fit in disjoint `3 × 3` blocks
+  -- `no` counts the rectangles where the total area of the shapes exceeds the area of the rectangle
+  -- `maybe` are the rest
+  let mut (ok, maybe, no) := (0, 0, 0)
+  for s in tot do
+    let obv := (s.h / 3) * (s.w / 3)
+    let want := s.grs.fold (fun n _ v => n + v) 0
+    if want ≤ obv
+    then
+      ok := ok + 1
+    else
+    if s.h * s.w < totArea s then
+      no := no + 1
+    else
+      maybe := maybe + 1
+  -- `maybe = 0` means that every rectangle can either be trivially filled or is too small
+  if maybe == 0 then
+    return ok
+  else
+    panic "I don't know!"
 
+-- This is commented, since the example is *not* trivially decided!
 --#assert part1 atest == ???
 
---set_option trace.profiler true in solve 1
-
-/-!
-#  Question 2
--/
-
-/-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
-def part2 (dat : Array String) : Nat := sorry
---def part2 (dat : String) : Nat :=
-
---#assert part2 atest == ???
-
---set_option trace.profiler true in solve 2
+set_option trace.profiler true in solve 1 410 file
 
 end AoC2025_Day12
