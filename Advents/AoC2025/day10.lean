@@ -116,6 +116,50 @@ def part1 (dat : Array String) : Nat := Id.run do
 In part 2, we should do something similar, but adding to joltages, instead of flipping switches.
 -/
 
+/--
+Uses the array `bs` as the "characteristic function" of an array of size `n` and returns that array.
+-/
+def toCoeff (bs : Array Nat) (n : Nat) : Array Nat :=
+  (Array.range n).foldl (init := #[]) (·.push <| if · ∈ bs then 1 else 0)
+
+#guard toCoeff #[] 4 == #[0, 0, 0, 0]
+#guard toCoeff #[1, 3] 4 == #[0, 1, 0, 1]
+
+def findMin (bs : Array (Array Nat)) (js : Array Nat) : Nat := Id.run do
+  let bs := (bs.qsort (·.size < ·.size)).map (toCoeff · js.size)
+  --dbg_trace bs
+  let mut coeffs := #[]
+  let mut coeff := #[]
+  let mut fin := js
+  for i in [:js.size] do
+    for ci in [:4] do
+      coeff := coeff.push ci
+    coeffs := coeffs.push coeff
+  dbg_trace coeffs
+  return default
+
+#eval do
+  let dat ← IO.FS.lines input
+  let dat := atest
+  let ms := inputToM dat
+  let mut tot := 0
+  for s in ms do
+    dbg_trace "{s.js.size} {s.bs.size}"
+    dbg_trace "{findMin s.bs s.js}"
+    --dbg_trace "{s.js.size} {s.js}\n{s.bs.size} {s.bs}\n"
+    if false then
+    let mut h : HashSet state := {s}
+    let mut found := false
+    while !found do
+      h := step h
+      for a in h do
+        found := found || a.ls.all (!·)
+        if found then
+          tot := tot + a.con
+          break
+  return tot
+
+
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
 --def part2 (dat : String) : Nat :=
