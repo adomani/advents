@@ -320,3 +320,137 @@ but the rectangle must be entirely contained in the interior of the path.
 [Solution in Lean](day09.lean)
 
 ---
+
+#  [Day 10](https://adventofcode.com/2025/day/10)
+
+The inputs are switches to flips, patterns for flipping and joltages.
+
+####  Test
+
+<pre>
+[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
+[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
+[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}
+</pre>
+
+### Description
+
+#### Part 1
+
+In part 1, we should determine the minimum number of flips in patterns that take us from all switches being off to creating the input pattern.
+
+We need to return the total minimum number of required switches.
+
+#### Part 2
+
+In part 2, we should do something similar, but adding to joltages, instead of flipping switches.
+
+[Solution in Lean](day10.lean)
+
+---
+
+#  [Day 11](https://adventofcode.com/2025/day/11)
+
+Flowing through the server rack
+
+####  Test 1
+
+<pre>
+aaa: you hhh
+you: bbb ccc
+bbb: ddd eee
+ccc: ddd eee fff
+ddd: ggg
+eee: out
+fff: out
+ggg: out
+hhh: ccc fff iii
+iii: out
+</pre>
+
+####  Test 2
+
+<pre>
+svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
+ggg: out
+hhh: out
+</pre>
+
+### Description
+
+#### Part 1
+
+In part 1, we count the paths from `you` to `out`.
+
+#### Part 2
+
+In part 2, we count the paths from `svr` to `out` that go through both `dac` and `fft`,
+in some order.
+
+[Solution in Lean](day11.lean)
+
+---
+
+#  [Day 12](https://adventofcode.com/2025/day/12)
+
+Arranging weirdly shaped presents in rectangles
+
+####  Test
+
+<pre>
+0:
+###
+##.
+##.
+
+1:
+###
+##.
+.##
+
+2:
+.##
+###
+##.
+
+3:
+##.
+###
+##.
+
+4:
+###
+#..
+###
+
+5:
+###
+.#.
+###
+
+4x4: 0 0 0 0 2 0
+12x5: 1 0 1 0 2 2
+12x5: 1 0 1 0 3 2
+</pre>
+
+### Description
+
+#### Part 1
+
+Determine how many of the rectangles can be filled in by the given numbers of each kind of presents.
+
+There is no part 2!
+
+[Solution in Lean](day12.lean)
+
+---

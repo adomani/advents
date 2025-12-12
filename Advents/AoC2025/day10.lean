@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+The inputs are switches to flips, patterns for flipping and joltages.
+-/
+
 namespace AoC2025_Day10
 
 open System in
@@ -9,6 +13,10 @@ def input : FilePath := ("Advents"/"AoC2025"/"day10" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+In part 1, we should determine the minimum number of flips in patterns that take us from all switches being off to creating the input pattern.
+
+We need to return the total minimum number of required switches.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -19,41 +27,46 @@ def test := "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
-structure machine where
+/--
+The state to keep track of the data of the problem.
+
+* `ls` is the array of light switches -- they can be on or off;
+* `bs` is the array of configurations that can be toggled simultaneously;
+* `js` is the array of joltages;
+* `con` is the number of elapsed steps.
+-/
+structure state where
+  /-- `ls` is the array of light switches -- they can be on or off -/
   ls : Array Bool
+  /-- `bs` is the array of configurations that can be toggled simultaneously -/
   bs : Array (Array Nat)
+  /-- `js` is the array of joltages -/
   js : Array Nat
-  ons : Array Bool
-  jons : Array Nat
+  /-- `con` is the number of elapsed steps -/
+  con : Nat
   deriving Inhabited, BEq, Hashable
 
-instance : ToString machine where
+/-- A convenience instance to print a `state`. -/
+instance : ToString state where
   toString := fun
-    | {ls := l, bs := b, js := j, ons := os, jons := jons} => s!"current: {l}\n{b}\n{j}\ntargets: {os} {jons}"
+    | {ls := l, bs := b, js := _j, con := c} => s!"current: {l}\n{b}\n{c}"
 
-def inputToM (dat : Array String) : Array machine :=
+/-- Convert the input into an array of `state`s. -/
+def inputToM (dat : Array String) : Array state :=
   dat.foldl (init := #[]) fun tot s => tot.push <|
   let i1 := s.takeWhile (· != '(') |>.drop 1 |>.dropRight 2
   let r2 := s.dropWhile (· != '(')
   let i2 := r2.takeWhile (· != '{')
   let i3 := r2.dropWhile (· != '{')
-  let ons := i1.foldl (init := #[]) fun tot s => tot.push (s == '#')
-  let js := i3.getNats.toArray
-  { ls := ons.map fun _ => false
-    bs := (i2.splitOn " ").foldl (init := #[]) (·.push <| ·.getNats.toArray) |>.pop
-    js := js.map fun _ => 0
-    ons := ons
-    jons := js }
+  let ons := i1.foldl (·.push <| · == '#') #[]
+  { ls := ons
+    bs := (i2.splitOn " ").foldl (·.push <| ·.getNats.toArray) #[] |>.pop
+    js := i3.getNats.toArray
+    con := 0 }
 
-structure state extends machine where
-  con : Nat
-  deriving Inhabited, BEq, Hashable
-
-instance : ToString state where
-  toString := fun | s@{con := n, ..} => s!"{s.tomachine}\n{n}"
-
+/-- Toggle the switches in `l` occupying the positions in `b`. -/
 def toggleOne (l : Array Bool) (b : Array Nat) : Array Bool :=
-  b.foldl (init := l) fun tot n => tot.modify (n) (!·)
+  b.foldl (·.modify · (!·)) l
 
 #guard
   let l := #[false, true, true, false]
@@ -65,130 +78,43 @@ def toggleOne (l : Array Bool) (b : Array Nat) : Array Bool :=
   let b := #[1, 3]
   toggleOne l b == #[false, false, true, true]
 
-def toggleOneJ (l : Array Nat) (b : Array Nat) : Array Nat :=
-  b.foldl (init := l) fun tot n => tot.modify (n) (· + 1)
+/-- Toggle the light switches of the input `state`, incrementing `con` by `1` as well. -/
+def toggle (m : state) (b : Array Nat) : state :=
+  {m with ls := toggleOne m.ls b, con := m.con + 1}
 
-#guard
-  let l := #[0, 1, 1, 0]
-  let b := #[3]
-  toggleOneJ l b == #[0, 1, 1, 1]
-
-#guard
-  let l := #[0, 1, 1, 0]
-  let b := #[1, 3]
-  toggleOneJ l b == #[0, 2, 1, 1]
-
-def toggle (m : machine) (b : Array Nat) : machine :=
-  {m with ls := toggleOne m.ls b}
-
-def toggleJ (m : machine) (b : Array Nat) : machine :=
-  {m with js := toggleOneJ m.js b}
-
-def MtoS (m : machine) (c : Nat) : state where
-  ls := m.ls --.map fun _ => false
-  bs := m.bs
-  js := m.js
-  ons := m.ons
-  con := c
-  jons := m.jons
-
+/-- Toggle the input `state` in all possible ways, corresponding to all `bs`. -/
 def stepSingle (s : state) : HashSet state :=
-  s.bs.foldl (init := ∅) fun tot n =>
-    tot.insert (MtoS (toggle s.tomachine n) (s.con + 1))
+  s.bs.foldl (·.insert <| toggle s ·) ∅
 
-def stepSingleJ (s : state) : HashSet state :=
-  s.bs.foldl (init := ∅) fun tot n =>
-    let new := MtoS (toggleJ s.tomachine n) (s.con + 1)
-    if (new.js.zipWith (· ≤ · : _ → _ → Bool) s.jons).all (·) then
-      tot.insert new
-    else tot
-
-#eval do
-  let dat := atest
-  let ms := inputToM dat
-  dbg_trace String.intercalate "\n\n" (ms.toList.map (s!"{·}"))
-  dbg_trace "\n"
-  let ⟨ls, bs, js, ons, jons⟩ := ms[0]!
-  dbg_trace ({con := 0, ls := ls, bs := bs, js := js, ons := ons, jons := jons} : state)
-  dbg_trace "\n"
-  for m in stepSingleJ (MtoS ms[0]! 0) do
-    dbg_trace m
-
+/-- Toggle all entries of `h` in all possible ways. -/
 def step (h : HashSet state) : HashSet state :=
-  h.fold (init := ∅) (·.union <| stepSingle ·)
-
-def stepJ (h : HashSet state) : HashSet state :=
-  h.fold (init := ∅) (·.union <| stepSingleJ ·)
+  h.fold (·.union <| stepSingle ·) ∅
 
 /-- `part1 dat` takes as input the input of the problem and returns the solution to part 1. -/
 def part1 (dat : Array String) : Nat := Id.run do
   let ms := inputToM dat
   let mut tot := 0
-  let mut cache : HashMap (Array Nat) Nat := ∅
-  for m in ms do
-    let s := MtoS m 0
+  for s in ms do
     let mut h : HashSet state := {s}
-    let mut con := 0
     let mut found := false
-    while !found && con ≤ 130 do
-      con := con + 1
-      for m1 in h do
-        let cached := cache.filter fun c _ => (c == m1.jons.zipWith (· - ·) m1.js)
-        if cached.isEmpty then
-      h := stepJ h
+    while !found do
+      h := step h
       for a in h do
-        found := found || a.js == a.jons
+        found := found || a.ls.all (!·)
         if found then
-          dbg_trace "{found} {a.con}"
           tot := tot + a.con
           break
-  tot
+  return tot
 
--- 389 too low
-#assert part1 atest == 33
+#assert part1 atest == 7
 
 --set_option trace.profiler true in solve 1 396
 
 /-!
 #  Question 2
+
+In part 2, we should do something similar, but adding to joltages, instead of flipping switches.
 -/
-
-
-set_option trace.profiler true in
-#eval do
-  --if false then
-  let dat ← IO.FS.lines input
-  let dat := atest
-  let ms := inputToM dat
-  --dbg_trace String.intercalate "\n\n" (ms.toList.map (s!"{·}"))
-  --dbg_trace "\n"
-  --let ⟨ls, bs, js, ons⟩ := ms[0]!
-  --dbg_trace ({con := 0, ls := ls, bs := bs, js := js, ons := ons} : state)
-  --dbg_trace "\n"
-  --let s := MtoS ms[0]! 0
-  let mut tot := 0
-  for m in ms do
-    let s := MtoS m 0
-    --dbg_trace "\n**New" -- {s}"
-    let mut h : HashSet state := {s}
-    let mut con := 0
-    let mut found := false
-    while !found do
-      con := con + 1
-      h := step h
-      for a in h do
-        --dbg_trace a
-        found := found || a.ls == a.ons
-        if found then
-          tot := tot + a.con
-          dbg_trace "found at {a.con}" -- {a}"
-          --dbg_trace "\n"
-          break
-  dbg_trace "total: {tot}"
-
---  match s.splitOn " " with
---  | [l, b, j] => default
---  | _ => default
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
