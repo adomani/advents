@@ -164,3 +164,13 @@ In part 1, we count the paths from `you` to `out`.
 
 In part 2, we count the paths from `svr` to `out` that go through both `dac` and `fft`,
 in some order.
+-- Day 12
+Arranging weirdly shaped presents in rectangles
+
+### Description
+
+#### Part 1
+
+Determine how many of the rectangles can be filled in by the given numbers of each kind of presents.
+
+There is no part 2!

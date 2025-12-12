@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+Arranging weirdly shaped presents in rectangles
+-/
+
 namespace AoC2025_Day12
 
 open System in
@@ -9,6 +13,10 @@ def input : FilePath := ("Advents"/"AoC2025"/"day12" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+Determine how many of the rectangles can be filled in by the given numbers of each kind of presents.
+
+There is no part 2!
 -/
 
 /-- `test` is the test string for the problem. -/
