@@ -97,6 +97,8 @@ def inputToState (dat : String) : Array state :=
   let dat := test
   let tot := inputToState dat
   let pres := tot.back!.pres
+  let lefts : Array (Array (Nat × Nat)) := tot.foldl (init := #[]) fun ts (n : state) => (ts.push n.grs.toArray)
+  dbg_trace String.intercalate "\n\n" (lefts.map fun (as : Array (Nat × Nat)) => (s!"{as.map (Prod.snd ·)}")).toList
   dbg_trace String.intercalate "\n\n" ((pres.toArray.qsort (·.1 < ·.1)).map fun ((i, p) : Nat × present) => s!"{i}\n{p}").toList
 
 structure region where
