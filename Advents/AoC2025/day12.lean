@@ -116,7 +116,7 @@ def part1 (dat : String) : Nat := Id.run do
   let tot := inputToState dat
   -- `ok` counts the rectangles where the shapes fit in disjoint `3 × 3` blocks
   -- `no` counts the rectangles where the total area of the shapes exceeds the area of the rectangle
-  -- `maybe` are the rest
+  -- `maybe` counts the remaining rectangles
   let mut (ok, maybe, no) := (0, 0, 0)
   for s in tot do
     let obv := (s.h / 3) * (s.w / 3)
