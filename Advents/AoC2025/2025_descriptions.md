@@ -11,3 +11,4 @@
 | [9](2025_descriptions_with_tests.md#day-9)   | The input are the coordinates of the red tiles.                                                     |
 | [10](2025_descriptions_with_tests.md#day-10) | The inputs are switches to flips, patterns for flipping and joltages.                               |
 | [11](2025_descriptions_with_tests.md#day-11) | Flowing through the server rack                                                                     |
+| [12](2025_descriptions_with_tests.md#day-12) | Arranging weirdly shaped presents in rectangles                                                     |
