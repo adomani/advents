@@ -38,3 +38,5 @@
 
 ### 2025
 * Day 8: both parts are slow, the first one is only sped up by a hard-coded answer.
+* Day 9, part 2: missing -- finding rectangles in the interior of a region.
+* Day 10: document part 1, add missing part 2 on flipping booleans and increasing nats.

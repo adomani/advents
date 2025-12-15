@@ -123,3 +123,54 @@ Now, we should add all edges, from the shortest to the largest, until the graph 
 connected component.
 Once that happens, we should report the product of the `x`-coordinates of the last edge that was
 added.
+-- Day 9
+The input are the coordinates of the red tiles.
+
+### Description
+
+#### Part 1
+
+In part 1, we should determine the largest area of a rectangle with two opposite corners
+on the red tiles.
+
+#### Part 2
+
+In part 2, we should still find the largest rectangle with opposite vertices on the red tiles,
+but the rectangle must be entirely contained in the interior of the path.
+-- Day 10
+The inputs are switches to flips, patterns for flipping and joltages.
+
+### Description
+
+#### Part 1
+
+In part 1, we should determine the minimum number of flips in patterns that take us from all switches being off to creating the input pattern.
+
+We need to return the total minimum number of required switches.
+
+#### Part 2
+
+In part 2, we should do something similar, but adding to joltages, instead of flipping switches.
+-- Day 11
+Flowing through the server rack
+
+### Description
+
+#### Part 1
+
+In part 1, we count the paths from `you` to `out`.
+
+#### Part 2
+
+In part 2, we count the paths from `svr` to `out` that go through both `dac` and `fft`,
+in some order.
+-- Day 12
+Arranging weirdly shaped presents in rectangles
+
+### Description
+
+#### Part 1
+
+Determine how many of the rectangles can be filled in by the given numbers of each kind of presents.
+
+There is no part 2!

@@ -1,6 +1,10 @@
 import Advents.Utils
 open Std
 
+/-!
+The input are the coordinates of the red tiles.
+-/
+
 namespace AoC2025_Day09
 
 open System in
@@ -9,6 +13,9 @@ def input : FilePath := ("Advents"/"AoC2025"/"day09" : FilePath).withExtension "
 
 /-!
 #  Question 1
+
+In part 1, we should determine the largest area of a rectangle with two opposite corners
+on the red tiles.
 -/
 
 /-- `test` is the test string for the problem. -/
@@ -29,20 +36,15 @@ def test := "7,1
 .6→→→→7...↑
 ......↓...↑
 ......0→→→1
-
-......#←←←#
-......↓...↑
-.#←←←←#...↑
-.↓........↑
-.#→→→→→→@.↑
-........↓.↑
-........#→#
 -/
 
 
 /-- `atest` is the test string for the problem, split into rows. -/
 def atest := (test.splitOn "\n").toArray
 
+/--
+Converts the input to the `HashSet` of positions of the red tiles.
+-/
 def inputToPos (dat : Array String) : HashSet pos :=
   dat.foldl (init := ∅) fun tot s => match s.getNats with | [x, y] => tot.insert (x, y) | _ => tot
 
@@ -65,6 +67,9 @@ set_option trace.profiler true in solve 1 4767418746
 
 /-!
 #  Question 2
+
+In part 2, we should still find the largest rectangle with opposite vertices on the red tiles,
+but the rectangle must be entirely contained in the interior of the path.
 -/
 
 def inputToArray (dat : Array String) : Array pos :=
@@ -272,6 +277,8 @@ def crosses (a b v w : pos) : Bool :=
   dbg_trace maxArea
   --dbg_trace (maxArea, areas.toArray.qsort)
   --draw <| drawSparse shifted ((My - my + 1).toNat + 2) ((Mx - mx + 1).toNat + 2)
+
+#exit
 
 /-- `part2 dat` takes as input the input of the problem and returns the solution to part 2. -/
 def part2 (dat : Array String) : Nat := sorry
