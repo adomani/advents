@@ -186,10 +186,7 @@ Assuming that `ab` is vertical, `vw` is horizontal,
 returns `true` if the segment  `ab` crosses the segment `vw` internally.
 -/
 def vertHor (a b v w : pos) : Bool :=
-    -- the common `y`-coordinate of `vw` is strictly between the `y`-coordinates of `ab`.
-    min a.2 b.2 < v.2 && v.2 < max a.2 b.2 &&
-    -- and similarly with the roles reversed.
-    min v.1 w.1 < a.1 && a.1 < max v.1 v.1
+    inter a b v w |>.isSome
 
 def crosses (a b v w : pos) : Bool :=
   -- `ab` is vertical, `vw` is horizontal
@@ -202,6 +199,18 @@ def crosses (a b v w : pos) : Bool :=
   else
     false
 
+
+/--
+Assuming that `ab` is vertical, `vw` is horizontal, `inward` is the inward pointing direction
+returns `true` if the segment  `ab` crosses the segment `vw` internally.
+-/
+def enters (a b v w inward : pos) : Bool :=
+  -- check that `ab` starts internally to `vw`
+  a.1 == v.2 && -- assumed: `a.1 == b.1` and `v.2 == w.2`
+    (min v.1 w.1 < a.1 && a.1 < max v.1 w.1) &&
+  -- check that `ab` points in the same direction as `inward`
+  (b.2 - a.2).sign == inward.2.sign
+
 instance : HDiv pos Nat pos where
   hDiv := fun (l, r) n => (l / n, r / n)
 
@@ -211,10 +220,13 @@ instance : HDiv pos Nat pos where
   let gr := inputToArray dat
   let bc := gr.foldl (init := (0, 0)) (· + ·)
   let center : pos := (bc.1/gr.size, bc.2/gr.size)
-  let red := 500
+  let red := 1500
   let sizes := (10 ^ 5) / red
   let shrink : HashSet pos := gr.foldl (init := ∅) (·.insert <| · / red)
-  draw <| drawSparse shrink sizes sizes
+  --draw <| drawSparse shrink sizes sizes
+  let shrink : HashMap pos Nat := gr.foldl (init := ∅) fun tot n =>
+    tot.alter (n / red) fun c => some (c.getD 0 + 1) --<| · / red
+  draw <| drawHash shrink sizes sizes
   dbg_trace "Barycenter: {bc} → {center}"
 #exit
   let mut gr' := gr
