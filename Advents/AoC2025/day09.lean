@@ -117,17 +117,17 @@ Checks that the coordinate of `v` is inside of the range determined
 by the non-equal coordinate of `v0` and `v1`.
 -/
 def inRange (a b v : pos) : Bool :=
-  dbg_trace "inRange {a} {b} {v}"
+  --dbg_trace "inRange {a} {b} {v}"
   if a.1 == b.1
   then
-    dbg_trace "{v} fst coord eq {v.2} ∈ [{min a.2 b.2}, {max a.2 b.2}]"
+    --dbg_trace "{v} fst coord eq {v.2} ∈ [{min a.2 b.2}, {max a.2 b.2}]"
     let res := min a.2 b.2 < v.2 && v.2 < max a.2 b.2
-    dbg_trace "{res}\n"
+    --dbg_trace "{res}\n"
     res
   else
-    dbg_trace "{v} snd coord eq {v.1} ∈ [{min a.1 b.1}, {max a.1 b.1}]"
+    --dbg_trace "{v} snd coord eq {v.1} ∈ [{min a.1 b.1}, {max a.1 b.1}]"
     let res := min a.1 b.1 < v.1 && v.1 < max a.1 b.1
-    dbg_trace "{res}\n"
+    --dbg_trace "{res}\n"
     res
 
 /--
@@ -158,13 +158,13 @@ def isPos (v0 v1 v : pos) : Bool :=
 def cond (v0 v1 v : pos) : Bool :=
   let l := ! inRange v0 v1 v
   let r := isPos v0 v1 v
-  dbg_trace "(rg, pos) = {(l, r)}"
+  --dbg_trace "(rg, pos) = {(l, r)}"
   l || r
 
 def condSquare (vs : Array pos) (v w : pos) : Bool :=
   (Array.range vs.size).all fun i =>
   let v0 := vs[i]!
-  let v1 := vs[i + 1]!
+  let v1 := vs[(i + 1) % vs.size]!
   cond v0 v1 v &&
     cond v0 v1 w &&
     cond v0 v1 (v.1, w.2) &&
@@ -202,15 +202,26 @@ def crosses (a b v w : pos) : Bool :=
   else
     false
 
+instance : HDiv pos Nat pos where
+  hDiv := fun (l, r) n => (l / n, r / n)
+
 #eval do
-  let dat ← IO.FS.lines input
   let dat := atest
+  let dat ← IO.FS.lines input
   let gr := inputToArray dat
+  let bc := gr.foldl (init := (0, 0)) (· + ·)
+  let center : pos := (bc.1/gr.size, bc.2/gr.size)
+  let red := 500
+  let sizes := (10 ^ 5) / red
+  let shrink : HashSet pos := gr.foldl (init := ∅) (·.insert <| · / red)
+  draw <| drawSparse shrink sizes sizes
+  dbg_trace "Barycenter: {bc} → {center}"
+#exit
   let mut gr' := gr
   for v in gr do
     gr' := gr'.drop 1
     for w in gr' do
-      dbg_trace "{v} {w} {condSquare gr v w}\n"
+      dbg_trace "{v} {w} {condSquare gr v w}"
   let (xs, ys) := gr.unzip
   let mx := xs.foldl min (xs[0]!)
   let withMin := gr.filter (Prod.fst · == mx)
