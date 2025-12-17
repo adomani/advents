@@ -305,24 +305,26 @@ def draws (ar : Array String) : IO Unit := do
     IO.println s!"|{i}|"
   IO.println <| sep
 
-/-- a utility function to display arrays of strings.
+/--
+A utility function to display arrays of strings.
 It assumes that the strings all have the same length,
 it also surrounds the data with vertical bars and
-a primitive row/column count, displaying the last
-digit of each row/column.
+a primitive row/column count, displaying the full row
+count and the last digit of each column.
 -/
 def draw (s : Array String) : IO Unit := do
   let width := s[0]!.length
-  let length := s.size
+  let length := (Nat.toDigits 10 s.size).length
 
   let ns := String.ofList <| (List.range width).map fun n =>
     (Nat.toDigits 10 n).getLast!
-  let pns := (if (10 < length) then " " else "") ++ "--" ++ ns ++ "-"
+  let pns := (.ofList <| .replicate (length + 1) '_') ++ ns.push '_'
   IO.println pns
   for i in [:s.size] do
-    let pad := (if (10 < length ∧ i < 10) then " " else "") ++ String.ofList (Nat.toDigits 10 i)
+    let digits := Nat.toDigits 10 i
+    let pad := String.ofList <| digits.leftpad length ' '
     IO.println s!"{pad}|{s[i]!}|"
-  IO.println s!"{pns}\n"
+  IO.println s!"{pns.replace "_" "¯"}\n"
 
 /-- `toPic gr Nx Ny` takes as input
 * an array of positions `gr`;
