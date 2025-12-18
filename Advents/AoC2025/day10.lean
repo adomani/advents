@@ -108,7 +108,8 @@ def part1 (dat : Array String) : Nat := Id.run do
 
 #assert part1 atest == 7
 
-set_option trace.profiler true in solve 1 396
+-- take about 12s
+solve 1 396
 
 /-!
 #  Question 2

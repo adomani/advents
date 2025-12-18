@@ -63,7 +63,7 @@ def part1 (dat : Array String) : Nat := Id.run do
 
 #assert part1 atest == 50
 
-set_option trace.profiler true in solve 1 4767418746
+solve 1 4767418746
 
 /-!
 #  Question 2
