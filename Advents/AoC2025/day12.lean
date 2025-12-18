@@ -138,6 +138,6 @@ def part1 (dat : String) : Nat := Id.run do
 -- This is commented, since the example is *not* trivially decided!
 --#assert part1 atest == ???
 
-set_option trace.profiler true in solve 1 410 file
+solve 1 410 file
 
 end AoC2025_Day12
